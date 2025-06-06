@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -179,13 +178,13 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             <Button
               variant="ghost"
               onClick={onBack}
-              className="text-corporate-blue hover:bg-corporate-blue/10"
+              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-              Bills under Export LC - Field Specification (Pre-check Submission)
+              Bills under Export LC Management
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -193,18 +192,10 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               variant="ghost"
               size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="text-corporate-blue hover:bg-corporate-blue/10"
+              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
               title="Toggle Fullscreen"
             >
               <Maximize2 className="w-5 h-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-corporate-blue hover:bg-corporate-blue/10"
-              title="Document Upload"
-            >
-              <Upload className="w-5 h-5" />
             </Button>
             {!isFullscreen && (
               <button
@@ -259,16 +250,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 
           {/* Main content */}
           <div className="flex-1 p-6 space-y-8">
-            {/* Section 1: Submission Type and Export LC Selection */}
+            {/* Submission Type and Export LC Selection */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-blue">
-                  Section 1: Submission Type and Export LC Selection
+                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
+                  Submission Type and Export LC Selection
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="submissionType">Submission Type * (SWIFT: :27:)</Label>
+                  <Label htmlFor="submissionType">Submission Type *</Label>
                   <Select value={formData.submissionType} onValueChange={(value) => handleInputChange('submissionType', value)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -281,7 +272,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="submissionReference">Submission Reference (SWIFT: :20:)</Label>
+                  <Label htmlFor="submissionReference">Submission Reference</Label>
                   <Input
                     id="submissionReference"
                     value={formData.submissionReference}
@@ -292,7 +283,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="submissionDate">Submission Date * (SWIFT: :30:)</Label>
+                  <Label htmlFor="submissionDate">Submission Date *</Label>
                   <Input
                     id="submissionDate"
                     type="date"
@@ -303,7 +294,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lcReference">LC Reference Number * (SWIFT: :21:)</Label>
+                  <Label htmlFor="lcReference">LC Reference Number *</Label>
                   <Select value={formData.lcReference} onValueChange={(value) => handleInputChange('lcReference', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select LC" />
@@ -316,7 +307,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="corporateReference">Corporate Reference Number (SWIFT: :21R:)</Label>
+                  <Label htmlFor="corporateReference">Corporate Reference Number</Label>
                   <Input
                     id="corporateReference"
                     value={formData.corporateReference}
@@ -328,16 +319,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardContent>
             </Card>
 
-            {/* Section 2: LC & Applicant Details */}
+            {/* LC & Applicant Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-blue">
-                  Section 2: LC & Applicant Details
+                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
+                  LC & Applicant Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="applicantName">Applicant Name (SWIFT: :50:)</Label>
+                  <Label htmlFor="applicantName">Applicant Name</Label>
                   <Input
                     id="applicantName"
                     value={formData.applicantName}
@@ -348,7 +339,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="issuingBank">Issuing Bank (SWIFT: :51A:)</Label>
+                  <Label htmlFor="issuingBank">Issuing Bank</Label>
                   <Input
                     id="issuingBank"
                     value={formData.issuingBank}
@@ -359,7 +350,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lcCurrency">LC Currency (SWIFT: :32B:)</Label>
+                  <Label htmlFor="lcCurrency">LC Currency</Label>
                   <Input
                     id="lcCurrency"
                     value={formData.lcCurrency}
@@ -371,7 +362,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lcAmount">LC Amount (SWIFT: :32B:)</Label>
+                  <Label htmlFor="lcAmount">LC Amount</Label>
                   <Input
                     id="lcAmount"
                     value={formData.lcAmount}
@@ -382,7 +373,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lcIssueDate">LC Issue Date (SWIFT: :31C:)</Label>
+                  <Label htmlFor="lcIssueDate">LC Issue Date</Label>
                   <Input
                     id="lcIssueDate"
                     type="date"
@@ -393,7 +384,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place (SWIFT: :31D:)</Label>
+                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place</Label>
                   <div className="flex gap-2">
                     <Input
                       type="date"
@@ -412,16 +403,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardContent>
             </Card>
 
-            {/* Section 3: Drawing Details */}
+            {/* Drawing Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-blue">
-                  Section 3: Drawing Details
+                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
+                  Drawing Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="drawingAmount">Drawing Amount * (SWIFT: :32A:)</Label>
+                  <Label htmlFor="drawingAmount">Drawing Amount *</Label>
                   <Input
                     id="drawingAmount"
                     type="number"
@@ -432,7 +423,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="drawingCurrency">Drawing Currency (SWIFT: :32A:)</Label>
+                  <Label htmlFor="drawingCurrency">Drawing Currency</Label>
                   <Input
                     id="drawingCurrency"
                     value={formData.drawingCurrency}
@@ -443,7 +434,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="tenor">Tenor (Sight/Usance) * (SWIFT: :31A:)</Label>
+                  <Label htmlFor="tenor">Tenor (Sight/Usance) *</Label>
                   <Select value={formData.tenor} onValueChange={(value) => handleInputChange('tenor', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Based on LC terms" />
@@ -456,7 +447,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="tenorDays">Tenor Days (if Usance) (SWIFT: :31A:)</Label>
+                  <Label htmlFor="tenorDays">Tenor Days (if Usance)</Label>
                   <Input
                     id="tenorDays"
                     type="number"
@@ -469,16 +460,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardContent>
             </Card>
 
-            {/* Section 4: Shipment & Transportation Details */}
+            {/* Shipment & Transportation Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-blue">
-                  Section 4: Shipment & Transportation Details
+                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
+                  Shipment & Transportation Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="latestShipmentDate">Latest Shipment Date (SWIFT: :44C:)</Label>
+                  <Label htmlFor="latestShipmentDate">Latest Shipment Date</Label>
                   <Input
                     id="latestShipmentDate"
                     type="date"
@@ -489,7 +480,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="actualShipmentDate">Actual Shipment Date * (SWIFT: :44C:)</Label>
+                  <Label htmlFor="actualShipmentDate">Actual Shipment Date *</Label>
                   <Input
                     id="actualShipmentDate"
                     type="date"
@@ -500,7 +491,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. * (SWIFT: :20:)</Label>
+                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. *</Label>
                   <Input
                     id="billOfLading"
                     value={formData.billOfLading}
@@ -511,7 +502,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="shippingLine">Shipping Line / Airline Name (SWIFT: :44F:)</Label>
+                  <Label htmlFor="shippingLine">Shipping Line / Airline Name</Label>
                   <Input
                     id="shippingLine"
                     value={formData.shippingLine}
@@ -522,7 +513,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="portOfLoading">Port of Loading * (SWIFT: :44E:)</Label>
+                  <Label htmlFor="portOfLoading">Port of Loading *</Label>
                   <Select value={formData.portOfLoading} onValueChange={(value) => handleInputChange('portOfLoading', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Use UN/LOCODE format" />
@@ -535,7 +526,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="portOfDischarge">Port of Discharge * (SWIFT: :44F:)</Label>
+                  <Label htmlFor="portOfDischarge">Port of Discharge *</Label>
                   <Select value={formData.portOfDischarge} onValueChange={(value) => handleInputChange('portOfDischarge', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Required" />
@@ -548,7 +539,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="placeOfDelivery">Place of Delivery (SWIFT: :44F:)</Label>
+                  <Label htmlFor="placeOfDelivery">Place of Delivery</Label>
                   <Select value={formData.placeOfDelivery} onValueChange={(value) => handleInputChange('placeOfDelivery', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Optional" />
@@ -562,11 +553,11 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardContent>
             </Card>
 
-            {/* Section 5: Document Submission Details */}
+            {/* Document Submission Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-blue">
-                  Section 5: Document Submission Details
+                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
+                  Document Submission Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -611,7 +602,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                     <Button 
                       onClick={handleAddCustomDocument}
                       disabled={!formData.customDocumentType.trim()}
-                      className="bg-corporate-blue hover:bg-corporate-blue/90"
+                      className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
                     >
                       Add
                     </Button>
@@ -677,7 +668,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             <div className="flex justify-center gap-4 py-6">
               <Button 
                 onClick={() => handleSubmit('precheck')}
-                className="bg-corporate-blue hover:bg-corporate-blue/90"
+                className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
                 disabled={!formData.declaration}
               >
                 Submit for Pre-check
@@ -685,12 +676,14 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               <Button 
                 variant="outline"
                 onClick={() => handleSubmit('draft')}
+                className="border-corporate-peach-300 text-corporate-peach-600 hover:bg-corporate-peach-50"
               >
                 Save as Draft
               </Button>
               <Button 
                 variant="outline"
                 onClick={() => handleSubmit('template')}
+                className="border-corporate-peach-300 text-corporate-peach-600 hover:bg-corporate-peach-50"
               >
                 Save as Template
               </Button>
@@ -758,7 +751,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             <Button 
               onClick={handleDocumentUpload}
               disabled={!currentDocumentData.type || !currentDocumentData.documentId || !currentDocumentData.documentDate}
-              className="bg-corporate-blue hover:bg-corporate-blue/90"
+              className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
             >
               Upload
             </Button>
@@ -807,7 +800,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             <Button 
               onClick={handleUpdateDocument}
               disabled={!currentDocumentData.documentId || !currentDocumentData.documentDate}
-              className="bg-corporate-blue hover:bg-corporate-blue/90"
+              className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
             >
               Update
             </Button>
