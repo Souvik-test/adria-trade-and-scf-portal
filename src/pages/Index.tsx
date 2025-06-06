@@ -7,14 +7,20 @@ import TopRibbon from '@/components/TopRibbon';
 import Footer from '@/components/Footer';
 import DashboardWidgets from '@/components/DashboardWidgets';
 import ProductSuite from '@/components/ProductSuite';
+import InquiryFunction from '@/components/InquiryFunction';
+import Configuration from '@/components/Configuration';
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // Set dark mode as default
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [loginTime, setLoginTime] = useState('');
-
+  
   useEffect(() => {
+    // Apply dark mode as default when component mounts
+    document.documentElement.classList.add('dark');
+    
+    // Watch for changes in darkMode state
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -51,12 +57,7 @@ const Index = () => {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
       case 'inquiry':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Inquiry Function</h2>
-            <p className="text-gray-600 dark:text-gray-400">Inquiry functionality coming soon...</p>
-          </div>
-        );
+        return <InquiryFunction onBack={() => setActiveMenu('dashboard')} />;
       case 'correspondence':
         return (
           <div className="p-6">
@@ -65,12 +66,7 @@ const Index = () => {
           </div>
         );
       case 'configuration':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Configuration</h2>
-            <p className="text-gray-600 dark:text-gray-400">Configuration settings coming soon...</p>
-          </div>
-        );
+        return <Configuration onBack={() => setActiveMenu('dashboard')} />;
       case 'administration':
         return (
           <div className="p-6">
