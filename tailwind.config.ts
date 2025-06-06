@@ -118,15 +118,64 @@ export default {
 					'100%': {
 						transform: 'rotateY(0deg)'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0'
+					},
+					'100%': {
+						opacity: '1'
+					}
+				},
+				'fade-out': {
+					'0%': {
+						opacity: '1'
+					},
+					'100%': {
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'flip': 'flip 0.6s ease-in-out',
-				'flip-back': 'flip-back 0.6s ease-in-out'
+				'flip-back': 'flip-back 0.6s ease-in-out',
+				'fade-in': 'fade-in 0.3s ease-in-out',
+				'fade-out': 'fade-out 0.3s ease-in-out'
+			},
+			transformStyle: {
+				'preserve-3d': 'preserve-3d',
+			},
+			backfaceVisibility: {
+				'hidden': 'hidden'
+			},
+			rotate: {
+				'y-180': 'rotateY(180deg)',
+				'y-0': 'rotateY(0deg)',
+			},
+			perspective: {
+				'1000': 'perspective(1000px)',
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		function({ addUtilities }) {
+			addUtilities({
+				'.backface-hidden': {
+					'backface-visibility': 'hidden',
+				},
+				'.transform-style-preserve-3d': {
+					'transform-style': 'preserve-3d',
+				},
+				'.perspective-1000': {
+					'perspective': '1000px',
+				},
+				'.rotate-y-180': {
+					'transform': 'rotateY(180deg)',
+				},
+			});
+		},
+	],
 } satisfies Config;
