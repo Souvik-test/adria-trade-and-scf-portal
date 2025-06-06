@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,9 +8,54 @@ const DashboardWidgets: React.FC = () => {
   const [transactionFilter, setTransactionFilter] = useState('all');
   const [productFilter, setProductFilter] = useState('all');
   const [limitFilter, setLimitFilter] = useState('all');
+  const [activeWidgets, setActiveWidgets] = useState<string[]>([
+    'transaction-status', 'products', 'limit', 'lc', 'cash-forecast',
+    'current-assets', 'current-liabilities', 'companies', 'countries', 'banking'
+  ]);
+
+  // Handle dragging
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<string | null>(null);
+  
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
+    setDraggedItem(id);
+    e.currentTarget.classList.add('opacity-50');
+  };
+  
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove('opacity-50');
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+  
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, id: string) => {
+    e.preventDefault();
+    setDragOverItem(id);
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
+    e.preventDefault();
+    if (draggedItem && draggedItem !== targetId) {
+      const newWidgetsOrder = [...activeWidgets];
+      const draggedIndex = newWidgetsOrder.indexOf(draggedItem);
+      const dropIndex = newWidgetsOrder.indexOf(targetId);
+      
+      // Remove dragged item from array
+      newWidgetsOrder.splice(draggedIndex, 1);
+      // Insert at the drop position
+      newWidgetsOrder.splice(dropIndex, 0, draggedItem);
+      
+      setActiveWidgets(newWidgetsOrder);
+    }
+  };
 
   const widgets = [
     {
+      id: 'transaction-status',
       title: 'Transaction Status',
       type: 'chart',
       component: (
@@ -52,6 +97,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'products',
       title: 'Products',
       type: 'pie',
       component: (
@@ -67,7 +113,7 @@ const DashboardWidgets: React.FC = () => {
             </SelectContent>
           </Select>
           <div className="flex items-center justify-center">
-            <PieChart className="w-16 h-16 text-corporate-blue" />
+            <PieChart className="w-16 h-16 text-corporate-peach-500" />
           </div>
           <div className="text-xs space-y-1">
             <div className="flex items-center gap-2">
@@ -87,6 +133,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'limit',
       title: 'Limit',
       type: 'status',
       component: (
@@ -115,6 +162,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'lc',
       title: 'LC',
       type: 'dual',
       component: (
@@ -144,6 +192,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'cash-forecast',
       title: 'Cash Forecast',
       type: 'chart',
       component: (
@@ -176,6 +225,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'current-assets',
       title: 'Current Assets',
       type: 'financial',
       component: (
@@ -202,6 +252,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'current-liabilities',
       title: 'Current Liabilities',
       type: 'financial',
       component: (
@@ -222,38 +273,41 @@ const DashboardWidgets: React.FC = () => {
             </div>
           </div>
           <div className="mt-2">
-            <BarChart3 className="w-full h-8 text-corporate-blue" />
+            <BarChart3 className="w-full h-8 text-corporate-peach-500" />
           </div>
         </div>
       )
     },
     {
+      id: 'companies',
       title: 'No. of Companies',
       type: 'count',
       component: (
         <div className="text-center">
           <div className="text-xs text-gray-600 mb-2">See All</div>
-          <div className="text-4xl font-bold text-corporate-blue mb-2">5</div>
+          <div className="text-4xl font-bold text-corporate-peach-500 mb-2">5</div>
         </div>
       )
     },
     {
+      id: 'countries',
       title: 'No. of Countries',
       type: 'count',
       component: (
         <div className="text-center">
           <div className="text-xs text-gray-600 mb-2">See All</div>
-          <div className="text-4xl font-bold text-corporate-blue mb-2">23</div>
+          <div className="text-4xl font-bold text-corporate-peach-500 mb-2">23</div>
         </div>
       )
     },
     {
+      id: 'banking',
       title: 'Banking Relationships',
       type: 'count',
       component: (
         <div className="text-center">
           <div className="text-xs text-gray-600 mb-2">See All</div>
-          <div className="text-4xl font-bold text-corporate-blue mb-2">8</div>
+          <div className="text-4xl font-bold text-corporate-peach-500 mb-2">8</div>
         </div>
       )
     }
@@ -261,6 +315,7 @@ const DashboardWidgets: React.FC = () => {
 
   const bigWidgets = [
     {
+      id: 'insights',
       title: 'Insights by Watsaxi AI',
       content: (
         <div className="p-4 space-y-2">
@@ -272,23 +327,25 @@ const DashboardWidgets: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2 mt-3">
-            <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded">Liquidate your FD</button>
-            <button className="px-3 py-1 bg-green-500 text-white text-xs rounded">Apply for Credit Limit</button>
+            <button className="px-3 py-1 bg-corporate-peach-400 text-white text-xs rounded hover:bg-corporate-peach-500">Liquidate your FD</button>
+            <button className="px-3 py-1 bg-corporate-peach-600 text-white text-xs rounded hover:bg-corporate-peach-700">Apply for Credit Limit</button>
           </div>
         </div>
       )
     },
     {
+      id: 'news',
       title: 'News & Promotions',
       content: (
         <div className="p-4">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 text-white text-sm">
+          <div className="bg-gradient-to-r from-corporate-peach-500 to-corporate-peach-700 rounded-lg p-3 text-white text-sm">
             <div className="font-semibold">UAE Foreign Trade hit record $517bn in 2024</div>
           </div>
         </div>
       )
     },
     {
+      id: 'notes',
       title: 'Notes',
       content: (
         <div className="p-4 space-y-2">
@@ -311,6 +368,7 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'shortcuts',
       title: 'Composite Shortcuts',
       content: (
         <div className="p-4 space-y-2">
@@ -324,12 +382,13 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
+      id: 'status',
       title: 'Status',
       content: (
         <div className="p-4">
           <div className="text-xs text-gray-600 mb-2">Info</div>
           <div className="flex items-center justify-center">
-            <PieChart className="w-16 h-16 text-corporate-blue" />
+            <PieChart className="w-16 h-16 text-corporate-peach-500" />
           </div>
           <div className="text-xs space-y-1 mt-2">
             <div className="flex items-center gap-2">
@@ -385,14 +444,29 @@ const DashboardWidgets: React.FC = () => {
     }
   ];
 
+  // Filter widgets based on the active list
+  const filteredWidgets = widgets.filter(widget => activeWidgets.includes(widget.id));
+
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Trade Finance Dashboard</h2>
       
       {/* Top Grid - Small Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {widgets.map((widget, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
+        {filteredWidgets.map((widget) => (
+          <Card 
+            key={widget.id}
+            id={widget.id}
+            className={`hover:shadow-lg transition-shadow cursor-move ${
+              dragOverItem === widget.id ? 'border-corporate-peach-500 dark:border-corporate-peach-400' : ''
+            }`}
+            draggable={true}
+            onDragStart={(e) => handleDragStart(e, widget.id)}
+            onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
+            onDragEnter={(e) => handleDragEnter(e, widget.id)}
+            onDrop={(e) => handleDrop(e, widget.id)}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {widget.title}
@@ -407,8 +481,12 @@ const DashboardWidgets: React.FC = () => {
 
       {/* Middle Grid - Large Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {bigWidgets.map((widget, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
+        {bigWidgets.map((widget) => (
+          <Card 
+            key={widget.id}
+            className="hover:shadow-lg transition-shadow cursor-move" 
+            draggable
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {widget.title}
