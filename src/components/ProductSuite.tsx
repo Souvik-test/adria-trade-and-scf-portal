@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft } from 'lucide-react';
+import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe } from 'lucide-react';
 import BillsModal from './BillsModal';
 
 interface ProductSuiteProps {
@@ -44,6 +44,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       title: 'Trade Loan',
       icon: DollarSign,
       description: 'Handle trade financing and loans'
+    },
+    {
+      id: 'e-enablers',
+      title: 'e-Enablers',
+      icon: Globe,
+      description: 'Digital trade enablement solutions',
+      hasFlip: true,
+      flipOptions: ['e-B/L', 'e-Warehouse Receipt (e-W/R)', 'e-Certificate of Origin (e-COO)']
     }
   ];
 
@@ -51,6 +59,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     if (option === 'LC Bills') {
       setShowBillsModal(true);
     }
+  };
+
+  const handleEEnablerClick = (option: string) => {
+    console.log('e-Enabler option clicked:', option);
+    // Handle e-enabler options here
   };
 
   return (
@@ -88,18 +101,18 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                 </CardContent>
               </Card>
 
-              {/* Back of card (for Bills) */}
+              {/* Back of card (for Bills and e-Enablers) */}
               {product.hasFlip && (
                 <Card className="absolute inset-0 backface-hidden rotate-y-180 cursor-pointer">
                   <CardContent className="p-6 flex flex-col justify-center h-full">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
-                      Bill Options
+                      {product.id === 'bills' ? 'Bill Options' : 'e-Enabler Options'}
                     </h3>
                     <div className="space-y-3">
                       {product.flipOptions?.map((option) => (
                         <button
                           key={option}
-                          onClick={() => handleBillsClick(option)}
+                          onClick={() => product.id === 'bills' ? handleBillsClick(option) : handleEEnablerClick(option)}
                           className="w-full p-3 text-left bg-corporate-blue/10 hover:bg-corporate-blue/20 rounded-lg transition-colors"
                         >
                           <span className="text-sm font-medium text-corporate-blue">{option}</span>

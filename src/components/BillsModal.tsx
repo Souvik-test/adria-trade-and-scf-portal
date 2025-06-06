@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Upload, Bot, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, FileText, Upload, Bot, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import ManualBillsForm from './ManualBillsForm';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -11,6 +12,9 @@ interface BillsModalProps {
 const BillsModal: React.FC<BillsModalProps> = ({ onClose }) => {
   const [hoveredBillType, setHoveredBillType] = useState<string | null>(null);
   const [selectedExportOption, setSelectedExportOption] = useState<string | null>(null);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showManualForm, setShowManualForm] = useState(false);
 
   const billTypes = [
     { id: 'import', label: 'Bills under Import LC', description: 'Process import letter of credit bills' },
@@ -68,14 +72,31 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose }) => {
     }
   };
 
+  const handleCardClick = (cardId: string) => {
+    setSelectedCard(cardId);
+  };
+
+  const handleMethodClick = (methodId: string, cardId: string) => {
+    if (isMethodActive(methodId, cardId)) {
+      setSelectedMethod(methodId);
+      if (methodId === 'manual' && cardId === 'present') {
+        setShowManualForm(true);
+      }
+    }
+  };
+
   const isMethodActive = (methodId: string, optionId: string) => {
     const option = exportOptions.find(opt => opt.id === optionId);
     return option?.activeMethods.includes(methodId) || false;
   };
 
+  if (showManualForm) {
+    return <ManualBillsForm onClose={onClose} onBack={() => setShowManualForm(false)} />;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">LC Bills Management</h2>
           <button
@@ -124,7 +145,8 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose }) => {
                   onClick={() => setSelectedExportOption(null)}
                   className="text-corporate-blue hover:bg-corporate-blue/10"
                 >
-                  ← Back
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
                 </Button>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                   Bills under Export LC
@@ -133,10 +155,20 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {exportOptions.map((option) => (
-                  <Card key={option.id} className="hover:shadow-lg transition-shadow">
+                  <Card 
+                    key={option.id} 
+                    className={`cursor-pointer transition-all duration-200 ${
+                      selectedCard === option.id 
+                        ? 'ring-2 ring-corporate-blue bg-corporate-blue/5' 
+                        : 'hover:shadow-lg hover:border-corporate-blue/50'
+                    }`}
+                    onClick={() => handleCardClick(option.id)}
+                  >
                     <CardHeader className="pb-3">
                       <CardTitle className="flex items-center gap-3 text-lg">
-                        <option.icon className="w-6 h-6 text-corporate-blue" />
+                        <option.icon className={`w-6 h-6 ${
+                          selectedCard === option.id ? 'text-corporate-blue' : 'text-gray-600'
+                        }`} />
                         {option.title}
                       </CardTitle>
                     </CardHeader>
@@ -154,38 +186,40 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose }) => {
                   Processing Methods
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {methods.map((method) => (
-                    <Card 
-                      key={method.id} 
-                      className={`transition-all duration-200 ${
-                        exportOptions.some(opt => isMethodActive(method.id, opt.id))
-                          ? 'hover:shadow-lg cursor-pointer border-corporate-blue/30' 
-                          : 'opacity-50 cursor-not-allowed'
-                      }`}
-                    >
-                      <CardContent className="p-6 text-center">
-                        <method.icon className={`w-10 h-10 mx-auto mb-3 ${
-                          exportOptions.some(opt => isMethodActive(method.id, opt.id))
-                            ? 'text-corporate-blue' 
-                            : 'text-gray-400'
-                        }`} />
-                        <h5 className="font-semibold text-gray-800 dark:text-white mb-2">
-                          {method.title}
-                        </h5>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {method.description}
-                        </p>
-                        {exportOptions.some(opt => isMethodActive(method.id, opt.id)) && (
-                          <div className="mt-3 text-xs text-corporate-blue font-medium">
-                            Available for: {exportOptions
-                              .filter(opt => isMethodActive(method.id, opt.id))
-                              .map(opt => opt.title)
-                              .join(', ')}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {methods.map((method) => {
+                    const isActive = selectedCard && isMethodActive(method.id, selectedCard);
+                    return (
+                      <Card 
+                        key={method.id} 
+                        className={`transition-all duration-200 ${
+                          isActive
+                            ? 'hover:shadow-lg cursor-pointer border-corporate-blue/30 hover:bg-corporate-blue/5' 
+                            : 'opacity-50 cursor-not-allowed'
+                        }`}
+                        onClick={() => selectedCard && handleMethodClick(method.id, selectedCard)}
+                      >
+                        <CardContent className="p-6 text-center">
+                          <method.icon className={`w-10 h-10 mx-auto mb-3 ${
+                            isActive ? 'text-corporate-blue' : 'text-gray-400'
+                          }`} />
+                          <h5 className="font-semibold text-gray-800 dark:text-white mb-2">
+                            {method.title}
+                          </h5>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {method.description}
+                          </p>
+                          {selectedCard && isActive && (
+                            <div className="mt-3 text-xs text-corporate-blue font-medium">
+                              Available for: {exportOptions
+                                .filter(opt => opt.id === selectedCard && isMethodActive(method.id, opt.id))
+                                .map(opt => opt.title)
+                                .join(', ')}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -28,6 +28,13 @@ const Index = () => {
     console.log('User logged in successfully');
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setActiveMenu('dashboard');
+    setLoginTime('');
+    console.log('User logged out successfully');
+  };
+
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -36,6 +43,8 @@ const Index = () => {
     setActiveMenu(menuId);
     console.log('Menu clicked:', menuId);
   };
+
+  const isUploadActive = activeMenu !== 'dashboard';
 
   const renderMainContent = () => {
     switch (activeMenu) {
@@ -86,7 +95,12 @@ const Index = () => {
           <div className="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
             <SidebarTrigger className="text-corporate-blue hover:bg-corporate-blue/10" />
             <div className="flex-1">
-              <TopRibbon darkMode={darkMode} onToggleDarkMode={handleToggleDarkMode} />
+              <TopRibbon 
+                darkMode={darkMode} 
+                onToggleDarkMode={handleToggleDarkMode} 
+                onLogout={handleLogout}
+                isUploadActive={isUploadActive}
+              />
             </div>
           </div>
           

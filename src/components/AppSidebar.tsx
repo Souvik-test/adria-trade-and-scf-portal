@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Package, Search, Shield, Settings, User } from 'lucide-react';
 
@@ -46,28 +47,34 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
   return (
-    <Sidebar className="border-r border-gray-200">
+    <Sidebar 
+      className="border-r border-gray-200 transition-all duration-300"
+      collapsible="icon"
+    >
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-corporate-blue font-semibold">
-            Main Menu
-          </SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel className="text-corporate-blue font-semibold">
+              Main Menu
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    asChild 
-                    className={`cursor-pointer hover:bg-corporate-blue/10 ${
+                    tooltip={isCollapsed ? item.title : undefined}
+                    className={`cursor-pointer hover:bg-corporate-blue/10 transition-colors ${
                       activeMenu === item.id ? 'bg-corporate-blue/20 text-corporate-blue' : ''
                     }`}
                     onClick={() => onMenuClick(item.id)}
                   >
-                    <div className="flex items-center gap-3 p-2">
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </div>
+                    <item.icon className="w-5 h-5" />
+                    {!isCollapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
