@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,8 +26,8 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#7EA6E0',
+					foreground: '#ffffff'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,6 +62,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				corporate: {
+					blue: '#7EA6E0',
+					dark: '#1a1a1a',
+					light: '#f8fafc'
 				}
 			},
 			borderRadius: {
@@ -84,11 +90,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'flip': {
+					'0%': {
+						transform: 'rotateY(0deg)'
+					},
+					'100%': {
+						transform: 'rotateY(180deg)'
+					}
+				},
+				'flip-back': {
+					'0%': {
+						transform: 'rotateY(180deg)'
+					},
+					'100%': {
+						transform: 'rotateY(0deg)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'flip': 'flip 0.6s ease-in-out',
+				'flip-back': 'flip-back 0.6s ease-in-out'
 			}
 		}
 	},

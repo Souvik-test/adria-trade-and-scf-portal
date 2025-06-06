@@ -1,13 +1,103 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import LoginPage from '@/components/LoginPage';
+import { AppSidebar } from '@/components/AppSidebar';
+import TopRibbon from '@/components/TopRibbon';
+import Footer from '@/components/Footer';
+import DashboardWidgets from '@/components/DashboardWidgets';
+import ProductSuite from '@/components/ProductSuite';
 
 const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [loginTime, setLoginTime] = useState('');
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setLoginTime(new Date().toLocaleString());
+    console.log('User logged in successfully');
+  };
+
+  const handleToggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  const handleMenuClick = (menuId: string) => {
+    setActiveMenu(menuId);
+    console.log('Menu clicked:', menuId);
+  };
+
+  const renderMainContent = () => {
+    switch (activeMenu) {
+      case 'product-suite':
+        return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
+      case 'inquiry':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Inquiry Function</h2>
+            <p className="text-gray-600 dark:text-gray-400">Inquiry functionality coming soon...</p>
+          </div>
+        );
+      case 'correspondence':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Secured Correspondence</h2>
+            <p className="text-gray-600 dark:text-gray-400">Secured correspondence module coming soon...</p>
+          </div>
+        );
+      case 'configuration':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Configuration</h2>
+            <p className="text-gray-600 dark:text-gray-400">Configuration settings coming soon...</p>
+          </div>
+        );
+      case 'administration':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Administration</h2>
+            <p className="text-gray-600 dark:text-gray-400">Administration panel coming soon...</p>
+          </div>
+        );
+      default:
+        return <DashboardWidgets />;
+    }
+  };
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+        <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
+            <SidebarTrigger className="text-corporate-blue hover:bg-corporate-blue/10" />
+            <div className="flex-1">
+              <TopRibbon darkMode={darkMode} onToggleDarkMode={handleToggleDarkMode} />
+            </div>
+          </div>
+          
+          <main className="flex-1 overflow-auto bg-white dark:bg-gray-800">
+            {renderMainContent()}
+          </main>
+          
+          <Footer loginTime={loginTime} />
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
