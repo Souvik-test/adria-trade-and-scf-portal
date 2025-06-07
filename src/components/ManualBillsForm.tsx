@@ -22,9 +22,10 @@ interface UploadedDocument {
 
 interface ManualBillsFormProps {
   onBack: () => void;
+  onClose: () => void;
 }
 
-const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onBack }) => {
+const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onBack, onClose }) => {
   const [formData, setFormData] = useState({
     lcNumber: '',
     lcIssueDate: null,
