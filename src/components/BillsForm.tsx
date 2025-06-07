@@ -74,8 +74,8 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="bg-background rounded-lg shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
@@ -83,9 +83,14 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold">
-              Bills under Export LC – Field Specification (Pre-check Submission)
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Bills under Export LC – Field Specification (Pre-check Submission)
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Complete all mandatory fields marked with * to proceed with submission
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -95,7 +100,8 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-8 bg-muted/30">
+          {/* Section 1: Submission Type and Export LC Selection */}
           <SubmissionSection
             submissionType={submissionType}
             setSubmissionType={setSubmissionType}
@@ -108,6 +114,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setCorporateReference={setCorporateReference}
           />
 
+          {/* Section 2: LC Details */}
           <LcDetailsSection
             applicantName={applicantName}
             setApplicantName={setApplicantName}
@@ -123,6 +130,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setLcExpiryDate={setLcExpiryDate}
           />
 
+          {/* Section 3: Drawing Details */}
           <DrawingDetailsSection
             drawingAmount={drawingAmount}
             setDrawingAmount={setDrawingAmount}
@@ -134,6 +142,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setTenorDays={setTenorDays}
           />
 
+          {/* Section 4: Shipment Details */}
           <ShipmentDetailsSection
             latestShipmentDate={latestShipmentDate}
             actualShipmentDate={actualShipmentDate}
@@ -150,6 +159,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setPlaceOfDelivery={setPlaceOfDelivery}
           />
 
+          {/* Section 5: Document Submission Details */}
           <DocumentSubmissionSection
             documents={documents}
             setDocuments={setDocuments}
@@ -159,6 +169,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setDeclaration={setDeclaration}
           />
 
+          {/* Action Buttons */}
           <ActionButtonsSection
             onBack={onBack}
             onSubmit={handleSubmit}
