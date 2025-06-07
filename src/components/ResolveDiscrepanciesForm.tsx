@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -189,7 +188,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   );
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
+    <div>
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className={`${isExpanded ? 'max-w-[100vw] max-h-[100vh] w-full h-full' : 'max-w-7xl max-h-[90vh]'} overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300`}>
           <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -644,7 +643,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
         </DialogContent>
       </Dialog>
 
-      <style jsx>{`
+      <style>{`
         .scrollbar-visible {
           scrollbar-width: auto;
           scrollbar-color: #CBD5E0 #F7FAFC;
