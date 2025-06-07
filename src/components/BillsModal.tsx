@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Upload, Bot, ArrowLeft, FileCheck, AlertCircle, DollarSign, CheckCircle, CreditCard } from 'lucide-react';
 import ManualBillsForm from './ManualBillsForm';
+import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -13,6 +13,7 @@ interface BillsModalProps {
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
   const [selectedBillType, setSelectedBillType] = useState<string | null>(null);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [showResolveDiscrepanciesForm, setShowResolveDiscrepanciesForm] = useState(false);
 
   const importBillTypes = [
     {
@@ -83,16 +84,28 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
     
     if (selectedBillType === 'present' && methodId === 'manual' && type === 'export') {
       setShowManualForm(true);
+    } else if (selectedBillType === 'resolve' && methodId === 'manual' && type === 'export') {
+      setShowResolveDiscrepanciesForm(true);
     }
   };
 
   const handleBackFromForm = () => {
     setShowManualForm(false);
+    setShowResolveDiscrepanciesForm(false);
   };
 
   if (showManualForm) {
     return (
       <ManualBillsForm 
+        onClose={onClose} 
+        onBack={handleBackFromForm}
+      />
+    );
+  }
+
+  if (showResolveDiscrepanciesForm) {
+    return (
+      <ResolveDiscrepanciesForm 
         onClose={onClose} 
         onBack={handleBackFromForm}
       />
