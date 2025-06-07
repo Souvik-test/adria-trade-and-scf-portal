@@ -28,7 +28,7 @@ interface BillsFormProps {
 const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
   const [submissionType, setSubmissionType] = useState('');
   const [submissionReference, setSubmissionReference] = useState('');
-  const [submissionDate, setSubmissionDate] = useState<Date | null>(null);
+  const [submissionDate, setSubmissionDate] = useState<Date | null>(new Date());
   const [lcReferenceNumber, setLcReferenceNumber] = useState('');
   const [corporateReference, setCorporateReference] = useState('');
   const [applicantName, setApplicantName] = useState('');
@@ -109,39 +109,39 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-background rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              className="p-2 hover:bg-accent rounded-full transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 className="text-2xl font-bold">
               Bills under Export LC – Field Specification (Pre-check Submission)
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 hover:bg-accent rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Section 1: Submission Type and Export LC Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-corporate-peach-600 dark:text-corporate-peach-400">
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
                 Section 1: Submission Type and Export LC Selection
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="submissionType">Submission Type *</Label>
+                  <Label htmlFor="submissionType">Submission Type * (M)</Label>
                   <Select value={submissionType} onValueChange={setSubmissionType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select submission type" />
@@ -157,18 +157,18 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="submissionReference">Submission Reference</Label>
+                  <Label htmlFor="submissionReference">Submission Reference (O)</Label>
                   <Input
                     id="submissionReference"
                     value={submissionReference}
                     onChange={(e) => setSubmissionReference(e.target.value)}
-                    placeholder="Enter submission reference"
+                    placeholder="Enter submission reference (Max 16 chars)"
                     maxLength={16}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="submissionDate">Submission Date *</Label>
+                  <Label htmlFor="submissionDate">Submission Date * (M) - Auto</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -177,40 +177,33 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                           "w-full justify-start text-left font-normal",
                           !submissionDate && "text-muted-foreground"
                         )}
+                        disabled
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {submissionDate ? format(submissionDate, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={submissionDate}
-                        onSelect={setSubmissionDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
                   </Popover>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lcReference">LC Reference Number *</Label>
+                  <Label htmlFor="lcReference">LC Reference Number * (M)</Label>
                   <Input
                     id="lcReference"
                     value={lcReferenceNumber}
                     onChange={(e) => setLcReferenceNumber(e.target.value)}
-                    placeholder="Enter LC reference number"
+                    placeholder="Enter LC reference number (Max 16 chars)"
                     maxLength={16}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="corporateReference">Corporate Reference Number</Label>
+                  <Label htmlFor="corporateReference">Corporate Reference Number (O)</Label>
                   <Input
                     id="corporateReference"
                     value={corporateReference}
                     onChange={(e) => setCorporateReference(e.target.value)}
-                    placeholder="Enter corporate reference"
+                    placeholder="Internal use only (Max 16 chars)"
                     maxLength={16}
                   />
                 </div>
@@ -219,49 +212,51 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
           </Card>
 
           {/* Section 2: LC & Applicant Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-corporate-peach-600 dark:text-corporate-peach-400">
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
                 Section 2: LC & Applicant Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="applicantName">Applicant Name</Label>
+                  <Label htmlFor="applicantName">Applicant Name (CM) - Auto</Label>
                   <Input
                     id="applicantName"
                     value={applicantName}
                     onChange={(e) => setApplicantName(e.target.value)}
-                    placeholder="Auto-filled from LC"
+                    placeholder="Auto-filled from LC (140 chars max)"
                     disabled
+                    maxLength={140}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="issuingBank">Issuing Bank</Label>
+                  <Label htmlFor="issuingBank">Issuing Bank (CM) - Auto</Label>
                   <Input
                     id="issuingBank"
                     value={issuingBank}
                     onChange={(e) => setIssuingBank(e.target.value)}
-                    placeholder="Auto-filled from LC"
+                    placeholder="BIC or Full Name/Address (140 chars max)"
                     disabled
+                    maxLength={140}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lcCurrency">LC Currency</Label>
+                  <Label htmlFor="lcCurrency">LC Currency (CM) - Auto-fetched</Label>
                   <Input
                     id="lcCurrency"
                     value={lcCurrency}
                     onChange={(e) => setLcCurrency(e.target.value)}
-                    placeholder="Auto-fetched"
+                    placeholder="ISO String (3 chars)"
                     maxLength={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lcAmount">LC Amount</Label>
+                  <Label htmlFor="lcAmount">LC Amount (CM)</Label>
                   <Input
                     id="lcAmount"
                     value={lcAmount}
@@ -271,7 +266,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lcIssueDate">LC Issue Date</Label>
+                  <Label htmlFor="lcIssueDate">LC Issue Date (CM) - Auto</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -297,7 +292,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place</Label>
+                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place (CM)</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -326,37 +321,37 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
           </Card>
 
           {/* Section 3: Drawing Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-corporate-peach-600 dark:text-corporate-peach-400">
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
                 Section 3: Drawing Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="drawingAmount">Drawing Amount *</Label>
+                  <Label htmlFor="drawingAmount">Drawing Amount * (M)</Label>
                   <Input
                     id="drawingAmount"
                     value={drawingAmount}
                     onChange={(e) => setDrawingAmount(e.target.value)}
-                    placeholder="Must be ≤ available balance"
+                    placeholder="Must be ≤ available balance (15 digits)"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="drawingCurrency">Drawing Currency</Label>
+                  <Label htmlFor="drawingCurrency">Drawing Currency (CM) - Auto-fetched</Label>
                   <Input
                     id="drawingCurrency"
                     value={drawingCurrency}
                     onChange={(e) => setDrawingCurrency(e.target.value)}
-                    placeholder="Auto-fetched"
+                    placeholder="ISO String (3 chars)"
                     maxLength={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tenor">Tenor (Sight/Usance) *</Label>
+                  <Label htmlFor="tenor">Tenor (Sight/Usance) * (M) - Based on LC terms</Label>
                   <Select value={tenor} onValueChange={setTenor}>
                     <SelectTrigger>
                       <SelectValue placeholder="Based on LC terms" />
@@ -372,7 +367,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tenorDays">Tenor Days (if Usance)</Label>
+                  <Label htmlFor="tenorDays">Tenor Days (if Usance) (O)</Label>
                   <Input
                     id="tenorDays"
                     type="number"
@@ -387,16 +382,16 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
           </Card>
 
           {/* Section 4: Shipment & Transportation Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-corporate-peach-600 dark:text-corporate-peach-400">
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
                 Section 4: Shipment & Transportation Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="latestShipmentDate">Latest Shipment Date</Label>
+                  <Label htmlFor="latestShipmentDate">Latest Shipment Date (CM) - Non-editable</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -405,24 +400,17 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                           "w-full justify-start text-left font-normal",
                           !latestShipmentDate && "text-muted-foreground"
                         )}
+                        disabled
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {latestShipmentDate ? format(latestShipmentDate, "PPP") : "Non-editable"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={latestShipmentDate}
-                        onSelect={setLatestShipmentDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
                   </Popover>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="actualShipmentDate">Actual Shipment Date *</Label>
+                  <Label htmlFor="actualShipmentDate">Actual Shipment Date * (M)</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -448,56 +436,56 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. *</Label>
+                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. * (M)</Label>
                   <Input
                     id="billOfLading"
                     value={billOfLading}
                     onChange={(e) => setBillOfLading(e.target.value)}
-                    placeholder="Mandatory document ref"
+                    placeholder="Mandatory document ref (35 chars max)"
                     maxLength={35}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="shippingLine">Shipping Line / Airline Name</Label>
+                  <Label htmlFor="shippingLine">Shipping Line / Airline Name (O)</Label>
                   <Input
                     id="shippingLine"
                     value={shippingLine}
                     onChange={(e) => setShippingLine(e.target.value)}
-                    placeholder="Optional"
+                    placeholder="Optional (35 chars max)"
                     maxLength={35}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="portOfLoading">Port of Loading *</Label>
+                  <Label htmlFor="portOfLoading">Port of Loading * (M)</Label>
                   <Input
                     id="portOfLoading"
                     value={portOfLoading}
                     onChange={(e) => setPortOfLoading(e.target.value)}
-                    placeholder="Use UN/LOCODE format"
+                    placeholder="Use UN/LOCODE format (35 chars max)"
                     maxLength={35}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="portOfDischarge">Port of Discharge *</Label>
+                  <Label htmlFor="portOfDischarge">Port of Discharge * (M)</Label>
                   <Input
                     id="portOfDischarge"
                     value={portOfDischarge}
                     onChange={(e) => setPortOfDischarge(e.target.value)}
-                    placeholder="Required"
+                    placeholder="Required (35 chars max)"
                     maxLength={35}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="placeOfDelivery">Place of Delivery</Label>
+                  <Label htmlFor="placeOfDelivery">Place of Delivery (M)</Label>
                   <Input
                     id="placeOfDelivery"
                     value={placeOfDelivery}
                     onChange={(e) => setPlaceOfDelivery(e.target.value)}
-                    placeholder="Optional"
+                    placeholder="Optional (35 chars max)"
                     maxLength={35}
                   />
                 </div>
@@ -506,21 +494,21 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
           </Card>
 
           {/* Section 5: Document Submission Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-corporate-peach-600 dark:text-corporate-peach-400">
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
                 Section 5: Document Submission Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="space-y-4">
-                <Label>Documents Submitted *</Label>
+                <Label>Documents Submitted * (M) - Multi-select Checkbox</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {predefinedDocuments.map((docType) => (
                     <button
                       key={docType}
                       onClick={() => handleAddDocument(docType)}
-                      className="p-3 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-corporate-peach-50 hover:border-corporate-peach-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 transition-all duration-200 flex items-center justify-center gap-2"
+                      className="p-3 text-sm font-medium rounded-lg border border-border text-foreground hover:bg-accent transition-all duration-200 flex items-center justify-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       {docType}
@@ -528,7 +516,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                   ))}
                   <button
                     onClick={() => handleAddDocument('Custom Document', true)}
-                    className="p-3 text-sm font-medium rounded-lg border border-dashed border-corporate-peach-300 text-corporate-peach-600 hover:bg-corporate-peach-50 dark:border-corporate-peach-600 dark:text-corporate-peach-400 transition-all duration-200 flex items-center justify-center gap-2"
+                    className="p-3 text-sm font-medium rounded-lg border border-dashed border-primary text-primary hover:bg-accent transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Custom Document
@@ -539,20 +527,20 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
               {/* Added Documents */}
               {documents.length > 0 && (
                 <div className="space-y-3">
-                  <Label>Added Documents</Label>
+                  <Label>Supporting Docs Metadata (M) - Doc type, name, remarks</Label>
                   {documents.map((doc) => (
-                    <Card key={doc.id} className="p-4">
+                    <Card key={doc.id} className="p-4 border-border">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-corporate-peach-500" />
+                            <FileText className="w-5 h-5 text-primary" />
                             <span className="font-medium">{doc.type}</span>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => removeDocument(doc.id)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-destructive hover:text-destructive"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -560,7 +548,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor={`docNo-${doc.id}`}>Document No. *</Label>
+                            <Label htmlFor={`docNo-${doc.id}`}>Document No. * (M)</Label>
                             <Input
                               id={`docNo-${doc.id}`}
                               value={doc.documentNo}
@@ -570,7 +558,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor={`docDate-${doc.id}`}>Document Date</Label>
+                            <Label htmlFor={`docDate-${doc.id}`}>Document Date (O)</Label>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
@@ -596,7 +584,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor={`file-${doc.id}`}>Upload Document</Label>
+                            <Label htmlFor={`file-${doc.id}`}>Upload Documents (M) - File Upload</Label>
                             <Input
                               id={`file-${doc.id}`}
                               type="file"
@@ -608,6 +596,9 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                               disabled={!doc.documentNo}
                               className={!doc.documentNo ? 'opacity-50 cursor-not-allowed' : ''}
                             />
+                            {!doc.documentNo && (
+                              <p className="text-xs text-muted-foreground">Enter document number first to enable upload</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -617,13 +608,13 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="remarks">Remarks / Comments</Label>
+                <Label htmlFor="remarks">Remarks / Comments (O) - Optional notes</Label>
                 <textarea
                   id="remarks"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="Optional notes (max 200 characters)"
-                  className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg resize-none"
+                  className="w-full p-3 border border-border rounded-lg resize-none bg-background"
                   rows={3}
                   maxLength={200}
                 />
@@ -635,38 +626,47 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
                   id="declaration"
                   checked={declaration}
                   onChange={(e) => setDeclaration(e.target.checked)}
-                  className="w-4 h-4 text-corporate-peach-600 border-gray-300 rounded focus:ring-corporate-peach-500"
+                  className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                 />
                 <Label htmlFor="declaration" className="text-sm">
-                  I declare that all information provided is accurate and complete. User must accept before submission.
+                  Declaration (M) - User must accept before submission. I declare that all information provided is accurate and complete.
                 </Label>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-4 pt-6">
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="px-8"
-            >
-              Save as Draft
-            </Button>
-            <Button
-              variant="outline"
-              className="px-8"
-            >
-              Save as Template
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white px-8"
-              disabled={!submissionType || !submissionDate || !lcReferenceNumber || !declaration || documents.length === 0}
-            >
-              Submit for Pre-check
-            </Button>
-          </div>
+          {/* Section 6: Action Buttons */}
+          <Card className="border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-lg text-primary">
+                Section 6: Action Buttons
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={onBack}
+                  className="px-8"
+                >
+                  Save as Draft
+                </Button>
+                <Button
+                  variant="outline"
+                  className="px-8"
+                >
+                  Save as Template
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+                  disabled={!submissionType || !submissionDate || !lcReferenceNumber || !declaration || documents.length === 0}
+                >
+                  Submit for Pre-check
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

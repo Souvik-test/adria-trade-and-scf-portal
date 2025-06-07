@@ -343,6 +343,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         title={selectedOption || ''}
         options={getCurrentOptions()}
         methods={getCurrentMethods()}
+        selectedOption={selectedOption || ''}
         onOptionClick={handleProductOptionClick}
         onMethodClick={handleMethodClick}
       />
