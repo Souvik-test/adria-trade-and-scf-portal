@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -106,7 +107,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   };
 
   const handleUploadConfirm = () => {
-    if (uploadDetails.file && uploadDetails.type && uploadDetails.date) {
+    if (uploadDetails.file && uploadDetails.type && uploadDetails.date && uploadDetails.documentId.trim()) {
       const newDocument: UploadedDocument = {
         id: Date.now().toString(),
         name: uploadDetails.file.name,
@@ -179,34 +180,35 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
     // Handle save as draft
   };
 
-  // Expand icon SVG component
+  // Expand icon SVG component (diagonal arrows)
   const ExpandIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 3H5C3.89543 3 3 3.89543 3 5V8M21 8V5C21 3.89543 20.1046 3 19 3H16M16 21H19C20.1046 21 21 20.1046 21 19V16M3 16V19C3 20.1046 3.89543 21 5 21H8" 
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-
-  // Collapse icon SVG component
-  const CollapseIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 3H5C3.89543 3 3 3.89543 3 5V8M21 8V5C21 3.89543 20.1046 3 19 3H16M16 21H19C20.1046 21 21 20.1046 21 19V16M3 16V19C3 20.1046 3.89543 21 5 21H8" 
+      <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9M21 9V5C21 3.89543 20.1046 3 19 3H15M15 21H19C20.1046 21 21 20.1046 21 19V15M3 15V19C3 20.1046 3.89543 21 5 21H9" 
             stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M9 15L15 9M15 9V15M15 9H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 
-  // Dark mode icon SVG component
-  const DarkModeIcon = () => (
+  // Collapse icon SVG component (diagonal arrows pointing inward)
+  const CollapseIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3V1M12 23V21M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" 
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2"/>
+      <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9M21 9V5C21 3.89543 20.1046 3 19 3H15M15 21H19C20.1046 21 21 20.1046 21 19V15M3 15V19C3 20.1046 3.89543 21 5 21H9" 
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M15 9L9 15M9 15V9M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 
-  // Light mode icon SVG component  
+  // Light mode icon SVG component (sun)
   const LightModeIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2"/>
+      <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" 
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+
+  // Dark mode icon SVG component (moon)
+  const DarkModeIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
@@ -245,7 +247,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   onClick={handleToggleDarkMode}
                   className="flex items-center gap-2"
                 >
-                  {darkMode ? <DarkModeIcon /> : <LightModeIcon />}
+                  {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
                   {darkMode ? 'Light' : 'Dark'}
                 </Button>
               </div>
@@ -263,8 +265,8 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[calc(100vh-300px)] pr-4">
-                      <div className="space-y-3">
+                    <ScrollArea className="h-[calc(100vh-300px)]">
+                      <div className="space-y-3 pr-4">
                         {uploadedDocuments.map((doc) => (
                           <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
                             <div className="flex items-center justify-between">
@@ -329,8 +331,8 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
 
             {/* Right Panel - Form */}
             <div className={`${uploadedDocuments.length > 0 ? 'flex-1' : 'w-full'} flex flex-col overflow-hidden`}>
-              <ScrollArea className="flex-1 pr-4">
-                <div className="space-y-6">
+              <ScrollArea className="flex-1">
+                <div className="space-y-6 pr-4">
                   {/* Validation Errors */}
                   {validationErrors.length > 0 && (
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -667,7 +669,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               </Button>
               <Button 
                 onClick={handleUploadConfirm}
-                disabled={!uploadDetails.type || !uploadDetails.date || !uploadDetails.file}
+                disabled={!uploadDetails.type || !uploadDetails.date || !uploadDetails.file || !uploadDetails.documentId.trim()}
                 className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
               >
                 Upload
