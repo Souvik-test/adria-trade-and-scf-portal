@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Upload, Bot, ArrowLeft, FileCheck, AlertCircle, DollarSign, CheckCircle, CreditCard } from 'lucide-react';
+import ManualBillsForm from './ManualBillsForm';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ interface BillsModalProps {
 
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
   const [selectedBillType, setSelectedBillType] = useState<string | null>(null);
+  const [showManualForm, setShowManualForm] = useState(false);
 
   const importBillTypes = [
     {
@@ -79,11 +81,23 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
     if (!selectedBillType) return;
     console.log('Selected bill type:', selectedBillType, 'Method:', methodId, 'Type:', type);
     
-    if (selectedBillType === 'present' && methodId === 'manual') {
-      // Navigate to manual bills form
-      console.log('Opening manual bills form for', type, 'LC bills');
+    if (selectedBillType === 'present' && methodId === 'manual' && type === 'export') {
+      setShowManualForm(true);
     }
   };
+
+  const handleBackFromForm = () => {
+    setShowManualForm(false);
+  };
+
+  if (showManualForm) {
+    return (
+      <ManualBillsForm 
+        onClose={onClose} 
+        onBack={handleBackFromForm}
+      />
+    );
+  }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
