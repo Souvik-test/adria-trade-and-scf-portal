@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Moon, Sun, Upload, Edit, Trash2, FileText, Calendar, Expand } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Upload, Edit, Trash2, FileText, Calendar, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -96,7 +97,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="flex items-center gap-2"
                 >
-                  <Expand className="w-4 h-4" />
+                  {isExpanded ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                   {isExpanded ? 'Collapse' : 'Expand'}
                 </Button>
                 <Button
@@ -112,7 +113,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
             </div>
           </DialogHeader>
           
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 max-h-[calc(90vh-120px)]">
             <div className="flex gap-6 p-6">
               {/* Left Panel - Uploaded Documents */}
               {uploadedDocuments.length > 0 && (
@@ -325,88 +326,85 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                       Document Upload
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Standard Documents */}
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</Label>
-                          <div className="mt-1">
-                            <input
-                              type="file"
-                              id="invoice-upload"
-                              className="hidden"
-                              onChange={(e) => handleFileUpload(e, 'Invoice')}
-                              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                            />
-                            <Button
-                              variant="outline"
-                              onClick={() => document.getElementById('invoice-upload')?.click()}
-                              className="w-full"
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
-                              Choose File
-                            </Button>
-                          </div>
+                  <CardContent className="space-y-6">
+                    {/* Standard Documents */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Standard Documents</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Invoice</Label>
+                          <input
+                            type="file"
+                            id="invoice-upload"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, 'Invoice')}
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById('invoice-upload')?.click()}
+                            className="w-full h-10 text-xs"
+                          >
+                            <Upload className="w-3 h-3 mr-2" />
+                            Choose File
+                          </Button>
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill of Lading/AWB</Label>
-                          <div className="mt-1">
-                            <input
-                              type="file"
-                              id="bl-upload"
-                              className="hidden"
-                              onChange={(e) => handleFileUpload(e, 'Bill of Lading/AWB')}
-                              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                            />
-                            <Button
-                              variant="outline"
-                              onClick={() => document.getElementById('bl-upload')?.click()}
-                              className="w-full"
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
-                              Choose File
-                            </Button>
-                          </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Bill of Lading/AWB</Label>
+                          <input
+                            type="file"
+                            id="bl-upload"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, 'Bill of Lading/AWB')}
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById('bl-upload')?.click()}
+                            className="w-full h-10 text-xs"
+                          >
+                            <Upload className="w-3 h-3 mr-2" />
+                            Choose File
+                          </Button>
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Packing List</Label>
-                          <div className="mt-1">
-                            <input
-                              type="file"
-                              id="packing-upload"
-                              className="hidden"
-                              onChange={(e) => handleFileUpload(e, 'Packing List')}
-                              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                            />
-                            <Button
-                              variant="outline"
-                              onClick={() => document.getElementById('packing-upload')?.click()}
-                              className="w-full"
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
-                              Choose File
-                            </Button>
-                          </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Packing List</Label>
+                          <input
+                            type="file"
+                            id="packing-upload"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, 'Packing List')}
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById('packing-upload')?.click()}
+                            className="w-full h-10 text-xs"
+                          >
+                            <Upload className="w-3 h-3 mr-2" />
+                            Choose File
+                          </Button>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Custom Document Upload */}
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Document Name</Label>
+                    {/* Custom Document Upload */}
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Custom Document</Label>
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Name</Label>
                           <Input
                             value={customDocumentName}
                             onChange={(e) => setCustomDocumentName(e.target.value)}
                             placeholder="Enter document name"
-                            className="mt-1"
+                            className="mt-1 h-10"
                           />
                         </div>
-                        
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Upload Custom Document</Label>
+                        <div className="flex-1">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Upload File</Label>
                           <div className="mt-1">
                             <input
                               type="file"
@@ -418,10 +416,10 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                             <Button
                               variant="outline"
                               onClick={() => document.getElementById('custom-upload')?.click()}
-                              className="w-full"
+                              className="w-full h-10 text-xs"
                               disabled={!customDocumentName.trim()}
                             >
-                              <Upload className="w-4 h-4 mr-2" />
+                              <Upload className="w-3 h-3 mr-2" />
                               Choose File
                             </Button>
                           </div>
@@ -429,10 +427,11 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                       </div>
                     </div>
 
-                    <div>
+                    {/* Additional Remarks */}
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Additional Remarks (Exporter)</Label>
                       <Textarea 
-                        className="mt-1" 
+                        className="mt-2" 
                         rows={3}
                         placeholder="Optional, for internal clarification notes (max 500 characters)"
                         maxLength={500}
@@ -442,16 +441,26 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                 </Card>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 pt-4">
-                  <Button variant="outline" className="flex-1">
-                    Discard
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    Save as Draft
-                  </Button>
-                  <Button className="flex-1 bg-corporate-blue hover:bg-corporate-blue/90">
-                    Submit
-                  </Button>
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-6">
+                  <div className="flex justify-end gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="px-6 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Discard
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="px-6 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Save as Draft
+                    </Button>
+                    <Button 
+                      className="px-6 py-2 text-sm font-medium bg-corporate-blue hover:bg-corporate-blue/90 text-white"
+                    >
+                      Submit
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
