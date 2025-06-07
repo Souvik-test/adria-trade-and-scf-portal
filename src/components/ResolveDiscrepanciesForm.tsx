@@ -10,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Upload, Edit, Trash2, FileText, Calendar, Search, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ResolveDiscrepanciesFormProps {
   onClose: () => void;
@@ -64,15 +63,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   ];
 
   const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
-
-  const handleToggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    if (!darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   const handleDocumentSelect = (docType: string, checked: boolean) => {
     if (checked) {
@@ -198,22 +188,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
     </svg>
   );
 
-  // Light mode icon SVG component (sun)
-  const LightModeIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2"/>
-      <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" 
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-
-  // Dark mode icon SVG component (moon)
-  const DarkModeIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-
   return (
     <div className={darkMode ? 'dark' : ''}>
       <Dialog open={true} onOpenChange={onClose}>
@@ -241,15 +215,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
                   {isExpanded ? 'Collapse' : 'Expand'}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleDarkMode}
-                  className="flex items-center gap-2"
-                >
-                  {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-                  {darkMode ? 'Light' : 'Dark'}
-                </Button>
               </div>
             </div>
           </DialogHeader>
@@ -265,7 +230,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[calc(100vh-300px)]">
+                    <div className="h-[calc(100vh-300px)] overflow-y-auto scrollbar-visible">
                       <div className="space-y-3 pr-4">
                         {uploadedDocuments.map((doc) => (
                           <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
@@ -323,7 +288,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                           </div>
                         ))}
                       </div>
-                    </ScrollArea>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -331,7 +296,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
 
             {/* Right Panel - Form */}
             <div className={`${uploadedDocuments.length > 0 ? 'flex-1' : 'w-full'} flex flex-col overflow-hidden`}>
-              <ScrollArea className="flex-1">
+              <div className="flex-1 overflow-y-auto scrollbar-visible">
                 <div className="space-y-6 pr-4">
                   {/* Validation Errors */}
                   {validationErrors.length > 0 && (
@@ -569,7 +534,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     </CardContent>
                   </Card>
                 </div>
-              </ScrollArea>
+              </div>
 
               {/* Action Buttons */}
               <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
@@ -678,6 +643,27 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
           </div>
         </DialogContent>
       </Dialog>
+
+      <style jsx>{`
+        .scrollbar-visible {
+          scrollbar-width: auto;
+          scrollbar-color: #CBD5E0 #F7FAFC;
+        }
+        .scrollbar-visible::-webkit-scrollbar {
+          width: 8px;
+        }
+        .scrollbar-visible::-webkit-scrollbar-track {
+          background: #F7FAFC;
+          border-radius: 4px;
+        }
+        .scrollbar-visible::-webkit-scrollbar-thumb {
+          background: #CBD5E0;
+          border-radius: 4px;
+        }
+        .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+          background: #A0AEC0;
+        }
+      `}</style>
     </div>
   );
 };
