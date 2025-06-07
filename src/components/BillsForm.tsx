@@ -1,24 +1,13 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, Upload, X, ArrowLeft, FileText, Plus } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-
-interface Document {
-  id: string;
-  type: string;
-  documentNo: string;
-  documentDate: Date | null;
-  file: File | null;
-  isCustom: boolean;
-}
+import { ArrowLeft, X } from 'lucide-react';
+import SubmissionSection from './bills/SubmissionSection';
+import LcDetailsSection from './bills/LcDetailsSection';
+import DrawingDetailsSection from './bills/DrawingDetailsSection';
+import ShipmentDetailsSection from './bills/ShipmentDetailsSection';
+import DocumentSubmissionSection from './bills/DocumentSubmissionSection';
+import ActionButtonsSection from './bills/ActionButtonsSection';
+import { Document } from './bills/types';
 
 interface BillsFormProps {
   onBack: () => void;
@@ -49,51 +38,8 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
   const [portOfDischarge, setPortOfDischarge] = useState('');
   const [placeOfDelivery, setPlaceOfDelivery] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState('');
   const [declaration, setDeclaration] = useState(false);
-
-  const predefinedDocuments = [
-    'Commercial Invoice',
-    'Packing List', 
-    'Bill of Lading',
-    'Insurance Certificate',
-    'Certificate of Origin',
-    'Inspection Certificate',
-    'Weight Certificate',
-    'Beneficiary Certificate'
-  ];
-
-  const submissionTypes = ['Pre-Check', 'Final'];
-  const tenorOptions = ['Sight', 'Usance'];
-
-  const handleAddDocument = (docType: string, isCustom: boolean = false) => {
-    const newDoc: Document = {
-      id: Math.random().toString(36).substring(7),
-      type: docType,
-      documentNo: '',
-      documentDate: null,
-      file: null,
-      isCustom
-    };
-    setDocuments(prev => [...prev, newDoc]);
-  };
-
-  const handleDocumentUpdate = (id: string, field: string, value: any) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === id ? { ...doc, [field]: value } : doc
-    ));
-  };
-
-  const handleFileUpload = (id: string, file: File) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === id ? { ...doc, file } : doc
-    ));
-  };
-
-  const removeDocument = (id: string) => {
-    setDocuments(prev => prev.filter(doc => doc.id !== id));
-  };
 
   const handleSubmit = () => {
     console.log('Bills submission data:', {
@@ -131,542 +77,78 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Section 1: Submission Type and Export LC Selection */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 1: Submission Type and Export LC Selection
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="submissionType">Submission Type * (M)</Label>
-                  <Select value={submissionType} onValueChange={setSubmissionType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select submission type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {submissionTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="submissionReference">Submission Reference (O)</Label>
-                  <Input
-                    id="submissionReference"
-                    value={submissionReference}
-                    onChange={(e) => setSubmissionReference(e.target.value)}
-                    placeholder="Enter submission reference (Max 16 chars)"
-                    maxLength={16}
-                  />
-                </div>
+          <SubmissionSection
+            submissionType={submissionType}
+            setSubmissionType={setSubmissionType}
+            submissionReference={submissionReference}
+            setSubmissionReference={setSubmissionReference}
+            submissionDate={submissionDate}
+            lcReferenceNumber={lcReferenceNumber}
+            setLcReferenceNumber={setLcReferenceNumber}
+            corporateReference={corporateReference}
+            setCorporateReference={setCorporateReference}
+          />
 
-                <div className="space-y-2">
-                  <Label htmlFor="submissionDate">Submission Date * (M) - Auto</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !submissionDate && "text-muted-foreground"
-                        )}
-                        disabled
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {submissionDate ? format(submissionDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                  </Popover>
-                </div>
+          <LcDetailsSection
+            applicantName={applicantName}
+            setApplicantName={setApplicantName}
+            issuingBank={issuingBank}
+            setIssuingBank={setIssuingBank}
+            lcCurrency={lcCurrency}
+            setLcCurrency={setLcCurrency}
+            lcAmount={lcAmount}
+            setLcAmount={setLcAmount}
+            lcIssueDate={lcIssueDate}
+            setLcIssueDate={setLcIssueDate}
+            lcExpiryDate={lcExpiryDate}
+            setLcExpiryDate={setLcExpiryDate}
+          />
 
-                <div className="space-y-2">
-                  <Label htmlFor="lcReference">LC Reference Number * (M)</Label>
-                  <Input
-                    id="lcReference"
-                    value={lcReferenceNumber}
-                    onChange={(e) => setLcReferenceNumber(e.target.value)}
-                    placeholder="Enter LC reference number (Max 16 chars)"
-                    maxLength={16}
-                  />
-                </div>
+          <DrawingDetailsSection
+            drawingAmount={drawingAmount}
+            setDrawingAmount={setDrawingAmount}
+            drawingCurrency={drawingCurrency}
+            setDrawingCurrency={setDrawingCurrency}
+            tenor={tenor}
+            setTenor={setTenor}
+            tenorDays={tenorDays}
+            setTenorDays={setTenorDays}
+          />
 
-                <div className="space-y-2">
-                  <Label htmlFor="corporateReference">Corporate Reference Number (O)</Label>
-                  <Input
-                    id="corporateReference"
-                    value={corporateReference}
-                    onChange={(e) => setCorporateReference(e.target.value)}
-                    placeholder="Internal use only (Max 16 chars)"
-                    maxLength={16}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ShipmentDetailsSection
+            latestShipmentDate={latestShipmentDate}
+            actualShipmentDate={actualShipmentDate}
+            setActualShipmentDate={setActualShipmentDate}
+            billOfLading={billOfLading}
+            setBillOfLading={setBillOfLading}
+            shippingLine={shippingLine}
+            setShippingLine={setShippingLine}
+            portOfLoading={portOfLoading}
+            setPortOfLoading={setPortOfLoading}
+            portOfDischarge={portOfDischarge}
+            setPortOfDischarge={setPortOfDischarge}
+            placeOfDelivery={placeOfDelivery}
+            setPlaceOfDelivery={setPlaceOfDelivery}
+          />
 
-          {/* Section 2: LC & Applicant Details */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 2: LC & Applicant Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="applicantName">Applicant Name (CM) - Auto</Label>
-                  <Input
-                    id="applicantName"
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    placeholder="Auto-filled from LC (140 chars max)"
-                    disabled
-                    maxLength={140}
-                  />
-                </div>
+          <DocumentSubmissionSection
+            documents={documents}
+            setDocuments={setDocuments}
+            remarks={remarks}
+            setRemarks={setRemarks}
+            declaration={declaration}
+            setDeclaration={setDeclaration}
+          />
 
-                <div className="space-y-2">
-                  <Label htmlFor="issuingBank">Issuing Bank (CM) - Auto</Label>
-                  <Input
-                    id="issuingBank"
-                    value={issuingBank}
-                    onChange={(e) => setIssuingBank(e.target.value)}
-                    placeholder="BIC or Full Name/Address (140 chars max)"
-                    disabled
-                    maxLength={140}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lcCurrency">LC Currency (CM) - Auto-fetched</Label>
-                  <Input
-                    id="lcCurrency"
-                    value={lcCurrency}
-                    onChange={(e) => setLcCurrency(e.target.value)}
-                    placeholder="ISO String (3 chars)"
-                    maxLength={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lcAmount">LC Amount (CM)</Label>
-                  <Input
-                    id="lcAmount"
-                    value={lcAmount}
-                    onChange={(e) => setLcAmount(e.target.value)}
-                    placeholder="Format: 99999999999.99"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lcIssueDate">LC Issue Date (CM) - Auto</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !lcIssueDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {lcIssueDate ? format(lcIssueDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={lcIssueDate}
-                        onSelect={setLcIssueDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place (CM)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !lcExpiryDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {lcExpiryDate ? format(lcExpiryDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={lcExpiryDate}
-                        onSelect={setLcExpiryDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 3: Drawing Details */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 3: Drawing Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="drawingAmount">Drawing Amount * (M)</Label>
-                  <Input
-                    id="drawingAmount"
-                    value={drawingAmount}
-                    onChange={(e) => setDrawingAmount(e.target.value)}
-                    placeholder="Must be ≤ available balance (15 digits)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="drawingCurrency">Drawing Currency (CM) - Auto-fetched</Label>
-                  <Input
-                    id="drawingCurrency"
-                    value={drawingCurrency}
-                    onChange={(e) => setDrawingCurrency(e.target.value)}
-                    placeholder="ISO String (3 chars)"
-                    maxLength={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tenor">Tenor (Sight/Usance) * (M) - Based on LC terms</Label>
-                  <Select value={tenor} onValueChange={setTenor}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Based on LC terms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tenorOptions.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tenorDays">Tenor Days (if Usance) (O)</Label>
-                  <Input
-                    id="tenorDays"
-                    type="number"
-                    value={tenorDays}
-                    onChange={(e) => setTenorDays(e.target.value)}
-                    placeholder="Required if Tenor = Usance"
-                    disabled={tenor !== 'Usance'}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 4: Shipment & Transportation Details */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 4: Shipment & Transportation Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="latestShipmentDate">Latest Shipment Date (CM) - Non-editable</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !latestShipmentDate && "text-muted-foreground"
-                        )}
-                        disabled
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {latestShipmentDate ? format(latestShipmentDate, "PPP") : "Non-editable"}
-                      </Button>
-                    </PopoverTrigger>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="actualShipmentDate">Actual Shipment Date * (M)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !actualShipmentDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {actualShipmentDate ? format(actualShipmentDate, "PPP") : "Must ≤ Latest Shipment Date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={actualShipmentDate}
-                        onSelect={setActualShipmentDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. * (M)</Label>
-                  <Input
-                    id="billOfLading"
-                    value={billOfLading}
-                    onChange={(e) => setBillOfLading(e.target.value)}
-                    placeholder="Mandatory document ref (35 chars max)"
-                    maxLength={35}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="shippingLine">Shipping Line / Airline Name (O)</Label>
-                  <Input
-                    id="shippingLine"
-                    value={shippingLine}
-                    onChange={(e) => setShippingLine(e.target.value)}
-                    placeholder="Optional (35 chars max)"
-                    maxLength={35}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="portOfLoading">Port of Loading * (M)</Label>
-                  <Input
-                    id="portOfLoading"
-                    value={portOfLoading}
-                    onChange={(e) => setPortOfLoading(e.target.value)}
-                    placeholder="Use UN/LOCODE format (35 chars max)"
-                    maxLength={35}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="portOfDischarge">Port of Discharge * (M)</Label>
-                  <Input
-                    id="portOfDischarge"
-                    value={portOfDischarge}
-                    onChange={(e) => setPortOfDischarge(e.target.value)}
-                    placeholder="Required (35 chars max)"
-                    maxLength={35}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="placeOfDelivery">Place of Delivery (M)</Label>
-                  <Input
-                    id="placeOfDelivery"
-                    value={placeOfDelivery}
-                    onChange={(e) => setPlaceOfDelivery(e.target.value)}
-                    placeholder="Optional (35 chars max)"
-                    maxLength={35}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 5: Document Submission Details */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 5: Document Submission Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-4">
-                <Label>Documents Submitted * (M) - Multi-select Checkbox</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {predefinedDocuments.map((docType) => (
-                    <button
-                      key={docType}
-                      onClick={() => handleAddDocument(docType)}
-                      className="p-3 text-sm font-medium rounded-lg border border-border text-foreground hover:bg-accent transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      {docType}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => handleAddDocument('Custom Document', true)}
-                    className="p-3 text-sm font-medium rounded-lg border border-dashed border-primary text-primary hover:bg-accent transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Custom Document
-                  </button>
-                </div>
-              </div>
-
-              {/* Added Documents */}
-              {documents.length > 0 && (
-                <div className="space-y-3">
-                  <Label>Supporting Docs Metadata (M) - Doc type, name, remarks</Label>
-                  {documents.map((doc) => (
-                    <Card key={doc.id} className="p-4 border-border">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-primary" />
-                            <span className="font-medium">{doc.type}</span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeDocument(doc.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor={`docNo-${doc.id}`}>Document No. * (M)</Label>
-                            <Input
-                              id={`docNo-${doc.id}`}
-                              value={doc.documentNo}
-                              onChange={(e) => handleDocumentUpdate(doc.id, 'documentNo', e.target.value)}
-                              placeholder="Enter document number"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor={`docDate-${doc.id}`}>Document Date (O)</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !doc.documentDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {doc.documentDate ? format(doc.documentDate, "PPP") : "Pick a date"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                  mode="single"
-                                  selected={doc.documentDate}
-                                  onSelect={(date) => handleDocumentUpdate(doc.id, 'documentDate', date)}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor={`file-${doc.id}`}>Upload Documents (M) - File Upload</Label>
-                            <Input
-                              id={`file-${doc.id}`}
-                              type="file"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  handleFileUpload(doc.id, e.target.files[0]);
-                                }
-                              }}
-                              disabled={!doc.documentNo}
-                              className={!doc.documentNo ? 'opacity-50 cursor-not-allowed' : ''}
-                            />
-                            {!doc.documentNo && (
-                              <p className="text-xs text-muted-foreground">Enter document number first to enable upload</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="remarks">Remarks / Comments (O) - Optional notes</Label>
-                <textarea
-                  id="remarks"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  placeholder="Optional notes (max 200 characters)"
-                  className="w-full p-3 border border-border rounded-lg resize-none bg-background"
-                  rows={3}
-                  maxLength={200}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="declaration"
-                  checked={declaration}
-                  onChange={(e) => setDeclaration(e.target.checked)}
-                  className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
-                />
-                <Label htmlFor="declaration" className="text-sm">
-                  Declaration (M) - User must accept before submission. I declare that all information provided is accurate and complete.
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 6: Action Buttons */}
-          <Card className="border-border">
-            <CardHeader className="bg-muted/50">
-              <CardTitle className="text-lg text-primary">
-                Section 6: Action Buttons
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  onClick={onBack}
-                  className="px-8"
-                >
-                  Save as Draft
-                </Button>
-                <Button
-                  variant="outline"
-                  className="px-8"
-                >
-                  Save as Template
-                </Button>
-                <Button 
-                  onClick={handleSubmit}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
-                  disabled={!submissionType || !submissionDate || !lcReferenceNumber || !declaration || documents.length === 0}
-                >
-                  Submit for Pre-check
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <ActionButtonsSection
+            onBack={onBack}
+            onSubmit={handleSubmit}
+            submissionType={submissionType}
+            submissionDate={submissionDate}
+            lcReferenceNumber={lcReferenceNumber}
+            declaration={declaration}
+            documentsCount={documents.length}
+          />
         </div>
       </div>
     </div>
