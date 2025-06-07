@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe } from 'lucide-react';
 import BillsModal from './BillsModal';
+import LetterOfCreditModal from './LetterOfCreditModal';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -10,6 +11,8 @@ interface ProductSuiteProps {
 
 const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
+  const [showLcModal, setShowLcModal] = useState(false);
+  const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
   const products = [
@@ -17,7 +20,9 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       id: 'lc',
       title: 'Letter of Credit',
       icon: FileText,
-      description: 'Manage import and export letters of credit'
+      description: 'Manage import and export letters of credit',
+      hasFlip: true,
+      flipOptions: ['Import Letter of Credit', 'Export Letter of Credit']
     },
     {
       id: 'guarantee',
@@ -61,9 +66,40 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     }
   };
 
+  const handleLcClick = (option: string) => {
+    if (option === 'Import Letter of Credit') {
+      setLcModalType('import');
+      setShowLcModal(true);
+    } else if (option === 'Export Letter of Credit') {
+      setLcModalType('export');
+      setShowLcModal(true);
+    }
+  };
+
   const handleEEnablerClick = (option: string) => {
     console.log('e-Enabler option clicked:', option);
     // Handle e-enabler options here
+  };
+
+  const handleCardHover = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (product?.hasFlip) {
+      setFlippedCard(productId);
+    }
+  };
+
+  const handleCardLeave = () => {
+    setFlippedCard(null);
+  };
+
+  const handleOptionClick = (productId: string, option: string) => {
+    if (productId === 'lc') {
+      handleLcClick(option);
+    } else if (productId === 'bills') {
+      handleBillsClick(option);
+    } else if (productId === 'e-enablers') {
+      handleEEnablerClick(option);
+    }
   };
 
   return (
@@ -85,8 +121,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
               className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
                 flippedCard === product.id ? 'rotate-y-180' : ''
               }`}
-              onMouseEnter={() => product.hasFlip && setFlippedCard(product.id)}
-              onMouseLeave={() => setFlippedCard(null)}
+              onMouseEnter={() => handleCardHover(product.id)}
+              onMouseLeave={handleCardLeave}
             >
               {/* Front of card */}
               <Card className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-lg transition-shadow">
@@ -101,18 +137,19 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                 </CardContent>
               </Card>
 
-              {/* Back of card (for Bills and e-Enablers) */}
+              {/* Back of card (for products with flip options) */}
               {product.hasFlip && (
                 <Card className="absolute inset-0 backface-hidden rotate-y-180 cursor-pointer">
                   <CardContent className="p-6 flex flex-col justify-center h-full">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
-                      {product.id === 'bills' ? 'Bill Options' : 'e-Enabler Options'}
+                      {product.id === 'lc' ? 'LC Options' : 
+                       product.id === 'bills' ? 'Bill Options' : 'e-Enabler Options'}
                     </h3>
                     <div className="space-y-3">
                       {product.flipOptions?.map((option) => (
                         <button
                           key={option}
-                          onClick={() => product.id === 'bills' ? handleBillsClick(option) : handleEEnablerClick(option)}
+                          onClick={() => handleOptionClick(product.id, option)}
                           className="w-full p-3 text-left bg-corporate-blue/10 hover:bg-corporate-blue/20 rounded-lg transition-colors"
                         >
                           <span className="text-sm font-medium text-corporate-blue">{option}</span>
@@ -129,6 +166,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
 
       {showBillsModal && (
         <BillsModal onClose={() => setShowBillsModal(false)} />
+      )}
+
+      {showLcModal && (
+        <LetterOfCreditModal 
+          isOpen={showLcModal}
+          onClose={() => setShowLcModal(false)}
+          type={lcModalType}
+        />
       )}
     </div>
   );
