@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe } from 'lucide-react';
+import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe, ShoppingCart } from 'lucide-react';
 import BillsModal from './BillsModal';
 import { Button } from '@/components/ui/button';
 
@@ -13,8 +12,9 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'products' | 'options' | 'methods'>('products');
+  const [showProductModal, setShowProductModal] = useState(false);
 
   const products = [
     {
@@ -35,10 +35,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         'Export Letter of Credit': {
           options: ['Approve/Reject Pre-Advised LC', 'Record Amendment Response', 'Request Transfer', 'Request Assignment'],
           methods: {
-            'Approve/Reject Pre-Advised LC': ['Manual', 'Upload', 'Contextual Assistance'],
-            'Record Amendment Response': ['Manual', 'Upload', 'Contextual Assistance'],
-            'Request Transfer': ['Manual', 'Upload', 'Contextual Assistance'],
-            'Request Assignment': ['Manual', 'Upload', 'Contextual Assistance']
+            'Approve/Reject Pre-Advised LC': ['Manual', 'Contextual Assistance'],
+            'Record Amendment Response': ['Manual', 'Contextual Assistance'],
+            'Request Transfer': ['Manual', 'Contextual Assistance'],
+            'Request Assignment': ['Manual', 'Contextual Assistance']
           }
         }
       }
@@ -156,106 +156,75 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       description: 'Digital trade enablement solutions',
       flipOptions: ['e-Bill of Lading (e-B/L)', 'e-Warehouse Receipt (e-W/R)', 'e-Certificate of Origin (e-COO)', 'e-Bill of Exchange (e-B/E)'],
       optionDetails: {}
+    },
+    {
+      id: 'purchase-order',
+      title: 'Purchase Order and Invoices',
+      icon: ShoppingCart,
+      description: 'Manage purchase orders and invoices',
+      flipOptions: ['Manage Purchase Order', 'Manage Invoices'],
+      optionDetails: {
+        'Manage Purchase Order': {
+          options: ['Request Issuance', 'Request Update', 'Request Cancel'],
+          methods: {
+            'Request Issuance': ['Manual', 'Upload', 'Contextual Assistance'],
+            'Request Update': ['Manual', 'Upload', 'Contextual Assistance'],
+            'Request Cancel': ['Manual', 'Upload', 'Contextual Assistance']
+          }
+        },
+        'Manage Invoices': {
+          options: ['Request Issuance', 'Request Update', 'Request Cancel'],
+          methods: {
+            'Request Issuance': ['Manual', 'Upload', 'Contextual Assistance'],
+            'Request Update': ['Manual', 'Upload', 'Contextual Assistance'],
+            'Request Cancel': ['Manual', 'Upload', 'Contextual Assistance']
+          }
+        }
+      }
     }
   ];
 
   const handleCardHover = (productId: string) => {
     setHoveredCard(productId);
-    if (productId === 'bills' || productId === 'lc' || productId === 'guarantee' || productId === 'shipping' || productId === 'trade-loan' || productId === 'e-enablers') {
-      setFlippedCard(productId);
-    }
+    setFlippedCard(productId);
   };
 
   const handleCardLeave = () => {
     setHoveredCard(null);
-    if (flippedCard !== 'bills') {
+    // Keep the card flipped if it's selected, otherwise flip it back
+    if (!selectedProduct) {
       setFlippedCard(null);
     }
   };
 
   const handleOptionClick = (productId: string, option: string) => {
+    setSelectedProduct(productId);
     setSelectedOption(option);
-    setCurrentView('options');
+    setShowProductModal(true);
     
     if (productId === 'bills' && option === 'LC Bills') {
       setShowBillsModal(true);
+      setShowProductModal(false);
     }
   };
 
-  const handleSubOptionClick = (subOption: string) => {
-    setCurrentView('methods');
+  const handleCloseModal = () => {
+    setShowProductModal(false);
+    setSelectedProduct(null);
+    setSelectedOption(null);
+    setFlippedCard(null);
   };
 
-  const renderMethodsView = () => {
-    const product = products.find(p => p.id === hoveredCard);
-    if (!product || !selectedOption) return null;
-
+  const getMethodsForOption = (subOption: string) => {
+    if (!selectedProduct || !selectedOption) return [];
+    
+    const product = products.find(p => p.id === selectedProduct);
+    if (!product) return [];
+    
     const details = product.optionDetails[selectedOption];
-    if (!details) return null;
-
-    return (
-      <div className="space-y-4">
-        <Button
-          variant="ghost"
-          onClick={() => setCurrentView('options')}
-          className="text-sm text-corporate-peach-600 hover:text-corporate-peach-700"
-        >
-          ← Back to Options
-        </Button>
-        <h4 className="font-semibold text-corporate-peach-700 dark:text-corporate-peach-300">{selectedOption}</h4>
-        <div className="space-y-3">
-          {Object.entries(details.methods || {}).map(([method, methodTypes]) => (
-            <div key={method} className="space-y-2">
-              <p className="font-medium text-sm">{method}</p>
-              <div className="flex flex-wrap gap-2">
-                {(methodTypes as string[]).map((methodType) => (
-                  <span
-                    key={methodType}
-                    className="px-2 py-1 text-xs bg-corporate-peach-100 dark:bg-corporate-peach-800/30 text-corporate-peach-700 dark:text-corporate-peach-300 rounded"
-                  >
-                    {methodType}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderOptionsView = () => {
-    const product = products.find(p => p.id === hoveredCard);
-    if (!product || !selectedOption) return null;
-
-    const details = product.optionDetails[selectedOption];
-    if (!details) return null;
-
-    return (
-      <div className="space-y-4">
-        <Button
-          variant="ghost"
-          onClick={() => setCurrentView('products')}
-          className="text-sm text-corporate-peach-600 hover:text-corporate-peach-700"
-        >
-          ← Back to Products
-        </Button>
-        <h4 className="font-semibold text-corporate-peach-700 dark:text-corporate-peach-300">{selectedOption}</h4>
-        <div className="space-y-2">
-          {details.options.map((option) => (
-            <button
-              key={option}
-              onClick={() => handleSubOptionClick(option)}
-              className="w-full p-2 text-left bg-corporate-peach-50 dark:bg-corporate-peach-800/20 hover:bg-corporate-peach-100 dark:hover:bg-corporate-peach-800/30 rounded-lg transition-colors"
-            >
-              <span className="text-sm font-medium text-corporate-peach-700 dark:text-corporate-peach-300">
-                {option}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+    if (!details) return [];
+    
+    return details.methods[subOption] || [];
   };
 
   return (
@@ -270,7 +239,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Product Suite</h2>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => (
           <div 
             key={product.id} 
@@ -318,17 +287,78 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Overlay for detailed options */}
-            {hoveredCard === product.id && currentView !== 'products' && (
-              <div className="absolute inset-0 bg-white/95 dark:bg-gray-800/95 z-20 p-4 overflow-auto animate-fade-in rounded-lg">
-                {currentView === 'options' && renderOptionsView()}
-                {currentView === 'methods' && renderMethodsView()}
-              </div>
-            )}
           </div>
         ))}
       </div>
+
+      {/* Product Options Modal */}
+      {showProductModal && selectedProduct && selectedOption && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                {selectedOption}
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {(() => {
+                const product = products.find(p => p.id === selectedProduct);
+                if (!product) return null;
+
+                const details = product.optionDetails[selectedOption];
+                if (!details) return null;
+
+                return (
+                  <div className="space-y-6">
+                    {/* Options */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                        Available Options
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {details.options.map((option) => (
+                          <Card key={option} className="hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="p-4 text-center">
+                              <h4 className="font-medium text-gray-800 dark:text-white">
+                                {option}
+                              </h4>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Methods */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                        Processing Methods
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {['Manual', 'Upload', 'Contextual Assistance'].map((method) => (
+                          <Card key={method} className="hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardContent className="p-4 text-center">
+                              <h4 className="font-medium text-gray-800 dark:text-white">
+                                {method}
+                              </h4>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showBillsModal && (
         <BillsModal onClose={() => setShowBillsModal(false)} />
