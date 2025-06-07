@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Upload, Bot, ArrowLeft, FileCheck, AlertCircle, DollarSign } from 'lucide-react';
+import { FileText, Upload, Bot, ArrowLeft, FileCheck, AlertCircle, DollarSign, CheckCircle, CreditCard } from 'lucide-react';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -12,7 +12,22 @@ interface BillsModalProps {
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
   const [selectedBillType, setSelectedBillType] = useState<string | null>(null);
 
-  const billTypes = [
+  const importBillTypes = [
+    {
+      id: 'accept-refuse',
+      title: 'Accept/Refuse',
+      description: 'Accept or refuse bills for payment',
+      icon: CheckCircle
+    },
+    {
+      id: 'process-settlement',
+      title: 'Process Bill Settlement',
+      description: 'Process settlement of accepted bills',
+      icon: CreditCard
+    }
+  ];
+
+  const exportBillTypes = [
     {
       id: 'present',
       title: 'Present Bills',
@@ -32,6 +47,8 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
       icon: DollarSign
     }
   ];
+
+  const billTypes = type === 'import' ? importBillTypes : exportBillTypes;
 
   const processingMethods = [
     {
@@ -95,10 +112,10 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
               {billTypes.map((billType) => (
                 <Card
                   key={billType.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md border ${
                     selectedBillType === billType.id
-                      ? 'ring-2 ring-corporate-blue bg-corporate-blue/5 dark:bg-corporate-blue/10'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? 'ring-2 ring-corporate-blue bg-corporate-blue/5 dark:bg-corporate-blue/10 border-corporate-blue'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}
                   onClick={() => handleBillTypeSelect(billType.id)}
                 >
@@ -125,10 +142,10 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
               {processingMethods.map((method) => (
                 <Card
                   key={method.id}
-                  className={`cursor-pointer transition-all duration-200 ${
+                  className={`cursor-pointer transition-all duration-200 border ${
                     selectedBillType
-                      ? 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700'
-                      : 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
+                      ? 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'
+                      : 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
                   }`}
                   onClick={() => handleMethodSelect(method.id)}
                 >
