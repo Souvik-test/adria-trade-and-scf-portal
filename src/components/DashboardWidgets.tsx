@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,53 +8,9 @@ const DashboardWidgets: React.FC = () => {
   const [transactionFilter, setTransactionFilter] = useState('all');
   const [productFilter, setProductFilter] = useState('all');
   const [limitFilter, setLimitFilter] = useState('all');
-  const [activeWidgets, setActiveWidgets] = useState<string[]>([
-    'transaction-status', 'products', 'limit', 'lc'
-  ]);
-
-  // Handle dragging
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const [dragOverItem, setDragOverItem] = useState<string | null>(null);
-  
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
-    setDraggedItem(id);
-    e.currentTarget.classList.add('opacity-50');
-  };
-  
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    e.currentTarget.classList.remove('opacity-50');
-    setDraggedItem(null);
-    setDragOverItem(null);
-  };
-  
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-  
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, id: string) => {
-    e.preventDefault();
-    setDragOverItem(id);
-  };
-  
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
-    e.preventDefault();
-    if (draggedItem && draggedItem !== targetId) {
-      const newWidgetsOrder = [...activeWidgets];
-      const draggedIndex = newWidgetsOrder.indexOf(draggedItem);
-      const dropIndex = newWidgetsOrder.indexOf(targetId);
-      
-      // Remove dragged item from array
-      newWidgetsOrder.splice(draggedIndex, 1);
-      // Insert at the drop position
-      newWidgetsOrder.splice(dropIndex, 0, draggedItem);
-      
-      setActiveWidgets(newWidgetsOrder);
-    }
-  };
 
   const widgets = [
     {
-      id: 'transaction-status',
       title: 'Transaction Status',
       type: 'chart',
       component: (
@@ -96,7 +52,6 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
-      id: 'products',
       title: 'Products',
       type: 'pie',
       component: (
@@ -112,7 +67,7 @@ const DashboardWidgets: React.FC = () => {
             </SelectContent>
           </Select>
           <div className="flex items-center justify-center">
-            <PieChart className="w-16 h-16 text-corporate-peach-500" />
+            <PieChart className="w-16 h-16 text-corporate-blue" />
           </div>
           <div className="text-xs space-y-1">
             <div className="flex items-center gap-2">
@@ -132,7 +87,6 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
-      id: 'limit',
       title: 'Limit',
       type: 'status',
       component: (
@@ -161,7 +115,6 @@ const DashboardWidgets: React.FC = () => {
       )
     },
     {
-      id: 'lc',
       title: 'LC',
       type: 'dual',
       component: (
@@ -189,12 +142,125 @@ const DashboardWidgets: React.FC = () => {
           </div>
         </div>
       )
+    },
+    {
+      title: 'Cash Forecast',
+      type: 'chart',
+      component: (
+        <div className="space-y-2">
+          <div className="text-xs text-gray-600 mb-2">Monthly</div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span>Revenue</span>
+              <span className="text-green-600">↗ +2.5%</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span>Cost of Sales</span>
+              <span className="text-blue-600">↗ +1.2%</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span>SG&A</span>
+              <span className="text-orange-600">↗ +0.8%</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span>Operating Profit</span>
+              <span className="text-purple-600">↗ +3.1%</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-1 mt-2">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className={`h-8 rounded ${i % 4 === 0 ? 'bg-green-200' : i % 4 === 1 ? 'bg-blue-200' : i % 4 === 2 ? 'bg-orange-200' : 'bg-purple-200'}`}></div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Current Assets',
+      type: 'financial',
+      component: (
+        <div className="space-y-2">
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span>Cash</span>
+              <span className="font-semibold">$5,000,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span>A/R</span>
+              <span className="font-semibold">$4,000,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Fixed Assets</span>
+              <span className="font-semibold">$310,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Investments</span>
+              <span className="font-semibold">$1,200,000</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Current Liabilities',
+      type: 'financial',
+      component: (
+        <div className="space-y-2">
+          <div className="text-xs text-gray-600 mb-2">Monthly</div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span>USD</span>
+              <span className="font-semibold">$2,000,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span>EUR</span>
+              <span className="font-semibold">€1,800,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span>AUD</span>
+              <span className="font-semibold">A$950,000</span>
+            </div>
+          </div>
+          <div className="mt-2">
+            <BarChart3 className="w-full h-8 text-corporate-blue" />
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'No. of Companies',
+      type: 'count',
+      component: (
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-2">See All</div>
+          <div className="text-4xl font-bold text-corporate-blue mb-2">5</div>
+        </div>
+      )
+    },
+    {
+      title: 'No. of Countries',
+      type: 'count',
+      component: (
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-2">See All</div>
+          <div className="text-4xl font-bold text-corporate-blue mb-2">23</div>
+        </div>
+      )
+    },
+    {
+      title: 'Banking Relationships',
+      type: 'count',
+      component: (
+        <div className="text-center">
+          <div className="text-xs text-gray-600 mb-2">See All</div>
+          <div className="text-4xl font-bold text-corporate-blue mb-2">8</div>
+        </div>
+      )
     }
   ];
 
   const bigWidgets = [
     {
-      id: 'insights',
       title: 'Insights by Watsaxi AI',
       content: (
         <div className="p-4 space-y-2">
@@ -206,25 +272,23 @@ const DashboardWidgets: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2 mt-3">
-            <button className="px-3 py-1 bg-corporate-peach-400 text-white text-xs rounded hover:bg-corporate-peach-500">Liquidate your FD</button>
-            <button className="px-3 py-1 bg-corporate-peach-600 text-white text-xs rounded hover:bg-corporate-peach-700">Apply for Credit Limit</button>
+            <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded">Liquidate your FD</button>
+            <button className="px-3 py-1 bg-green-500 text-white text-xs rounded">Apply for Credit Limit</button>
           </div>
         </div>
       )
     },
     {
-      id: 'news',
       title: 'News & Promotions',
       content: (
         <div className="p-4">
-          <div className="bg-gradient-to-r from-corporate-peach-500 to-corporate-peach-700 rounded-lg p-3 text-white text-sm">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 text-white text-sm">
             <div className="font-semibold">UAE Foreign Trade hit record $517bn in 2024</div>
           </div>
         </div>
       )
     },
     {
-      id: 'notes',
       title: 'Notes',
       content: (
         <div className="p-4 space-y-2">
@@ -245,32 +309,90 @@ const DashboardWidgets: React.FC = () => {
           </div>
         </div>
       )
+    },
+    {
+      title: 'Composite Shortcuts',
+      content: (
+        <div className="p-4 space-y-2">
+          <div className="text-xs text-gray-600">Add New</div>
+          <div className="space-y-1 text-xs">
+            <div>Pending Actions</div>
+            <div>Reference Transactions</div>
+            <div>Exceptions</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Status',
+      content: (
+        <div className="p-4">
+          <div className="text-xs text-gray-600 mb-2">Info</div>
+          <div className="flex items-center justify-center">
+            <PieChart className="w-16 h-16 text-corporate-blue" />
+          </div>
+          <div className="text-xs space-y-1 mt-2">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded"></div>
+              <span>Import Letter of Credit</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded"></div>
+              <span>Export Letter of Credit</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-orange-500 rounded"></div>
+              <span>Outward Bank Guarantee</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-purple-500 rounded"></div>
+              <span>Inward Bank Guarantees</span>
+            </div>
+          </div>
+        </div>
+      )
     }
   ];
 
-  // Filter widgets based on the active list
-  const filteredWidgets = widgets.filter(widget => activeWidgets.includes(widget.id));
+  const bottomWidgets = [
+    {
+      title: 'Cash Balance',
+      value: '$5,000,000',
+      change: '+2%',
+      icon: DollarSign,
+      color: 'text-green-600'
+    },
+    {
+      title: 'Credit Limit',
+      value: '$1,000,000',
+      change: '+4%',
+      icon: CreditCard,
+      color: 'text-blue-600'
+    },
+    {
+      title: 'Investments',
+      value: '$1,200,000',
+      change: '+3%',
+      icon: TrendingUp,
+      color: 'text-purple-600'
+    },
+    {
+      title: 'Loan',
+      value: '$2,000,000',
+      change: '-1%',
+      icon: Banknote,
+      color: 'text-red-600'
+    }
+  ];
 
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Trade Finance Dashboard</h2>
       
       {/* Top Grid - Small Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {filteredWidgets.map((widget) => (
-          <Card 
-            key={widget.id}
-            id={widget.id}
-            className={`hover:shadow-lg transition-shadow cursor-move ${
-              dragOverItem === widget.id ? 'border-corporate-peach-500 dark:border-corporate-peach-400' : ''
-            }`}
-            draggable={true}
-            onDragStart={(e) => handleDragStart(e, widget.id)}
-            onDragEnd={handleDragEnd}
-            onDragOver={handleDragOver}
-            onDragEnter={(e) => handleDragEnter(e, widget.id)}
-            onDrop={(e) => handleDrop(e, widget.id)}
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {widgets.map((widget, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {widget.title}
@@ -284,13 +406,9 @@ const DashboardWidgets: React.FC = () => {
       </div>
 
       {/* Middle Grid - Large Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {bigWidgets.map((widget) => (
-          <Card 
-            key={widget.id}
-            className="hover:shadow-lg transition-shadow cursor-move" 
-            draggable
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {bigWidgets.map((widget, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {widget.title}
@@ -298,6 +416,28 @@ const DashboardWidgets: React.FC = () => {
             </CardHeader>
             <CardContent className="p-0">
               {widget.content}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Bottom Row - Financial Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {bottomWidgets.map((widget, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  {widget.title}
+                </p>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {widget.value}
+                </div>
+                <p className={`text-xs ${widget.color} mt-1`}>
+                  {widget.change} from last month
+                </p>
+              </div>
+              <widget.icon className={`h-8 w-8 ${widget.color}`} />
             </CardContent>
           </Card>
         ))}
