@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Moon, Sun, Upload, Edit, Trash2, FileText, Calendar } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Upload, Edit, Trash2, FileText, Calendar, Expand } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ResolveDiscrepanciesFormProps {
@@ -28,6 +28,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   const [customDocumentName, setCustomDocumentName] = useState('');
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [editingDocument, setEditingDocument] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -74,7 +75,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   return (
     <div className={darkMode ? 'dark' : ''}>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <DialogContent className={`${isExpanded ? 'max-w-[95vw] max-h-[95vh]' : 'max-w-7xl max-h-[90vh]'} overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300`}>
           <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -88,34 +89,41 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   Resolve Discrepancies
                 </DialogTitle>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleDarkMode}
-                className="flex items-center gap-2"
-              >
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                {darkMode ? 'Light' : 'Dark'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="flex items-center gap-2"
+                >
+                  <Expand className="w-4 h-4" />
+                  {isExpanded ? 'Collapse' : 'Expand'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleDarkMode}
+                  className="flex items-center gap-2"
+                >
+                  {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  {darkMode ? 'Light' : 'Dark'}
+                </Button>
+              </div>
             </div>
           </DialogHeader>
           
           <div className="flex gap-6 p-6 overflow-y-auto">
             {/* Left Panel - Uploaded Documents */}
-            <div className="w-1/3 space-y-4">
-              <Card className="border border-gray-200 dark:border-gray-600">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                    Uploaded Documents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {uploadedDocuments.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                      No documents uploaded yet
-                    </p>
-                  ) : (
-                    uploadedDocuments.map((doc) => (
+            {uploadedDocuments.length > 0 && (
+              <div className="w-1/3 space-y-4">
+                <Card className="border border-gray-200 dark:border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+                      Uploaded Documents
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {uploadedDocuments.map((doc) => (
                       <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -169,14 +177,14 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                           Type: {doc.type}
                         </div>
                       </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Right Panel - Form */}
-            <div className="flex-1 space-y-6">
+            <div className={`${uploadedDocuments.length > 0 ? 'flex-1' : 'w-full'} space-y-6`}>
               {/* Discrepancy Summary Section */}
               <Card className="border border-gray-200 dark:border-gray-600">
                 <CardHeader>
@@ -227,7 +235,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Discrepancy Type</Label>
-                      <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+                      <Input placeholder="Enter discrepancy type" className="mt-1" />
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Document Type</Label>
