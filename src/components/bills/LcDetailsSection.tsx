@@ -1,14 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface LcDetailsSectionProps {
   applicantName: string;
@@ -23,6 +17,8 @@ interface LcDetailsSectionProps {
   setLcIssueDate: (value: Date | null) => void;
   lcExpiryDate: Date | null;
   setLcExpiryDate: (value: Date | null) => void;
+  lcExpiryPlace: string;
+  setLcExpiryPlace: (value: string) => void;
 }
 
 const LcDetailsSection: React.FC<LcDetailsSectionProps> = ({
@@ -37,112 +33,102 @@ const LcDetailsSection: React.FC<LcDetailsSectionProps> = ({
   lcIssueDate,
   setLcIssueDate,
   lcExpiryDate,
-  setLcExpiryDate
+  setLcExpiryDate,
+  lcExpiryPlace,
+  setLcExpiryPlace
 }) => {
   return (
-    <Card className="border-border">
-      <CardHeader className="bg-muted/50">
-        <CardTitle className="text-lg text-primary">
-          Section 2: LC & Applicant Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card className="border-0 shadow-none bg-background">
+      <div className="mb-6">
+        <h2 className="text-lg font-medium text-orange-400 mb-6">LC & Applicant Details</h2>
+      </div>
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
-            <Label htmlFor="applicantName">Applicant Name (CM) - Auto</Label>
+            <Label htmlFor="applicantName" className="text-sm font-medium text-foreground">
+              Applicant Name
+            </Label>
             <Input
               id="applicantName"
-              value={applicantName}
-              onChange={(e) => setApplicantName(e.target.value)}
-              placeholder="Auto-filled from LC (140 chars max)"
+              value="Auto-populated"
+              placeholder="Auto-populated"
+              className="w-full h-12 border-gray-300 bg-gray-50"
               disabled
-              maxLength={140}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="issuingBank">Issuing Bank (CM) - Auto</Label>
+            <Label htmlFor="issuingBank" className="text-sm font-medium text-foreground">
+              Issuing Bank
+            </Label>
             <Input
               id="issuingBank"
-              value={issuingBank}
-              onChange={(e) => setIssuingBank(e.target.value)}
-              placeholder="BIC or Full Name/Address (140 chars max)"
+              value="Auto-populated"
+              placeholder="Auto-populated"
+              className="w-full h-12 border-gray-300 bg-gray-50"
               disabled
-              maxLength={140}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lcCurrency">LC Currency (CM) - Auto-fetched</Label>
+            <Label htmlFor="lcCurrency" className="text-sm font-medium text-foreground">
+              LC Currency
+            </Label>
             <Input
               id="lcCurrency"
-              value={lcCurrency}
-              onChange={(e) => setLcCurrency(e.target.value)}
-              placeholder="ISO String (3 chars)"
-              maxLength={3}
+              value="Auto-fetched"
+              placeholder="Auto-fetched"
+              className="w-full h-12 border-gray-300 bg-gray-50"
+              disabled
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lcAmount">LC Amount (CM)</Label>
+            <Label htmlFor="lcAmount" className="text-sm font-medium text-foreground">
+              LC Amount
+            </Label>
             <Input
               id="lcAmount"
               value={lcAmount}
               onChange={(e) => setLcAmount(e.target.value)}
               placeholder="Format: 99999999999.99"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lcIssueDate">LC Issue Date (CM) - Auto</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !lcIssueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {lcIssueDate ? format(lcIssueDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={lcIssueDate}
-                  onSelect={setLcIssueDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="lcIssueDate" className="text-sm font-medium text-foreground">
+              LC Issue Date
+            </Label>
+            <Input
+              id="lcIssueDate"
+              value="dd/mm/yyyy"
+              placeholder="dd/mm/yyyy"
+              className="w-full h-12 border-gray-300 bg-gray-50"
+              disabled
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lcExpiryDate">LC Expiry Date & Place (CM)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !lcExpiryDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {lcExpiryDate ? format(lcExpiryDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={lcExpiryDate}
-                  onSelect={setLcExpiryDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="lcExpiryDate" className="text-sm font-medium text-foreground">
+              LC Expiry Date & Place
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="lcExpiryDate"
+                value="dd/mm/yyyy"
+                placeholder="dd/mm/yyyy"
+                className="flex-1 h-12 border-gray-300 bg-gray-50"
+                disabled
+              />
+              <Input
+                id="lcExpiryPlace"
+                value={lcExpiryPlace}
+                onChange={(e) => setLcExpiryPlace(e.target.value)}
+                placeholder="Place"
+                className="w-24 h-12 border-gray-300 focus:border-orange-400"
+              />
+            </div>
           </div>
         </div>
       </CardContent>

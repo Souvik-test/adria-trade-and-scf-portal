@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import SubmissionSection from './bills/SubmissionSection';
 import LcDetailsSection from './bills/LcDetailsSection';
 import DrawingDetailsSection from './bills/DrawingDetailsSection';
@@ -15,7 +15,7 @@ interface BillsFormProps {
 }
 
 const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
-  const [submissionType, setSubmissionType] = useState('');
+  const [submissionType, setSubmissionType] = useState('Pre-Check');
   const [submissionReference, setSubmissionReference] = useState('');
   const [submissionDate, setSubmissionDate] = useState<Date | null>(new Date());
   const [lcReferenceNumber, setLcReferenceNumber] = useState('');
@@ -26,6 +26,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
   const [lcAmount, setLcAmount] = useState('');
   const [lcIssueDate, setLcIssueDate] = useState<Date | null>(null);
   const [lcExpiryDate, setLcExpiryDate] = useState<Date | null>(null);
+  const [lcExpiryPlace, setLcExpiryPlace] = useState('');
   const [drawingAmount, setDrawingAmount] = useState('');
   const [drawingCurrency, setDrawingCurrency] = useState('');
   const [tenor, setTenor] = useState('');
@@ -54,6 +55,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
       lcAmount,
       lcIssueDate,
       lcExpiryDate,
+      lcExpiryPlace,
       drawingAmount,
       drawingCurrency,
       tenor,
@@ -73,34 +75,26 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border border-border">
-        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
+    <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+      <div className="min-h-screen bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={onBack}
-              className="p-2 hover:bg-accent rounded-full transition-colors"
+              className="flex items-center gap-2 text-orange-400 hover:text-orange-500 font-medium"
             >
               <ArrowLeft className="w-5 h-5" />
+              Back
             </button>
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">
-                Bills under Export LC – Field Specification (Pre-check Submission)
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Complete all mandatory fields marked with * to proceed with submission
-              </p>
-            </div>
+            <h1 className="text-xl font-semibold text-gray-800">
+              Bills under Export LC Management
+            </h1>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-accent rounded-full transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
-        <div className="p-6 space-y-8 bg-muted/30">
+        {/* Form Content */}
+        <div className="max-w-7xl mx-auto p-8 space-y-12">
           {/* Section 1: Submission Type and Export LC Selection */}
           <SubmissionSection
             submissionType={submissionType}
@@ -114,7 +108,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setCorporateReference={setCorporateReference}
           />
 
-          {/* Section 2: LC Details */}
+          {/* Section 2: LC & Applicant Details */}
           <LcDetailsSection
             applicantName={applicantName}
             setApplicantName={setApplicantName}
@@ -128,6 +122,8 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setLcIssueDate={setLcIssueDate}
             lcExpiryDate={lcExpiryDate}
             setLcExpiryDate={setLcExpiryDate}
+            lcExpiryPlace={lcExpiryPlace}
+            setLcExpiryPlace={setLcExpiryPlace}
           />
 
           {/* Section 3: Drawing Details */}
@@ -142,7 +138,7 @@ const BillsForm: React.FC<BillsFormProps> = ({ onBack, onClose }) => {
             setTenorDays={setTenorDays}
           />
 
-          {/* Section 4: Shipment Details */}
+          {/* Section 4: Shipment & Transportation Details */}
           <ShipmentDetailsSection
             latestShipmentDate={latestShipmentDate}
             actualShipmentDate={actualShipmentDate}

@@ -1,14 +1,10 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface ShipmentDetailsSectionProps {
   latestShipmentDate: Date | null;
@@ -42,112 +38,111 @@ const ShipmentDetailsSection: React.FC<ShipmentDetailsSectionProps> = ({
   setPlaceOfDelivery
 }) => {
   return (
-    <Card className="border-border">
-      <CardHeader className="bg-muted/50">
-        <CardTitle className="text-lg text-primary">
-          Section 4: Shipment & Transportation Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <Card className="border-0 shadow-none bg-background">
+      <div className="mb-6">
+        <h2 className="text-lg font-medium text-orange-400 mb-6">Shipment & Transportation Details</h2>
+      </div>
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
-            <Label htmlFor="latestShipmentDate">Latest Shipment Date (CM) - Non-editable</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !latestShipmentDate && "text-muted-foreground"
-                  )}
-                  disabled
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {latestShipmentDate ? format(latestShipmentDate, "PPP") : "Non-editable"}
-                </Button>
-              </PopoverTrigger>
-            </Popover>
+            <Label htmlFor="latestShipmentDate" className="text-sm font-medium text-foreground">
+              Latest Shipment Date
+            </Label>
+            <Input
+              id="latestShipmentDate"
+              value="dd/mm/yyyy"
+              placeholder="dd/mm/yyyy"
+              className="w-full h-12 border-gray-300 bg-gray-50"
+              disabled
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="actualShipmentDate">Actual Shipment Date * (M)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !actualShipmentDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {actualShipmentDate ? format(actualShipmentDate, "PPP") : "Must ≤ Latest Shipment Date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={actualShipmentDate}
-                  onSelect={setActualShipmentDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="actualShipmentDate" className="text-sm font-medium text-foreground">
+              Actual Shipment Date <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="actualShipmentDate"
+                value="dd/mm/yyyy"
+                placeholder="dd/mm/yyyy"
+                className="w-full h-12 border-gray-300 focus:border-orange-400 pr-10"
+              />
+              <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="billOfLading">Bill of Lading / AWB No. * (M)</Label>
+            <Label htmlFor="billOfLading" className="text-sm font-medium text-foreground">
+              Bill of Lading / AWB No. <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="billOfLading"
               value={billOfLading}
               onChange={(e) => setBillOfLading(e.target.value)}
-              placeholder="Mandatory document ref (35 chars max)"
-              maxLength={35}
+              placeholder="Mandatory document ref"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="shippingLine">Shipping Line / Airline Name (O)</Label>
+            <Label htmlFor="shippingLine" className="text-sm font-medium text-foreground">
+              Shipping Line / Airline Name
+            </Label>
             <Input
               id="shippingLine"
               value={shippingLine}
               onChange={(e) => setShippingLine(e.target.value)}
-              placeholder="Optional (35 chars max)"
-              maxLength={35}
+              placeholder="Optional"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="portOfLoading">Port of Loading * (M)</Label>
-            <Input
-              id="portOfLoading"
-              value={portOfLoading}
-              onChange={(e) => setPortOfLoading(e.target.value)}
-              placeholder="Use UN/LOCODE format (35 chars max)"
-              maxLength={35}
-            />
+            <Label htmlFor="portOfLoading" className="text-sm font-medium text-foreground">
+              Port of Loading <span className="text-red-500">*</span>
+            </Label>
+            <Select value={portOfLoading} onValueChange={setPortOfLoading}>
+              <SelectTrigger className="w-full h-12 border-gray-300 focus:border-orange-400">
+                <SelectValue placeholder="Use UN/LOCODE format" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AEDXB">AEDXB - Dubai</SelectItem>
+                <SelectItem value="USNYC">USNYC - New York</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="portOfDischarge">Port of Discharge * (M)</Label>
-            <Input
-              id="portOfDischarge"
-              value={portOfDischarge}
-              onChange={(e) => setPortOfDischarge(e.target.value)}
-              placeholder="Required (35 chars max)"
-              maxLength={35}
-            />
+            <Label htmlFor="portOfDischarge" className="text-sm font-medium text-foreground">
+              Port of Discharge <span className="text-red-500">*</span>
+            </Label>
+            <Select value={portOfDischarge} onValueChange={setPortOfDischarge}>
+              <SelectTrigger className="w-full h-12 border-gray-300 focus:border-orange-400">
+                <SelectValue placeholder="Required" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AEDXB">AEDXB - Dubai</SelectItem>
+                <SelectItem value="USNYC">USNYC - New York</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="placeOfDelivery">Place of Delivery (M)</Label>
-            <Input
-              id="placeOfDelivery"
-              value={placeOfDelivery}
-              onChange={(e) => setPlaceOfDelivery(e.target.value)}
-              placeholder="Optional (35 chars max)"
-              maxLength={35}
-            />
+            <Label htmlFor="placeOfDelivery" className="text-sm font-medium text-foreground">
+              Place of Delivery
+            </Label>
+            <Select value={placeOfDelivery} onValueChange={setPlaceOfDelivery}>
+              <SelectTrigger className="w-full h-12 border-gray-300 focus:border-orange-400">
+                <SelectValue placeholder="Optional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="warehouse1">Warehouse 1</SelectItem>
+                <SelectItem value="warehouse2">Warehouse 2</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardContent>

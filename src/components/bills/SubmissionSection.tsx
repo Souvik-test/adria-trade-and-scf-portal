@@ -1,15 +1,9 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface SubmissionSectionProps {
   submissionType: string;
@@ -37,28 +31,19 @@ const SubmissionSection: React.FC<SubmissionSectionProps> = ({
   const submissionTypes = ['Pre-Check', 'Final'];
 
   return (
-    <Card className="border-border shadow-sm">
-      <CardHeader className="bg-primary/5 border-b border-border">
-        <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-            1
-          </div>
-          Section 1: Submission Type and Export LC Selection
-        </CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">
-          Select submission type and provide LC reference details
-        </p>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <Card className="border-0 shadow-none bg-background">
+      <div className="mb-6">
+        <h2 className="text-lg font-medium text-orange-400 mb-6">Submission Type and Export LC Selection</h2>
+      </div>
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="space-y-2">
             <Label htmlFor="submissionType" className="text-sm font-medium text-foreground">
-              Submission Type <span className="text-destructive">*</span> 
-              <span className="text-muted-foreground font-normal">(M)</span>
+              Submission Type <span className="text-red-500">*</span>
             </Label>
             <Select value={submissionType} onValueChange={setSubmissionType}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select submission type" />
+              <SelectTrigger className="w-full h-12 border-orange-300 focus:border-orange-400">
+                <SelectValue placeholder="Pre-Check" />
               </SelectTrigger>
               <SelectContent>
                 {submissionTypes.map((type) => (
@@ -72,69 +57,58 @@ const SubmissionSection: React.FC<SubmissionSectionProps> = ({
           
           <div className="space-y-2">
             <Label htmlFor="submissionReference" className="text-sm font-medium text-foreground">
-              Submission Reference 
-              <span className="text-muted-foreground font-normal">(O)</span>
+              Submission Reference
             </Label>
             <Input
               id="submissionReference"
               value={submissionReference}
               onChange={(e) => setSubmissionReference(e.target.value)}
-              placeholder="Enter submission reference (Max 16 chars)"
-              maxLength={16}
-              className="w-full"
+              placeholder="Enter reference"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
-            <p className="text-xs text-muted-foreground">Maximum 16 characters</p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="submissionDate" className="text-sm font-medium text-foreground">
-              Submission Date <span className="text-destructive">*</span> 
-              <span className="text-muted-foreground font-normal">(M) - Auto</span>
-            </Label>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal bg-muted/50",
-                !submissionDate && "text-muted-foreground"
-              )}
-              disabled
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {submissionDate ? format(submissionDate, "dd/MM/yyyy") : "Auto-populated"}
-            </Button>
-            <p className="text-xs text-muted-foreground">Automatically set to current date</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lcReference" className="text-sm font-medium text-foreground">
-              LC Reference Number <span className="text-destructive">*</span> 
-              <span className="text-muted-foreground font-normal">(M)</span>
+              Submission Date <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="lcReference"
-              value={lcReferenceNumber}
-              onChange={(e) => setLcReferenceNumber(e.target.value)}
-              placeholder="Enter LC reference number (Max 16 chars)"
-              maxLength={16}
-              className="w-full"
+              id="submissionDate"
+              value={submissionDate ? "07/06/2025" : ""}
+              placeholder="07/06/2025"
+              className="w-full h-12 border-gray-300 bg-gray-50"
+              disabled
             />
-            <p className="text-xs text-muted-foreground">Maximum 16 characters</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="lcReference" className="text-sm font-medium text-foreground">
+              LC Reference Number <span className="text-red-500">*</span>
+            </Label>
+            <Select value={lcReferenceNumber} onValueChange={setLcReferenceNumber}>
+              <SelectTrigger className="w-full h-12 border-orange-300 focus:border-orange-400">
+                <SelectValue placeholder="Select LC" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LC001">LC001 - Sample LC</SelectItem>
+                <SelectItem value="LC002">LC002 - Another LC</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="corporateReference" className="text-sm font-medium text-foreground">
-              Corporate Reference Number 
-              <span className="text-muted-foreground font-normal">(O)</span>
+              Corporate Reference Number
             </Label>
             <Input
               id="corporateReference"
               value={corporateReference}
               onChange={(e) => setCorporateReference(e.target.value)}
-              placeholder="Internal use only (Max 16 chars)"
-              maxLength={16}
-              className="w-full"
+              placeholder="Internal use only"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
-            <p className="text-xs text-muted-foreground">Internal use only - Maximum 16 characters</p>
           </div>
         </div>
       </CardContent>

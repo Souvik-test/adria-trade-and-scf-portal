@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,62 +26,65 @@ const DrawingDetailsSection: React.FC<DrawingDetailsSectionProps> = ({
   tenorDays,
   setTenorDays
 }) => {
-  const tenorOptions = ['Sight', 'Usance'];
-
   return (
-    <Card className="border-border">
-      <CardHeader className="bg-muted/50">
-        <CardTitle className="text-lg text-primary">
-          Section 3: Drawing Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <Card className="border-0 shadow-none bg-background">
+      <div className="mb-6">
+        <h2 className="text-lg font-medium text-orange-400 mb-6">Drawing Details</h2>
+      </div>
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="drawingAmount">Drawing Amount * (M)</Label>
+            <Label htmlFor="drawingAmount" className="text-sm font-medium text-foreground">
+              Drawing Amount <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="drawingAmount"
               value={drawingAmount}
               onChange={(e) => setDrawingAmount(e.target.value)}
-              placeholder="Must be ≤ available balance (15 digits)"
+              placeholder="Must be ≤ available balance"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="drawingCurrency">Drawing Currency (CM) - Auto-fetched</Label>
+            <Label htmlFor="drawingCurrency" className="text-sm font-medium text-foreground">
+              Drawing Currency
+            </Label>
             <Input
               id="drawingCurrency"
-              value={drawingCurrency}
-              onChange={(e) => setDrawingCurrency(e.target.value)}
-              placeholder="ISO String (3 chars)"
-              maxLength={3}
+              value="Auto-fetched"
+              placeholder="Auto-fetched"
+              className="w-full h-12 border-gray-300 bg-gray-50"
+              disabled
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tenor">Tenor (Sight/Usance) * (M) - Based on LC terms</Label>
+            <Label htmlFor="tenor" className="text-sm font-medium text-foreground">
+              Tenor (Sight/Usance) <span className="text-red-500">*</span>
+            </Label>
             <Select value={tenor} onValueChange={setTenor}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full h-12 border-gray-300 focus:border-orange-400">
                 <SelectValue placeholder="Based on LC terms" />
               </SelectTrigger>
               <SelectContent>
-                {tenorOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Sight">Sight</SelectItem>
+                <SelectItem value="Usance">Usance</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tenorDays">Tenor Days (if Usance) (O)</Label>
+            <Label htmlFor="tenorDays" className="text-sm font-medium text-foreground">
+              Tenor Days (if Usance)
+            </Label>
             <Input
               id="tenorDays"
               type="number"
               value={tenorDays}
               onChange={(e) => setTenorDays(e.target.value)}
               placeholder="Required if Tenor = Usance"
+              className="w-full h-12 border-gray-300 focus:border-orange-400"
               disabled={tenor !== 'Usance'}
             />
           </div>
