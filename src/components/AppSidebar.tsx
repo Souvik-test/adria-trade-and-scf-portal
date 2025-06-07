@@ -55,14 +55,13 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
   const { state, setOpen } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const [isHovering, setIsHovering] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle mouse enter event
   const handleMouseEnter = () => {
     setIsHovering(true);
     
-    // Clear any existing leave timeout
+    // Clear any existing leave timeout to prevent trembling
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
@@ -77,10 +76,10 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
   const handleMouseLeave = () => {
     setIsHovering(false);
     
-    // Set timeout to collapse sidebar after delay
+    // Set a longer timeout to prevent trembling
     leaveTimeoutRef.current = setTimeout(() => {
       setOpen(false);
-    }, 300); // Small delay to make the animation smoother
+    }, 800); // Increased timeout to 800ms for smoother experience
   };
 
   // Set initial collapsed state after component mount
@@ -95,9 +94,6 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
   // Cleanup timeouts on component unmount
   useEffect(() => {
     return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
       if (leaveTimeoutRef.current) {
         clearTimeout(leaveTimeoutRef.current);
       }
