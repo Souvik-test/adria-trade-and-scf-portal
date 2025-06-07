@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Upload, Edit, Trash2, FileText, Calendar, Search, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ResolveDiscrepanciesFormProps {
   onClose: () => void;
@@ -229,7 +230,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-[calc(100vh-300px)] overflow-y-auto scrollbar-visible">
+                    <ScrollArea className="h-[calc(100vh-300px)]">
                       <div className="space-y-3 pr-4">
                         {uploadedDocuments.map((doc) => (
                           <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
@@ -287,7 +288,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </ScrollArea>
                   </CardContent>
                 </Card>
               </div>
@@ -295,7 +296,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
 
             {/* Right Panel - Form */}
             <div className={`${uploadedDocuments.length > 0 ? 'flex-1' : 'w-full'} flex flex-col overflow-hidden`}>
-              <div className="flex-1 overflow-y-auto scrollbar-visible">
+              <ScrollArea className="flex-1">
                 <div className="space-y-6 pr-4">
                   {/* Validation Errors */}
                   {validationErrors.length > 0 && (
@@ -533,7 +534,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     </CardContent>
                   </Card>
                 </div>
-              </div>
+              </ScrollArea>
 
               {/* Action Buttons */}
               <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
