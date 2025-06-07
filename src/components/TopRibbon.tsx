@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, HelpCircle, Sun, Moon, Bell, User, LogOut, Switch } from 'lucide-react';
+import { Upload, HelpCircle, Sun, Moon, Bell, User, LogOut } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -124,20 +123,19 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
             <HelpCircle className="w-5 h-5" />
           </Button>
           
-          <div className="flex items-center gap-2">
-            <SwitchComponent
-              checked={darkMode}
-              onCheckedChange={onToggleDarkMode}
-              className="data-[state=checked]:bg-corporate-peach-500 data-[state=unchecked]:bg-gray-300"
-            />
-            <div className="text-corporate-peach-700 dark:text-gray-300">
-              {darkMode ? (
-                <Sun className="w-5 h-5 transition-transform duration-300" />
-              ) : (
-                <Moon className="w-5 h-5 transition-transform duration-300" />
-              )}
-            </div>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleDarkMode}
+            className="text-corporate-peach-700 dark:text-gray-300 hover:text-corporate-peach-800 hover:bg-corporate-peach-200/50 dark:hover:bg-gray-600 transition-all duration-200"
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {darkMode ? (
+              <Sun className="w-5 h-5 transition-transform duration-300" />
+            ) : (
+              <Moon className="w-5 h-5 transition-transform duration-300" />
+            )}
+          </Button>
         </div>
         
         <Popover>

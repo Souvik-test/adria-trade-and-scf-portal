@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, MapPin } from 'lucide-react';
 
 const menuItems = [
   {
@@ -23,6 +23,11 @@ const menuItems = [
     title: 'Inquiry Function',
     icon: Search,
     id: 'inquiry'
+  },
+  {
+    title: 'Market Place',
+    icon: MapPin,
+    id: 'marketplace'
   },
   {
     title: 'Secured Correspondence',
@@ -50,19 +55,21 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
   const { state, setOpen } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const [isHovering, setIsHovering] = useState(false);
-  const [collapseTimeout, setCollapseTimeout] = useState<NodeJS.Timeout | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle mouse enter event
   const handleMouseEnter = () => {
     setIsHovering(true);
-    if (isCollapsed) {
-      setOpen(true);
+    
+    // Clear any existing leave timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
     }
     
-    // Clear any existing timeout
-    if (collapseTimeout) {
-      clearTimeout(collapseTimeout);
-      setCollapseTimeout(null);
+    if (isCollapsed) {
+      setOpen(true);
     }
   };
 
@@ -71,35 +78,35 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
     setIsHovering(false);
     
     // Set timeout to collapse sidebar after delay
-    const timeout = setTimeout(() => {
+    leaveTimeoutRef.current = setTimeout(() => {
       setOpen(false);
     }, 300); // Small delay to make the animation smoother
-    
-    setCollapseTimeout(timeout);
   };
-
-  // Cleanup timeout on component unmount
-  useEffect(() => {
-    return () => {
-      if (collapseTimeout) {
-        clearTimeout(collapseTimeout);
-      }
-    };
-  }, [collapseTimeout]);
 
   // Set initial collapsed state after component mount
   useEffect(() => {
-    // Wait a moment before collapsing to let initial render complete
     const timeout = setTimeout(() => {
       setOpen(false);
-    }, 1000);
+    }, 500);
     
     return () => clearTimeout(timeout);
   }, [setOpen]);
 
+  // Cleanup timeouts on component unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+      if (leaveTimeoutRef.current) {
+        clearTimeout(leaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <Sidebar 
-      className="border-r border-gray-200 transition-all duration-300"
+      className="border-r border-gray-200 dark:border-gray-700 transition-all duration-300"
       collapsible="icon"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

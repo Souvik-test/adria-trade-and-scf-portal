@@ -12,7 +12,7 @@ import Configuration from '@/components/Configuration';
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [darkMode, setDarkMode] = useState(true); // Set dark mode as default
+  const [darkMode, setDarkMode] = useState(true); // Dark mode as default
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [loginTime, setLoginTime] = useState('');
   
@@ -58,6 +58,13 @@ const Index = () => {
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
       case 'inquiry':
         return <InquiryFunction onBack={() => setActiveMenu('dashboard')} />;
+      case 'marketplace':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Market Place</h2>
+            <p className="text-gray-600 dark:text-gray-400">Market place module coming soon...</p>
+          </div>
+        );
       case 'correspondence':
         return (
           <div className="p-6">
