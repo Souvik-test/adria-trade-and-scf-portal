@@ -16,6 +16,7 @@ interface TopRibbonProps {
 const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLogout, isUploadActive = false }) => {
   const [selectedModule, setSelectedModule] = useState('trade-finance');
   const [showNotifications, setShowNotifications] = useState(false);
+  const activeNotificationCount = 3; // This would come from your notification state
 
   const modules = [
     { value: 'trade-finance', label: 'Trade Finance' },
@@ -80,7 +81,11 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
             title="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+            {activeNotificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                {activeNotificationCount > 9 ? '9+' : activeNotificationCount}
+              </span>
+            )}
           </Button>
           
           <Select value={selectedModule} onValueChange={setSelectedModule}>

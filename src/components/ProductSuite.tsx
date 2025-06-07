@@ -13,6 +13,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showLcModal, setShowLcModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
+  const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
   const products = [
@@ -36,7 +37,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       icon: Banknote,
       description: 'Process trade bills and collections',
       hasFlip: true,
-      flipOptions: ['LC Bills', 'Collection Bills']
+      flipOptions: ['Import LC Bills', 'Export LC Bills']
     },
     {
       id: 'shipping',
@@ -61,7 +62,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   ];
 
   const handleBillsClick = (option: string) => {
-    if (option === 'LC Bills') {
+    if (option === 'Import LC Bills') {
+      setBillsModalType('import');
+      setShowBillsModal(true);
+    } else if (option === 'Export LC Bills') {
+      setBillsModalType('export');
       setShowBillsModal(true);
     }
   };
@@ -143,7 +148,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                   <CardContent className="p-6 flex flex-col justify-center h-full">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
                       {product.id === 'lc' ? 'LC Options' : 
-                       product.id === 'bills' ? 'Bill Options' : 'e-Enabler Options'}
+                       product.id === 'bills' ? 'Bills Options' : 'e-Enabler Options'}
                     </h3>
                     <div className="space-y-3">
                       {product.flipOptions?.map((option) => (
@@ -165,7 +170,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       </div>
 
       {showBillsModal && (
-        <BillsModal onClose={() => setShowBillsModal(false)} />
+        <BillsModal 
+          onClose={() => setShowBillsModal(false)} 
+          type={billsModalType}
+        />
       )}
 
       {showLcModal && (

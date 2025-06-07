@@ -88,7 +88,7 @@ const Index = () => {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
