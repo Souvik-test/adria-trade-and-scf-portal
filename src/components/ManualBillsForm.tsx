@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, ArrowLeft, Upload, FileText, Trash2, Edit2, Maximize2 } from 'lucide-react';
+import { X, ArrowLeft, Upload, FileText, Trash2, Edit2, Maximize2, Sun, Moon, CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 interface ManualBillsFormProps {
   onClose: () => void;
@@ -23,6 +29,7 @@ interface UploadedDocument {
 }
 
 const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) => {
+  const { theme, setTheme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [formData, setFormData] = useState({
     submissionType: 'pre-check',
@@ -42,7 +49,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     tenor: '',
     tenorDays: '',
     latestShipmentDate: '',
-    actualShipmentDate: '',
+    actualShipmentDate: null as Date | null,
     billOfLading: '',
     shippingLine: '',
     portOfLoading: '',
@@ -69,7 +76,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   const predefinedDocuments = [
     'Commercial Invoice',
     'Packing List',
-    'Bill of Lading',
+    'Bill of Lading/AWB',
     'Certificate of Origin',
     'Insurance Certificate',
     'Inspection Certificate'
@@ -191,6 +198,15 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
               className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
               title="Toggle Fullscreen"
@@ -295,15 +311,13 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 
                 <div className="space-y-2">
                   <Label htmlFor="lcReference">LC Reference Number *</Label>
-                  <Select value={formData.lcReference} onValueChange={(value) => handleInputChange('lcReference', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select LC" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lc001">LC001 - Sample LC</SelectItem>
-                      <SelectItem value="lc002">LC002 - Another LC</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="lcReference"
+                    value={formData.lcReference}
+                    onChange={(e) => handleInputChange('lcReference', e.target.value)}
+                    placeholder="Search LC reference"
+                    className="w-full"
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -412,17 +426,6 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="drawingAmount">Drawing Amount *</Label>
-                  <Input
-                    id="drawingAmount"
-                    type="number"
-                    value={formData.drawingAmount}
-                    onChange={(e) => handleInputChange('drawingAmount', e.target.value)}
-                    placeholder="Must be ≤ available balance"
-                  />
-                </div>
-                
-                <div className="space-y-2">
                   <Label htmlFor="drawingCurrency">Drawing Currency</Label>
                   <Input
                     id="drawingCurrency"
@@ -430,6 +433,17 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                     readOnly
                     className="bg-gray-100"
                     placeholder="Auto-fetched"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="drawingAmount">Drawing Amount *</Label>
+                  <Input
+                    id="drawingAmount"
+                    type="number"
+                    value={formData.drawingAmount}
+                    onChange={(e) => handleInputChange('drawingAmount', e.target.value)}
+                    placeholder="Must be ≤ available balance"
                   />
                 </div>
                 
@@ -481,13 +495,33 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 
                 <div className="space-y-2">
                   <Label htmlFor="actualShipmentDate">Actual Shipment Date *</Label>
-                  <Input
-                    id="actualShipmentDate"
-                    type="date"
-                    value={formData.actualShipmentDate}
-                    onChange={(e) => handleInputChange('actualShipmentDate', e.target.value)}
-                    placeholder="Must ≤ Latest Shipment Date"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.actualShipmentDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.actualShipmentDate ? (
+                          format(formData.actualShipmentDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.actualShipmentDate}
+                        onSelect={(date) => handleInputChange('actualShipmentDate', date)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 
                 <div className="space-y-2">
@@ -514,28 +548,22 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 
                 <div className="space-y-2">
                   <Label htmlFor="portOfLoading">Port of Loading *</Label>
-                  <Select value={formData.portOfLoading} onValueChange={(value) => handleInputChange('portOfLoading', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Use UN/LOCODE format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AEJEA">AEJEA - Jebel Ali</SelectItem>
-                      <SelectItem value="AEDXB">AEDXB - Dubai</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="portOfLoading"
+                    value={formData.portOfLoading}
+                    onChange={(e) => handleInputChange('portOfLoading', e.target.value)}
+                    placeholder="Use UN/LOCODE format"
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="portOfDischarge">Port of Discharge *</Label>
-                  <Select value={formData.portOfDischarge} onValueChange={(value) => handleInputChange('portOfDischarge', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Required" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USNYC">USNYC - New York</SelectItem>
-                      <SelectItem value="USLAX">USLAX - Los Angeles</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="portOfDischarge"
+                    value={formData.portOfDischarge}
+                    onChange={(e) => handleInputChange('portOfDischarge', e.target.value)}
+                    placeholder="Required"
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -562,7 +590,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <Label>Documents Submitted * (SWIFT: :46A:)</Label>
+                  <Label>Documents Submitted *</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {predefinedDocuments.map((doc) => (
                       <div key={doc} className="flex items-center space-x-2">
@@ -610,7 +638,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="uploadDocuments">Upload Documents * (SWIFT: :77A:)</Label>
+                  <Label htmlFor="uploadDocuments">Upload Documents *</Label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                     <p className="text-sm text-gray-600">Multiple uploads - With restrictions</p>
@@ -640,7 +668,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="remarks">Remarks / Comments (SWIFT: :72:)</Label>
+                  <Label htmlFor="remarks">Remarks / Comments</Label>
                   <Textarea
                     id="remarks"
                     value={formData.remarks}
