@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -185,7 +184,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   };
 
   const paneHeaders = [
-    'Discrepancy Summary',
+    'General Details',
     'Discrepancy Details', 
     'Resolution Details',
     'Document Submission Details'
@@ -211,7 +210,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   const renderDiscrepancySummaryPane = () => (
     <Card className="border border-gray-200 dark:border-gray-600 h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
           {paneHeaders[0]}
         </CardTitle>
       </CardHeader>
@@ -257,7 +256,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   const renderDiscrepancyDetailsPane = () => (
     <Card className="border border-gray-200 dark:border-gray-600 h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
           {paneHeaders[1]}
         </CardTitle>
       </CardHeader>
@@ -297,7 +296,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   const renderResolutionDetailsPane = () => (
     <Card className="border border-gray-200 dark:border-gray-600 h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
           {paneHeaders[2]}
         </CardTitle>
       </CardHeader>
