@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -363,7 +364,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
               Documents Submitted <span className="text-red-500">*</span>
             </Label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-wrap gap-4">
               {documentTypes.map((docType) => (
                 <div key={docType} className="flex items-center space-x-2">
                   <Checkbox
@@ -371,7 +372,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                     checked={selectedDocuments.includes(docType)}
                     onCheckedChange={(checked) => handleDocumentSelect(docType, checked as boolean)}
                   />
-                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300">
+                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {docType}
                   </Label>
                 </div>
@@ -458,6 +459,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
+                          className="hover:bg-blue-100 text-blue-600"
                         >
                           <Edit className="w-3 h-3" />
                         </Button>
@@ -465,8 +467,9 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDocumentDelete(doc.id)}
+                          className="hover:bg-red-100 text-red-600"
                         >
-                          <Trash2 className="w-3 h-3 text-red-500" />
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
@@ -532,14 +535,14 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               <Button 
                 variant="outline" 
                 onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
                 Discard
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400"
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
               >
                 Save as Draft
               </Button>
@@ -559,7 +562,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
             <Button 
               variant="outline" 
               onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium"
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
             >
               Go Back
             </Button>
@@ -567,14 +570,14 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               <Button 
                 variant="outline" 
                 onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
                 Discard
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400"
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
               >
                 Save as Draft
               </Button>
@@ -594,7 +597,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
             <Button 
               variant="outline" 
               onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium"
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
             >
               Go Back
             </Button>
@@ -602,14 +605,14 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               <Button 
                 variant="outline" 
                 onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
                 Discard
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400"
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
               >
                 Save as Draft
               </Button>
@@ -629,7 +632,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
             <Button 
               variant="outline" 
               onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium"
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
             >
               Go Back
             </Button>
@@ -637,14 +640,14 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               <Button 
                 variant="outline" 
                 onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
                 Discard
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400"
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
               >
                 Save as Draft
               </Button>
@@ -775,7 +778,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   <SelectValue placeholder="Select document type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {documentTypes.map(type => (
+                  {selectedDocuments.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>
@@ -815,7 +818,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               <Button 
                 variant="outline" 
                 onClick={handleUploadCancel}
-                className="px-6 py-2"
+                className="px-6 py-2 border-gray-400 text-gray-600 hover:bg-gray-50"
               >
                 Cancel
               </Button>
