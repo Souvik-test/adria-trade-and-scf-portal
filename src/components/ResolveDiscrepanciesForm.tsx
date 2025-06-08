@@ -1,29 +1,22 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Upload, Edit, Trash2, FileText, Calendar, Search, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, X, Calendar } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useResolveDiscrepanciesForm } from '@/hooks/useResolveDiscrepanciesForm';
+import { GeneralDetailsPane } from './resolve-discrepancies/GeneralDetailsPane';
+import { DiscrepancyDetailsPane } from './resolve-discrepancies/DiscrepancyDetailsPane';
+import { ResolutionDetailsPane } from './resolve-discrepancies/ResolutionDetailsPane';
+import { DocumentSubmissionPane } from './resolve-discrepancies/DocumentSubmissionPane';
 
 interface ResolveDiscrepanciesFormProps {
   onClose: () => void;
   onBack: () => void;
   isFullScreen?: boolean;
-}
-
-interface UploadedDocument {
-  id: string;
-  name: string;
-  reference: string;
-  date: string;
-  type: string;
-  file: File;
 }
 
 interface DocumentUploadDetails {
@@ -33,49 +26,61 @@ interface DocumentUploadDetails {
   file: File | null;
 }
 
-const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onClose, onBack, isFullScreen = false }) => {
-  const [currentPane, setCurrentPane] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(isFullScreen);
-  const [darkMode, setDarkMode] = useState(false);
-  const [customDocumentName, setCustomDocumentName] = useState('');
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
-  const [editingDocument, setEditingDocument] = useState<string | null>(null);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadDetails, setUploadDetails] = useState<DocumentUploadDetails>({
-    type: '',
-    documentId: '',
-    date: '',
-    file: null
-  });
-  
-  // Form state
-  const [resolutionStatus, setResolutionStatus] = useState<string>('');
-  const [documentReuploadRequired, setDocumentReuploadRequired] = useState<string>('');
-  const [resolutionRemarks, setResolutionRemarks] = useState('');
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [lcReference, setLcReference] = useState('');
-  const [billReference, setBillReference] = useState('');
+const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ 
+  onClose, 
+  onBack, 
+  isFullScreen = false 
+}) => {
+  const {
+    currentPane,
+    isExpanded,
+    customDocumentName,
+    uploadedDocuments,
+    editingDocument,
+    showUploadDialog,
+    uploadDetails,
+    resolutionStatus,
+    documentReuploadRequired,
+    resolutionRemarks,
+    selectedDocuments,
+    validationErrors,
+    lcReference,
+    billReference,
+    documentTypes,
+    setCurrentPane,
+    setIsExpanded,
+    setCustomDocumentName,
+    setUploadedDocuments,
+    setEditingDocument,
+    setShowUploadDialog,
+    setUploadDetails,
+    setResolutionStatus,
+    setDocumentReuploadRequired,
+    setResolutionRemarks,
+    setLcReference,
+    setBillReference,
+    setDocumentTypes,
+    validateForm
+  } = useResolveDiscrepanciesForm();
 
-  const defaultDocumentTypes = [
-    'Commercial Invoice',
-    'Packing List', 
-    'Bill of Lading/AWB',
-    'Certificate of Origin',
-    'Insurance Certificate',
-    'Inspection Certificate'
+  // Initialize isExpanded with isFullScreen prop
+  React.useEffect(() => {
+    setIsExpanded(isFullScreen);
+  }, [isFullScreen, setIsExpanded]);
+
+  const paneHeaders = [
+    'General Details',
+    'Discrepancy Details', 
+    'Resolution Details',
+    'Document Submission Details'
   ];
-
-  const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
 
   const handleLcSearch = () => {
     console.log('Searching LC Reference:', lcReference);
-    // Add your search logic here
   };
 
   const handleBillSearch = () => {
     console.log('Searching Bill Reference:', billReference);
-    // Add your search logic here
   };
 
   const handleDocumentSelect = (docType: string, checked: boolean) => {
@@ -106,13 +111,12 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
       });
       setShowUploadDialog(true);
     }
-    // Reset the input
     event.target.value = '';
   };
 
   const handleUploadConfirm = () => {
     if (uploadDetails.file && uploadDetails.type && uploadDetails.date && uploadDetails.documentId.trim()) {
-      const newDocument: UploadedDocument = {
+      const newDocument = {
         id: Date.now().toString(),
         name: uploadDetails.file.name,
         reference: uploadDetails.documentId,
@@ -153,25 +157,9 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
     setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
   };
 
-  const validateForm = () => {
-    const errors: string[] = [];
-
-    if (resolutionStatus === 'resolved' && !resolutionRemarks.trim()) {
-      errors.push('Resolution remarks are required when status is resolved');
-    }
-
-    if (documentReuploadRequired === 'yes' && uploadedDocuments.length === 0) {
-      errors.push('At least one document must be uploaded when document re-upload is required');
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
-
   const handleSubmit = () => {
     if (validateForm()) {
       console.log('Form submitted successfully');
-      // Handle form submission
     }
   };
 
@@ -181,7 +169,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
 
   const handleSaveAsDraft = () => {
     console.log('Saved as draft');
-    // Handle save as draft
   };
 
   const handleNext = () => {
@@ -196,506 +183,133 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
     }
   };
 
-  const paneHeaders = [
-    'General Details',
-    'Discrepancy Details', 
-    'Resolution Details',
-    'Document Submission Details'
-  ];
-
-  // Expand/Collapse icons
-  const ExpandIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9M21 9V5C21 3.89543 20.1046 3 19 3H15M15 21H19C20.1046 21 21 20.1046 21 19V15M3 15V19C3 20.1046 3.89543 21 5 21H9" 
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M9 15L15 9M15 9V15M15 9H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-
-  const CollapseIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9M21 9V5C21 3.89543 20.1046 3 19 3H15M15 21H19C20.1046 21 21 20.1046 21 19V15M3 15V19C3 20.1046 3.89543 21 5 21H9" 
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M15 9L9 15M9 15V9M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-
-  const renderDiscrepancySummaryPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
-          {paneHeaders[0]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
-            <div className="relative mt-1">
-              <Input 
-                placeholder="Search LC Reference" 
-                className="pr-10" 
-                value={lcReference}
-                onChange={(e) => setLcReference(e.target.value)}
-              />
-              <button 
-                onClick={handleLcSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
-              >
-                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill Reference Number</Label>
-            <div className="relative mt-1">
-              <Input 
-                placeholder="Search Bill Reference" 
-                className="pr-10" 
-                value={billReference}
-                onChange={(e) => setBillReference(e.target.value)}
-              />
-              <button 
-                onClick={handleBillSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
-              >
-                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Corporate Reference Number</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Buyer/Applicant Name</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Issuing Bank Name</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Discrepancy Notification Date</Label>
-            <Input type="date" className="mt-1" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderDiscrepancyDetailsPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
-          {paneHeaders[1]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Discrepancy Type</Label>
-            <Input placeholder="Enter discrepancy type" className="mt-1" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Document Type</Label>
-            <Select>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select document type" />
-              </SelectTrigger>
-              <SelectContent>
-                {documentTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Discrepancy Description</Label>
-          <Textarea 
-            className="mt-1" 
-            rows={4}
-            placeholder="Enter discrepancy description (max 500 characters)"
-            maxLength={500}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderResolutionDetailsPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
-          {paneHeaders[2]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status of Resolution</Label>
-          <RadioGroup className="mt-2" value={resolutionStatus} onValueChange={setResolutionStatus}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="resolved" id="resolved" />
-              <Label htmlFor="resolved">Resolved</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="not-resolved" id="not-resolved" />
-              <Label htmlFor="not-resolved">Not Resolved</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="in-progress" id="in-progress" />
-              <Label htmlFor="in-progress">In Progress</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Document Re-upload Required</Label>
-          <RadioGroup className="mt-2" value={documentReuploadRequired} onValueChange={setDocumentReuploadRequired}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="reupload-yes" />
-              <Label htmlFor="reupload-yes">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="reupload-no" />
-              <Label htmlFor="reupload-no">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Resolution Remarks {resolutionStatus === 'resolved' && <span className="text-red-500">*</span>}
-          </Label>
-          <Textarea 
-            className="mt-1" 
-            rows={4}
-            placeholder="Enter resolution remarks (max 500 characters)"
-            maxLength={500}
-            value={resolutionRemarks}
-            onChange={(e) => setResolutionRemarks(e.target.value)}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderDocumentSubmissionPane = () => (
-    <div className="space-y-6">
-      <Card className="border border-gray-200 dark:border-gray-600">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
-            {paneHeaders[3]}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-              Documents Submitted <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex flex-wrap gap-4">
-              {documentTypes.map((docType) => (
-                <div key={docType} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={docType}
-                    checked={selectedDocuments.includes(docType)}
-                    onCheckedChange={(checked) => handleDocumentSelect(docType, checked as boolean)}
-                  />
-                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {docType}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Document Type</Label>
-            <div className="flex gap-2 mt-1">
-              <Input
-                value={customDocumentName}
-                onChange={(e) => setCustomDocumentName(e.target.value)}
-                placeholder="Enter custom document type"
-                className="flex-1"
-              />
-              <Button 
-                variant="outline" 
-                onClick={handleAddCustomDocumentType}
-                disabled={!customDocumentName.trim()}
-                className="bg-orange-100 hover:bg-orange-200 text-orange-700 border-orange-300 disabled:opacity-50"
-              >
-                Add
-              </Button>
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-              Upload Documents <span className="text-red-500">*</span>
-            </Label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-              <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
-              <div className="text-gray-600 dark:text-gray-400 mb-2">
-                Multiple uploads - With restrictions
-              </div>
-              <input
-                type="file"
-                id="document-upload"
-                className="hidden"
-                onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                multiple
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('document-upload')?.click()}
-                className="mb-4"
-                disabled={selectedDocuments.length === 0}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Choose Files
-              </Button>
-              <div className="text-sm text-red-500">
-                {selectedDocuments.length === 0 ? 'Select documents to enable upload' : ''}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Uploaded Documents */}
-      {uploadedDocuments.length > 0 && (
-        <Card className="border border-gray-200 dark:border-gray-600">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-              Uploaded Documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-48">
-              <div className="space-y-3 pr-4">
-                {uploadedDocuments.map((doc) => (
-                  <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                          {doc.name}
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
-                          className="hover:bg-blue-100 text-blue-600"
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDocumentDelete(doc.id)}
-                          className="hover:bg-red-100 text-red-600"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {editingDocument === doc.id && (
-                      <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                        <div>
-                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document ID</Label>
-                          <Input
-                            value={doc.reference}
-                            onChange={(e) => handleDocumentEdit(doc.id, 'reference', e.target.value)}
-                            className="h-8 text-xs"
-                            placeholder="Enter document ID"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Date</Label>
-                          <Input
-                            type="date"
-                            value={doc.date}
-                            onChange={(e) => handleDocumentEdit(doc.id, 'date', e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Type: {doc.type}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-
   const renderCurrentPane = () => {
     switch (currentPane) {
       case 0:
-        return renderDiscrepancySummaryPane();
+        return (
+          <GeneralDetailsPane
+            lcReference={lcReference}
+            setLcReference={setLcReference}
+            billReference={billReference}
+            setBillReference={setBillReference}
+            onLcSearch={handleLcSearch}
+            onBillSearch={handleBillSearch}
+          />
+        );
       case 1:
-        return renderDiscrepancyDetailsPane();
+        return <DiscrepancyDetailsPane documentTypes={documentTypes} />;
       case 2:
-        return renderResolutionDetailsPane();
+        return (
+          <ResolutionDetailsPane
+            resolutionStatus={resolutionStatus}
+            setResolutionStatus={setResolutionStatus}
+            documentReuploadRequired={documentReuploadRequired}
+            setDocumentReuploadRequired={setDocumentReuploadRequired}
+            resolutionRemarks={resolutionRemarks}
+            setResolutionRemarks={setResolutionRemarks}
+          />
+        );
       case 3:
-        return renderDocumentSubmissionPane();
+        return (
+          <DocumentSubmissionPane
+            documentTypes={documentTypes}
+            selectedDocuments={selectedDocuments}
+            customDocumentName={customDocumentName}
+            setCustomDocumentName={setCustomDocumentName}
+            uploadedDocuments={uploadedDocuments}
+            editingDocument={editingDocument}
+            setEditingDocument={setEditingDocument}
+            onDocumentSelect={handleDocumentSelect}
+            onAddCustomDocumentType={handleAddCustomDocumentType}
+            onFileSelect={handleFileSelect}
+            onDocumentEdit={handleDocumentEdit}
+            onDocumentDelete={handleDocumentDelete}
+          />
+        );
       default:
-        return renderDiscrepancySummaryPane();
+        return null;
     }
   };
 
   const renderPaneButtons = () => {
-    switch (currentPane) {
-      case 0: // General Details
-        return (
-          <div className="flex justify-between items-center">
-            <div></div>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
-              >
-                Discard
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={handleNext}
-                className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        );
-      
-      case 1: // Discrepancy Details
-        return (
-          <div className="flex justify-between items-center">
+    const baseButtons = (
+      <>
+        <Button 
+          variant="outline" 
+          onClick={handleDiscard}
+          className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+        >
+          Discard
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={handleSaveAsDraft}
+          className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+        >
+          Save as Draft
+        </Button>
+      </>
+    );
+
+    if (currentPane === 0) {
+      return (
+        <div className="flex justify-end items-center">
+          <div className="flex gap-3">
+            {baseButtons}
             <Button 
-              variant="outline" 
-              onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+              onClick={handleNext}
+              className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
             >
-              Go Back
+              Next
             </Button>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
-              >
-                Discard
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={handleNext}
-                className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Next
-              </Button>
-            </div>
           </div>
-        );
-      
-      case 2: // Resolution Details
-        return (
-          <div className="flex justify-between items-center">
-            <Button 
-              variant="outline" 
-              onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
-            >
-              Go Back
-            </Button>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
-              >
-                Discard
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={handleNext}
-                className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        );
-      
-      case 3: // Document Submission
-        return (
-          <div className="flex justify-between items-center">
-            <Button 
-              variant="outline" 
-              onClick={handleGoBack}
-              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
-            >
-              Go Back
-            </Button>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
-              >
-                Discard
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
-              >
-                Submit
-              </Button>
-            </div>
-          </div>
-        );
-      
-      default:
-        return null;
+        </div>
+      );
     }
+
+    if (currentPane === 3) {
+      return (
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={handleGoBack}
+            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+          >
+            Go Back
+          </Button>
+          <div className="flex gap-3">
+            {baseButtons}
+            <Button 
+              onClick={handleSubmit}
+              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+            >
+              Submit
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-between items-center">
+        <Button 
+          variant="outline" 
+          onClick={handleGoBack}
+          className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+        >
+          Go Back
+        </Button>
+        <div className="flex gap-3">
+          {baseButtons}
+          <Button 
+            onClick={handleNext}
+            className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -715,22 +329,10 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
                   Resolve Discrepancies - {paneHeaders[currentPane]}
                 </DialogTitle>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="flex items-center gap-2"
-                >
-                  {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
-                  {isExpanded ? 'Collapse' : 'Expand'}
-                </Button>
-              </div>
             </div>
           </DialogHeader>
           
           <div className="flex flex-col h-full p-6 overflow-hidden">
-            {/* Validation Errors */}
             {validationErrors.length > 0 && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
                 <div className="text-red-800 dark:text-red-200 text-sm">
@@ -744,7 +346,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               </div>
             )}
 
-            {/* Progress indicator */}
             <div className="flex items-center justify-center mb-6">
               <div className="flex items-center space-x-4">
                 {paneHeaders.map((header, index) => (
@@ -773,14 +374,12 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               </div>
             </div>
 
-            {/* Main Content */}
             <ScrollArea className="flex-1">
               <div className="pr-4">
                 {renderCurrentPane()}
               </div>
             </ScrollArea>
 
-            {/* Action Buttons */}
             <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
               {renderPaneButtons()}
             </div>
@@ -788,7 +387,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
         </DialogContent>
       </Dialog>
 
-      {/* Document Upload Details Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={handleUploadCancel}>
         <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -865,27 +463,6 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
           </div>
         </DialogContent>
       </Dialog>
-
-      <style>{`
-        .scrollbar-visible {
-          scrollbar-width: auto;
-          scrollbar-color: #CBD5E0 #F7FAFC;
-        }
-        .scrollbar-visible::-webkit-scrollbar {
-          width: 8px;
-        }
-        .scrollbar-visible::-webkit-scrollbar-track {
-          background: #F7FAFC;
-          border-radius: 4px;
-        }
-        .scrollbar-visible::-webkit-scrollbar-thumb {
-          background: #CBD5E0;
-          border-radius: 4px;
-        }
-        .scrollbar-visible::-webkit-scrollbar-thumb:hover {
-          background: #A0AEC0;
-        }
-      `}</style>
     </div>
   );
 };
