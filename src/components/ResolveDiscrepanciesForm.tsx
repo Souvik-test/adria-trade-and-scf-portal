@@ -53,6 +53,8 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   const [resolutionRemarks, setResolutionRemarks] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [lcReference, setLcReference] = useState('');
+  const [billReference, setBillReference] = useState('');
 
   const defaultDocumentTypes = [
     'Commercial Invoice',
@@ -64,6 +66,16 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
   ];
 
   const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
+
+  const handleLcSearch = () => {
+    console.log('Searching LC Reference:', lcReference);
+    // Add your search logic here
+  };
+
+  const handleBillSearch = () => {
+    console.log('Searching Bill Reference:', billReference);
+    // Add your search logic here
+  };
 
   const handleDocumentSelect = (docType: string, checked: boolean) => {
     if (checked) {
@@ -219,15 +231,35 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
           <div>
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
             <div className="relative mt-1">
-              <Input placeholder="Search LC Reference" className="pr-10" />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input 
+                placeholder="Search LC Reference" 
+                className="pr-10" 
+                value={lcReference}
+                onChange={(e) => setLcReference(e.target.value)}
+              />
+              <button 
+                onClick={handleLcSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
+              >
+                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
             </div>
           </div>
           <div>
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill Reference Number</Label>
             <div className="relative mt-1">
-              <Input placeholder="Search Bill Reference" className="pr-10" />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input 
+                placeholder="Search Bill Reference" 
+                className="pr-10" 
+                value={billReference}
+                onChange={(e) => setBillReference(e.target.value)}
+              />
+              <button 
+                onClick={handleBillSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
+              >
+                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
             </div>
           </div>
           <div>
@@ -526,7 +558,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
 
   const renderPaneButtons = () => {
     switch (currentPane) {
-      case 0: // Discrepancy Summary
+      case 0: // General Details
         return (
           <div className="flex justify-between items-center">
             <div></div>
@@ -545,13 +577,13 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               >
                 Save as Draft
               </Button>
+              <Button 
+                onClick={handleNext}
+                className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Next
+              </Button>
             </div>
-            <Button 
-              onClick={handleNext}
-              className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Next
-            </Button>
           </div>
         );
       
@@ -615,13 +647,13 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               >
                 Save as Draft
               </Button>
+              <Button 
+                onClick={handleNext}
+                className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Next
+              </Button>
             </div>
-            <Button 
-              onClick={handleNext}
-              className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Next
-            </Button>
           </div>
         );
       
@@ -650,13 +682,13 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onC
               >
                 Save as Draft
               </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              >
+                Submit
+              </Button>
             </div>
-            <Button 
-              onClick={handleSubmit}
-              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
-            >
-              Submit
-            </Button>
           </div>
         );
       
