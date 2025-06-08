@@ -125,9 +125,9 @@ const DocumentUploadDetails: React.FC<DocumentUploadDetailsProps> = ({
             <Button
               onClick={handleUpload}
               disabled={!isUploadEnabled}
-              className="px-6 bg-orange-400 hover:bg-orange-500 text-white disabled:opacity-50"
+              className="px-6 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
             >
-              Upload
+              Attach
             </Button>
           </div>
         </div>

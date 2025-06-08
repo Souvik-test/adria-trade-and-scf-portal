@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Upload, Search, Calendar, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import DocumentUploadPopup from './DocumentUploadPopup';
+import DocumentUploadDetails from './DocumentUploadDetails';
 
 interface ManualBillsFormProps {
   onClose: () => void;
@@ -30,7 +30,8 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [customDocumentName, setCustomDocumentName] = useState('');
-  const [showDocumentPopup, setShowDocumentPopup] = useState(false);
+  const [showDocumentDetails, setShowDocumentDetails] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   
   // Form state
   const [submissionType, setSubmissionType] = useState('');
@@ -111,22 +112,33 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && selectedDocuments.length > 0) {
-      Array.from(files).forEach((file, index) => {
-        const newDocument: UploadedDocument = {
-          id: `${Date.now()}-${index}`,
-          name: file.name,
-          reference: '',
-          date: new Date().toISOString().split('T')[0],
-          type: selectedDocuments[0],
-          file: file
-        };
-        setUploadedDocuments(prev => [...prev, newDocument]);
-      });
-      setShowDocumentPopup(true);
+    const file = event.target.files?.[0];
+    if (file && selectedDocuments.length > 0) {
+      setPendingFile(file);
+      setShowDocumentDetails(true);
     }
     event.target.value = '';
+  };
+
+  const handleDocumentUpload = (details: { type: string; id: string; date: string }) => {
+    if (pendingFile) {
+      const newDocument: UploadedDocument = {
+        id: Date.now().toString(),
+        name: pendingFile.name,
+        reference: details.id,
+        date: details.date,
+        type: details.type,
+        file: pendingFile
+      };
+      setUploadedDocuments(prev => [...prev, newDocument]);
+      setShowDocumentDetails(false);
+      setPendingFile(null);
+    }
+  };
+
+  const handleDocumentUploadCancel = () => {
+    setShowDocumentDetails(false);
+    setPendingFile(null);
   };
 
   const handleDocumentEdit = (id: string, field: string, value: string) => {
@@ -482,7 +494,6 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                   className="hidden"
                   onChange={handleFileSelect}
                   accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                  multiple
                 />
                 <Button
                   variant="outline"
@@ -501,12 +512,28 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 
             {uploadedDocuments.length > 0 && (
               <div>
-                <Button
-                  onClick={() => setShowDocumentPopup(true)}
-                  className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
-                >
-                  View Uploaded Documents ({uploadedDocuments.length})
-                </Button>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+                  Uploaded Documents ({uploadedDocuments.length})
+                </Label>
+                <div className="space-y-2">
+                  {uploadedDocuments.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-corporate-teal-500" />
+                        <span className="text-sm font-medium">{doc.name}</span>
+                        <span className="text-xs text-gray-500">({doc.type})</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDocumentDelete(doc.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -697,13 +724,12 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
         </DialogContent>
       </Dialog>
 
-      <DocumentUploadPopup
-        isOpen={showDocumentPopup}
-        onClose={() => setShowDocumentPopup(false)}
-        uploadedDocuments={uploadedDocuments}
+      <DocumentUploadDetails
+        isOpen={showDocumentDetails}
+        onClose={handleDocumentUploadCancel}
+        onUpload={handleDocumentUpload}
+        fileName={pendingFile?.name || ''}
         selectedDocuments={selectedDocuments}
-        onDocumentEdit={handleDocumentEdit}
-        onDocumentDelete={handleDocumentDelete}
       />
     </>
   );
