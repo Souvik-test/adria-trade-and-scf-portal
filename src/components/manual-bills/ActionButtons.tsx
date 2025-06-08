@@ -9,6 +9,7 @@ interface ActionButtonsProps {
   onSaveAsDraft: () => void;
   onNext: () => void;
   onSubmit: () => void;
+  formType?: 'manual-bills' | 'resolve-discrepancies';
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -17,8 +18,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   onDiscard,
   onSaveAsDraft,
   onNext,
-  onSubmit
+  onSubmit,
+  formType = 'manual-bills'
 }) => {
+  // Color schemes based on form type
+  const getNextButtonClass = () => {
+    if (formType === 'resolve-discrepancies') {
+      return "px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white";
+    }
+    return "px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white";
+  };
+
   switch (currentPane) {
     case 0:
       return (
@@ -40,7 +50,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             </Button>
             <Button 
               onClick={onNext}
-              className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+              className={getNextButtonClass()}
             >
               Next
             </Button>
@@ -77,7 +87,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             </Button>
             <Button 
               onClick={onNext}
-              className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+              className={getNextButtonClass()}
             >
               Next
             </Button>

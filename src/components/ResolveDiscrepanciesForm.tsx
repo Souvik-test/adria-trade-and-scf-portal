@@ -258,7 +258,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
             {baseButtons}
             <Button 
               onClick={handleNext}
-              className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+              className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
             >
               Next
             </Button>
@@ -303,7 +303,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
           {baseButtons}
           <Button 
             onClick={handleNext}
-            className="px-6 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+            className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
           >
             Next
           </Button>
@@ -326,7 +326,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </button>
                 <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                  Resolve Discrepancies - {paneHeaders[currentPane]}
+                  Resolve Discrepancies - <span className="text-corporate-teal-600">{paneHeaders[currentPane]}</span>
                 </DialogTitle>
               </div>
             </div>
@@ -352,7 +352,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
                   <div key={index} className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       index === currentPane 
-                        ? 'bg-blue-600 text-white' 
+                        ? 'bg-corporate-teal-500 text-white' 
                         : index < currentPane 
                           ? 'bg-green-600 text-white' 
                           : 'bg-gray-200 text-gray-600'
@@ -360,7 +360,7 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
                       {index + 1}
                     </div>
                     <div className={`ml-2 text-sm font-medium ${
-                      index === currentPane ? 'text-blue-600' : 'text-gray-600'
+                      index === currentPane ? 'text-corporate-teal-600' : 'text-gray-600'
                     }`}>
                       {header}
                     </div>
@@ -455,9 +455,9 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
               <Button 
                 onClick={handleUploadConfirm}
                 disabled={!uploadDetails.type || !uploadDetails.date || !uploadDetails.file || !uploadDetails.documentId.trim()}
-                className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                className="px-6 py-2 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
               >
-                Upload
+                Attach
               </Button>
             </div>
           </div>

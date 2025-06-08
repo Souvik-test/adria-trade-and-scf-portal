@@ -25,7 +25,7 @@ export const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
   return (
     <Card className="border border-gray-200 dark:border-gray-600 h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
+        <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
           General Details
         </CardTitle>
       </CardHeader>

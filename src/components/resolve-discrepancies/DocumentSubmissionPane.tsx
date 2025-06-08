@@ -50,7 +50,7 @@ export const DocumentSubmissionPane: React.FC<DocumentSubmissionPaneProps> = ({
     <div className="space-y-6">
       <Card className="border border-gray-200 dark:border-gray-600">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
+          <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
             Document Submission Details
           </CardTitle>
         </CardHeader>
