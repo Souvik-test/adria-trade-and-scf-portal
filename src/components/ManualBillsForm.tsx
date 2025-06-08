@@ -1,19 +1,15 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, ArrowLeft, Upload, FileText, Trash2, Edit2, Maximize2, Sun, Moon, CalendarIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
+import { ArrowLeft, Upload, Edit, Trash2, FileText, Calendar, Search } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ManualBillsFormProps {
   onClose: () => void;
@@ -22,820 +18,653 @@ interface ManualBillsFormProps {
 
 interface UploadedDocument {
   id: string;
+  name: string;
+  reference: string;
+  date: string;
   type: string;
-  fileName: string;
-  documentId: string;
-  documentDate: string;
+  file: File;
 }
 
 const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) => {
-  const { theme, setTheme } = useTheme();
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [formData, setFormData] = useState({
-    submissionType: 'pre-check',
-    submissionReference: '',
-    submissionDate: new Date().toISOString().split('T')[0],
-    lcReference: '',
-    corporateReference: '',
-    applicantName: '',
-    issuingBank: '',
-    lcCurrency: '',
-    lcAmount: '',
-    lcIssueDate: '',
-    lcExpiryDate: '',
-    lcExpiryPlace: '',
-    drawingAmount: '',
-    drawingCurrency: '',
-    tenor: '',
-    tenorDays: '',
-    latestShipmentDate: '',
-    actualShipmentDate: null as Date | null,
-    billOfLading: '',
-    shippingLine: '',
-    portOfLoading: '',
-    portOfDischarge: '',
-    placeOfDelivery: '',
-    documentsSubmitted: [],
-    customDocumentType: '',
-    uploadedDocuments: [],
-    remarks: '',
-    declaration: false
-  });
-
+  const [currentPane, setCurrentPane] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [currentDocumentData, setCurrentDocumentData] = useState({
-    documentId: '',
-    documentDate: '',
-    type: ''
-  });
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [customDocumentName, setCustomDocumentName] = useState('');
   const [editingDocument, setEditingDocument] = useState<string | null>(null);
+  
+  // Form state
+  const [submissionType, setSubmissionType] = useState('');
+  const [lcReference, setLcReference] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [drawingAmount, setDrawingAmount] = useState('');
+  const [shipmentDetails, setShipmentDetails] = useState('');
 
-  const predefinedDocuments = [
+  const defaultDocumentTypes = [
     'Commercial Invoice',
-    'Packing List',
+    'Packing List', 
     'Bill of Lading/AWB',
     'Certificate of Origin',
     'Insurance Certificate',
     'Inspection Certificate'
   ];
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
 
-  const handleDocumentSubmittedChange = (doc: string, checked: boolean) => {
-    if (checked) {
-      handleInputChange('documentsSubmitted', [...formData.documentsSubmitted, doc]);
-    } else {
-      handleInputChange('documentsSubmitted', formData.documentsSubmitted.filter(d => d !== doc));
+  const paneHeaders = [
+    'Submission Type and Export LC Selection',
+    'LC & Applicant Details',
+    'Drawing Details',
+    'Shipment & Transportation Details',
+    'Document Submission Details'
+  ];
+
+  const handleNext = () => {
+    if (currentPane < 4) {
+      setCurrentPane(currentPane + 1);
     }
   };
 
-  const handleAddCustomDocument = () => {
-    if (formData.customDocumentType.trim()) {
-      handleInputChange('documentsSubmitted', [...formData.documentsSubmitted, formData.customDocumentType]);
-      handleInputChange('customDocumentType', '');
+  const handleGoBack = () => {
+    if (currentPane > 0) {
+      setCurrentPane(currentPane - 1);
     }
-  };
-
-  const isUploadEnabled = formData.documentsSubmitted.length > 0;
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFiles(e.target.files);
-      setShowUploadDialog(true);
-    }
-  };
-
-  const handleDocumentUpload = () => {
-    if (selectedFiles && currentDocumentData.type && currentDocumentData.documentId && currentDocumentData.documentDate) {
-      const newDoc: UploadedDocument = {
-        id: Date.now().toString(),
-        type: currentDocumentData.type,
-        fileName: selectedFiles[0].name,
-        documentId: currentDocumentData.documentId,
-        documentDate: currentDocumentData.documentDate
-      };
-      
-      setUploadedDocuments(prev => [...prev, newDoc]);
-      setShowUploadDialog(false);
-      setSelectedFiles(null);
-      setCurrentDocumentData({ documentId: '', documentDate: '', type: '' });
-    }
-  };
-
-  const handleRemoveDocument = (docId: string) => {
-    setUploadedDocuments(prev => prev.filter(doc => doc.id !== docId));
-  };
-
-  const handleEditDocument = (doc: UploadedDocument) => {
-    setCurrentDocumentData({
-      documentId: doc.documentId,
-      documentDate: doc.documentDate,
-      type: doc.type
-    });
-    setEditingDocument(doc.id);
-    setShowDocumentDialog(true);
-  };
-
-  const handleUpdateDocument = () => {
-    if (editingDocument) {
-      setUploadedDocuments(prev => 
-        prev.map(doc => 
-          doc.id === editingDocument 
-            ? { ...doc, documentId: currentDocumentData.documentId, documentDate: currentDocumentData.documentDate }
-            : doc
-        )
-      );
-      setShowDocumentDialog(false);
-      setEditingDocument(null);
-      setCurrentDocumentData({ documentId: '', documentDate: '', type: '' });
-    }
-  };
-
-  const handleSubmit = (action: string) => {
-    console.log('Form submitted with action:', action, formData);
   };
 
   const handleDiscard = () => {
-    if (confirm('Are you sure you want to discard all changes?')) {
-      onBack();
+    onBack();
+  };
+
+  const handleSaveAsDraft = () => {
+    console.log('Saved as draft');
+    // Handle save as draft
+  };
+
+  const handleSubmit = () => {
+    console.log('Form submitted');
+    // Handle form submission
+  };
+
+  const handleLcSearch = () => {
+    console.log('Searching LC Reference:', lcReference);
+  };
+
+  const handleDocumentSelect = (docType: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDocuments(prev => [...prev, docType]);
+    } else {
+      setSelectedDocuments(prev => prev.filter(doc => doc !== docType));
     }
   };
 
-  const containerClass = isFullscreen 
-    ? "fixed inset-0 bg-white dark:bg-gray-800 z-50 overflow-y-auto"
-    : "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4";
+  const handleAddCustomDocumentType = () => {
+    if (customDocumentName.trim() && !documentTypes.includes(customDocumentName.trim())) {
+      const newDocType = customDocumentName.trim();
+      setDocumentTypes(prev => [...prev, newDocType]);
+      setSelectedDocuments(prev => [...prev, newDocType]);
+      setCustomDocumentName('');
+    }
+  };
 
-  const contentClass = isFullscreen
-    ? "w-full h-full"
-    : "bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto";
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && selectedDocuments.length > 0) {
+      Array.from(files).forEach((file, index) => {
+        const newDocument: UploadedDocument = {
+          id: `${Date.now()}-${index}`,
+          name: file.name,
+          reference: '',
+          date: new Date().toISOString().split('T')[0],
+          type: selectedDocuments[0],
+          file: file
+        };
+        setUploadedDocuments(prev => [...prev, newDocument]);
+      });
+    }
+    event.target.value = '';
+  };
 
-  return (
-    <div className={containerClass}>
-      <div className={contentClass}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-              Bills under Export LC Management
-            </h2>
+  const handleDocumentEdit = (id: string, field: string, value: string) => {
+    setUploadedDocuments(docs => 
+      docs.map(doc => 
+        doc.id === id ? { ...doc, [field]: value } : doc
+      )
+    );
+  };
+
+  const handleDocumentDelete = (id: string) => {
+    setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
+  };
+
+  const renderSubmissionTypePane = () => (
+    <Card className="border border-gray-200 dark:border-gray-600 h-full">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          {paneHeaders[0]}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Type</Label>
+            <Select value={submissionType} onValueChange={setSubmissionType}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select submission type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectItem value="standard">Standard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
-              title="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="text-corporate-peach-600 hover:bg-corporate-peach-100 dark:hover:bg-gray-700"
-              title="Toggle Fullscreen"
-            >
-              <Maximize2 className="w-5 h-5" />
-            </Button>
-            {!isFullscreen && (
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Export LC Selection</Label>
+            <div className="relative mt-1">
+              <Input 
+                placeholder="Search LC Reference" 
+                className="pr-10" 
+                value={lcReference}
+                onChange={(e) => setLcReference(e.target.value)}
+              />
+              <button 
+                onClick={handleLcSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
               </button>
-            )}
+            </div>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
 
-        <div className="flex">
-          {/* Left panel for uploaded documents */}
-          {uploadedDocuments.length > 0 && (
-            <div className="w-80 border-r border-gray-200 dark:border-gray-700 p-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Uploaded Documents</h3>
-              <div className="space-y-3">
+  const renderLcApplicantDetailsPane = () => (
+    <Card className="border border-gray-200 dark:border-gray-600 h-full">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          {paneHeaders[1]}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
+            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={lcReference} />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Amount</Label>
+            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Date</Label>
+            <Input type="date" readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Applicant Name</Label>
+            <Input 
+              value={applicantName}
+              onChange={(e) => setApplicantName(e.target.value)}
+              className="mt-1" 
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Issuing Bank</Label>
+            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDrawingDetailsPane = () => (
+    <Card className="border border-gray-200 dark:border-gray-600 h-full">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          {paneHeaders[2]}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Amount</Label>
+            <Input 
+              value={drawingAmount}
+              onChange={(e) => setDrawingAmount(e.target.value)}
+              placeholder="Enter drawing amount"
+              className="mt-1" 
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Currency</Label>
+            <Select>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+                <SelectItem value="INR">INR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Date</Label>
+            <Input type="date" className="mt-1" />
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Details</Label>
+          <Textarea 
+            className="mt-1" 
+            rows={4}
+            placeholder="Enter drawing details"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderShipmentTransportationPane = () => (
+    <Card className="border border-gray-200 dark:border-gray-600 h-full">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          {paneHeaders[3]}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Date</Label>
+            <Input type="date" className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Loading</Label>
+            <Input placeholder="Enter port of loading" className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Discharge</Label>
+            <Input placeholder="Enter port of discharge" className="mt-1" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Transportation Mode</Label>
+            <Select>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select transportation mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sea">Sea</SelectItem>
+                <SelectItem value="air">Air</SelectItem>
+                <SelectItem value="land">Land</SelectItem>
+                <SelectItem value="multimodal">Multimodal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Vessel/Flight Details</Label>
+            <Input placeholder="Enter vessel/flight details" className="mt-1" />
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Description</Label>
+          <Textarea 
+            value={shipmentDetails}
+            onChange={(e) => setShipmentDetails(e.target.value)}
+            className="mt-1" 
+            rows={4}
+            placeholder="Enter shipment description"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDocumentSubmissionPane = () => (
+    <div className="space-y-6">
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            {paneHeaders[4]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+              Documents Submitted <span className="text-red-500">*</span>
+            </Label>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              {documentTypes.map((docType) => (
+                <div key={docType} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={docType}
+                    checked={selectedDocuments.includes(docType)}
+                    onCheckedChange={(checked) => handleDocumentSelect(docType, checked as boolean)}
+                  />
+                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    {docType}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Document Type</Label>
+            <div className="flex gap-2 mt-1">
+              <Input
+                value={customDocumentName}
+                onChange={(e) => setCustomDocumentName(e.target.value)}
+                placeholder="Enter custom document type"
+                className="flex-1"
+              />
+              <Button 
+                variant="outline" 
+                onClick={handleAddCustomDocumentType}
+                disabled={!customDocumentName.trim()}
+                className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300 disabled:opacity-50"
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+              Upload Documents <span className="text-red-500">*</span>
+            </Label>
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+              <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
+              <div className="text-gray-600 dark:text-gray-400 mb-2">
+                Multiple uploads - With restrictions
+              </div>
+              <input
+                type="file"
+                id="document-upload"
+                className="hidden"
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                multiple
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('document-upload')?.click()}
+                className="mb-4"
+                disabled={selectedDocuments.length === 0}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Choose Files
+              </Button>
+              <div className="text-sm text-red-500">
+                {selectedDocuments.length === 0 ? 'Select documents to enable upload' : ''}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {uploadedDocuments.length > 0 && (
+        <Card className="border border-gray-200 dark:border-gray-600">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+              Uploaded Documents
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-48">
+              <div className="space-y-3 pr-4">
                 {uploadedDocuments.map((doc) => (
-                  <div key={doc.id} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm text-gray-800 dark:text-white">{doc.type}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">{doc.fileName}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">ID: {doc.documentId}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">Date: {doc.documentDate}</p>
+                  <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-corporate-teal-500" />
+                        <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                          {doc.name}
+                        </span>
                       </div>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEditDocument(doc)}
-                          className="h-6 w-6 p-0"
+                          onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
+                          className="hover:bg-blue-100 text-blue-600"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <Edit className="w-3 h-3" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveDocument(doc.id)}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          onClick={() => handleDocumentDelete(doc.id)}
+                          className="hover:bg-red-100 text-red-600"
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
+                    
+                    {editingDocument === doc.id && (
+                      <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <div>
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document ID</Label>
+                          <Input
+                            value={doc.reference}
+                            onChange={(e) => handleDocumentEdit(doc.id, 'reference', e.target.value)}
+                            className="h-8 text-xs"
+                            placeholder="Enter document ID"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Date</Label>
+                          <Input
+                            type="date"
+                            value={doc.date}
+                            onChange={(e) => handleDocumentEdit(doc.id, 'date', e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Type: {doc.type}
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 
-          {/* Main content */}
-          <div className="flex-1 p-6 space-y-8">
-            {/* Submission Type and Export LC Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
-                  Submission Type and Export LC Selection
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="submissionType">Submission Type *</Label>
-                  <Select value={formData.submissionType} onValueChange={(value) => handleInputChange('submissionType', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pre-check">Pre-Check</SelectItem>
-                      <SelectItem value="final">Final</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="submissionReference">Submission Reference</Label>
-                  <Input
-                    id="submissionReference"
-                    value={formData.submissionReference}
-                    onChange={(e) => handleInputChange('submissionReference', e.target.value)}
-                    maxLength={16}
-                    placeholder="Enter reference"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="submissionDate">Submission Date *</Label>
-                  <Input
-                    id="submissionDate"
-                    type="date"
-                    value={formData.submissionDate}
-                    onChange={(e) => handleInputChange('submissionDate', e.target.value)}
-                    readOnly
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lcReference">LC Reference Number *</Label>
-                  <Input
-                    id="lcReference"
-                    value={formData.lcReference}
-                    onChange={(e) => handleInputChange('lcReference', e.target.value)}
-                    placeholder="Search LC reference"
-                    className="w-full"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="corporateReference">Corporate Reference Number</Label>
-                  <Input
-                    id="corporateReference"
-                    value={formData.corporateReference}
-                    onChange={(e) => handleInputChange('corporateReference', e.target.value)}
-                    maxLength={16}
-                    placeholder="Internal use only"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+  const renderCurrentPane = () => {
+    switch (currentPane) {
+      case 0:
+        return renderSubmissionTypePane();
+      case 1:
+        return renderLcApplicantDetailsPane();
+      case 2:
+        return renderDrawingDetailsPane();
+      case 3:
+        return renderShipmentTransportationPane();
+      case 4:
+        return renderDocumentSubmissionPane();
+      default:
+        return renderSubmissionTypePane();
+    }
+  };
 
-            {/* LC & Applicant Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
-                  LC & Applicant Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="applicantName">Applicant Name</Label>
-                  <Input
-                    id="applicantName"
-                    value={formData.applicantName}
-                    readOnly
-                    className="bg-gray-100"
-                    placeholder="Auto-populated"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="issuingBank">Issuing Bank</Label>
-                  <Input
-                    id="issuingBank"
-                    value={formData.issuingBank}
-                    readOnly
-                    className="bg-gray-100"
-                    placeholder="Auto-populated"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lcCurrency">LC Currency</Label>
-                  <Input
-                    id="lcCurrency"
-                    value={formData.lcCurrency}
-                    readOnly
-                    className="bg-gray-100"
-                    placeholder="Auto-fetched"
-                    maxLength={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lcAmount">LC Amount</Label>
-                  <Input
-                    id="lcAmount"
-                    value={formData.lcAmount}
-                    readOnly
-                    className="bg-gray-100"
-                    placeholder="Format: 99999999999.99"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lcIssueDate">LC Issue Date</Label>
-                  <Input
-                    id="lcIssueDate"
-                    type="date"
-                    value={formData.lcIssueDate}
-                    readOnly
-                    className="bg-gray-100"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lcExpiryDate">LC Expiry Date & Place</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="date"
-                      value={formData.lcExpiryDate}
-                      readOnly
-                      className="bg-gray-100 flex-1"
-                    />
-                    <Input
-                      value={formData.lcExpiryPlace}
-                      readOnly
-                      className="bg-gray-100 flex-1"
-                      placeholder="Place"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Drawing Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
-                  Drawing Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="drawingCurrency">Drawing Currency</Label>
-                  <Input
-                    id="drawingCurrency"
-                    value={formData.drawingCurrency}
-                    readOnly
-                    className="bg-gray-100"
-                    placeholder="Auto-fetched"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="drawingAmount">Drawing Amount *</Label>
-                  <Input
-                    id="drawingAmount"
-                    type="number"
-                    value={formData.drawingAmount}
-                    onChange={(e) => handleInputChange('drawingAmount', e.target.value)}
-                    placeholder="Must be ≤ available balance"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="tenor">Tenor (Sight/Usance) *</Label>
-                  <Select value={formData.tenor} onValueChange={(value) => handleInputChange('tenor', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Based on LC terms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sight">Sight</SelectItem>
-                      <SelectItem value="usance">Usance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="tenorDays">Tenor Days (if Usance)</Label>
-                  <Input
-                    id="tenorDays"
-                    type="number"
-                    value={formData.tenorDays}
-                    onChange={(e) => handleInputChange('tenorDays', e.target.value)}
-                    placeholder="Required if Tenor = Usance"
-                    disabled={formData.tenor !== 'usance'}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Shipment & Transportation Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
-                  Shipment & Transportation Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="latestShipmentDate">Latest Shipment Date</Label>
-                  <Input
-                    id="latestShipmentDate"
-                    type="date"
-                    value={formData.latestShipmentDate}
-                    readOnly
-                    className="bg-gray-100"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="actualShipmentDate">Actual Shipment Date *</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.actualShipmentDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.actualShipmentDate ? (
-                          format(formData.actualShipmentDate, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.actualShipmentDate}
-                        onSelect={(date) => handleInputChange('actualShipmentDate', date)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="billOfLading">Bill of Lading / AWB No. *</Label>
-                  <Input
-                    id="billOfLading"
-                    value={formData.billOfLading}
-                    onChange={(e) => handleInputChange('billOfLading', e.target.value)}
-                    maxLength={35}
-                    placeholder="Mandatory document ref"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="shippingLine">Shipping Line / Airline Name</Label>
-                  <Input
-                    id="shippingLine"
-                    value={formData.shippingLine}
-                    onChange={(e) => handleInputChange('shippingLine', e.target.value)}
-                    maxLength={35}
-                    placeholder="Optional"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="portOfLoading">Port of Loading *</Label>
-                  <Input
-                    id="portOfLoading"
-                    value={formData.portOfLoading}
-                    onChange={(e) => handleInputChange('portOfLoading', e.target.value)}
-                    placeholder="Use UN/LOCODE format"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="portOfDischarge">Port of Discharge *</Label>
-                  <Input
-                    id="portOfDischarge"
-                    value={formData.portOfDischarge}
-                    onChange={(e) => handleInputChange('portOfDischarge', e.target.value)}
-                    placeholder="Required"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="placeOfDelivery">Place of Delivery</Label>
-                  <Select value={formData.placeOfDelivery} onValueChange={(value) => handleInputChange('placeOfDelivery', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Optional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="warehouse1">Warehouse 1</SelectItem>
-                      <SelectItem value="warehouse2">Warehouse 2</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Document Submission Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-corporate-peach-600">
-                  Document Submission Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Documents Submitted *</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {predefinedDocuments.map((doc) => (
-                      <div key={doc} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={doc}
-                          checked={formData.documentsSubmitted.includes(doc)}
-                          onCheckedChange={(checked) => handleDocumentSubmittedChange(doc, checked as boolean)}
-                        />
-                        <Label htmlFor={doc} className="text-sm">{doc}</Label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Custom documents */}
-                  {formData.documentsSubmitted.filter(doc => !predefinedDocuments.includes(doc)).map((doc) => (
-                    <div key={doc} className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                      <Checkbox
-                        checked={true}
-                        onCheckedChange={(checked) => handleDocumentSubmittedChange(doc, checked as boolean)}
-                      />
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">{doc} (Custom)</Label>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Custom Document Type */}
-                <div className="space-y-2">
-                  <Label htmlFor="customDocumentType">Custom Document Type</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="customDocumentType"
-                      value={formData.customDocumentType}
-                      onChange={(e) => handleInputChange('customDocumentType', e.target.value)}
-                      placeholder="Enter custom document type"
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleAddCustomDocument}
-                      disabled={!formData.customDocumentType.trim()}
-                      className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="uploadDocuments">Upload Documents *</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Multiple uploads - With restrictions</p>
-                    <div className="mt-4">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="file-upload"
-                        disabled={!isUploadEnabled}
-                      />
-                      <Button 
-                        variant="outline" 
-                        onClick={() => document.getElementById('file-upload')?.click()}
-                        disabled={!isUploadEnabled}
-                        className={`mt-2 ${!isUploadEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Choose Files
-                      </Button>
-                      {!isUploadEnabled && (
-                        <p className="text-xs text-red-500 mt-2">Select documents to enable upload</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="remarks">Remarks / Comments</Label>
-                  <Textarea
-                    id="remarks"
-                    value={formData.remarks}
-                    onChange={(e) => handleInputChange('remarks', e.target.value)}
-                    maxLength={200}
-                    placeholder="Optional notes (max 200 characters)"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="declaration"
-                    checked={formData.declaration}
-                    onCheckedChange={(checked) => handleInputChange('declaration', checked)}
-                  />
-                  <Label htmlFor="declaration" className="text-sm">
-                    I declare that the information provided is accurate and I accept the terms and conditions. *
-                  </Label>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4 py-6">
+  const renderPaneButtons = () => {
+    switch (currentPane) {
+      case 0: // Submission Type
+        return (
+          <div className="flex justify-end items-center">
+            <div className="flex gap-3">
               <Button 
-                onClick={() => handleSubmit('precheck')}
-                className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
-                disabled={!formData.declaration}
+                variant="outline" 
+                onClick={handleDiscard}
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
-                Submit for Pre-check
+                Discard
               </Button>
               <Button 
-                variant="outline"
-                onClick={() => handleSubmit('draft')}
-                className="border-corporate-peach-300 text-corporate-peach-600 hover:bg-corporate-peach-50"
+                variant="outline" 
+                onClick={handleSaveAsDraft}
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
               >
                 Save as Draft
               </Button>
               <Button 
-                variant="outline"
-                onClick={() => handleSubmit('template')}
-                className="border-corporate-peach-300 text-corporate-peach-600 hover:bg-corporate-peach-50"
+                onClick={handleNext}
+                className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
               >
-                Save as Template
+                Next
               </Button>
+            </div>
+          </div>
+        );
+      
+      case 1: // LC & Applicant Details
+      case 2: // Drawing Details  
+      case 3: // Shipment & Transportation Details
+        return (
+          <div className="flex justify-between items-center">
+            <Button 
+              variant="outline" 
+              onClick={handleGoBack}
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            >
+              Go Back
+            </Button>
+            <div className="flex gap-3">
               <Button 
-                variant="outline"
+                variant="outline" 
                 onClick={handleDiscard}
-                className="text-red-600 border-red-300 hover:bg-red-50"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
               >
                 Discard
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleSaveAsDraft}
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              >
+                Save as Draft
+              </Button>
+              <Button 
+                onClick={handleNext}
+                className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+              >
+                Next
+              </Button>
             </div>
+          </div>
+        );
+      
+      case 4: // Document Submission Details
+        return (
+          <div className="flex justify-between items-center">
+            <Button 
+              variant="outline" 
+              onClick={handleGoBack}
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            >
+              Go Back
+            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={handleDiscard}
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              >
+                Discard
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleSaveAsDraft}
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              >
+                Save as Draft
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              >
+                Submit
+              </Button>
+            </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className={`${isExpanded ? 'max-w-[100vw] max-h-[100vh] w-full h-full' : 'max-w-7xl max-h-[90vh]'} overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300`}>
+        <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={onBack}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+              <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+                Export LC Bills - {paneHeaders[currentPane]}
+              </DialogTitle>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <div className="flex flex-col h-full p-6 overflow-hidden">
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center space-x-2">
+              {paneHeaders.map((header, index) => (
+                <div key={index} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    index === currentPane 
+                      ? 'bg-corporate-teal-500 text-white' 
+                      : index < currentPane 
+                        ? 'bg-green-600 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  {index < paneHeaders.length - 1 && (
+                    <div className={`w-8 h-0.5 mx-2 ${
+                      index < currentPane ? 'bg-green-600' : 'bg-gray-200'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <ScrollArea className="flex-1">
+            <div className="pr-4">
+              {renderCurrentPane()}
+            </div>
+          </ScrollArea>
+
+          {/* Action Buttons */}
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
+            {renderPaneButtons()}
           </div>
         </div>
-      </div>
-
-      {/* Upload Dialog */}
-      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Document Upload Details</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Document Type</Label>
-              <Select value={currentDocumentData.type} onValueChange={(value) => setCurrentDocumentData(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select document type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {formData.documentsSubmitted.map((doc) => (
-                    <SelectItem key={doc} value={doc}>{doc}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Document ID</Label>
-              <Input
-                value={currentDocumentData.documentId}
-                onChange={(e) => setCurrentDocumentData(prev => ({ ...prev, documentId: e.target.value }))}
-                placeholder="Enter document ID"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Document Date</Label>
-              <Input
-                type="date"
-                value={currentDocumentData.documentDate}
-                onChange={(e) => setCurrentDocumentData(prev => ({ ...prev, documentDate: e.target.value }))}
-              />
-            </div>
-            
-            {selectedFiles && (
-              <div className="text-sm text-gray-600">
-                Selected file: {selectedFiles[0].name}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleDocumentUpload}
-              disabled={!currentDocumentData.type || !currentDocumentData.documentId || !currentDocumentData.documentDate}
-              className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
-            >
-              Upload
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Document Dialog */}
-      <Dialog open={showDocumentDialog} onOpenChange={setShowDocumentDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Document Details</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Document Type</Label>
-              <Input
-                value={currentDocumentData.type}
-                readOnly
-                className="bg-gray-100"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Document ID</Label>
-              <Input
-                value={currentDocumentData.documentId}
-                onChange={(e) => setCurrentDocumentData(prev => ({ ...prev, documentId: e.target.value }))}
-                placeholder="Enter document ID"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Document Date</Label>
-              <Input
-                type="date"
-                value={currentDocumentData.documentDate}
-                onChange={(e) => setCurrentDocumentData(prev => ({ ...prev, documentDate: e.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDocumentDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleUpdateDocument}
-              disabled={!currentDocumentData.documentId || !currentDocumentData.documentDate}
-              className="bg-corporate-peach-500 hover:bg-corporate-peach-600 text-white"
-            >
-              Update
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

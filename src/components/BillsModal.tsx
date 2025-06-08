@@ -141,13 +141,13 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
                   key={billType.id}
                   className={`cursor-pointer transition-all duration-200 hover:shadow-md border ${
                     selectedBillType === billType.id
-                      ? 'ring-2 ring-corporate-blue bg-corporate-blue/5 dark:bg-corporate-blue/10 border-corporate-blue'
+                      ? 'ring-2 ring-corporate-teal-500 bg-corporate-teal-50 dark:bg-corporate-teal-900/20 border-corporate-teal-500'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'
                   }`}
                   onClick={() => handleBillTypeSelect(billType.id)}
                 >
                   <CardContent className="p-4 text-center">
-                    <billType.icon className="w-8 h-8 mx-auto mb-3 text-corporate-blue" />
+                    <billType.icon className="w-8 h-8 mx-auto mb-3 text-corporate-teal-500" />
                     <h4 className="font-medium mb-2 text-gray-800 dark:text-white">
                       {billType.title}
                     </h4>
@@ -178,7 +178,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
                 >
                   <CardContent className="p-6 text-center">
                     <method.icon className={`w-8 h-8 mx-auto mb-3 ${
-                      selectedBillType ? 'text-corporate-blue' : 'text-gray-400'
+                      selectedBillType ? 'text-corporate-teal-500' : 'text-gray-400'
                     }`} />
                     <h4 className={`font-medium mb-2 ${
                       selectedBillType ? 'text-gray-800 dark:text-white' : 'text-gray-400'
