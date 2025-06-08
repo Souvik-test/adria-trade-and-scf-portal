@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X } from 'lucide-react';
 
 interface DocumentUploadDetailsProps {
   isOpen: boolean;
@@ -28,7 +27,7 @@ const DocumentUploadDetails: React.FC<DocumentUploadDetailsProps> = ({
   fileName,
   selectedDocuments
 }) => {
-  const [documentType, setDocumentType] = useState('Commercial Invoice');
+  const [documentType, setDocumentType] = useState(selectedDocuments[0] || '');
   const [documentId, setDocumentId] = useState('');
   const [documentDate, setDocumentDate] = useState('2025-06-08');
 
@@ -51,18 +50,10 @@ const DocumentUploadDetails: React.FC<DocumentUploadDetailsProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
-        <DialogHeader className="flex flex-row items-center justify-between">
+        <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             Document Upload Details
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X className="w-4 h-4" />
-          </Button>
         </DialogHeader>
         
         <div className="space-y-6 pt-4">
@@ -78,10 +69,6 @@ const DocumentUploadDetails: React.FC<DocumentUploadDetailsProps> = ({
                 {selectedDocuments.map((docType) => (
                   <SelectItem key={docType} value={docType}>{docType}</SelectItem>
                 ))}
-                <SelectItem value="Commercial Invoice">Commercial Invoice</SelectItem>
-                <SelectItem value="Packing List">Packing List</SelectItem>
-                <SelectItem value="Bill of Lading">Bill of Lading</SelectItem>
-                <SelectItem value="Certificate of Origin">Certificate of Origin</SelectItem>
               </SelectContent>
             </Select>
           </div>
