@@ -34,11 +34,11 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
         
         <div className="flex items-center gap-4">
           {/* Right side ribbon with icons */}
-          <div className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-corporate-peach-100 to-corporate-peach-200 dark:from-gray-700 dark:to-gray-600 rounded-lg shadow-sm border border-corporate-peach-300 dark:border-gray-600">
+          <div className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-corporate-teal-100 to-corporate-teal-200 dark:from-gray-700 dark:to-gray-600 rounded-lg shadow-sm border border-corporate-teal-300 dark:border-gray-600">
             <Button
               variant="ghost"
               size="sm"
-              className={`text-corporate-peach-700 dark:text-gray-300 hover:text-corporate-peach-800 hover:bg-corporate-peach-200/50 dark:hover:bg-gray-600 transition-all duration-200 ${
+              className={`text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200 ${
                 !isUploadActive ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               title="Document Upload"
@@ -50,7 +50,7 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
             <Button
               variant="ghost"
               size="sm"
-              className="text-corporate-peach-700 dark:text-gray-300 hover:text-corporate-peach-800 hover:bg-corporate-peach-200/50 dark:hover:bg-gray-600 transition-all duration-200"
+              className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200"
               title="AI Assistance"
             >
               <HelpCircle className="w-5 h-5" />
@@ -60,7 +60,7 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
               variant="ghost"
               size="sm"
               onClick={onToggleDarkMode}
-              className="text-corporate-peach-700 dark:text-gray-300 hover:text-corporate-peach-800 hover:bg-corporate-peach-200/50 dark:hover:bg-gray-600 transition-all duration-200 relative group"
+              className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200 relative group"
               title="Toggle Dark/Light Mode"
             >
               <div className="relative">
@@ -77,7 +77,7 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
             variant="ghost"
             size="sm"
             onClick={() => setShowNotifications(true)}
-            className="text-corporate-peach-700 dark:text-gray-300 hover:text-corporate-peach-800 hover:bg-corporate-peach-200/50 dark:hover:bg-gray-600 relative transition-all duration-200"
+            className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 relative transition-all duration-200"
             title="Notifications"
           >
             <Bell className="w-5 h-5" />
@@ -89,12 +89,12 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
           </Button>
           
           <Select value={selectedModule} onValueChange={setSelectedModule}>
-            <SelectTrigger className="w-48 border-corporate-peach-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-corporate-peach-400 dark:hover:border-gray-500 transition-colors">
+            <SelectTrigger className="w-48 border-corporate-teal-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-corporate-teal-400 dark:hover:border-gray-500 transition-colors">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-gray-800 border-corporate-peach-300 dark:border-gray-600">
+            <SelectContent className="bg-white dark:bg-gray-800 border-corporate-teal-300 dark:border-gray-600">
               {modules.map((module) => (
-                <SelectItem key={module.value} value={module.value} className="hover:bg-corporate-peach-100 dark:hover:bg-gray-700">
+                <SelectItem key={module.value} value={module.value} className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
                   {module.label}
                 </SelectItem>
               ))}
@@ -103,16 +103,16 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLog
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-8 h-8 bg-gradient-to-br from-corporate-peach-500 to-corporate-peach-600 rounded-full flex items-center justify-center text-white font-bold text-sm hover:from-corporate-peach-600 hover:to-corporate-peach-700 transition-all duration-200 shadow-md">
+              <Button variant="ghost" className="w-8 h-8 bg-gradient-to-br from-corporate-teal-500 to-corporate-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm hover:from-corporate-teal-600 hover:to-corporate-teal-700 transition-all duration-200 shadow-md">
                 TCU
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border-corporate-peach-300 dark:border-gray-600">
-              <DropdownMenuItem className="hover:bg-corporate-peach-100 dark:hover:bg-gray-700">
+            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border-corporate-teal-300 dark:border-gray-600">
+              <DropdownMenuItem className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onLogout} className="hover:bg-corporate-peach-100 dark:hover:bg-gray-700">
+              <DropdownMenuItem onClick={onLogout} className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>

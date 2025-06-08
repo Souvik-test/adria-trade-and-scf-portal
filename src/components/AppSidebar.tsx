@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Package, Search, Shield, Settings, User } from 'lucide-react';
@@ -52,24 +53,29 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 transition-all duration-300"
+      className="border-r border-gray-200 transition-all duration-300 bg-corporate-teal-50 dark:bg-corporate-teal-900"
       collapsible="icon"
     >
       <SidebarContent>
         <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-corporate-blue font-semibold">
-              Main Menu
-            </SidebarGroupLabel>
-          )}
+          <div className="flex items-center justify-between p-2">
+            {!isCollapsed && (
+              <SidebarGroupLabel className="text-corporate-teal-700 dark:text-corporate-teal-300 font-semibold">
+                Main Menu
+              </SidebarGroupLabel>
+            )}
+            <SidebarTrigger className="ml-auto text-corporate-teal-600 hover:text-corporate-teal-700 hover:bg-corporate-teal-100 dark:text-corporate-teal-400 dark:hover:text-corporate-teal-300 dark:hover:bg-corporate-teal-800" />
+          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     tooltip={isCollapsed ? item.title : undefined}
-                    className={`cursor-pointer hover:bg-corporate-blue/10 transition-colors ${
-                      activeMenu === item.id ? 'bg-corporate-blue/20 text-corporate-blue' : ''
+                    className={`cursor-pointer hover:bg-corporate-teal-100 dark:hover:bg-corporate-teal-800 transition-colors ${
+                      activeMenu === item.id 
+                        ? 'bg-corporate-teal-200 dark:bg-corporate-teal-700 text-corporate-teal-700 dark:text-corporate-teal-300' 
+                        : 'text-corporate-teal-600 dark:text-corporate-teal-400'
                     }`}
                     onClick={() => onMenuClick(item.id)}
                   >
