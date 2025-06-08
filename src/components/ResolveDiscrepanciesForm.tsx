@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface ResolveDiscrepanciesFormProps {
   onClose: () => void;
   onBack: () => void;
+  isFullScreen?: boolean;
 }
 
 interface UploadedDocument {
@@ -32,9 +33,9 @@ interface DocumentUploadDetails {
   file: File | null;
 }
 
-const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onClose, onBack }) => {
+const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({ onClose, onBack, isFullScreen = false }) => {
   const [currentPane, setCurrentPane] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(isFullScreen);
   const [darkMode, setDarkMode] = useState(false);
   const [customDocumentName, setCustomDocumentName] = useState('');
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
