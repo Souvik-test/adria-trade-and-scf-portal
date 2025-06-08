@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Upload, Edit, Trash2, FileText, Calendar, Search } from 'lucide-react';
+import { ArrowLeft, Upload, Search, Calendar, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DocumentUploadPopup from './DocumentUploadPopup';
 
 interface ManualBillsFormProps {
   onClose: () => void;
@@ -27,15 +27,15 @@ interface UploadedDocument {
 
 const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) => {
   const [currentPane, setCurrentPane] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [customDocumentName, setCustomDocumentName] = useState('');
-  const [editingDocument, setEditingDocument] = useState<string | null>(null);
+  const [showDocumentPopup, setShowDocumentPopup] = useState(false);
   
   // Form state
   const [submissionType, setSubmissionType] = useState('');
   const [submissionDate, setSubmissionDate] = useState('');
+  const [submissionReference, setSubmissionReference] = useState('');
   const [lcReference, setLcReference] = useState('');
   const [corporateReference, setCorporateReference] = useState('CORP-REF-001');
   const [lcCurrency, setLcCurrency] = useState('USD');
@@ -58,7 +58,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
 
   const paneHeaders = [
-    'Submission Type and Export LC Selection',
+    'Submission Details',
     'LC & Applicant Details',
     'Drawing Details',
     'Shipment & Transportation Details',
@@ -83,12 +83,10 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 
   const handleSaveAsDraft = () => {
     console.log('Saved as draft');
-    // Handle save as draft
   };
 
   const handleSubmit = () => {
     console.log('Form submitted');
-    // Handle form submission
   };
 
   const handleLcSearch = () => {
@@ -126,6 +124,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
         };
         setUploadedDocuments(prev => [...prev, newDocument]);
       });
+      setShowDocumentPopup(true);
     }
     event.target.value = '';
   };
@@ -146,8 +145,8 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     return doc.reference.trim() !== '' && doc.date.trim() !== '';
   };
 
-  const renderSubmissionTypePane = () => (
-    <ScrollArea className="h-full">
+  const renderSubmissionDetailsPane = () => (
+    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
@@ -182,21 +181,13 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
               </div>
             </div>
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Export LC Selection</Label>
-              <div className="relative mt-1">
-                <Input 
-                  placeholder="Search LC Reference" 
-                  className="pr-10" 
-                  value={lcReference}
-                  onChange={(e) => setLcReference(e.target.value)}
-                />
-                <button 
-                  onClick={handleLcSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
-                >
-                  <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                </button>
-              </div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Reference</Label>
+              <Input 
+                placeholder="Enter submission reference" 
+                className="mt-1" 
+                value={submissionReference}
+                onChange={(e) => setSubmissionReference(e.target.value)}
+              />
             </div>
           </div>
         </CardContent>
@@ -205,7 +196,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   );
 
   const renderLcApplicantDetailsPane = () => (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
@@ -284,7 +275,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   );
 
   const renderDrawingDetailsPane = () => (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
@@ -360,7 +351,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   );
 
   const renderShipmentTransportationPane = () => (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
@@ -427,7 +418,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   );
 
   const renderDocumentSubmissionPane = () => (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <div className="space-y-6 pr-4">
         <Card className="border border-gray-200 dark:border-gray-600">
           <CardHeader>
@@ -507,97 +498,19 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                 </div>
               </div>
             </div>
+
+            {uploadedDocuments.length > 0 && (
+              <div>
+                <Button
+                  onClick={() => setShowDocumentPopup(true)}
+                  className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+                >
+                  View Uploaded Documents ({uploadedDocuments.length})
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
-
-        {uploadedDocuments.length > 0 && (
-          <Card className="border border-gray-200 dark:border-gray-600">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                Uploaded Documents
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-48">
-                <div className="space-y-3 pr-4">
-                  {uploadedDocuments.map((doc) => (
-                    <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-corporate-teal-500" />
-                          <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                            {doc.name}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
-                            className="hover:bg-blue-100 text-blue-600"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDocumentDelete(doc.id)}
-                            className="hover:bg-red-100 text-red-600"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div>
-                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Type</Label>
-                          <Select value={doc.type} onValueChange={(value) => handleDocumentEdit(doc.id, 'type', value)}>
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {selectedDocuments.map((docType) => (
-                                <SelectItem key={docType} value={docType}>{docType}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document ID</Label>
-                          <Input
-                            value={doc.reference}
-                            onChange={(e) => handleDocumentEdit(doc.id, 'reference', e.target.value)}
-                            className="h-8 text-xs"
-                            placeholder="Enter document ID"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Date</Label>
-                          <Input
-                            type="date"
-                            value={doc.date}
-                            onChange={(e) => handleDocumentEdit(doc.id, 'date', e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <div className="flex justify-end">
-                          <Button
-                            size="sm"
-                            disabled={!isDocumentUploadEnabled(doc)}
-                            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
-                          >
-                            Upload
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </ScrollArea>
   );
@@ -605,7 +518,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   const renderCurrentPane = () => {
     switch (currentPane) {
       case 0:
-        return renderSubmissionTypePane();
+        return renderSubmissionDetailsPane();
       case 1:
         return renderLcApplicantDetailsPane();
       case 2:
@@ -615,13 +528,13 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
       case 4:
         return renderDocumentSubmissionPane();
       default:
-        return renderSubmissionTypePane();
+        return renderSubmissionDetailsPane();
     }
   };
 
   const renderPaneButtons = () => {
     switch (currentPane) {
-      case 0: // Submission Type
+      case 0:
         return (
           <div className="flex justify-end items-center">
             <div className="flex gap-3">
@@ -649,9 +562,9 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
           </div>
         );
       
-      case 1: // LC & Applicant Details
-      case 2: // Drawing Details  
-      case 3: // Shipment & Transportation Details
+      case 1:
+      case 2:
+      case 3:
         return (
           <div className="flex justify-between items-center">
             <Button 
@@ -686,7 +599,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
           </div>
         );
       
-      case 4: // Document Submission Details
+      case 4:
         return (
           <div className="flex justify-between items-center">
             <Button 
@@ -727,61 +640,72 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className={`${isExpanded ? 'max-w-[100vw] max-h-[100vh] w-full h-full' : 'max-w-7xl max-h-[90vh]'} overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300`}>
-        <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={onBack}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-              <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                Export LC Bills - {paneHeaders[currentPane]}
-              </DialogTitle>
+    <>
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-[100vw] max-h-[100vh] w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300">
+          <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={onBack}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Export LC Bills - {paneHeaders[currentPane]}
+                </DialogTitle>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
-        
-        <div className="flex flex-col h-full p-6 overflow-hidden">
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex items-center space-x-2">
-              {paneHeaders.map((header, index) => (
-                <div key={index} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index === currentPane 
-                      ? 'bg-corporate-teal-500 text-white' 
-                      : index < currentPane 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-gray-200 text-gray-600'
-                  }`}>
-                    {index + 1}
+          </DialogHeader>
+          
+          <div className="flex flex-col h-full p-6 overflow-hidden">
+            {/* Progress indicator */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center space-x-2">
+                {paneHeaders.map((header, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      index === currentPane 
+                        ? 'bg-corporate-teal-500 text-white' 
+                        : index < currentPane 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    {index < paneHeaders.length - 1 && (
+                      <div className={`w-8 h-0.5 mx-2 ${
+                        index < currentPane ? 'bg-green-600' : 'bg-gray-200'
+                      }`} />
+                    )}
                   </div>
-                  {index < paneHeaders.length - 1 && (
-                    <div className={`w-8 h-0.5 mx-2 ${
-                      index < currentPane ? 'bg-green-600' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 overflow-hidden">
+              {renderCurrentPane()}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
+              {renderPaneButtons()}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Main Content */}
-          <div className="flex-1 overflow-hidden">
-            {renderCurrentPane()}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
-            {renderPaneButtons()}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <DocumentUploadPopup
+        isOpen={showDocumentPopup}
+        onClose={() => setShowDocumentPopup(false)}
+        uploadedDocuments={uploadedDocuments}
+        selectedDocuments={selectedDocuments}
+        onDocumentEdit={handleDocumentEdit}
+        onDocumentDelete={handleDocumentDelete}
+      />
+    </>
   );
 };
 
