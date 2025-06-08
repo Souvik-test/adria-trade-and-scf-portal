@@ -35,10 +35,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   
   // Form state
   const [submissionType, setSubmissionType] = useState('');
+  const [submissionDate, setSubmissionDate] = useState('');
   const [lcReference, setLcReference] = useState('');
+  const [corporateReference, setCorporateReference] = useState('CORP-REF-001');
+  const [lcCurrency, setLcCurrency] = useState('USD');
   const [applicantName, setApplicantName] = useState('');
   const [drawingAmount, setDrawingAmount] = useState('');
+  const [tenorType, setTenorType] = useState('');
+  const [tenorDays, setTenorDays] = useState('');
   const [shipmentDetails, setShipmentDetails] = useState('');
+  const [billOfLadingNo, setBillOfLadingNo] = useState('');
 
   const defaultDocumentTypes = [
     'Commercial Invoice',
@@ -136,319 +142,427 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
   };
 
+  const isDocumentUploadEnabled = (doc: UploadedDocument) => {
+    return doc.reference.trim() !== '' && doc.date.trim() !== '';
+  };
+
   const renderSubmissionTypePane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-          {paneHeaders[0]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Type</Label>
-            <Select value={submissionType} onValueChange={setSubmissionType}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select submission type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">General</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="standard">Standard</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Export LC Selection</Label>
-            <div className="relative mt-1">
-              <Input 
-                placeholder="Search LC Reference" 
-                className="pr-10" 
-                value={lcReference}
-                onChange={(e) => setLcReference(e.target.value)}
-              />
-              <button 
-                onClick={handleLcSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
-              >
-                <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderLcApplicantDetailsPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-          {paneHeaders[1]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={lcReference} />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Amount</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Date</Label>
-            <Input type="date" readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Applicant Name</Label>
-            <Input 
-              value={applicantName}
-              onChange={(e) => setApplicantName(e.target.value)}
-              className="mt-1" 
-            />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Issuing Bank</Label>
-            <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderDrawingDetailsPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-          {paneHeaders[2]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Amount</Label>
-            <Input 
-              value={drawingAmount}
-              onChange={(e) => setDrawingAmount(e.target.value)}
-              placeholder="Enter drawing amount"
-              className="mt-1" 
-            />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Currency</Label>
-            <Select>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select currency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="GBP">GBP</SelectItem>
-                <SelectItem value="INR">INR</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Date</Label>
-            <Input type="date" className="mt-1" />
-          </div>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Details</Label>
-          <Textarea 
-            className="mt-1" 
-            rows={4}
-            placeholder="Enter drawing details"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderShipmentTransportationPane = () => (
-    <Card className="border border-gray-200 dark:border-gray-600 h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-          {paneHeaders[3]}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Date</Label>
-            <Input type="date" className="mt-1" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Loading</Label>
-            <Input placeholder="Enter port of loading" className="mt-1" />
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Discharge</Label>
-            <Input placeholder="Enter port of discharge" className="mt-1" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Transportation Mode</Label>
-            <Select>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select transportation mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sea">Sea</SelectItem>
-                <SelectItem value="air">Air</SelectItem>
-                <SelectItem value="land">Land</SelectItem>
-                <SelectItem value="multimodal">Multimodal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Vessel/Flight Details</Label>
-            <Input placeholder="Enter vessel/flight details" className="mt-1" />
-          </div>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Description</Label>
-          <Textarea 
-            value={shipmentDetails}
-            onChange={(e) => setShipmentDetails(e.target.value)}
-            className="mt-1" 
-            rows={4}
-            placeholder="Enter shipment description"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderDocumentSubmissionPane = () => (
-    <div className="space-y-6">
-      <Card className="border border-gray-200 dark:border-gray-600">
+    <ScrollArea className="h-full">
+      <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-            {paneHeaders[4]}
+            {paneHeaders[0]}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-              Documents Submitted <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {documentTypes.map((docType) => (
-                <div key={docType} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={docType}
-                    checked={selectedDocuments.includes(docType)}
-                    onCheckedChange={(checked) => handleDocumentSelect(docType, checked as boolean)}
-                  />
-                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {docType}
-                  </Label>
-                </div>
-              ))}
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Type</Label>
+              <Select value={submissionType} onValueChange={setSubmissionType}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select submission type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="pre-check">Pre-Check</SelectItem>
+                  <SelectItem value="final">Final</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Document Type</Label>
-            <div className="flex gap-2 mt-1">
-              <Input
-                value={customDocumentName}
-                onChange={(e) => setCustomDocumentName(e.target.value)}
-                placeholder="Enter custom document type"
-                className="flex-1"
-              />
-              <Button 
-                variant="outline" 
-                onClick={handleAddCustomDocumentType}
-                disabled={!customDocumentName.trim()}
-                className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300 disabled:opacity-50"
-              >
-                Add
-              </Button>
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-              Upload Documents <span className="text-red-500">*</span>
-            </Label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-              <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
-              <div className="text-gray-600 dark:text-gray-400 mb-2">
-                Multiple uploads - With restrictions
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Date</Label>
+              <div className="relative mt-1">
+                <Input 
+                  type="date"
+                  value={submissionDate}
+                  onChange={(e) => setSubmissionDate(e.target.value)}
+                  className="pr-10"
+                />
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
-              <input
-                type="file"
-                id="document-upload"
-                className="hidden"
-                onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                multiple
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('document-upload')?.click()}
-                className="mb-4"
-                disabled={selectedDocuments.length === 0}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Choose Files
-              </Button>
-              <div className="text-sm text-red-500">
-                {selectedDocuments.length === 0 ? 'Select documents to enable upload' : ''}
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Export LC Selection</Label>
+              <div className="relative mt-1">
+                <Input 
+                  placeholder="Search LC Reference" 
+                  className="pr-10" 
+                  value={lcReference}
+                  onChange={(e) => setLcReference(e.target.value)}
+                />
+                <button 
+                  onClick={handleLcSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
+                >
+                  <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                </button>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+    </ScrollArea>
+  );
 
-      {uploadedDocuments.length > 0 && (
+  const renderLcApplicantDetailsPane = () => (
+    <ScrollArea className="h-full">
+      <Card className="border border-gray-200 dark:border-gray-600 h-full">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            {paneHeaders[1]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
+              <div className="relative mt-1">
+                <Input 
+                  value={lcReference}
+                  onChange={(e) => setLcReference(e.target.value)}
+                  placeholder="Enter LC Reference"
+                  className="pr-10"
+                />
+                <button 
+                  onClick={handleLcSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
+                >
+                  <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Corporate Reference Number</Label>
+              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={corporateReference} />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Currency</Label>
+              <Select value={lcCurrency} onValueChange={setLcCurrency}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="INR">INR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Amount</Label>
+              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Place</Label>
+              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Date</Label>
+              <Input type="date" readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Applicant Name</Label>
+              <Input 
+                value={applicantName}
+                onChange={(e) => setApplicantName(e.target.value)}
+                className="mt-1" 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Issuing Bank</Label>
+              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </ScrollArea>
+  );
+
+  const renderDrawingDetailsPane = () => (
+    <ScrollArea className="h-full">
+      <Card className="border border-gray-200 dark:border-gray-600 h-full">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            {paneHeaders[2]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Amount</Label>
+              <Input 
+                value={drawingAmount}
+                onChange={(e) => setDrawingAmount(e.target.value)}
+                placeholder="Enter drawing amount"
+                className="mt-1" 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Currency</Label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="INR">INR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Date</Label>
+              <Input type="date" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tenor Type</Label>
+              <Select value={tenorType} onValueChange={setTenorType}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select tenor type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sight">Sight</SelectItem>
+                  <SelectItem value="usance">Usance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {tenorType === 'usance' && (
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tenor Days</Label>
+                <Input 
+                  value={tenorDays}
+                  onChange={(e) => setTenorDays(e.target.value)}
+                  placeholder="Enter tenor days"
+                  className="mt-1" 
+                />
+              </div>
+            </div>
+          )}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drawing Details</Label>
+            <Textarea 
+              className="mt-1" 
+              rows={4}
+              placeholder="Enter drawing details"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </ScrollArea>
+  );
+
+  const renderShipmentTransportationPane = () => (
+    <ScrollArea className="h-full">
+      <Card className="border border-gray-200 dark:border-gray-600 h-full">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            {paneHeaders[3]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Date</Label>
+              <Input type="date" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Loading</Label>
+              <Input placeholder="Enter port of loading" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Port of Discharge</Label>
+              <Input placeholder="Enter port of discharge" className="mt-1" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Transportation Mode</Label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select transportation mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sea">Sea</SelectItem>
+                  <SelectItem value="air">Air</SelectItem>
+                  <SelectItem value="land">Land</SelectItem>
+                  <SelectItem value="multimodal">Multimodal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Vessel/Flight Details</Label>
+              <Input placeholder="Enter vessel/flight details" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill of Lading / AWB No.</Label>
+              <Input 
+                value={billOfLadingNo}
+                onChange={(e) => setBillOfLadingNo(e.target.value)}
+                placeholder="Enter bill of lading/AWB number" 
+                className="mt-1" 
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Shipment Description</Label>
+            <Textarea 
+              value={shipmentDetails}
+              onChange={(e) => setShipmentDetails(e.target.value)}
+              className="mt-1" 
+              rows={4}
+              placeholder="Enter shipment description"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </ScrollArea>
+  );
+
+  const renderDocumentSubmissionPane = () => (
+    <ScrollArea className="h-full">
+      <div className="space-y-6 pr-4">
         <Card className="border border-gray-200 dark:border-gray-600">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-              Uploaded Documents
+            <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+              {paneHeaders[4]}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-48">
-              <div className="space-y-3 pr-4">
-                {uploadedDocuments.map((doc) => (
-                  <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-corporate-teal-500" />
-                        <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                          {doc.name}
-                        </span>
+          <CardContent className="space-y-6">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+                Documents Submitted <span className="text-red-500">*</span>
+              </Label>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {documentTypes.map((docType) => (
+                  <div key={docType} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={docType}
+                      checked={selectedDocuments.includes(docType)}
+                      onCheckedChange={(checked) => handleDocumentSelect(docType, checked as boolean)}
+                    />
+                    <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {docType}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Document Type</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  value={customDocumentName}
+                  onChange={(e) => setCustomDocumentName(e.target.value)}
+                  placeholder="Enter custom document type"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddCustomDocumentType}
+                  disabled={!customDocumentName.trim()}
+                  className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300 disabled:opacity-50"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+                Upload Documents <span className="text-red-500">*</span>
+              </Label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+                <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
+                <div className="text-gray-600 dark:text-gray-400 mb-2">
+                  Multiple uploads - With restrictions
+                </div>
+                <input
+                  type="file"
+                  id="document-upload"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  multiple
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('document-upload')?.click()}
+                  className="mb-4"
+                  disabled={selectedDocuments.length === 0}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Choose Files
+                </Button>
+                <div className="text-sm text-red-500">
+                  {selectedDocuments.length === 0 ? 'Select documents to enable upload' : ''}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {uploadedDocuments.length > 0 && (
+          <Card className="border border-gray-200 dark:border-gray-600">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+                Uploaded Documents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-48">
+                <div className="space-y-3 pr-4">
+                  {uploadedDocuments.map((doc) => (
+                    <div key={doc.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-corporate-teal-500" />
+                          <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                            {doc.name}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
+                            className="hover:bg-blue-100 text-blue-600"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDocumentDelete(doc.id)}
+                            className="hover:bg-red-100 text-red-600"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingDocument(editingDocument === doc.id ? null : doc.id)}
-                          className="hover:bg-blue-100 text-blue-600"
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDocumentDelete(doc.id)}
-                          className="hover:bg-red-100 text-red-600"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {editingDocument === doc.id && (
-                      <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                      
+                      <div className="space-y-2">
+                        <div>
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Document Type</Label>
+                          <Select value={doc.type} onValueChange={(value) => handleDocumentEdit(doc.id, 'type', value)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {selectedDocuments.map((docType) => (
+                                <SelectItem key={docType} value={docType}>{docType}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div>
                           <Label className="text-xs text-gray-600 dark:text-gray-400">Document ID</Label>
                           <Input
@@ -467,20 +581,25 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                             className="h-8 text-xs"
                           />
                         </div>
+                        <div className="flex justify-end">
+                          <Button
+                            size="sm"
+                            disabled={!isDocumentUploadEnabled(doc)}
+                            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
+                          >
+                            Upload
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                    
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Type: {doc.type}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </ScrollArea>
   );
 
   const renderCurrentPane = () => {
@@ -652,11 +771,9 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
           </div>
 
           {/* Main Content */}
-          <ScrollArea className="flex-1">
-            <div className="pr-4">
-              {renderCurrentPane()}
-            </div>
-          </ScrollArea>
+          <div className="flex-1 overflow-hidden">
+            {renderCurrentPane()}
+          </div>
 
           {/* Action Buttons */}
           <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
