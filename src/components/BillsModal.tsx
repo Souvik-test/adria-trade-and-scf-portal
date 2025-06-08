@@ -108,6 +108,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, type }) => {
       <ResolveDiscrepanciesForm 
         onClose={onClose} 
         onBack={handleBackFromForm}
+        isFullScreen={true}
       />
     );
   }
