@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
@@ -40,9 +39,12 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   const [corporateReference, setCorporateReference] = useState('CORP-REF-001');
   const [lcCurrency, setLcCurrency] = useState('USD');
   const [applicantName, setApplicantName] = useState('');
+  const [drawingCurrency, setDrawingCurrency] = useState('USD');
   const [drawingAmount, setDrawingAmount] = useState('');
+  const [drawingDate, setDrawingDate] = useState('');
   const [tenorType, setTenorType] = useState('');
   const [tenorDays, setTenorDays] = useState('');
+  const [billDueDate, setBillDueDate] = useState('');
   const [shipmentDetails, setShipmentDetails] = useState('');
   const [billOfLadingNo, setBillOfLadingNo] = useState('');
 
@@ -173,12 +175,18 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
       case 2:
         return (
           <DrawingDetailsPane
+            drawingCurrency={drawingCurrency}
+            setDrawingCurrency={setDrawingCurrency}
             drawingAmount={drawingAmount}
             setDrawingAmount={setDrawingAmount}
+            drawingDate={drawingDate}
+            setDrawingDate={setDrawingDate}
             tenorType={tenorType}
             setTenorType={setTenorType}
             tenorDays={tenorDays}
             setTenorDays={setTenorDays}
+            billDueDate={billDueDate}
+            setBillDueDate={setBillDueDate}
           />
         );
       case 3:
