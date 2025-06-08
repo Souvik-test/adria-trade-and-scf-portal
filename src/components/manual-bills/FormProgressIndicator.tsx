@@ -1,0 +1,39 @@
+
+import React from 'react';
+
+interface FormProgressIndicatorProps {
+  currentPane: number;
+  paneHeaders: string[];
+}
+
+const FormProgressIndicator: React.FC<FormProgressIndicatorProps> = ({
+  currentPane,
+  paneHeaders
+}) => {
+  return (
+    <div className="flex items-center justify-center mb-6">
+      <div className="flex items-center space-x-2">
+        {paneHeaders.map((header, index) => (
+          <div key={index} className="flex items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              index === currentPane 
+                ? 'bg-corporate-teal-500 text-white' 
+                : index < currentPane 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-gray-200 text-gray-600'
+            }`}>
+              {index + 1}
+            </div>
+            {index < paneHeaders.length - 1 && (
+              <div className={`w-8 h-0.5 mx-2 ${
+                index < currentPane ? 'bg-green-600' : 'bg-gray-200'
+              }`} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default FormProgressIndicator;

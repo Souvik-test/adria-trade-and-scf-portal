@@ -1,63 +1,36 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
 import DocumentUploadDetails from './DocumentUploadDetails';
-import SubmissionDetailsPane from './manual-bills/SubmissionDetailsPane';
-import LcApplicantDetailsPane from './manual-bills/LcApplicantDetailsPane';
-import DrawingDetailsPane from './manual-bills/DrawingDetailsPane';
-import ShipmentTransportationPane from './manual-bills/ShipmentTransportationPane';
-import DocumentSubmissionPane from './manual-bills/DocumentSubmissionPane';
 import ActionButtons from './manual-bills/ActionButtons';
+import FormProgressIndicator from './manual-bills/FormProgressIndicator';
+import FormPaneRenderer from './manual-bills/FormPaneRenderer';
+import { useManualBillsForm } from '../hooks/useManualBillsForm';
+import { useFormActions } from './manual-bills/FormActions';
 
 interface ManualBillsFormProps {
   onClose: () => void;
   onBack: () => void;
 }
 
-interface UploadedDocument {
-  id: string;
-  name: string;
-  reference: string;
-  date: string;
-  type: string;
-  file: File;
-}
-
 const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) => {
-  const [currentPane, setCurrentPane] = useState(0);
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [customDocumentName, setCustomDocumentName] = useState('');
-  const [showDocumentDetails, setShowDocumentDetails] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const formState = useManualBillsForm();
   
-  // Form state
-  const [submissionType, setSubmissionType] = useState('');
-  const [submissionDate, setSubmissionDate] = useState('');
-  const [submissionReference, setSubmissionReference] = useState('');
-  const [lcReference, setLcReference] = useState('');
-  const [corporateReference, setCorporateReference] = useState('CORP-REF-001');
-  const [lcCurrency, setLcCurrency] = useState('USD');
-  const [applicantName, setApplicantName] = useState('');
-  const [drawingCurrency, setDrawingCurrency] = useState('USD');
-  const [drawingAmount, setDrawingAmount] = useState('');
-  const [drawingDate, setDrawingDate] = useState('');
-  const [tenorType, setTenorType] = useState('');
-  const [tenorDays, setTenorDays] = useState('');
-  const [billDueDate, setBillDueDate] = useState('');
-  const [shipmentDetails, setShipmentDetails] = useState('');
-  const [billOfLadingNo, setBillOfLadingNo] = useState('');
-
-  const defaultDocumentTypes = [
-    'Commercial Invoice',
-    'Packing List', 
-    'Bill of Lading/AWB',
-    'Certificate of Origin',
-    'Insurance Certificate',
-    'Inspection Certificate'
-  ];
-
-  const [documentTypes, setDocumentTypes] = useState(defaultDocumentTypes);
+  const formActions = useFormActions({
+    selectedDocuments: formState.selectedDocuments,
+    setSelectedDocuments: formState.setSelectedDocuments,
+    customDocumentName: formState.customDocumentName,
+    setCustomDocumentName: formState.setCustomDocumentName,
+    documentTypes: formState.documentTypes,
+    setDocumentTypes: formState.setDocumentTypes,
+    uploadedDocuments: formState.uploadedDocuments,
+    setUploadedDocuments: formState.setUploadedDocuments,
+    showDocumentDetails: formState.showDocumentDetails,
+    setShowDocumentDetails: formState.setShowDocumentDetails,
+    pendingFile: formState.pendingFile,
+    setPendingFile: formState.setPendingFile
+  });
 
   const paneHeaders = [
     'Submission Details',
@@ -68,14 +41,14 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   ];
 
   const handleNext = () => {
-    if (currentPane < 4) {
-      setCurrentPane(currentPane + 1);
+    if (formState.currentPane < 4) {
+      formState.setCurrentPane(formState.currentPane + 1);
     }
   };
 
   const handleGoBack = () => {
-    if (currentPane > 0) {
-      setCurrentPane(currentPane - 1);
+    if (formState.currentPane > 0) {
+      formState.setCurrentPane(formState.currentPane - 1);
     }
   };
 
@@ -92,129 +65,7 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   };
 
   const handleLcSearch = () => {
-    console.log('Searching LC Reference:', lcReference);
-  };
-
-  const handleDocumentSelect = (docType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDocuments(prev => [...prev, docType]);
-    } else {
-      setSelectedDocuments(prev => prev.filter(doc => doc !== docType));
-    }
-  };
-
-  const handleAddCustomDocumentType = () => {
-    if (customDocumentName.trim() && !documentTypes.includes(customDocumentName.trim())) {
-      const newDocType = customDocumentName.trim();
-      setDocumentTypes(prev => [...prev, newDocType]);
-      setSelectedDocuments(prev => [...prev, newDocType]);
-      setCustomDocumentName('');
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && selectedDocuments.length > 0) {
-      setPendingFile(file);
-      setShowDocumentDetails(true);
-    }
-    event.target.value = '';
-  };
-
-  const handleDocumentUpload = (details: { type: string; id: string; date: string }) => {
-    if (pendingFile) {
-      const newDocument: UploadedDocument = {
-        id: Date.now().toString(),
-        name: pendingFile.name,
-        reference: details.id,
-        date: details.date,
-        type: details.type,
-        file: pendingFile
-      };
-      setUploadedDocuments(prev => [...prev, newDocument]);
-      setShowDocumentDetails(false);
-      setPendingFile(null);
-    }
-  };
-
-  const handleDocumentUploadCancel = () => {
-    setShowDocumentDetails(false);
-    setPendingFile(null);
-  };
-
-  const handleDocumentDelete = (id: string) => {
-    setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
-  };
-
-  const renderCurrentPane = () => {
-    switch (currentPane) {
-      case 0:
-        return (
-          <SubmissionDetailsPane
-            submissionType={submissionType}
-            setSubmissionType={setSubmissionType}
-            submissionDate={submissionDate}
-            setSubmissionDate={setSubmissionDate}
-            submissionReference={submissionReference}
-            setSubmissionReference={setSubmissionReference}
-          />
-        );
-      case 1:
-        return (
-          <LcApplicantDetailsPane
-            lcReference={lcReference}
-            setLcReference={setLcReference}
-            corporateReference={corporateReference}
-            lcCurrency={lcCurrency}
-            setLcCurrency={setLcCurrency}
-            applicantName={applicantName}
-            setApplicantName={setApplicantName}
-            onLcSearch={handleLcSearch}
-          />
-        );
-      case 2:
-        return (
-          <DrawingDetailsPane
-            drawingCurrency={drawingCurrency}
-            setDrawingCurrency={setDrawingCurrency}
-            drawingAmount={drawingAmount}
-            setDrawingAmount={setDrawingAmount}
-            drawingDate={drawingDate}
-            setDrawingDate={setDrawingDate}
-            tenorType={tenorType}
-            setTenorType={setTenorType}
-            tenorDays={tenorDays}
-            setTenorDays={setTenorDays}
-            billDueDate={billDueDate}
-            setBillDueDate={setBillDueDate}
-          />
-        );
-      case 3:
-        return (
-          <ShipmentTransportationPane
-            shipmentDetails={shipmentDetails}
-            setShipmentDetails={setShipmentDetails}
-            billOfLadingNo={billOfLadingNo}
-            setBillOfLadingNo={setBillOfLadingNo}
-          />
-        );
-      case 4:
-        return (
-          <DocumentSubmissionPane
-            documentTypes={documentTypes}
-            selectedDocuments={selectedDocuments}
-            customDocumentName={customDocumentName}
-            setCustomDocumentName={setCustomDocumentName}
-            uploadedDocuments={uploadedDocuments}
-            onDocumentSelect={handleDocumentSelect}
-            onAddCustomDocumentType={handleAddCustomDocumentType}
-            onFileSelect={handleFileSelect}
-            onDocumentDelete={handleDocumentDelete}
-          />
-        );
-      default:
-        return null;
-    }
+    console.log('Searching LC Reference:', formState.lcReference);
   };
 
   return (
@@ -231,46 +82,66 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </button>
                 <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                  Export LC Bills - {paneHeaders[currentPane]}
+                  Export LC Bills - {paneHeaders[formState.currentPane]}
                 </DialogTitle>
               </div>
             </div>
           </DialogHeader>
           
           <div className="flex flex-col h-full p-6 overflow-hidden">
-            {/* Progress indicator */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="flex items-center space-x-2">
-                {paneHeaders.map((header, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      index === currentPane 
-                        ? 'bg-corporate-teal-500 text-white' 
-                        : index < currentPane 
-                          ? 'bg-green-600 text-white' 
-                          : 'bg-gray-200 text-gray-600'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    {index < paneHeaders.length - 1 && (
-                      <div className={`w-8 h-0.5 mx-2 ${
-                        index < currentPane ? 'bg-green-600' : 'bg-gray-200'
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <FormProgressIndicator 
+              currentPane={formState.currentPane}
+              paneHeaders={paneHeaders}
+            />
 
-            {/* Main Content */}
             <div className="flex-1 overflow-hidden">
-              {renderCurrentPane()}
+              <FormPaneRenderer
+                currentPane={formState.currentPane}
+                submissionType={formState.submissionType}
+                setSubmissionType={formState.setSubmissionType}
+                submissionDate={formState.submissionDate}
+                setSubmissionDate={formState.setSubmissionDate}
+                submissionReference={formState.submissionReference}
+                setSubmissionReference={formState.setSubmissionReference}
+                lcReference={formState.lcReference}
+                setLcReference={formState.setLcReference}
+                corporateReference={formState.corporateReference}
+                lcCurrency={formState.lcCurrency}
+                setLcCurrency={formState.setLcCurrency}
+                applicantName={formState.applicantName}
+                setApplicantName={formState.setApplicantName}
+                drawingCurrency={formState.drawingCurrency}
+                setDrawingCurrency={formState.setDrawingCurrency}
+                drawingAmount={formState.drawingAmount}
+                setDrawingAmount={formState.setDrawingAmount}
+                drawingDate={formState.drawingDate}
+                setDrawingDate={formState.setDrawingDate}
+                tenorType={formState.tenorType}
+                setTenorType={formState.setTenorType}
+                tenorDays={formState.tenorDays}
+                setTenorDays={formState.setTenorDays}
+                billDueDate={formState.billDueDate}
+                setBillDueDate={formState.setBillDueDate}
+                shipmentDetails={formState.shipmentDetails}
+                setShipmentDetails={formState.setShipmentDetails}
+                billOfLadingNo={formState.billOfLadingNo}
+                setBillOfLadingNo={formState.setBillOfLadingNo}
+                documentTypes={formState.documentTypes}
+                selectedDocuments={formState.selectedDocuments}
+                customDocumentName={formState.customDocumentName}
+                setCustomDocumentName={formState.setCustomDocumentName}
+                uploadedDocuments={formState.uploadedDocuments}
+                onLcSearch={handleLcSearch}
+                onDocumentSelect={formActions.handleDocumentSelect}
+                onAddCustomDocumentType={formActions.handleAddCustomDocumentType}
+                onFileSelect={formActions.handleFileSelect}
+                onDocumentDelete={formActions.handleDocumentDelete}
+              />
             </div>
 
-            {/* Action Buttons */}
             <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
               <ActionButtons
-                currentPane={currentPane}
+                currentPane={formState.currentPane}
                 onGoBack={handleGoBack}
                 onDiscard={handleDiscard}
                 onSaveAsDraft={handleSaveAsDraft}
@@ -283,11 +154,11 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
       </Dialog>
 
       <DocumentUploadDetails
-        isOpen={showDocumentDetails}
-        onClose={handleDocumentUploadCancel}
-        onUpload={handleDocumentUpload}
-        fileName={pendingFile?.name || ''}
-        selectedDocuments={selectedDocuments}
+        isOpen={formState.showDocumentDetails}
+        onClose={formActions.handleDocumentUploadCancel}
+        onUpload={formActions.handleDocumentUpload}
+        fileName={formState.pendingFile?.name || ''}
+        selectedDocuments={formState.selectedDocuments}
       />
     </>
   );
