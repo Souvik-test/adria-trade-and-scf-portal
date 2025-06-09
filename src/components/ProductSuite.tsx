@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe } from 'lucide-react';
+import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
 
@@ -58,6 +58,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       description: 'Digital trade enablement solutions',
       hasFlip: true,
       flipOptions: ['e-B/L', 'e-Warehouse Receipt (e-W/R)', 'e-Certificate of Origin (e-COO)']
+    },
+    {
+      id: 'underlying-docs',
+      title: 'Underlying PO/PI/Invoice Management',
+      icon: Receipt,
+      description: 'Manage purchase orders, proforma invoices and commercial invoices',
+      hasFlip: true,
+      flipOptions: ['PO-PI', 'Invoice']
     }
   ];
 
@@ -86,6 +94,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     // Handle e-enabler options here
   };
 
+  const handleUnderlyingDocsClick = (option: string) => {
+    console.log('Underlying Documents option clicked:', option);
+    // Handle underlying documents options here
+  };
+
   const handleCardHover = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product?.hasFlip) {
@@ -104,6 +117,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       handleBillsClick(option);
     } else if (productId === 'e-enablers') {
       handleEEnablerClick(option);
+    } else if (productId === 'underlying-docs') {
+      handleUnderlyingDocsClick(option);
     }
   };
 
@@ -148,7 +163,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                   <CardContent className="p-6 flex flex-col justify-center h-full">
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
                       {product.id === 'lc' ? 'LC Options' : 
-                       product.id === 'bills' ? 'Bills Options' : 'e-Enabler Options'}
+                       product.id === 'bills' ? 'Bills Options' : 
+                       product.id === 'underlying-docs' ? 'Document Options' : 'e-Enabler Options'}
                     </h3>
                     <div className="space-y-3">
                       {product.flipOptions?.map((option) => (
