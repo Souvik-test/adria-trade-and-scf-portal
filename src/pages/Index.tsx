@@ -91,14 +91,12 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
-          <div className="flex-1">
-            <TopRibbon 
-              darkMode={darkMode} 
-              onToggleDarkMode={handleToggleDarkMode} 
-              onLogout={handleLogout}
-              isUploadActive={isUploadActive}
-            />
-          </div>
+          <TopRibbon 
+            darkMode={darkMode} 
+            onToggleDarkMode={handleToggleDarkMode} 
+            onLogout={handleLogout}
+            isUploadActive={isUploadActive}
+          />
           
           <main className="flex-1 overflow-auto bg-white dark:bg-gray-800">
             {renderMainContent()}
