@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,7 @@ export const DocumentSubmissionPane: React.FC<DocumentSubmissionPaneProps> = ({
                 variant="outline" 
                 onClick={onAddCustomDocumentType}
                 disabled={!customDocumentName.trim()}
-                className="bg-orange-100 hover:bg-orange-200 text-orange-700 border-orange-300 disabled:opacity-50"
+                className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300 disabled:opacity-50"
               >
                 Add
               </Button>

@@ -390,14 +390,9 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
       <Dialog open={showUploadDialog} onOpenChange={handleUploadCancel}>
         <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                Document Upload Details
-              </DialogTitle>
-              <button onClick={handleUploadCancel}>
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </button>
-            </div>
+            <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+              Document Upload Details
+            </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4 p-6">

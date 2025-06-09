@@ -124,15 +124,6 @@ const DrawingDetailsPane: React.FC<DrawingDetailsPaneProps> = ({
           </div>
           
           <div className="grid grid-cols-4 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill Due Date</Label>
-              <Input 
-                type="date"
-                value={billDueDate}
-                onChange={(e) => setBillDueDate(e.target.value)}
-                className="mt-1" 
-              />
-            </div>
             {tenorType === 'usance' && (
               <div>
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tenor Days</Label>
@@ -144,6 +135,15 @@ const DrawingDetailsPane: React.FC<DrawingDetailsPaneProps> = ({
                 />
               </div>
             )}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill Due Date</Label>
+              <Input 
+                type="date"
+                value={billDueDate}
+                onChange={(e) => setBillDueDate(e.target.value)}
+                className="mt-1" 
+              />
+            </div>
           </div>
           
           <div>

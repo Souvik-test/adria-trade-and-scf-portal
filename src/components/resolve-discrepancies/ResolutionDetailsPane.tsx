@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -25,7 +24,7 @@ export const ResolutionDetailsPane: React.FC<ResolutionDetailsPaneProps> = ({
   return (
     <Card className="border border-gray-200 dark:border-gray-600 h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-orange-500 dark:text-orange-400">
+        <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
           Resolution Details
         </CardTitle>
       </CardHeader>
