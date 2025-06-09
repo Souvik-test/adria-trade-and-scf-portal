@@ -59,9 +59,9 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
       <SidebarContent>
         <SidebarGroup>
           <div className="flex items-center justify-between p-2">
-            <SidebarTrigger className="text-corporate-teal-500 hover:text-corporate-teal-600 hover:bg-corporate-teal-50 dark:text-corporate-teal-400 dark:hover:text-corporate-teal-300 dark:hover:bg-corporate-teal-800" />
+            <SidebarTrigger className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 dark:text-teal-400 dark:hover:text-teal-300 dark:hover:bg-teal-800" />
             {!isCollapsed && (
-              <SidebarGroupLabel className="text-corporate-teal-500 dark:text-corporate-teal-400 font-semibold ml-2">
+              <SidebarGroupLabel className="text-teal-600 dark:text-teal-400 font-semibold ml-2">
                 Main Menu
               </SidebarGroupLabel>
             )}
@@ -72,9 +72,9 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     tooltip={isCollapsed ? item.title : undefined}
-                    className={`cursor-pointer hover:bg-corporate-teal-50 dark:hover:bg-corporate-teal-800 transition-colors ${
+                    className={`cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-800 transition-colors ${
                       activeMenu === item.id 
-                        ? 'bg-corporate-teal-100 dark:bg-corporate-teal-700 text-corporate-teal-700 dark:text-corporate-teal-300' 
+                        ? 'bg-teal-100 dark:bg-teal-700 text-teal-700 dark:text-teal-300' 
                         : 'text-gray-600 dark:text-gray-400'
                     }`}
                     onClick={() => onMenuClick(item.id)}

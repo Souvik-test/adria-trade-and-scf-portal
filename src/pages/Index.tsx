@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import LoginPage from '@/components/LoginPage';
 import { AppSidebar } from '@/components/AppSidebar';
 import TopRibbon from '@/components/TopRibbon';
@@ -92,16 +91,13 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
-          <div className="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
-            <SidebarTrigger className="text-corporate-blue hover:bg-corporate-blue/10" />
-            <div className="flex-1">
-              <TopRibbon 
-                darkMode={darkMode} 
-                onToggleDarkMode={handleToggleDarkMode} 
-                onLogout={handleLogout}
-                isUploadActive={isUploadActive}
-              />
-            </div>
+          <div className="flex-1">
+            <TopRibbon 
+              darkMode={darkMode} 
+              onToggleDarkMode={handleToggleDarkMode} 
+              onLogout={handleLogout}
+              isUploadActive={isUploadActive}
+            />
           </div>
           
           <main className="flex-1 overflow-auto bg-white dark:bg-gray-800">
