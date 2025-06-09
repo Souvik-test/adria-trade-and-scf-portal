@@ -61,17 +61,7 @@ const LcApplicantDetailsPane: React.FC<LcApplicantDetailsPaneProps> = ({
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Currency</Label>
-              <Select value={lcCurrency} onValueChange={setLcCurrency}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                  <SelectItem value="INR">INR</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={lcCurrency} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -92,9 +82,9 @@ const LcApplicantDetailsPane: React.FC<LcApplicantDetailsPaneProps> = ({
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Applicant Name</Label>
               <Input 
+                readOnly
                 value={applicantName}
-                onChange={(e) => setApplicantName(e.target.value)}
-                className="mt-1" 
+                className="mt-1 bg-gray-100 dark:bg-gray-700" 
               />
             </div>
             <div>
