@@ -28,25 +28,40 @@ const POPIPaneRenderer: React.FC<POPIPaneRendererProps> = ({
         <GeneralDetailsPane
           formData={formData}
           updateField={updateField}
+          readOnly={false}
         />
       );
     
     case 'items':
       return (
-        <ItemDetailsPane
-          formData={formData}
-          addItem={addItem}
-          updateItem={updateItem}
-          removeItem={removeItem}
-        />
+        <>
+          <GeneralDetailsPane
+            formData={formData}
+            updateField={updateField}
+            readOnly={true}
+          />
+          <ItemDetailsPane
+            formData={formData}
+            addItem={addItem}
+            updateItem={updateItem}
+            removeItem={removeItem}
+          />
+        </>
       );
     
     case 'summary':
       return (
-        <SummaryPane
-          formData={formData}
-          updateField={updateField}
-        />
+        <>
+          <GeneralDetailsPane
+            formData={formData}
+            updateField={updateField}
+            readOnly={true}
+          />
+          <SummaryPane
+            formData={formData}
+            updateField={updateField}
+          />
+        </>
       );
     
     default:

@@ -45,8 +45,8 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
       <div className="flex gap-3">
         <Button
           onClick={onDiscard}
-          variant="destructive"
-          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+          variant="outline"
+          className="border-red-400 dark:border-red-500 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500 dark:hover:border-red-400 px-6 py-2 text-sm font-medium"
         >
           Discard
         </Button>

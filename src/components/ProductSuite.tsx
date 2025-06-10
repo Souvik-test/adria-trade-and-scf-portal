@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe, Receipt } from 'lucide-react';
+import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
 import POPIModal from './POPIModal';
+import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
+import ProductCard from './product-suite/ProductCard';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -92,7 +94,6 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
 
   const handleEEnablerClick = (option: string) => {
     console.log('e-Enabler option clicked:', option);
-    // Handle e-enabler options here
   };
 
   const handleUnderlyingDocsClick = (option: string) => {
@@ -100,14 +101,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     if (option === 'PO-PI') {
       setShowPOPIModal(true);
     }
-    // Handle other underlying documents options here
   };
 
   const handleCardHover = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (product?.hasFlip) {
-      setFlippedCard(productId);
-    }
+    setFlippedCard(productId);
   };
 
   const handleCardLeave = () => {
@@ -128,64 +125,23 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <button 
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Product Suite</h2>
-      </div>
+      <ProductSuiteHeader onBack={onBack} />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="relative h-48 perspective-1000">
-            <div 
-              className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-                flippedCard === product.id ? 'rotate-y-180' : ''
-              }`}
-              onMouseEnter={() => handleCardHover(product.id)}
-              onMouseLeave={handleCardLeave}
-            >
-              {/* Front of card */}
-              <Card className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 flex flex-col items-center justify-center h-full">
-                  <product.icon className="w-12 h-12 text-corporate-blue mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">
-                    {product.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                    {product.description}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Back of card (for products with flip options) */}
-              {product.hasFlip && (
-                <Card className="absolute inset-0 backface-hidden rotate-y-180 cursor-pointer">
-                  <CardContent className="p-6 flex flex-col justify-center h-full">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
-                      {product.id === 'lc' ? 'LC Options' : 
-                       product.id === 'bills' ? 'Bills Options' : 
-                       product.id === 'underlying-docs' ? 'Instrument Options' : 'e-Enabler Options'}
-                    </h3>
-                    <div className="space-y-3">
-                      {product.flipOptions?.map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => handleOptionClick(product.id, option)}
-                          className="w-full p-3 text-left bg-corporate-blue/10 hover:bg-corporate-blue/20 rounded-lg transition-colors"
-                        >
-                          <span className="text-sm font-medium text-corporate-blue">{option}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            title={product.title}
+            icon={product.icon}
+            description={product.description}
+            hasFlip={product.hasFlip}
+            flipOptions={product.flipOptions}
+            isFlipped={flippedCard === product.id}
+            onMouseEnter={() => handleCardHover(product.id)}
+            onMouseLeave={handleCardLeave}
+            onOptionClick={handleOptionClick}
+          />
         ))}
       </div>
 
