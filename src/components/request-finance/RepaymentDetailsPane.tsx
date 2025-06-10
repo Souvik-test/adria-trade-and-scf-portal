@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,11 @@ interface RepaymentDetailsPaneProps {
   setPrincipalRepaymentAccountNumber: (value: string) => void;
   interestRepaymentAccountNumber: string;
   setInterestRepaymentAccountNumber: (value: string) => void;
+  // New props for auto-calculation
+  financeCurrency?: string;
+  financeAmountRequested?: string;
+  interestCurrency?: string;
+  interestAmount?: string;
 }
 
 const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
@@ -22,8 +27,46 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
   principalRepaymentAccountNumber,
   setPrincipalRepaymentAccountNumber,
   interestRepaymentAccountNumber,
-  setInterestRepaymentAccountNumber
+  setInterestRepaymentAccountNumber,
+  financeCurrency,
+  financeAmountRequested,
+  interestCurrency,
+  interestAmount
 }) => {
+  // Calculate principal repayment amount (Finance Currency + Finance Amount Requested)
+  const calculatePrincipalRepaymentAmount = () => {
+    if (financeCurrency && financeAmountRequested) {
+      return `${financeCurrency} ${financeAmountRequested}`;
+    }
+    return '';
+  };
+
+  // Calculate interest repayment amount (Interest Currency + Interest Amount)
+  const calculateInterestRepaymentAmount = () => {
+    if (interestCurrency && interestAmount) {
+      return `${interestCurrency} ${interestAmount}`;
+    }
+    return '';
+  };
+
+  // Calculate total repayment amount (Principal Currency + sum of Principal and Interest amounts)
+  const calculateTotalRepaymentAmount = () => {
+    if (financeAmountRequested && interestAmount && financeCurrency) {
+      const principalAmount = parseFloat(financeAmountRequested) || 0;
+      const interestAmountValue = parseFloat(interestAmount) || 0;
+      const total = (principalAmount + interestAmountValue).toFixed(2);
+      return `${financeCurrency} ${total}`;
+    }
+    return '';
+  };
+
+  // Auto-set Interest Repayment Account Number to Principal Repayment Account Number
+  useEffect(() => {
+    if (principalRepaymentAccountNumber && !interestRepaymentAccountNumber) {
+      setInterestRepaymentAccountNumber(principalRepaymentAccountNumber);
+    }
+  }, [principalRepaymentAccountNumber, interestRepaymentAccountNumber, setInterestRepaymentAccountNumber]);
+
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
@@ -39,12 +82,12 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
                 Principal Repayment Amount <span className="text-red-500">*</span>
               </Label>
               <Input
-                value={principalRepaymentAmount}
+                value={calculatePrincipalRepaymentAmount()}
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={15}
               />
-              <p className="text-xs text-gray-500">Defaulted to Finance Currency and Finance Amount but not editable</p>
+              <p className="text-xs text-gray-500">Defaulted to Finance Currency and Finance Amount Requested</p>
             </div>
 
             <div className="space-y-2">
@@ -52,12 +95,12 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
                 Interest Repayment Amount <span className="text-red-500">*</span>
               </Label>
               <Input
-                value={interestRepaymentAmount}
+                value={calculateInterestRepaymentAmount()}
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={15}
               />
-              <p className="text-xs text-gray-500">Defaulted to Finance Currency and Interest Amount but not editable</p>
+              <p className="text-xs text-gray-500">Defaulted to Interest Currency and Interest Amount</p>
             </div>
 
             <div className="space-y-2">
@@ -65,12 +108,12 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
                 Total Repayment Amount <span className="text-red-500">*</span>
               </Label>
               <Input
-                value={totalRepaymentAmount}
+                value={calculateTotalRepaymentAmount()}
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={15}
               />
-              <p className="text-xs text-gray-500">Defaulted to Finance Currency and summation of [Finance Amount and Interest Amount]</p>
+              <p className="text-xs text-gray-500">Principal Currency and summation of [Principal Repayment Amount and Interest Amount]</p>
             </div>
           </div>
 

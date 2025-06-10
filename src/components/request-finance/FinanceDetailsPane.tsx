@@ -28,6 +28,9 @@ interface FinanceDetailsPaneProps {
   interestAmount: string;
   purposeOfFinance: string;
   setPurposeOfFinance: (value: string) => void;
+  // New props for bill data
+  billCurrency?: string;
+  billAmount?: string;
 }
 
 const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
@@ -50,8 +53,24 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
   interestCurrency,
   interestAmount,
   purposeOfFinance,
-  setPurposeOfFinance
+  setPurposeOfFinance,
+  billCurrency,
+  billAmount
 }) => {
+  // Default Finance Currency to Bill Currency
+  useEffect(() => {
+    if (billCurrency && !financeCurrency) {
+      setFinanceCurrency(billCurrency);
+    }
+  }, [billCurrency, financeCurrency, setFinanceCurrency]);
+
+  // Default Finance Amount Requested to Bill Amount when Finance Request Type is Full
+  useEffect(() => {
+    if (financeRequestType === 'full' && billAmount) {
+      setFinanceAmountRequested(billAmount);
+    }
+  }, [financeRequestType, billAmount, setFinanceAmountRequested]);
+
   // Calculate finance due date when request date and tenure change
   useEffect(() => {
     if (financeRequestDate && financeTenureDays) {
@@ -75,24 +94,41 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
     }
   }, [financeCurrency, interestCurrency]);
 
-  // Calculate interest amount based on formula: [(Finance Amount Requested * Interest Rate * Finance Tenure)/100]
-  useEffect(() => {
+  // Calculate interest amount with corrected formula: [(P*R*T)/(100*365)]
+  const calculateInterestAmount = () => {
     if (financeAmountRequested && interestRate && financeTenureDays) {
       const amount = parseFloat(financeAmountRequested) || 0;
       const rate = parseFloat(interestRate) || 0;
       const tenure = parseInt(financeTenureDays) || 0;
       
-      const calculatedInterest = (amount * rate * tenure) / 100;
-      
-      // Update interest amount
-      const event = new Event('change', { bubbles: true });
-      const input = document.querySelector('[data-testid="interest-amount"]') as HTMLInputElement;
-      if (input) {
-        input.value = calculatedInterest.toFixed(2);
-        input.dispatchEvent(event);
+      const calculatedInterest = (amount * rate * tenure) / (100 * 365);
+      return calculatedInterest.toFixed(2);
+    }
+    return '';
+  };
+
+  // Validate finance amount against bill amount
+  const validateFinanceAmount = (value: string) => {
+    if (billAmount && value) {
+      const financeAmount = parseFloat(value);
+      const maxAmount = parseFloat(billAmount);
+      if (financeAmount > maxAmount) {
+        alert(`Finance Amount Requested cannot be more than Bill Amount (${billAmount})`);
+        return false;
       }
     }
-  }, [financeAmountRequested, interestRate, financeTenureDays]);
+    return true;
+  };
+
+  const handleFinanceAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (validateFinanceAmount(value)) {
+      setFinanceAmountRequested(value);
+    } else {
+      // Reset to previous valid value or bill amount
+      setFinanceAmountRequested(billAmount || '');
+    }
+  };
 
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
@@ -179,15 +215,17 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               <Input
                 type="number"
                 value={financeAmountRequested}
-                onChange={(e) => setFinanceAmountRequested(e.target.value)}
+                onChange={handleFinanceAmountChange}
                 placeholder="0.00"
                 maxLength={15}
                 disabled={financeRequestType === 'full'}
+                readOnly={financeRequestType === 'full'}
+                className={financeRequestType === 'full' ? 'bg-gray-100 dark:bg-gray-700' : ''}
               />
               <p className="text-xs text-gray-500">
                 {financeRequestType === 'partial' 
-                  ? "If Finance Request Type is 'Partial' then this field should be editable"
-                  : "If Finance Request Type is 'Full' then this field should be read only"
+                  ? "Editable when Finance Request Type is 'Partial'"
+                  : "Read only when Finance Request Type is 'Full' (defaulted to Bill Amount)"
                 }
               </p>
             </div>
@@ -232,7 +270,7 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
               />
-              <p className="text-xs text-gray-500">Should be auto-calculated as [Finance Request Date + Numeric Value of Finance Tenure]</p>
+              <p className="text-xs text-gray-500">Auto-calculated as [Finance Request Date + Finance Tenure]</p>
             </div>
 
             <div className="space-y-2">
@@ -263,7 +301,7 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={3}
               />
-              <p className="text-xs text-gray-500">Should be defaulted to Finance currency and not editable if Interest Rate is mentioned</p>
+              <p className="text-xs text-gray-500">Defaulted to Finance currency and not editable if Interest Rate is mentioned</p>
             </div>
 
             <div className="space-y-2">
@@ -272,16 +310,12 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               </Label>
               <Input
                 data-testid="interest-amount"
-                value={
-                  financeAmountRequested && interestRate && financeTenureDays
-                    ? ((parseFloat(financeAmountRequested) * parseFloat(interestRate) * parseInt(financeTenureDays)) / 100).toFixed(2)
-                    : ''
-                }
+                value={calculateInterestAmount()}
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={15}
               />
-              <p className="text-xs text-gray-500">It will be calculated as following formula and read only Formula: [(Requested Finance Amount * Interest Rate * Finance Tenure)/100]</p>
+              <p className="text-xs text-gray-500">Calculated as: [(Finance Amount * Interest Rate * Finance Tenure)/(100*365)]</p>
             </div>
           </div>
 

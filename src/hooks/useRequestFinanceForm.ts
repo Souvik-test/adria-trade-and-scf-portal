@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface UploadedDocument {
   id: string;
@@ -29,9 +29,11 @@ export const useRequestFinanceForm = () => {
   const [financeTenureDays, setFinanceTenureDays] = useState('');
   const [financeDueDate, setFinanceDueDate] = useState('');
   const [interestRate, setInterestRate] = useState('');
+  const [purposeOfFinance, setPurposeOfFinance] = useState('');
+  
+  // Calculated fields
   const [interestCurrency, setInterestCurrency] = useState('');
   const [interestAmount, setInterestAmount] = useState('');
-  const [purposeOfFinance, setPurposeOfFinance] = useState('');
   
   // Repayment Details
   const [principalRepaymentAmount, setPrincipalRepaymentAmount] = useState('');
@@ -55,6 +57,57 @@ export const useRequestFinanceForm = () => {
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [showDocumentDetails, setShowDocumentDetails] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  // Calculate interest currency (should match finance currency)
+  useEffect(() => {
+    if (financeCurrency) {
+      setInterestCurrency(financeCurrency);
+    }
+  }, [financeCurrency]);
+
+  // Calculate interest amount using the corrected formula: [(P*R*T)/(100*365)]
+  useEffect(() => {
+    if (financeAmountRequested && interestRate && financeTenureDays) {
+      const amount = parseFloat(financeAmountRequested) || 0;
+      const rate = parseFloat(interestRate) || 0;
+      const tenure = parseInt(financeTenureDays) || 0;
+      
+      const calculatedInterest = (amount * rate * tenure) / (100 * 365);
+      setInterestAmount(calculatedInterest.toFixed(2));
+    } else {
+      setInterestAmount('');
+    }
+  }, [financeAmountRequested, interestRate, financeTenureDays]);
+
+  // Calculate principal repayment amount
+  useEffect(() => {
+    if (financeCurrency && financeAmountRequested) {
+      setPrincipalRepaymentAmount(`${financeCurrency} ${financeAmountRequested}`);
+    } else {
+      setPrincipalRepaymentAmount('');
+    }
+  }, [financeCurrency, financeAmountRequested]);
+
+  // Calculate interest repayment amount
+  useEffect(() => {
+    if (interestCurrency && interestAmount) {
+      setInterestRepaymentAmount(`${interestCurrency} ${interestAmount}`);
+    } else {
+      setInterestRepaymentAmount('');
+    }
+  }, [interestCurrency, interestAmount]);
+
+  // Calculate total repayment amount
+  useEffect(() => {
+    if (financeAmountRequested && interestAmount && financeCurrency) {
+      const principalAmount = parseFloat(financeAmountRequested) || 0;
+      const interestAmountValue = parseFloat(interestAmount) || 0;
+      const total = (principalAmount + interestAmountValue).toFixed(2);
+      setTotalRepaymentAmount(`${financeCurrency} ${total}`);
+    } else {
+      setTotalRepaymentAmount('');
+    }
+  }, [financeAmountRequested, interestAmount, financeCurrency]);
 
   return {
     currentPane,

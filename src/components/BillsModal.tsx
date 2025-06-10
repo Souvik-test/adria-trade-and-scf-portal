@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileText, Search, DollarSign, Upload, MessageSquare } from 'lucide-react';
+import { ArrowLeft, FileText, Search, DollarSign, Upload, MessageSquare, CheckCircle, CreditCard } from 'lucide-react';
 import ManualBillsForm from './ManualBillsForm';
 import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 import RequestFinanceForm from './RequestFinanceForm';
@@ -14,7 +14,7 @@ interface BillsModalProps {
   type: 'import' | 'export';
 }
 
-type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | null;
+type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | 'accept-refuse' | 'process-bill-settlement' | null;
 
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -37,6 +37,14 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           break;
         case 'request-finance':
           setShowRequestFinanceForm(true);
+          break;
+        case 'accept-refuse':
+          // For now, we'll show the manual bills form - this can be changed to a specific form later
+          setShowManualBillsForm(true);
+          break;
+        case 'process-bill-settlement':
+          // For now, we'll show the manual bills form - this can be changed to a specific form later
+          setShowManualBillsForm(true);
           break;
       }
     }
@@ -82,17 +90,17 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     if (type === 'import') {
       return [
         {
-          id: 'present-bills',
-          title: 'Present Bills',
-          description: 'Submit bills for presentation under Import LC',
-          icon: FileText,
+          id: 'accept-refuse',
+          title: 'Accept/Refuse',
+          description: 'Accept or refuse bills under Import LC',
+          icon: CheckCircle,
           color: 'corporate-teal'
         },
         {
-          id: 'resolve-discrepancies',
-          title: 'Resolve Discrepancies',
-          description: 'Address discrepancies in Import LC documents',
-          icon: Search,
+          id: 'process-bill-settlement',
+          title: 'Process Bill Settlement',
+          description: 'Process settlement for Import LC bills',
+          icon: CreditCard,
           color: 'amber'
         }
       ];
@@ -125,140 +133,6 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
 
   const actionCards = getActionCards();
 
-  const renderMainView = () => (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-          Bills under {type === 'export' ? 'Export' : 'Import'} LC
-        </h2>
-        
-        <div className={`grid grid-cols-1 ${type === 'export' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-8`}>
-          {actionCards.map((card) => (
-            <Card 
-              key={card.id}
-              className={`border transition-colors cursor-pointer ${
-                selectedAction === card.id
-                  ? `border-${card.color}-400 bg-${card.color}-50 dark:bg-${card.color}-900/20`
-                  : `border-gray-200 dark:border-gray-600 hover:border-${card.color}-300 dark:hover:border-${card.color}-400`
-              }`}
-              onClick={() => handleActionSelect(card.id as ActionType)}
-            >
-              <CardHeader className="text-center">
-                <div className={`mx-auto w-16 h-16 bg-${card.color}-100 dark:bg-${card.color}-900 rounded-full flex items-center justify-center mb-4`}>
-                  <card.icon className={`w-8 h-8 text-${card.color}-600 dark:text-${card.color}-400`} />
-                </div>
-                <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                  {card.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  {card.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
-          Processing Methods
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card 
-            className={`border transition-colors ${
-              selectedAction 
-                ? 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 cursor-pointer'
-                : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-            }`}
-            onClick={() => selectedAction && handleMethodSelect('manual')}
-          >
-            <CardHeader className="text-center">
-              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                selectedAction 
-                  ? 'bg-corporate-teal-100 dark:bg-corporate-teal-900'
-                  : 'bg-gray-100 dark:bg-gray-800'
-              }`}>
-                <FileText className={`w-8 h-8 ${
-                  selectedAction 
-                    ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
-                    : 'text-gray-400'
-                }`} />
-              </div>
-              <CardTitle className={`text-lg font-semibold ${
-                selectedAction 
-                  ? 'text-gray-800 dark:text-white'
-                  : 'text-gray-500 dark:text-gray-500'
-              }`}>
-                Manual
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className={`text-sm ${
-                selectedAction 
-                  ? 'text-gray-600 dark:text-gray-400'
-                  : 'text-gray-500 dark:text-gray-500'
-              }`}>
-                {selectedAction 
-                  ? 'Enter details manually through forms'
-                  : 'Select an action above to enable methods'
-                }
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className={`border transition-colors ${
-            selectedAction 
-              ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
-              : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-          }`}>
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <Upload className="w-8 h-8 text-gray-400" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-                Upload
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-500 dark:text-gray-500 text-sm">
-                {selectedAction 
-                  ? 'Upload documents and auto-extract data'
-                  : 'Select an action above to enable methods'
-                }
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className={`border transition-colors ${
-            selectedAction 
-              ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
-              : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-          }`}>
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <MessageSquare className="w-8 h-8 text-gray-400" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-                Contextual Assistance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-500 dark:text-gray-500 text-sm">
-                {selectedAction 
-                  ? 'Use AI-powered interactive assistant'
-                  : 'Select an action above to enable methods'
-                }
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[90vw] max-h-[90vh] w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
@@ -279,7 +153,137 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
         </DialogHeader>
         
         <div className="flex-1 overflow-auto p-6">
-          {renderMainView()}
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
+                Bills under {type === 'export' ? 'Export' : 'Import'} LC
+              </h2>
+              
+              <div className={`grid grid-cols-1 ${type === 'export' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-8`}>
+                {actionCards.map((card) => (
+                  <Card 
+                    key={card.id}
+                    className={`border transition-colors cursor-pointer ${
+                      selectedAction === card.id
+                        ? `border-${card.color}-400 bg-${card.color}-50 dark:bg-${card.color}-900/20`
+                        : `border-gray-200 dark:border-gray-600 hover:border-${card.color}-300 dark:hover:border-${card.color}-400`
+                    }`}
+                    onClick={() => handleActionSelect(card.id as ActionType)}
+                  >
+                    <CardHeader className="text-center">
+                      <div className={`mx-auto w-16 h-16 bg-${card.color}-100 dark:bg-${card.color}-900 rounded-full flex items-center justify-center mb-4`}>
+                        <card.icon className={`w-8 h-8 text-${card.color}-600 dark:text-${card.color}-400`} />
+                      </div>
+                      <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+                        {card.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {card.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
+                Processing Methods
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card 
+                  className={`border transition-colors ${
+                    selectedAction 
+                      ? 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 cursor-pointer'
+                      : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                  }`}
+                  onClick={() => selectedAction && handleMethodSelect('manual')}
+                >
+                  <CardHeader className="text-center">
+                    <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                      selectedAction 
+                        ? 'bg-corporate-teal-100 dark:bg-corporate-teal-900'
+                        : 'bg-gray-100 dark:bg-gray-800'
+                    }`}>
+                      <FileText className={`w-8 h-8 ${
+                        selectedAction 
+                          ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
+                          : 'text-gray-400'
+                      }`} />
+                    </div>
+                    <CardTitle className={`text-lg font-semibold ${
+                      selectedAction 
+                        ? 'text-gray-800 dark:text-white'
+                        : 'text-gray-500 dark:text-gray-500'
+                    }`}>
+                      Manual
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className={`text-sm ${
+                      selectedAction 
+                        ? 'text-gray-600 dark:text-gray-400'
+                        : 'text-gray-500 dark:text-gray-500'
+                    }`}>
+                      {selectedAction 
+                        ? 'Enter details manually through forms'
+                        : 'Select an action above to enable methods'
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className={`border transition-colors ${
+                  selectedAction 
+                    ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+                    : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                }`}>
+                  <CardHeader className="text-center">
+                    <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                      <Upload className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
+                      Upload
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-gray-500 dark:text-gray-500 text-sm">
+                      {selectedAction 
+                        ? 'Upload documents and auto-extract data'
+                        : 'Select an action above to enable methods'
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className={`border transition-colors ${
+                  selectedAction 
+                    ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+                    : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                }`}>
+                  <CardHeader className="text-center">
+                    <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                      <MessageSquare className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
+                      Contextual Assistance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-gray-500 dark:text-gray-500 text-sm">
+                      {selectedAction 
+                        ? 'Use AI-powered interactive assistant'
+                        : 'Select an action above to enable methods'
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

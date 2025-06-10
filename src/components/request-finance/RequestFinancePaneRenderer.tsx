@@ -104,6 +104,8 @@ const RequestFinancePaneRenderer: React.FC<RequestFinancePaneRendererProps> = (p
           interestAmount={props.interestAmount}
           purposeOfFinance={props.purposeOfFinance}
           setPurposeOfFinance={props.setPurposeOfFinance}
+          billCurrency={props.billCurrency}
+          billAmount={props.billAmount}
         />
       );
     case 2:
@@ -116,6 +118,10 @@ const RequestFinancePaneRenderer: React.FC<RequestFinancePaneRendererProps> = (p
           setPrincipalRepaymentAccountNumber={props.setPrincipalRepaymentAccountNumber}
           interestRepaymentAccountNumber={props.interestRepaymentAccountNumber}
           setInterestRepaymentAccountNumber={props.setInterestRepaymentAccountNumber}
+          financeCurrency={props.financeCurrency}
+          financeAmountRequested={props.financeAmountRequested}
+          interestCurrency={props.interestCurrency}
+          interestAmount={props.interestAmount}
         />
       );
     case 3:
