@@ -188,6 +188,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       {showBillsModal && (
         <BillsModal 
           onClose={() => setShowBillsModal(false)} 
+          onBack={() => setShowBillsModal(false)}
           type={billsModalType}
         />
       )}

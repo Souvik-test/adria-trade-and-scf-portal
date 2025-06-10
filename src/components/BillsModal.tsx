@@ -11,9 +11,10 @@ import RequestFinanceForm from './RequestFinanceForm';
 interface BillsModalProps {
   onClose: () => void;
   onBack: () => void;
+  type: 'import' | 'export';
 }
 
-const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack }) => {
+const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [currentView, setCurrentView] = useState<'main' | 'request-finance'>('main');
   const [showManualBillsForm, setShowManualBillsForm] = useState(false);
   const [showResolveDiscrepanciesForm, setShowResolveDiscrepanciesForm] = useState(false);
@@ -216,7 +217,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack }) => {
                 <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
               <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                {currentView === 'request-finance' ? 'Request Finance' : 'Bills under Export LC'}
+                {currentView === 'request-finance' ? 'Request Finance' : `Bills under ${type === 'export' ? 'Export' : 'Import'} LC`}
               </DialogTitle>
             </div>
           </div>
