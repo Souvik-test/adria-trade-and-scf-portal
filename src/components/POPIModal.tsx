@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, FileText, Upload, MessageSquare, Plus, Edit, X } from 'lucide-react';
+import POPIForm from './POPIForm';
 
 interface POPIModalProps {
   onClose: () => void;
@@ -13,17 +13,37 @@ type ActionType = 'create' | 'amend' | 'cancel' | null;
 
 const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
   };
 
   const handleMethodSelect = (method: string) => {
-    if (method === 'manual' && selectedAction) {
-      console.log(`Opening manual form for ${selectedAction} action`);
-      // TODO: Implement form navigation based on selectedAction
+    if (method === 'manual' && selectedAction === 'create') {
+      setShowForm(true);
+    } else {
+      console.log(`Opening ${method} for ${selectedAction} action`);
+      // TODO: Implement other method handlers
     }
   };
+
+  const handleFormClose = () => {
+    setShowForm(false);
+  };
+
+  const handleFormBack = () => {
+    setShowForm(false);
+  };
+
+  if (showForm) {
+    return (
+      <POPIForm 
+        onClose={handleFormClose}
+        onBack={handleFormBack}
+      />
+    );
+  }
 
   const actionCards = [
     {
