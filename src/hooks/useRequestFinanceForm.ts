@@ -41,7 +41,7 @@ export const useRequestFinanceForm = () => {
   const [interestRepaymentAccountNumber, setInterestRepaymentAccountNumber] = useState('');
   
   // Document Upload
-  const [documentTypes] = useState([
+  const [documentTypes, setDocumentTypes] = useState([
     'Invoice',
     'Packing List',
     'Bill of Lading',
@@ -102,6 +102,7 @@ export const useRequestFinanceForm = () => {
     interestRepaymentAccountNumber,
     setInterestRepaymentAccountNumber,
     documentTypes,
+    setDocumentTypes,
     selectedDocuments,
     setSelectedDocuments,
     customDocumentName,
