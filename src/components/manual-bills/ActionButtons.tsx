@@ -9,7 +9,7 @@ interface ActionButtonsProps {
   onSaveAsDraft: () => void;
   onNext: () => void;
   onSubmit: () => void;
-  formType?: 'manual-bills' | 'resolve-discrepancies';
+  formType?: 'manual-bills' | 'resolve-discrepancies' | 'request-finance';
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -21,11 +21,16 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   onSubmit,
   formType = 'manual-bills'
 }) => {
+  // Determine the maximum pane based on form type
+  const getMaxPane = () => {
+    if (formType === 'request-finance') return 3;
+    return 4; // manual-bills and resolve-discrepancies have 5 panes (0-4)
+  };
+
+  const maxPane = getMaxPane();
+
   // Color schemes based on form type
   const getNextButtonClass = () => {
-    if (formType === 'resolve-discrepancies') {
-      return "px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white";
-    }
     return "px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white";
   };
 
@@ -60,7 +65,78 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     
     case 1:
     case 2:
+      return (
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={onGoBack}
+            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+          >
+            Go Back
+          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={onDiscard}
+              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+            >
+              Discard
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={onSaveAsDraft}
+              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+            >
+              Save as Draft
+            </Button>
+            <Button 
+              onClick={onNext}
+              className={getNextButtonClass()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      );
+    
     case 3:
+      // For request-finance, this is the final pane
+      if (formType === 'request-finance') {
+        return (
+          <div className="flex justify-between items-center">
+            <Button 
+              variant="outline" 
+              onClick={onGoBack}
+              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            >
+              Go Back
+            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={onDiscard}
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              >
+                Discard
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={onSaveAsDraft}
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              >
+                Save as Draft
+              </Button>
+              <Button 
+                onClick={onSubmit}
+                className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              >
+                Submit
+              </Button>
+            </div>
+          </div>
+        );
+      }
+      // For other forms, continue to next pane
       return (
         <div className="flex justify-between items-center">
           <Button 
