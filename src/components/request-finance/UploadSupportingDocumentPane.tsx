@@ -89,50 +89,27 @@ const UploadSupportingDocumentPane: React.FC<UploadSupportingDocumentPaneProps> 
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Document Reference
-              </Label>
-              <Input
-                placeholder="Enter document ID or No."
-                maxLength={20}
+          <div className="flex justify-center items-center py-8">
+            <div className="text-center space-y-4">
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                onChange={onFileSelect}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Document Date
-              </Label>
-              <Input
-                type="date"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Upload Document
-              </Label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  onChange={onFileSelect}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                />
-                <Button
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
-                  disabled={selectedDocuments.length === 0}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Browse Files
-                </Button>
-                <span className="text-sm text-gray-500">
-                  User will click this button to browse and attach supporting documents if required
-                </span>
-              </div>
+              <Button
+                onClick={() => document.getElementById('file-upload')?.click()}
+                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white px-8 py-3"
+                disabled={selectedDocuments.length === 0}
+                size="lg"
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                Choose Files
+              </Button>
+              <p className="text-sm text-gray-500 max-w-md">
+                Select document types above, then click to browse and attach supporting documents if required
+              </p>
             </div>
           </div>
 

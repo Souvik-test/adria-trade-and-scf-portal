@@ -40,11 +40,12 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           break;
       }
     }
-    // Upload and Contextual Assistance methods remain disabled for now
   };
 
   const handleBackToBills = () => {
     setShowRequestFinanceForm(false);
+    setShowResolveDiscrepanciesForm(false);
+    setShowManualBillsForm(false);
     setSelectedAction(null);
   };
 
@@ -62,6 +63,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
       <ResolveDiscrepanciesForm
         onClose={onClose}
         onBack={() => setShowResolveDiscrepanciesForm(false)}
+        isFullScreen={true}
       />
     );
   }
@@ -75,6 +77,54 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     );
   }
 
+  // Get action cards based on LC type
+  const getActionCards = () => {
+    if (type === 'import') {
+      return [
+        {
+          id: 'present-bills',
+          title: 'Present Bills',
+          description: 'Submit bills for presentation under Import LC',
+          icon: FileText,
+          color: 'corporate-teal'
+        },
+        {
+          id: 'resolve-discrepancies',
+          title: 'Resolve Discrepancies',
+          description: 'Address discrepancies in Import LC documents',
+          icon: Search,
+          color: 'amber'
+        }
+      ];
+    } else {
+      return [
+        {
+          id: 'present-bills',
+          title: 'Present Bills',
+          description: 'Submit bills for presentation under Export LC',
+          icon: FileText,
+          color: 'corporate-teal'
+        },
+        {
+          id: 'resolve-discrepancies',
+          title: 'Resolve Discrepancies',
+          description: 'Address discrepancies in Export LC documents',
+          icon: Search,
+          color: 'amber'
+        },
+        {
+          id: 'request-finance',
+          title: 'Request Finance',
+          description: 'Apply for trade finance facilities',
+          icon: DollarSign,
+          color: 'green'
+        }
+      ];
+    }
+  };
+
+  const actionCards = getActionCards();
+
   const renderMainView = () => (
     <div className="space-y-8">
       <div>
@@ -82,75 +132,32 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           Bills under {type === 'export' ? 'Export' : 'Import'} LC
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card 
-            className={`border transition-colors cursor-pointer ${
-              selectedAction === 'present-bills'
-                ? 'border-corporate-teal-400 bg-corporate-teal-50 dark:bg-corporate-teal-900/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400'
-            }`}
-            onClick={() => handleActionSelect('present-bills')}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-corporate-teal-100 dark:bg-corporate-teal-900 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-corporate-teal-600 dark:text-corporate-teal-400" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                Present Bills
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Submit bills for presentation
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`border transition-colors cursor-pointer ${
-              selectedAction === 'resolve-discrepancies'
-                ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-400'
-            }`}
-            onClick={() => handleActionSelect('resolve-discrepancies')}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mb-4">
-                <Search className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                Resolve Discrepancies
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Address and resolve bill discrepancies
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className={`border transition-colors cursor-pointer ${
-              selectedAction === 'request-finance'
-                ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
-                : 'border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-400'
-            }`}
-            onClick={() => handleActionSelect('request-finance')}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-                <DollarSign className="w-8 h-8 text-green-600 dark:text-green-400" />
-              </div>
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                Request Finance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Apply for trade finance facilities
-              </p>
-            </CardContent>
-          </Card>
+        <div className={`grid grid-cols-1 ${type === 'export' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-8`}>
+          {actionCards.map((card) => (
+            <Card 
+              key={card.id}
+              className={`border transition-colors cursor-pointer ${
+                selectedAction === card.id
+                  ? `border-${card.color}-400 bg-${card.color}-50 dark:bg-${card.color}-900/20`
+                  : `border-gray-200 dark:border-gray-600 hover:border-${card.color}-300 dark:hover:border-${card.color}-400`
+              }`}
+              onClick={() => handleActionSelect(card.id as ActionType)}
+            >
+              <CardHeader className="text-center">
+                <div className={`mx-auto w-16 h-16 bg-${card.color}-100 dark:bg-${card.color}-900 rounded-full flex items-center justify-center mb-4`}>
+                  <card.icon className={`w-8 h-8 text-${card.color}-600 dark:text-${card.color}-400`} />
+                </div>
+                <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+                  {card.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  {card.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 
