@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -165,7 +164,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
                     key={card.id}
                     className={`border transition-colors cursor-pointer ${
                       selectedAction === card.id
-                        ? `border-${card.color}-400 bg-${card.color}-50 dark:bg-${card.color}-900/20`
+                        ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
                         : `border-gray-200 dark:border-gray-600 hover:border-${card.color}-300 dark:hover:border-${card.color}-400`
                     }`}
                     onClick={() => handleActionSelect(card.id as ActionType)}
