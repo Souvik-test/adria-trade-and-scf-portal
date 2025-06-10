@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Shield, Banknote, Ship, DollarSign, ArrowLeft, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
+import POPIModal from './POPIModal';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -12,6 +12,7 @@ interface ProductSuiteProps {
 const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showLcModal, setShowLcModal] = useState(false);
+  const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
@@ -96,7 +97,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
 
   const handleUnderlyingDocsClick = (option: string) => {
     console.log('Underlying Documents option clicked:', option);
-    // Handle underlying documents options here
+    if (option === 'PO-PI') {
+      setShowPOPIModal(true);
+    }
+    // Handle other underlying documents options here
   };
 
   const handleCardHover = (productId: string) => {
@@ -164,7 +168,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
                       {product.id === 'lc' ? 'LC Options' : 
                        product.id === 'bills' ? 'Bills Options' : 
-                       product.id === 'underlying-docs' ? 'Document Options' : 'e-Enabler Options'}
+                       product.id === 'underlying-docs' ? 'Instrument Options' : 'e-Enabler Options'}
                     </h3>
                     <div className="space-y-3">
                       {product.flipOptions?.map((option) => (
@@ -198,6 +202,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           isOpen={showLcModal}
           onClose={() => setShowLcModal(false)}
           type={lcModalType}
+        />
+      )}
+
+      {showPOPIModal && (
+        <POPIModal 
+          onClose={() => setShowPOPIModal(false)} 
+          onBack={() => setShowPOPIModal(false)}
         />
       )}
     </div>
