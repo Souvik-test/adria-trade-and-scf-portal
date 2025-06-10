@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,34 +9,16 @@ import { POPIFormData } from '@/hooks/usePOPIForm';
 interface GeneralDetailsPaneProps {
   formData: POPIFormData;
   updateField: (field: keyof POPIFormData, value: any) => void;
-  readOnly?: boolean;
 }
 
 const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
   formData,
-  updateField,
-  readOnly = false
+  updateField
 }) => {
   const isPO = formData.instrumentType === 'purchase-order';
 
   return (
     <div className="space-y-6">
-      {/* Instrument Type Display - Read-only when specified */}
-      {readOnly && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-              Instrument Type
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 border rounded-md text-sm">
-              {isPO ? 'Purchase Order' : 'Pro-forma Invoice'}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">

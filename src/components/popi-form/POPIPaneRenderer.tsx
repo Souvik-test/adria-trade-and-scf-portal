@@ -28,7 +28,6 @@ const POPIPaneRenderer: React.FC<POPIPaneRendererProps> = ({
         <GeneralDetailsPane
           formData={formData}
           updateField={updateField}
-          readOnly={false}
         />
       );
     
@@ -38,7 +37,6 @@ const POPIPaneRenderer: React.FC<POPIPaneRendererProps> = ({
           <GeneralDetailsPane
             formData={formData}
             updateField={updateField}
-            readOnly={true}
           />
           <ItemDetailsPane
             formData={formData}
@@ -55,7 +53,6 @@ const POPIPaneRenderer: React.FC<POPIPaneRendererProps> = ({
           <GeneralDetailsPane
             formData={formData}
             updateField={updateField}
-            readOnly={true}
           />
           <SummaryPane
             formData={formData}

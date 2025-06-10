@@ -107,6 +107,7 @@ const POPIForm: React.FC<POPIFormProps> = ({ onClose, onBack }) => {
               <Select
                 value={formData.instrumentType}
                 onValueChange={handleInstrumentTypeChange}
+                disabled={currentStep !== 'general'}
               >
                 <SelectTrigger className="mt-2 max-w-xs">
                   <SelectValue placeholder="Select instrument type" />
