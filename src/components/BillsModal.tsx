@@ -18,18 +18,16 @@ type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' 
 
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
-  const [showMethodSelection, setShowMethodSelection] = useState(false);
   const [showManualBillsForm, setShowManualBillsForm] = useState(false);
   const [showResolveDiscrepanciesForm, setShowResolveDiscrepanciesForm] = useState(false);
   const [showRequestFinanceForm, setShowRequestFinanceForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
-    setShowMethodSelection(true);
   };
 
   const handleMethodSelect = (method: string) => {
-    if (method === 'manual') {
+    if (method === 'manual' && selectedAction) {
       switch (selectedAction) {
         case 'present-bills':
           setShowManualBillsForm(true);
@@ -45,14 +43,8 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     // Upload and Contextual Assistance methods remain disabled for now
   };
 
-  const handleBackToActions = () => {
-    setSelectedAction(null);
-    setShowMethodSelection(false);
-  };
-
   const handleBackToBills = () => {
     setShowRequestFinanceForm(false);
-    setShowMethodSelection(false);
     setSelectedAction(null);
   };
 
@@ -83,78 +75,6 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     );
   }
 
-  const renderMethodSelection = () => (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <button 
-          onClick={handleBackToActions}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-        </button>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          {selectedAction === 'present-bills' && 'Present Bills'}
-          {selectedAction === 'resolve-discrepancies' && 'Resolve Discrepancies'}
-          {selectedAction === 'request-finance' && 'Request Finance'}
-          {' - Select Processing Method'}
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card 
-          className="border border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 transition-colors cursor-pointer" 
-          onClick={() => handleMethodSelect('manual')}
-        >
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-corporate-teal-100 dark:bg-corporate-teal-900 rounded-full flex items-center justify-center mb-4">
-              <FileText className="w-8 h-8 text-corporate-teal-600 dark:text-corporate-teal-400" />
-            </div>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-              Manual
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Enter details manually through forms
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors cursor-pointer opacity-50">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Upload className="w-8 h-8 text-gray-400" />
-            </div>
-            <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-              Upload
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-500 dark:text-gray-500 text-sm">
-              Upload documents and auto-extract data
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors cursor-pointer opacity-50">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <MessageSquare className="w-8 h-8 text-gray-400" />
-            </div>
-            <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-              Contextual Assistance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-500 dark:text-gray-500 text-sm">
-              Use AI-powered interactive assistant
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
   const renderMainView = () => (
     <div className="space-y-8">
       <div>
@@ -164,7 +84,11 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card 
-            className="border border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 transition-colors cursor-pointer" 
+            className={`border transition-colors cursor-pointer ${
+              selectedAction === 'present-bills'
+                ? 'border-corporate-teal-400 bg-corporate-teal-50 dark:bg-corporate-teal-900/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400'
+            }`}
             onClick={() => handleActionSelect('present-bills')}
           >
             <CardHeader className="text-center">
@@ -183,7 +107,11 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           </Card>
 
           <Card 
-            className="border border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-400 transition-colors cursor-pointer" 
+            className={`border transition-colors cursor-pointer ${
+              selectedAction === 'resolve-discrepancies'
+                ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-400'
+            }`}
             onClick={() => handleActionSelect('resolve-discrepancies')}
           >
             <CardHeader className="text-center">
@@ -202,7 +130,11 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           </Card>
 
           <Card 
-            className="border border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-400 transition-colors cursor-pointer" 
+            className={`border transition-colors cursor-pointer ${
+              selectedAction === 'request-finance'
+                ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-400'
+            }`}
             onClick={() => handleActionSelect('request-finance')}
           >
             <CardHeader className="text-center">
@@ -228,23 +160,53 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed">
+          <Card 
+            className={`border transition-colors ${
+              selectedAction 
+                ? 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 cursor-pointer'
+                : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+            }`}
+            onClick={() => selectedAction && handleMethodSelect('manual')}
+          >
             <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-gray-400" />
+              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                selectedAction 
+                  ? 'bg-corporate-teal-100 dark:bg-corporate-teal-900'
+                  : 'bg-gray-100 dark:bg-gray-800'
+              }`}>
+                <FileText className={`w-8 h-8 ${
+                  selectedAction 
+                    ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
+                    : 'text-gray-400'
+                }`} />
               </div>
-              <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
+              <CardTitle className={`text-lg font-semibold ${
+                selectedAction 
+                  ? 'text-gray-800 dark:text-white'
+                  : 'text-gray-500 dark:text-gray-500'
+              }`}>
                 Manual
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <p className="text-gray-500 dark:text-gray-500 text-sm">
-                Select an action above to enable methods
+              <p className={`text-sm ${
+                selectedAction 
+                  ? 'text-gray-600 dark:text-gray-400'
+                  : 'text-gray-500 dark:text-gray-500'
+              }`}>
+                {selectedAction 
+                  ? 'Enter details manually through forms'
+                  : 'Select an action above to enable methods'
+                }
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed">
+          <Card className={`border transition-colors ${
+            selectedAction 
+              ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+              : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+          }`}>
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                 <Upload className="w-8 h-8 text-gray-400" />
@@ -255,12 +217,19 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-500 dark:text-gray-500 text-sm">
-                Select an action above to enable methods
+                {selectedAction 
+                  ? 'Upload documents and auto-extract data'
+                  : 'Select an action above to enable methods'
+                }
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed">
+          <Card className={`border transition-colors ${
+            selectedAction 
+              ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+              : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+          }`}>
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                 <MessageSquare className="w-8 h-8 text-gray-400" />
@@ -271,7 +240,10 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-500 dark:text-gray-500 text-sm">
-                Select an action above to enable methods
+                {selectedAction 
+                  ? 'Use AI-powered interactive assistant'
+                  : 'Select an action above to enable methods'
+                }
               </p>
             </CardContent>
           </Card>
@@ -300,7 +272,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
         </DialogHeader>
         
         <div className="flex-1 overflow-auto p-6">
-          {showMethodSelection ? renderMethodSelection() : renderMainView()}
+          {renderMainView()}
         </div>
       </DialogContent>
     </Dialog>
