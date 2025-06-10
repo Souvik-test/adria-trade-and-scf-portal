@@ -62,6 +62,38 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
     }
   }, [financeRequestDate, financeTenureDays, setFinanceDueDate]);
 
+  // Set interest currency to match finance currency
+  useEffect(() => {
+    if (financeCurrency && interestCurrency !== financeCurrency) {
+      // Update interest currency to match finance currency
+      const event = new Event('change', { bubbles: true });
+      const input = document.querySelector('[data-testid="interest-currency"]') as HTMLInputElement;
+      if (input) {
+        input.value = financeCurrency;
+        input.dispatchEvent(event);
+      }
+    }
+  }, [financeCurrency, interestCurrency]);
+
+  // Calculate interest amount based on formula: [(Finance Amount Requested * Interest Rate * Finance Tenure)/100]
+  useEffect(() => {
+    if (financeAmountRequested && interestRate && financeTenureDays) {
+      const amount = parseFloat(financeAmountRequested) || 0;
+      const rate = parseFloat(interestRate) || 0;
+      const tenure = parseInt(financeTenureDays) || 0;
+      
+      const calculatedInterest = (amount * rate * tenure) / 100;
+      
+      // Update interest amount
+      const event = new Event('change', { bubbles: true });
+      const input = document.querySelector('[data-testid="interest-amount"]') as HTMLInputElement;
+      if (input) {
+        input.value = calculatedInterest.toFixed(2);
+        input.dispatchEvent(event);
+      }
+    }
+  }, [financeAmountRequested, interestRate, financeTenureDays]);
+
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
@@ -225,7 +257,8 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
                 Interest Currency
               </Label>
               <Input
-                value={interestCurrency}
+                data-testid="interest-currency"
+                value={financeCurrency}
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={3}
@@ -238,7 +271,12 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
                 Interest Amount
               </Label>
               <Input
-                value={interestAmount}
+                data-testid="interest-amount"
+                value={
+                  financeAmountRequested && interestRate && financeTenureDays
+                    ? ((parseFloat(financeAmountRequested) * parseFloat(interestRate) * parseInt(financeTenureDays)) / 100).toFixed(2)
+                    : ''
+                }
                 readOnly
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={15}
