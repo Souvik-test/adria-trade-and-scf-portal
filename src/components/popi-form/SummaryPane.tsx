@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText } from 'lucide-react';
 import { POPIFormData } from '@/hooks/usePOPIForm';
+import DocumentUploadDetails from '../DocumentUploadDetails';
 
 interface SummaryPaneProps {
   formData: POPIFormData;
@@ -17,6 +18,8 @@ const SummaryPane: React.FC<SummaryPaneProps> = ({
   updateField
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [showUploadDetails, setShowUploadDetails] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const isPO = formData.instrumentType === 'purchase-order';
 
   const formatCurrency = (amount: number) => {
@@ -42,16 +45,38 @@ const SummaryPane: React.FC<SummaryPaneProps> = ({
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const files = Array.from(e.dataTransfer.files);
-      updateField('attachments', [...(formData.attachments || []), ...files]);
+      const file = e.dataTransfer.files[0];
+      setPendingFile(file);
+      setShowUploadDetails(true);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      updateField('attachments', [...(formData.attachments || []), ...files]);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPendingFile(file);
+      setShowUploadDetails(true);
     }
+  };
+
+  const handleUploadDetails = (details: { type: string; id: string; date: string }) => {
+    if (pendingFile) {
+      // Create a file with metadata
+      const fileWithMetadata = Object.assign(pendingFile, {
+        documentType: details.type,
+        documentId: details.id,
+        documentDate: details.date
+      });
+      
+      updateField('attachments', [...(formData.attachments || []), fileWithMetadata]);
+    }
+    setShowUploadDetails(false);
+    setPendingFile(null);
+  };
+
+  const handleUploadDetailsClose = () => {
+    setShowUploadDetails(false);
+    setPendingFile(null);
   };
 
   return (
@@ -206,6 +231,22 @@ const SummaryPane: React.FC<SummaryPaneProps> = ({
           )}
         </CardContent>
       </Card>
+
+      <DocumentUploadDetails
+        isOpen={showUploadDetails}
+        onClose={handleUploadDetailsClose}
+        onUpload={handleUploadDetails}
+        fileName={pendingFile?.name || ''}
+        selectedDocuments={[
+          'Purchase Order',
+          'Pro-forma Invoice',
+          'Quotation',
+          'Contract',
+          'Specification Document',
+          'Delivery Note',
+          'Other'
+        ]}
+      />
     </div>
   );
 };

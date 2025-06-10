@@ -28,33 +28,33 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
 }) => {
   return (
     <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
+      {/* Left aligned buttons */}
+      <div className="flex gap-3">
+        {!isFirstStep && (
+          <Button
+            onClick={onGoBack}
+            className="bg-gray-500 hover:bg-gray-600 text-white"
+          >
+            Go Back
+          </Button>
+        )}
+      </div>
+
+      {/* Right aligned buttons */}
       <div className="flex gap-3">
         <Button
-          variant="destructive"
           onClick={onDiscard}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           Discard
         </Button>
+        
         <Button
-          variant="outline"
           onClick={onSaveAsDraft}
-          className="border-amber-400 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+          className="bg-amber-500 hover:bg-amber-600 text-white"
         >
           Save as Draft
         </Button>
-      </div>
-
-      <div className="flex gap-3">
-        {!isFirstStep && (
-          <Button
-            variant="outline"
-            onClick={onGoBack}
-            className="border-gray-400 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            Go Back
-          </Button>
-        )}
         
         {!isLastStep ? (
           <Button
