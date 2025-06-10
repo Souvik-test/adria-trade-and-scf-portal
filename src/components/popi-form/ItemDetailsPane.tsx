@@ -38,7 +38,7 @@ const ItemDetailsPane: React.FC<ItemDetailsPaneProps> = ({
           </CardTitle>
           <Button
             onClick={addItem}
-            className="bg-corporate-teal hover:bg-corporate-teal/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Item
@@ -61,7 +61,7 @@ const ItemDetailsPane: React.FC<ItemDetailsPaneProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => removeItem(item.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-300 dark:border-red-600"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

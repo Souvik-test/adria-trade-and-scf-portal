@@ -33,7 +33,8 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
         {!isFirstStep && (
           <Button
             onClick={onGoBack}
-            className="bg-gray-500 hover:bg-gray-600 text-white"
+            variant="outline"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             Go Back
           </Button>
@@ -44,14 +45,16 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
       <div className="flex gap-3">
         <Button
           onClick={onDiscard}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          variant="destructive"
+          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
         >
           Discard
         </Button>
         
         <Button
           onClick={onSaveAsDraft}
-          className="bg-amber-500 hover:bg-amber-600 text-white"
+          variant="outline"
+          className="border-amber-400 dark:border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
         >
           Save as Draft
         </Button>
@@ -60,7 +63,7 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
           <Button
             onClick={onNext}
             disabled={!canProceed}
-            className="bg-corporate-teal hover:bg-corporate-teal/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Next
           </Button>
@@ -68,7 +71,7 @@ const POPIFormActions: React.FC<POPIFormActionsProps> = ({
           <Button
             onClick={onSubmit}
             disabled={!canProceed}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white"
           >
             Submit
           </Button>
