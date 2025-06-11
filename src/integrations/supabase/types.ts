@@ -508,10 +508,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_transaction_ref: {
-        Args: { product_type: string }
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
       product_type:
