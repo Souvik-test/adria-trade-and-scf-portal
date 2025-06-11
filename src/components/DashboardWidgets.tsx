@@ -1,13 +1,78 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { fetchTransactions } from '@/services/database';
+import { useToast } from '@/hooks/use-toast';
+
+interface Transaction {
+  id: string;
+  transaction_ref: string;
+  product_type: string;
+  status: string;
+  customer_name: string | null;
+  amount: number | null;
+  currency: string;
+  created_date: string;
+  created_by: string;
+  initiating_channel: string;
+  bank_ref: string | null;
+  customer_ref: string | null;
+  operations: string | null;
+}
 
 const DashboardWidgets: React.FC = () => {
   const [transactionFilter, setTransactionFilter] = useState('all');
   const [productFilter, setProductFilter] = useState('all');
   const [limitFilter, setLimitFilter] = useState('all');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchTransactions();
+      setTransactions(data);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load transactions",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatAmount = (amount: number | null, currency: string) => {
+    if (!amount) return '-';
+    return `${currency} ${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'submitted':
+        return 'text-blue-600';
+      case 'pending':
+        return 'text-orange-600';
+      case 'approved':
+        return 'text-green-600';
+      case 'rejected':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
 
   const widgets = [
     {
@@ -234,78 +299,60 @@ const DashboardWidgets: React.FC = () => {
         ))}
       </div>
 
-      {/* My Tasks Table */}
+      {/* My Transactions Table */}
       <Card className="cursor-move" draggable>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-            My Tasks
+            My Transactions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="pb-2">Reference Task Control Ref Operations</th>
-                  <th className="pb-2">Product</th>
-                  <th className="pb-2">Status</th>
-                  <th className="pb-2">Bank Ref</th>
-                  <th className="pb-2">Customer Ref</th>
-                  <th className="pb-2">Product</th>
-                  <th className="pb-2">Operations</th>
-                  <th className="pb-2">Initiating Channel</th>
-                  <th className="pb-2">Party Form</th>
-                  <th className="pb-2">Amount</th>
-                  <th className="pb-2">Created by</th>
-                  <th className="pb-2">Status</th>
-                </tr>
-              </thead>
-              <tbody className="text-xs">
-                <tr className="border-b">
-                  <td className="py-2">DFGJ004123</td>
-                  <td>PE3990238</td>
-                  <td>Guarantee</td>
-                  <td>Insurance</td>
-                  <td>Bank</td>
-                  <td>Korea Mongkwak</td>
-                  <td>HIS 1,000,000</td>
-                  <td>Sony</td>
-                  <td className="text-blue-600">In Progress</td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2">SCAM/HSH1</td>
-                  <td>SCAM/HSH1</td>
-                  <td>Import LC</td>
-                  <td>Amendment</td>
-                  <td>Portal</td>
-                  <td>Saudi Aramco</td>
-                  <td>USD 2,880,000</td>
-                  <td>Ahmad K.</td>
-                  <td className="text-blue-600">In Progress</td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td className="py-2">ARXMETRIC625</td>
-                  <td>Import LC</td>
-                  <td>Insurance</td>
-                  <td>Portal</td>
-                  <td>OFMR</td>
-                  <td>Personal Chem.</td>
-                  <td>USD 3,080,000</td>
-                  <td>Monsad K.</td>
-                  <td className="text-orange-600">Pending</td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              Loading transactions...
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="pb-2">Transaction Ref</th>
+                    <th className="pb-2">Product Type</th>
+                    <th className="pb-2">Customer</th>
+                    <th className="pb-2">Amount</th>
+                    <th className="pb-2">Status</th>
+                    <th className="pb-2">Created Date</th>
+                    <th className="pb-2">Created By</th>
+                    <th className="pb-2">Channel</th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs">
+                  {transactions.length > 0 ? (
+                    transactions.map((transaction) => (
+                      <tr key={transaction.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="py-2 font-medium text-blue-600">{transaction.transaction_ref}</td>
+                        <td className="py-2">{transaction.product_type}</td>
+                        <td className="py-2">{transaction.customer_name || '-'}</td>
+                        <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
+                        <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>
+                          {transaction.status}
+                        </td>
+                        <td className="py-2">{formatDate(transaction.created_date)}</td>
+                        <td className="py-2">{transaction.created_by}</td>
+                        <td className="py-2">{transaction.initiating_channel}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                        No transactions found. Create your first PO, PI, or Invoice to see them here.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

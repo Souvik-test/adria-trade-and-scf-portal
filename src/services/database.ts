@@ -8,6 +8,82 @@ const getCurrentUser = () => {
   return session?.user || null;
 };
 
+// Function to create transaction record
+const createTransactionRecord = async (productType: string, formData: any) => {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  try {
+    // Generate transaction reference
+    const { data: refData, error: refError } = await supabase
+      .rpc('generate_transaction_ref', { product_type: productType });
+
+    if (refError) {
+      console.error('Error generating transaction ref:', refError);
+      throw refError;
+    }
+
+    const transactionRef = refData;
+
+    // Create transaction record
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: user.id,
+        transaction_ref: transactionRef,
+        product_type: productType,
+        status: 'Submitted',
+        customer_name: getCustomerName(productType, formData),
+        amount: getAmount(productType, formData),
+        currency: formData.currency || 'USD',
+        created_by: user.user_id,
+        initiating_channel: 'Portal'
+      })
+      .select()
+      .single();
+
+    if (transactionError) {
+      console.error('Error creating transaction:', transactionError);
+      throw transactionError;
+    }
+
+    console.log('Transaction record created:', transaction);
+    return transaction;
+  } catch (error) {
+    console.error('Error in createTransactionRecord:', error);
+    throw error;
+  }
+};
+
+// Helper function to get customer name based on product type
+const getCustomerName = (productType: string, formData: any) => {
+  switch (productType) {
+    case 'PO':
+      return formData.vendorSupplier;
+    case 'PI':
+      return formData.buyerName;
+    case 'Invoice':
+      return formData.customerName;
+    default:
+      return null;
+  }
+};
+
+// Helper function to get amount based on product type
+const getAmount = (productType: string, formData: any) => {
+  switch (productType) {
+    case 'PO':
+    case 'PI':
+      return formData.grandTotal;
+    case 'Invoice':
+      return formData.totalAmount;
+    default:
+      return null;
+  }
+};
+
 // Purchase Order functions
 export const savePurchaseOrder = async (formData: any) => {
   const user = getCurrentUser();
@@ -24,7 +100,7 @@ export const savePurchaseOrder = async (formData: any) => {
     const { data: po, error: poError } = await supabase
       .from('purchase_orders')
       .insert({
-        user_id: user.id, // Use the UUID id from custom_users table
+        user_id: user.id,
         po_number: formData.poNumber,
         po_date: formData.poDate,
         vendor_supplier: formData.vendorSupplier,
@@ -79,6 +155,9 @@ export const savePurchaseOrder = async (formData: any) => {
       console.log('Line items inserted successfully');
     }
 
+    // Create transaction record
+    await createTransactionRecord('PO', formData);
+
     return po;
   } catch (error) {
     console.error('Error saving purchase order:', error);
@@ -102,7 +181,7 @@ export const saveProformaInvoice = async (formData: any) => {
     const { data: pi, error: piError } = await supabase
       .from('proforma_invoices')
       .insert({
-        user_id: user.id, // Use the UUID id from custom_users table
+        user_id: user.id,
         pi_number: formData.piNumber,
         pi_date: formData.piDate,
         valid_until_date: formData.validUntilDate,
@@ -158,6 +237,9 @@ export const saveProformaInvoice = async (formData: any) => {
       console.log('PI line items inserted successfully');
     }
 
+    // Create transaction record
+    await createTransactionRecord('PI', formData);
+
     return pi;
   } catch (error) {
     console.error('Error saving proforma invoice:', error);
@@ -181,7 +263,7 @@ export const saveInvoice = async (formData: any) => {
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
       .insert({
-        user_id: user.id, // Use the UUID id from custom_users table
+        user_id: user.id,
         invoice_type: formData.invoiceType,
         invoice_number: formData.invoiceNumber,
         invoice_date: formData.invoiceDate,
@@ -237,6 +319,9 @@ export const saveInvoice = async (formData: any) => {
       console.log('Invoice line items inserted successfully');
     }
 
+    // Create transaction record
+    await createTransactionRecord('Invoice', formData);
+
     return invoice;
   } catch (error) {
     console.error('Error saving invoice:', error);
@@ -258,7 +343,7 @@ export const searchPurchaseOrder = async (poNumber: string) => {
     const { data, error } = await supabase
       .from('purchase_orders')
       .select('*')
-      .eq('user_id', user.id) // Use the UUID id from custom_users table
+      .eq('user_id', user.id)
       .eq('po_number', poNumber)
       .single();
 
@@ -271,6 +356,82 @@ export const searchPurchaseOrder = async (poNumber: string) => {
     return data;
   } catch (error) {
     console.error('Error searching purchase order:', error);
+    throw error;
+  }
+};
+
+// Fetch user notifications
+export const fetchNotifications = async () => {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+};
+
+// Fetch user transactions
+export const fetchTransactions = async () => {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    throw error;
+  }
+};
+
+// Mark notification as read
+export const markNotificationAsRead = async (notificationId: string) => {
+  const user = getCurrentUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
     throw error;
   }
 };

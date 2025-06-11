@@ -167,6 +167,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          timestamp: string
+          transaction_ref: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          timestamp?: string
+          transaction_ref: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          timestamp?: string
+          transaction_ref?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       popi_line_items: {
         Row: {
           created_at: string | null
@@ -368,6 +401,66 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number | null
+          bank_ref: string | null
+          created_at: string
+          created_by: string
+          created_date: string
+          currency: string | null
+          customer_name: string | null
+          customer_ref: string | null
+          id: string
+          initiating_channel: string | null
+          operations: string | null
+          party_form: string | null
+          product_type: string
+          status: string
+          transaction_ref: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          bank_ref?: string | null
+          created_at?: string
+          created_by: string
+          created_date?: string
+          currency?: string | null
+          customer_name?: string | null
+          customer_ref?: string | null
+          id?: string
+          initiating_channel?: string | null
+          operations?: string | null
+          party_form?: string | null
+          product_type: string
+          status?: string
+          transaction_ref: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          bank_ref?: string | null
+          created_at?: string
+          created_by?: string
+          created_date?: string
+          currency?: string | null
+          customer_name?: string | null
+          customer_ref?: string | null
+          id?: string
+          initiating_channel?: string | null
+          operations?: string | null
+          party_form?: string | null
+          product_type?: string
+          status?: string
+          transaction_ref?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           corporate_id: string | null
@@ -415,7 +508,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_transaction_ref: {
+        Args: { product_type: string }
+        Returns: string
+      }
     }
     Enums: {
       product_type:
