@@ -52,10 +52,31 @@ const Auth: React.FC = () => {
   const handleSignUp = async () => {
     setLoading(true);
     try {
+      // Validate required fields
+      if (!userId || !password || !fullName || !userLoginId) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please fill in all required fields.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       // For signup, we'll use User ID as email (add @textcorp.com domain)
-      const email = `${userId}@textcorp.com`;
+      const email = `${userId.toLowerCase()}@textcorp.com`;
       
-      const { error } = await supabase.auth.signUp({
+      console.log('Attempting signup with:', {
+        email,
+        metadata: {
+          full_name: fullName,
+          corporate_id: 'TC001',
+          user_login_id: userLoginId,
+          role_type: roleType,
+          product_linkage: selectedProducts
+        }
+      });
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -70,20 +91,36 @@ const Auth: React.FC = () => {
         }
       });
 
+      console.log('Signup response:', { data, error });
+
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: 'Sign up failed',
           description: error.message,
           variant: 'destructive'
         });
-      } else {
+      } else if (data.user) {
         toast({
           title: 'Sign up successful!',
-          description: 'Please check your email to confirm your account.',
+          description: 'Account created successfully. You can now sign in.',
         });
+        // Switch to login mode after successful signup
+        setIsLogin(true);
+        // Clear form
+        setUserId('');
+        setPassword('');
+        setFullName('');
+        setUserLoginId('');
+        setSelectedProducts([]);
       }
     } catch (error) {
       console.error('Sign up error:', error);
+      toast({
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -92,25 +129,49 @@ const Auth: React.FC = () => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
+      // Validate required fields
+      if (!userId || !password) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please enter both User ID and password.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       // For login, we'll use User ID as email (add @textcorp.com domain)
-      const email = `${userId}@textcorp.com`;
+      const email = `${userId.toLowerCase()}@textcorp.com`;
       
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting signin with email:', email);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
+      console.log('Signin response:', { data, error });
+
       if (error) {
+        console.error('Signin error:', error);
         toast({
           title: 'Sign in failed',
           description: error.message,
           variant: 'destructive'
         });
-      } else {
+      } else if (data.user) {
+        toast({
+          title: 'Sign in successful!',
+          description: 'Welcome back!',
+        });
         navigate('/');
       }
     } catch (error) {
       console.error('Sign in error:', error);
+      toast({
+        title: 'Sign in failed',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -139,6 +200,7 @@ const Auth: React.FC = () => {
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="Enter your User ID"
+              required
             />
           </div>
 
@@ -150,28 +212,31 @@ const Auth: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
+              required
             />
           </div>
 
           {!isLogin && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">Full Name *</Label>
                 <Input
                   id="fullName"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Enter your full name"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="userLoginId">User Login ID</Label>
+                <Label htmlFor="userLoginId">User Login ID *</Label>
                 <Input
                   id="userLoginId"
                   value={userLoginId}
                   onChange={(e) => setUserLoginId(e.target.value)}
                   placeholder="e.g., TCU001"
+                  required
                 />
               </div>
 
