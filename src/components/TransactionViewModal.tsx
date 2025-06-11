@@ -20,6 +20,7 @@ interface Transaction {
   initiating_channel: string;
   bank_ref: string | null;
   customer_ref: string | null;
+  party_form: string | null;
   operations: string | null;
 }
 
