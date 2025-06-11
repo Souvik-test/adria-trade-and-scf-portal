@@ -13,11 +13,11 @@ export const savePurchaseOrder = async (formData: any) => {
   const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
-  // Insert purchase order
+  // Insert purchase order using custom user's UUID id
   const { data: po, error: poError } = await supabase
     .from('purchase_orders')
     .insert({
-      user_id: user.id,
+      user_id: user.id, // Use the UUID id from custom_users table
       po_number: formData.poNumber,
       po_date: formData.poDate,
       vendor_supplier: formData.vendorSupplier,
@@ -68,11 +68,11 @@ export const saveProformaInvoice = async (formData: any) => {
   const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
-  // Insert proforma invoice
+  // Insert proforma invoice using custom user's UUID id
   const { data: pi, error: piError } = await supabase
     .from('proforma_invoices')
     .insert({
-      user_id: user.id,
+      user_id: user.id, // Use the UUID id from custom_users table
       pi_number: formData.piNumber,
       pi_date: formData.piDate,
       valid_until_date: formData.validUntilDate,
@@ -124,11 +124,11 @@ export const saveInvoice = async (formData: any) => {
   const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
-  // Insert invoice
+  // Insert invoice using custom user's UUID id
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
     .insert({
-      user_id: user.id,
+      user_id: user.id, // Use the UUID id from custom_users table
       invoice_type: formData.invoiceType,
       invoice_number: formData.invoiceNumber,
       invoice_date: formData.invoiceDate,
@@ -183,7 +183,7 @@ export const searchPurchaseOrder = async (poNumber: string) => {
   const { data, error } = await supabase
     .from('purchase_orders')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', user.id) // Use the UUID id from custom_users table
     .eq('po_number', poNumber)
     .single();
 
