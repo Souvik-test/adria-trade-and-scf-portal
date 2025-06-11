@@ -25,8 +25,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Immediately check for existing session
+    const existingSession = customAuth.getSession();
+    console.log('Checking existing session:', existingSession);
+    
+    if (existingSession) {
+      setSession(existingSession);
+      setUser(existingSession.user);
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+
+    // Set up auth state listener for future changes
     const { unsubscribe } = customAuth.onAuthStateChange((newSession) => {
+      console.log('Auth state changed:', newSession);
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
@@ -36,9 +49,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    await customAuth.signOut();
-    setSession(null);
-    setUser(null);
+    console.log('Signing out user...');
+    try {
+      await customAuth.signOut();
+      setSession(null);
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
