@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { customAuth } from '@/services/customAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,8 +32,8 @@ const Auth: React.FC = () => {
   ];
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const checkUser = () => {
+      const session = customAuth.getSession();
       if (session) {
         navigate('/');
       }
@@ -62,45 +62,33 @@ const Auth: React.FC = () => {
         return;
       }
 
-      // For signup, we'll use User ID as email (add @textcorp.com domain)
-      const email = `${userId.toLowerCase()}@textcorp.com`;
-      
       console.log('Attempting signup with:', {
-        email,
-        metadata: {
-          full_name: fullName,
-          corporate_id: 'TC001',
-          user_login_id: userLoginId,
-          role_type: roleType,
-          product_linkage: selectedProducts
-        }
+        userId,
+        fullName,
+        userLoginId,
+        roleType,
+        selectedProducts
       });
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
+      const { user, error } = await customAuth.signUp({
+        userId,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName,
-            corporate_id: 'TC001',
-            user_login_id: userLoginId,
-            role_type: roleType,
-            product_linkage: selectedProducts
-          }
-        }
+        fullName,
+        userLoginId,
+        roleType,
+        productLinkage: selectedProducts
       });
 
-      console.log('Signup response:', { data, error });
+      console.log('Signup response:', { user, error });
 
       if (error) {
         console.error('Signup error:', error);
         toast({
           title: 'Sign up failed',
-          description: error.message,
+          description: error,
           variant: 'destructive'
         });
-      } else if (data.user) {
+      } else if (user) {
         toast({
           title: 'Sign up successful!',
           description: 'Account created successfully. You can now sign in.',
@@ -139,26 +127,20 @@ const Auth: React.FC = () => {
         return;
       }
 
-      // For login, we'll use User ID as email (add @textcorp.com domain)
-      const email = `${userId.toLowerCase()}@textcorp.com`;
-      
-      console.log('Attempting signin with email:', email);
+      console.log('Attempting signin with User ID:', userId);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { session, error } = await customAuth.signIn(userId, password);
 
-      console.log('Signin response:', { data, error });
+      console.log('Signin response:', { session, error });
 
       if (error) {
         console.error('Signin error:', error);
         toast({
           title: 'Sign in failed',
-          description: error.message,
+          description: error,
           variant: 'destructive'
         });
-      } else if (data.user) {
+      } else if (session) {
         toast({
           title: 'Sign in successful!',
           description: 'Welcome back!',

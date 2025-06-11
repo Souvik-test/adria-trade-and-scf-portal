@@ -1,9 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { customAuth } from '@/services/customAuth';
+
+// Get current user from custom auth
+const getCurrentUser = () => {
+  const session = customAuth.getSession();
+  return session?.user || null;
+};
 
 // Purchase Order functions
 export const savePurchaseOrder = async (formData: any) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
   // Insert purchase order
@@ -58,7 +65,7 @@ export const savePurchaseOrder = async (formData: any) => {
 
 // Proforma Invoice functions
 export const saveProformaInvoice = async (formData: any) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
   // Insert proforma invoice
@@ -114,7 +121,7 @@ export const saveProformaInvoice = async (formData: any) => {
 
 // Invoice functions
 export const saveInvoice = async (formData: any) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
   // Insert invoice
@@ -170,7 +177,7 @@ export const saveInvoice = async (formData: any) => {
 
 // Search purchase order
 export const searchPurchaseOrder = async (poNumber: string) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = getCurrentUser();
   if (!user) throw new Error('User not authenticated');
 
   const { data, error } = await supabase

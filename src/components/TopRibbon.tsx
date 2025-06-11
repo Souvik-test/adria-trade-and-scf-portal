@@ -54,7 +54,7 @@ const TopRibbon = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuItem className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                {user?.email}
+                {user?.user_id || 'User'}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="flex items-center gap-2 text-red-600"

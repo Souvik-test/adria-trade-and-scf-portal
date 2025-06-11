@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      custom_users: {
+        Row: {
+          corporate_id: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          password_hash: string
+          product_linkage: Database["public"]["Enums"]["product_type"][] | null
+          role_type: Database["public"]["Enums"]["user_role_type"] | null
+          updated_at: string | null
+          user_id: string
+          user_login_id: string
+        }
+        Insert: {
+          corporate_id?: string | null
+          created_at?: string | null
+          full_name: string
+          id?: string
+          password_hash: string
+          product_linkage?: Database["public"]["Enums"]["product_type"][] | null
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          updated_at?: string | null
+          user_id: string
+          user_login_id: string
+        }
+        Update: {
+          corporate_id?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          password_hash?: string
+          product_linkage?: Database["public"]["Enums"]["product_type"][] | null
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          updated_at?: string | null
+          user_id?: string
+          user_login_id?: string
+        }
+        Relationships: []
+      }
       invoice_line_items: {
         Row: {
           created_at: string | null
