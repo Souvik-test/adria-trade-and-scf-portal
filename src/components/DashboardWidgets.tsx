@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3 } from 'lucide-react';
+import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3, ExternalLink } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { fetchTransactions } from '@/services/database';
 import { useToast } from '@/hooks/use-toast';
+import TransactionViewModal from '@/components/TransactionViewModal';
 
 interface Transaction {
   id: string;
@@ -27,6 +28,8 @@ const DashboardWidgets: React.FC = () => {
   const [limitFilter, setLimitFilter] = useState('all');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,6 +51,11 @@ const DashboardWidgets: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTransactionClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsViewModalOpen(true);
   };
 
   const formatAmount = (amount: number | null, currency: string) => {
@@ -267,39 +275,7 @@ const DashboardWidgets: React.FC = () => {
     <div className="p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Trade Finance Dashboard</h2>
       
-      {/* Top Grid - Small Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {widgets.map((widget, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {widget.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3">
-              {widget.component}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Middle Grid - Large Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {bigWidgets.map((widget, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {widget.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {widget.content}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* My Transactions Table */}
+      {/* My Transactions Table - Now at the top */}
       <Card className="cursor-move" draggable>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -330,7 +306,15 @@ const DashboardWidgets: React.FC = () => {
                   {transactions.length > 0 ? (
                     transactions.map((transaction) => (
                       <tr key={transaction.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="py-2 font-medium text-blue-600">{transaction.transaction_ref}</td>
+                        <td className="py-2">
+                          <button
+                            onClick={() => handleTransactionClick(transaction)}
+                            className="font-medium text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            {transaction.transaction_ref}
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        </td>
                         <td className="py-2">{transaction.product_type}</td>
                         <td className="py-2">{transaction.customer_name || '-'}</td>
                         <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
@@ -355,6 +339,47 @@ const DashboardWidgets: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Small Widgets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {widgets.map((widget, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {widget.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              {widget.component}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Large Widgets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {bigWidgets.map((widget, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow cursor-move" draggable>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {widget.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {widget.content}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Transaction View Modal */}
+      {selectedTransaction && (
+        <TransactionViewModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          transaction={selectedTransaction}
+        />
+      )}
     </div>
   );
 };

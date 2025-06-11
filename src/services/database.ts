@@ -9,30 +9,19 @@ const getCurrentUser = () => {
 };
 
 // Function to create transaction record
-const createTransactionRecord = async (productType: string, formData: any) => {
+const createTransactionRecord = async (productType: string, formData: any, actualTransactionNumber: string) => {
   const user = getCurrentUser();
   if (!user) {
     throw new Error('User not authenticated');
   }
 
   try {
-    // Generate transaction reference
-    const { data: refData, error: refError } = await supabase
-      .rpc('generate_transaction_ref', { product_type: productType });
-
-    if (refError) {
-      console.error('Error generating transaction ref:', refError);
-      throw refError;
-    }
-
-    const transactionRef = refData;
-
-    // Create transaction record
+    // Create transaction record with actual transaction number
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
         user_id: user.id,
-        transaction_ref: transactionRef,
+        transaction_ref: actualTransactionNumber, // Use actual number instead of generated one
         product_type: productType,
         status: 'Submitted',
         customer_name: getCustomerName(productType, formData),
@@ -155,8 +144,8 @@ export const savePurchaseOrder = async (formData: any) => {
       console.log('Line items inserted successfully');
     }
 
-    // Create transaction record
-    await createTransactionRecord('PO', formData);
+    // Create transaction record with actual PO number
+    await createTransactionRecord('PO', formData, formData.poNumber);
 
     return po;
   } catch (error) {
@@ -237,8 +226,8 @@ export const saveProformaInvoice = async (formData: any) => {
       console.log('PI line items inserted successfully');
     }
 
-    // Create transaction record
-    await createTransactionRecord('PI', formData);
+    // Create transaction record with actual PI number
+    await createTransactionRecord('PI', formData, formData.piNumber);
 
     return pi;
   } catch (error) {
@@ -319,8 +308,8 @@ export const saveInvoice = async (formData: any) => {
       console.log('Invoice line items inserted successfully');
     }
 
-    // Create transaction record
-    await createTransactionRecord('Invoice', formData);
+    // Create transaction record with actual invoice number
+    await createTransactionRecord('Invoice', formData, formData.invoiceNumber);
 
     return invoice;
   } catch (error) {
