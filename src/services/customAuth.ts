@@ -51,7 +51,7 @@ export const customAuth = {
           role_type: userData.roleType,
           product_linkage: userData.productLinkage,
           corporate_id: 'TC001'
-        })
+        } as any)
         .select()
         .single();
 
