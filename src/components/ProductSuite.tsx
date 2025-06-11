@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
 import POPIModal from './POPIModal';
+import InvoiceModal from './InvoiceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 
@@ -15,6 +15,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showLcModal, setShowLcModal] = useState(false);
   const [showPOPIModal, setShowPOPIModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
@@ -100,6 +101,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     console.log('Underlying Documents option clicked:', option);
     if (option === 'PO-PI') {
       setShowPOPIModal(true);
+    } else if (option === 'Invoice') {
+      setShowInvoiceModal(true);
     }
   };
 
@@ -165,6 +168,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <POPIModal 
           onClose={() => setShowPOPIModal(false)} 
           onBack={() => setShowPOPIModal(false)}
+        />
+      )}
+
+      {showInvoiceModal && (
+        <InvoiceModal 
+          onClose={() => setShowInvoiceModal(false)} 
+          onBack={() => setShowInvoiceModal(false)}
         />
       )}
     </div>
