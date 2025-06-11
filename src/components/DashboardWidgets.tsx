@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3, ExternalLink } from 'lucide-react';
@@ -19,6 +20,7 @@ interface Transaction {
   initiating_channel: string;
   bank_ref: string | null;
   customer_ref: string | null;
+  party_form: string | null;
   operations: string | null;
 }
 
