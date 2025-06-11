@@ -15,7 +15,7 @@ type ProductType = 'Import LC' | 'Export LC' | 'Import Bills' | 'Export Bills' |
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [userLoginId, setUserLoginId] = useState('');
@@ -52,6 +52,9 @@ const Auth: React.FC = () => {
   const handleSignUp = async () => {
     setLoading(true);
     try {
+      // For signup, we'll use User ID as email (add @textcorp.com domain)
+      const email = `${userId}@textcorp.com`;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -89,6 +92,9 @@ const Auth: React.FC = () => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
+      // For login, we'll use User ID as email (add @textcorp.com domain)
+      const email = `${userId}@textcorp.com`;
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -126,13 +132,13 @@ const Auth: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="userId">User ID</Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              id="userId"
+              type="text"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Enter your User ID"
             />
           </div>
 
