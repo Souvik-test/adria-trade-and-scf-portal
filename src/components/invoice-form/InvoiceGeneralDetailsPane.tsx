@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceFormData } from '@/hooks/useInvoiceForm';
 import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { supabase } from '@/integrations/supabase/client';
+import { customAuth } from '@/services/customAuth';
 
 interface InvoiceGeneralDetailsPaneProps {
   formData: InvoiceFormData;
@@ -14,14 +18,74 @@ interface InvoiceGeneralDetailsPaneProps {
   searchPurchaseOrder: (poNumber: string) => void;
 }
 
+interface PurchaseOrder {
+  id: string;
+  po_number: string;
+  vendor_supplier: string;
+  currency: string;
+  grand_total: number;
+  po_date: string;
+}
+
 const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   formData,
   updateField,
   searchPurchaseOrder
 }) => {
-  const handlePOSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [poSearchOpen, setPoSearchOpen] = useState(false);
+  const [isLoadingPOs, setIsLoadingPOs] = useState(false);
+
+  // Fetch purchase orders when component mounts
+  useEffect(() => {
+    fetchPurchaseOrders();
+  }, []);
+
+  const fetchPurchaseOrders = async () => {
+    const user = customAuth.getSession()?.user;
+    if (!user) return;
+
+    setIsLoadingPOs(true);
+    try {
+      const { data, error } = await supabase
+        .from('purchase_orders')
+        .select('id, po_number, vendor_supplier, currency, grand_total, po_date')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching purchase orders:', error);
+      } else {
+        setPurchaseOrders(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching purchase orders:', error);
+    } finally {
+      setIsLoadingPOs(false);
+    }
+  };
+
+  const handlePOSelect = (selectedPO: PurchaseOrder) => {
+    // Auto-populate fields when PO is selected
+    updateField('purchaseOrderNumber', selectedPO.po_number);
+    updateField('purchaseOrderCurrency', selectedPO.currency);
+    updateField('purchaseOrderAmount', selectedPO.grand_total);
+    updateField('purchaseOrderDate', selectedPO.po_date);
+    updateField('customerName', selectedPO.vendor_supplier);
+    setPoSearchOpen(false);
+  };
+
+  const handleManualPOSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    searchPurchaseOrder(value);
+    updateField('purchaseOrderNumber', value);
+    if (value.trim()) {
+      searchPurchaseOrder(value);
+    } else {
+      // Clear PO fields if no PO number
+      updateField('purchaseOrderCurrency', '');
+      updateField('purchaseOrderAmount', 0);
+      updateField('purchaseOrderDate', '');
+    }
   };
 
   return (
@@ -35,14 +99,56 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="purchaseOrderNumber">Purchase Order Number</Label>
-              <div className="relative">
-                <Input
-                  id="purchaseOrderNumber"
-                  value={formData.purchaseOrderNumber}
-                  onChange={handlePOSearch}
-                  placeholder="Search purchase order number"
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <div className="flex gap-2 mt-1">
+                <div className="flex-1">
+                  <Input
+                    id="purchaseOrderNumber"
+                    value={formData.purchaseOrderNumber}
+                    onChange={handleManualPOSearch}
+                    placeholder="Type to search or enter PO number"
+                  />
+                </div>
+                <Popover open={poSearchOpen} onOpenChange={setPoSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="shrink-0"
+                      disabled={isLoadingPOs}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search purchase orders..." />
+                      <CommandList>
+                        <CommandEmpty>No purchase orders found.</CommandEmpty>
+                        <CommandGroup>
+                          {purchaseOrders.map((po) => (
+                            <CommandItem
+                              key={po.id}
+                              onSelect={() => handlePOSelect(po)}
+                              className="cursor-pointer"
+                            >
+                              <div className="flex flex-col w-full">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">{po.po_number}</span>
+                                  <span className="text-sm text-gray-500">
+                                    {po.currency} {po.grand_total?.toLocaleString() || '0'}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {po.vendor_supplier} • {po.po_date}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             
