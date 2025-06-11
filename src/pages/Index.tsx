@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import LoginPage from '@/components/LoginPage';
 import { AppSidebar } from '@/components/AppSidebar';
 import TopRibbon from '@/components/TopRibbon';
 import Footer from '@/components/Footer';
@@ -8,7 +8,6 @@ import DashboardWidgets from '@/components/DashboardWidgets';
 import ProductSuite from '@/components/ProductSuite';
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [loginTime, setLoginTime] = useState('');
@@ -21,29 +20,15 @@ const Index = () => {
     }
   }, [darkMode]);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  useEffect(() => {
+    // Set login time when component mounts (user is authenticated)
     setLoginTime(new Date().toLocaleString());
-    console.log('User logged in successfully');
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setActiveMenu('dashboard');
-    setLoginTime('');
-    console.log('User logged out successfully');
-  };
-
-  const handleToggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  }, []);
 
   const handleMenuClick = (menuId: string) => {
     setActiveMenu(menuId);
     console.log('Menu clicked:', menuId);
   };
-
-  const isUploadActive = activeMenu !== 'dashboard';
 
   const renderMainContent = () => {
     switch (activeMenu) {
@@ -82,21 +67,12 @@ const Index = () => {
     }
   };
 
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
-          <TopRibbon 
-            darkMode={darkMode} 
-            onToggleDarkMode={handleToggleDarkMode} 
-            onLogout={handleLogout}
-            isUploadActive={isUploadActive}
-          />
+          <TopRibbon />
           
           <main className="flex-1 overflow-auto bg-white dark:bg-gray-800">
             {renderMainContent()}
