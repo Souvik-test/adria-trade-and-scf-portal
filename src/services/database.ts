@@ -16,12 +16,12 @@ const createTransactionRecord = async (productType: string, formData: any, actua
   }
 
   try {
-    // Create transaction record with actual transaction number
+    // Create transaction record with actual transaction number as reference
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
         user_id: user.id,
-        transaction_ref: actualTransactionNumber, // Use actual number instead of generated one
+        transaction_ref: actualTransactionNumber, // Use the actual form number (PO/PI/Invoice number)
         product_type: productType,
         status: 'Submitted',
         customer_name: getCustomerName(productType, formData),
@@ -144,7 +144,7 @@ export const savePurchaseOrder = async (formData: any) => {
       console.log('Line items inserted successfully');
     }
 
-    // Create transaction record with actual PO number
+    // Create transaction record with actual PO number as transaction reference
     await createTransactionRecord('PO', formData, formData.poNumber);
 
     return po;
@@ -226,7 +226,7 @@ export const saveProformaInvoice = async (formData: any) => {
       console.log('PI line items inserted successfully');
     }
 
-    // Create transaction record with actual PI number
+    // Create transaction record with actual PI number as transaction reference
     await createTransactionRecord('PI', formData, formData.piNumber);
 
     return pi;
@@ -308,7 +308,7 @@ export const saveInvoice = async (formData: any) => {
       console.log('Invoice line items inserted successfully');
     }
 
-    // Create transaction record with actual invoice number
+    // Create transaction record with actual invoice number as transaction reference
     await createTransactionRecord('Invoice', formData, formData.invoiceNumber);
 
     return invoice;
