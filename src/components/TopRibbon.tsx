@@ -1,131 +1,73 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Upload, HelpCircle, Sun, Moon, Bell, User, LogOut } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import NotificationsPanel from './NotificationsPanel';
+import { Moon, Sun, Bell, User, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-interface TopRibbonProps {
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
-  onLogout?: () => void;
-  isUploadActive?: boolean;
-}
-
-const TopRibbon: React.FC<TopRibbonProps> = ({ darkMode, onToggleDarkMode, onLogout, isUploadActive = false }) => {
-  const [selectedModule, setSelectedModule] = useState('trade-finance');
-  const [showNotifications, setShowNotifications] = useState(false);
-  const activeNotificationCount = 3; // This would come from your notification state
-
-  const modules = [
-    { value: 'trade-finance', label: 'Trade Finance' },
-    { value: 'supply-chain', label: 'Supply Chain Finance' },
-    { value: 'cash-management', label: 'Cash Management' },
-    { value: 'corporate-lending', label: 'Corporate Lending' }
-  ];
+const TopRibbon = () => {
+  const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   return (
-    <>
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
-          {/* Left side - can be used for breadcrumbs or page title later */}
+    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            TextCorp Ltd - Trade Finance Portal
+          </h1>
         </div>
         
-        <div className="flex items-center gap-4">
-          {/* Right side ribbon with icons */}
-          <div className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-corporate-teal-100 to-corporate-teal-200 dark:from-gray-700 dark:to-gray-600 rounded-lg shadow-sm border border-corporate-teal-300 dark:border-gray-600">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200 ${
-                !isUploadActive ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              title="Document Upload"
-              disabled={!isUploadActive}
-            >
-              <Upload className="w-5 h-5" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200"
-              title="AI Assistance"
-            >
-              <HelpCircle className="w-5 h-5" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleDarkMode}
-              className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 transition-all duration-200 relative group"
-              title="Toggle Dark/Light Mode"
-            >
-              <div className="relative">
-                {darkMode ? (
-                  <Sun className="w-5 h-5 transition-transform duration-300 group-hover:rotate-180" />
-                ) : (
-                  <Moon className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
-                )}
-              </div>
-            </Button>
-          </div>
-          
+        <div className="flex items-center space-x-4">
+          {/* Theme Toggle */}
           <Button
             variant="ghost"
-            size="sm"
-            onClick={() => setShowNotifications(true)}
-            className="text-corporate-teal-700 dark:text-gray-300 hover:text-corporate-teal-800 hover:bg-corporate-teal-200/50 dark:hover:bg-gray-600 relative transition-all duration-200"
-            title="Notifications"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
           >
-            <Bell className="w-5 h-5" />
-            {activeNotificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                {activeNotificationCount > 9 ? '9+' : activeNotificationCount}
-              </span>
-            )}
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
           </Button>
           
-          <Select value={selectedModule} onValueChange={setSelectedModule}>
-            <SelectTrigger className="w-48 border-corporate-teal-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-corporate-teal-400 dark:hover:border-gray-500 transition-colors">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-gray-800 border-corporate-teal-300 dark:border-gray-600">
-              {modules.map((module) => (
-                <SelectItem key={module.value} value={module.value} className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
-                  {module.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Notifications */}
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+          >
+            <Bell className="h-4 w-4" />
+          </Button>
           
+          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-8 h-8 bg-gradient-to-br from-corporate-teal-500 to-corporate-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm hover:from-corporate-teal-600 hover:to-corporate-teal-700 transition-all duration-200 shadow-md">
-                TCU
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              >
+                <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border-corporate-teal-300 dark:border-gray-600">
-              <DropdownMenuItem className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
-                <User className="w-4 h-4 mr-2" />
-                Profile
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                {user?.email}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onLogout} className="hover:bg-corporate-teal-100 dark:hover:bg-gray-700">
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+              <DropdownMenuItem 
+                className="flex items-center gap-2 text-red-600"
+                onClick={signOut}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-
-      <NotificationsPanel 
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-      />
-    </>
+    </div>
   );
 };
 

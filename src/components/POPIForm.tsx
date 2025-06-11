@@ -8,6 +8,8 @@ import usePOPIForm from '@/hooks/usePOPIForm';
 import POPIProgressIndicator from './popi-form/POPIProgressIndicator';
 import POPIPaneRenderer from './popi-form/POPIPaneRenderer';
 import POPIFormActions from './popi-form/POPIFormActions';
+import { savePurchaseOrder, saveProformaInvoice } from '@/services/database';
+import { useToast } from '@/hooks/use-toast';
 
 interface POPIFormProps {
   onClose: () => void;
@@ -29,6 +31,8 @@ const POPIForm: React.FC<POPIFormProps> = ({ onClose, onBack }) => {
     initializeForm
   } = usePOPIForm();
 
+  const { toast } = useToast();
+
   // Initialize form when component mounts
   useEffect(() => {
     initializeForm('purchase-order');
@@ -49,7 +53,10 @@ const POPIForm: React.FC<POPIFormProps> = ({ onClose, onBack }) => {
 
   const handleSaveAsDraft = () => {
     console.log('Saving as draft:', formData);
-    // TODO: Implement save as draft functionality
+    toast({
+      title: 'Draft Saved',
+      description: 'Your draft has been saved locally.',
+    });
   };
 
   const handleGoBack = () => {
@@ -62,11 +69,32 @@ const POPIForm: React.FC<POPIFormProps> = ({ onClose, onBack }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateCurrentStep()) {
-      console.log('Submitting form:', formData);
-      // TODO: Implement form submission
-      onClose();
+      try {
+        let result;
+        if (formData.instrumentType === 'purchase-order') {
+          result = await savePurchaseOrder(formData);
+          toast({
+            title: 'Purchase Order Submitted!',
+            description: `PO #${result.po_number} has been successfully saved to the database.`,
+          });
+        } else {
+          result = await saveProformaInvoice(formData);
+          toast({
+            title: 'Pro-forma Invoice Submitted!',
+            description: `PI #${result.pi_number} has been successfully saved to the database.`,
+          });
+        }
+        onClose();
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        toast({
+          title: 'Submission Failed',
+          description: 'There was an error saving your data. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

@@ -9,33 +9,365 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      invoice_line_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string | null
+          line_total: number
+          quantity: number
+          tax_rate: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id?: string | null
+          line_total: number
+          quantity: number
+          tax_rate?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          line_total?: number
+          quantity?: number
+          tax_rate?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          customer_address: string | null
+          customer_contact: string | null
+          customer_name: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string
+          invoice_type: string
+          notes: string | null
+          payment_terms: string | null
+          purchase_order_amount: number | null
+          purchase_order_currency: string | null
+          purchase_order_date: string | null
+          purchase_order_number: string | null
+          status: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          customer_address?: string | null
+          customer_contact?: string | null
+          customer_name?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number: string
+          invoice_type: string
+          notes?: string | null
+          payment_terms?: string | null
+          purchase_order_amount?: number | null
+          purchase_order_currency?: string | null
+          purchase_order_date?: string | null
+          purchase_order_number?: string | null
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          customer_address?: string | null
+          customer_contact?: string | null
+          customer_name?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string
+          invoice_type?: string
+          notes?: string | null
+          payment_terms?: string | null
+          purchase_order_amount?: number | null
+          purchase_order_currency?: string | null
+          purchase_order_date?: string | null
+          purchase_order_number?: string | null
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      popi_line_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          discount: number | null
+          id: string
+          line_total: number
+          proforma_invoice_id: string | null
+          purchase_order_id: string | null
+          quantity: number
+          tax_rate: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          discount?: number | null
+          id?: string
+          line_total: number
+          proforma_invoice_id?: string | null
+          purchase_order_id?: string | null
+          quantity: number
+          tax_rate?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          discount?: number | null
+          id?: string
+          line_total?: number
+          proforma_invoice_id?: string | null
+          purchase_order_id?: string | null
+          quantity?: number
+          tax_rate?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "popi_line_items_proforma_invoice_id_fkey"
+            columns: ["proforma_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "proforma_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popi_line_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proforma_invoices: {
+        Row: {
+          bank_details: string | null
+          billing_address: string | null
+          buyer_id: string | null
+          buyer_name: string | null
+          created_at: string | null
+          currency: string | null
+          grand_total: number | null
+          id: string
+          notes: string | null
+          payment_terms: string | null
+          pi_date: string | null
+          pi_number: string
+          same_as_shipping: boolean | null
+          shipping_address: string | null
+          shipping_cost: number | null
+          status: string | null
+          subtotal: number | null
+          terms_of_sale: string | null
+          total_tax: number | null
+          updated_at: string | null
+          user_id: string | null
+          valid_until_date: string | null
+        }
+        Insert: {
+          bank_details?: string | null
+          billing_address?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          created_at?: string | null
+          currency?: string | null
+          grand_total?: number | null
+          id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          pi_date?: string | null
+          pi_number: string
+          same_as_shipping?: boolean | null
+          shipping_address?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          terms_of_sale?: string | null
+          total_tax?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valid_until_date?: string | null
+        }
+        Update: {
+          bank_details?: string | null
+          billing_address?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          created_at?: string | null
+          currency?: string | null
+          grand_total?: number | null
+          id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          pi_date?: string | null
+          pi_number?: string
+          same_as_shipping?: boolean | null
+          shipping_address?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          terms_of_sale?: string | null
+          total_tax?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valid_until_date?: string | null
+        }
+        Relationships: []
+      }
+      purchase_orders: {
+        Row: {
+          bank_details: string | null
+          billing_address: string | null
+          created_at: string | null
+          currency: string | null
+          expected_delivery_date: string | null
+          grand_total: number | null
+          id: string
+          notes: string | null
+          payment_terms: string | null
+          po_date: string | null
+          po_number: string
+          same_as_shipping: boolean | null
+          shipping_address: string | null
+          shipping_cost: number | null
+          status: string | null
+          subtotal: number | null
+          terms_of_sale: string | null
+          total_tax: number | null
+          updated_at: string | null
+          user_id: string | null
+          vendor_supplier: string | null
+        }
+        Insert: {
+          bank_details?: string | null
+          billing_address?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expected_delivery_date?: string | null
+          grand_total?: number | null
+          id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          po_date?: string | null
+          po_number: string
+          same_as_shipping?: boolean | null
+          shipping_address?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          terms_of_sale?: string | null
+          total_tax?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_supplier?: string | null
+        }
+        Update: {
+          bank_details?: string | null
+          billing_address?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expected_delivery_date?: string | null
+          grand_total?: number | null
+          id?: string
+          notes?: string | null
+          payment_terms?: string | null
+          po_date?: string | null
+          po_number?: string
+          same_as_shipping?: boolean | null
+          shipping_address?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          terms_of_sale?: string | null
+          total_tax?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_supplier?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
+          corporate_id: string | null
           created_at: string
           department: string | null
           email: string
           full_name: string
           id: string
           phone: string | null
+          product_linkage: Database["public"]["Enums"]["product_type"][] | null
           role: string
+          role_type: Database["public"]["Enums"]["user_role_type"] | null
+          user_login_id: string | null
         }
         Insert: {
+          corporate_id?: string | null
           created_at?: string
           department?: string | null
           email: string
           full_name: string
           id: string
           phone?: string | null
+          product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role: string
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          user_login_id?: string | null
         }
         Update: {
+          corporate_id?: string | null
           created_at?: string
           department?: string | null
           email?: string
           full_name?: string
           id?: string
           phone?: string | null
+          product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role?: string
+          role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          user_login_id?: string | null
         }
         Relationships: []
       }
@@ -47,7 +379,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      product_type:
+        | "Import LC"
+        | "Export LC"
+        | "Import Bills"
+        | "Export Bills"
+        | "Outward BG/SBLC"
+        | "Inward BG/SBLC"
+        | "Shipping Guarantee"
+        | "Import Loan"
+        | "Export Loan"
+      user_role_type: "Maker" | "Checker" | "Viewer" | "All"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -162,6 +504,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      product_type: [
+        "Import LC",
+        "Export LC",
+        "Import Bills",
+        "Export Bills",
+        "Outward BG/SBLC",
+        "Inward BG/SBLC",
+        "Shipping Guarantee",
+        "Import Loan",
+        "Export Loan",
+      ],
+      user_role_type: ["Maker", "Checker", "Viewer", "All"],
+    },
   },
 } as const

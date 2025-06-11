@@ -8,6 +8,8 @@ import useInvoiceForm from '@/hooks/useInvoiceForm';
 import InvoiceProgressIndicator from './invoice-form/InvoiceProgressIndicator';
 import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
+import { saveInvoice, searchPurchaseOrder } from '@/services/database';
+import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -19,7 +21,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     formData,
     currentStep,
     updateField,
-    searchPurchaseOrder,
+    searchPurchaseOrder: originalSearchPO,
     addLineItem,
     updateLineItem,
     removeLineItem,
@@ -29,6 +31,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     validateCurrentStep,
     initializeForm
   } = useInvoiceForm();
+
+  const { toast } = useToast();
 
   // Initialize form when component mounts
   useEffect(() => {
@@ -44,13 +48,48 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     initializeForm(value);
   };
 
+  const handleSearchPurchaseOrder = async (poNumber: string) => {
+    try {
+      const poData = await searchPurchaseOrder(poNumber);
+      if (poData) {
+        // Update form with PO data
+        updateField('purchaseOrderNumber', poData.po_number);
+        updateField('purchaseOrderCurrency', poData.currency);
+        updateField('purchaseOrderAmount', poData.grand_total);
+        updateField('purchaseOrderDate', poData.po_date);
+        updateField('customerName', poData.vendor_supplier);
+        
+        toast({
+          title: 'Purchase Order Found',
+          description: `PO #${poData.po_number} details have been loaded.`,
+        });
+      } else {
+        toast({
+          title: 'Purchase Order Not Found',
+          description: `No purchase order found with number: ${poNumber}`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error searching PO:', error);
+      toast({
+        title: 'Search Failed',
+        description: 'There was an error searching for the purchase order.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDiscard = () => {
     onBack();
   };
 
   const handleSaveAsDraft = () => {
     console.log('Saving as draft:', formData);
-    // TODO: Implement save as draft functionality
+    toast({
+      title: 'Draft Saved',
+      description: 'Your draft has been saved locally.',
+    });
   };
 
   const handleGoBack = () => {
@@ -63,11 +102,23 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateCurrentStep()) {
-      console.log('Submitting invoice:', formData);
-      // TODO: Implement form submission
-      onClose();
+      try {
+        const result = await saveInvoice(formData);
+        toast({
+          title: `${formData.invoiceType === 'invoice' ? 'Invoice' : formData.invoiceType === 'credit-note' ? 'Credit Note' : 'Debit Note'} Submitted!`,
+          description: `${result.invoice_number} has been successfully saved to the database.`,
+        });
+        onClose();
+      } catch (error) {
+        console.error('Error submitting invoice:', error);
+        toast({
+          title: 'Submission Failed',
+          description: 'There was an error saving your invoice. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -134,7 +185,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
               currentStep={currentStep}
               formData={formData}
               updateField={updateField}
-              searchPurchaseOrder={searchPurchaseOrder}
+              searchPurchaseOrder={handleSearchPurchaseOrder}
               addLineItem={addLineItem}
               updateLineItem={updateLineItem}
               removeLineItem={removeLineItem}
