@@ -9,6 +9,7 @@ interface InvoicePaneRendererProps {
   currentStep: InvoiceFormStep;
   formData: InvoiceFormData;
   updateField: (field: keyof InvoiceFormData, value: any) => void;
+  searchPurchaseOrder: (poNumber: string) => void;
   addLineItem: () => void;
   updateLineItem: (id: string, updates: Partial<InvoiceFormData['lineItems'][0]>) => void;
   removeLineItem: (id: string) => void;
@@ -18,6 +19,7 @@ const InvoicePaneRenderer: React.FC<InvoicePaneRendererProps> = ({
   currentStep,
   formData,
   updateField,
+  searchPurchaseOrder,
   addLineItem,
   updateLineItem,
   removeLineItem
@@ -28,6 +30,7 @@ const InvoicePaneRenderer: React.FC<InvoicePaneRendererProps> = ({
         <InvoiceGeneralDetailsPane
           formData={formData}
           updateField={updateField}
+          searchPurchaseOrder={searchPurchaseOrder}
         />
       );
     

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 
 export interface InvoiceLineItem {
@@ -15,11 +14,14 @@ export interface InvoiceFormData {
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
+  purchaseOrderNumber: string;
+  purchaseOrderCurrency: string;
+  purchaseOrderAmount: number;
+  purchaseOrderDate: string;
   customerName: string;
   customerAddress: string;
   customerContact: string;
   currency: string;
-  exchangeRate: number;
   lineItems: InvoiceLineItem[];
   subtotal: number;
   taxAmount: number;
@@ -37,11 +39,14 @@ const useInvoiceForm = () => {
     invoiceNumber: '',
     invoiceDate: '',
     dueDate: '',
+    purchaseOrderNumber: '',
+    purchaseOrderCurrency: '',
+    purchaseOrderAmount: 0,
+    purchaseOrderDate: '',
     customerName: '',
     customerAddress: '',
     customerContact: '',
     currency: 'USD',
-    exchangeRate: 1,
     lineItems: [],
     subtotal: 0,
     taxAmount: 0,
@@ -58,6 +63,32 @@ const useInvoiceForm = () => {
       ...prev,
       [field]: value
     }));
+  }, []);
+
+  const searchPurchaseOrder = useCallback((poNumber: string) => {
+    if (poNumber.trim()) {
+      // Mock PO search - simulate auto-population
+      const mockPOData = {
+        purchaseOrderCurrency: 'USD',
+        purchaseOrderAmount: 15000,
+        purchaseOrderDate: '2024-06-01'
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        purchaseOrderNumber: poNumber,
+        ...mockPOData
+      }));
+    } else {
+      // Clear PO fields if no PO number
+      setFormData(prev => ({
+        ...prev,
+        purchaseOrderNumber: '',
+        purchaseOrderCurrency: '',
+        purchaseOrderAmount: 0,
+        purchaseOrderDate: ''
+      }));
+    }
   }, []);
 
   const addLineItem = useCallback(() => {
@@ -168,6 +199,7 @@ const useInvoiceForm = () => {
     formData,
     currentStep,
     updateField,
+    searchPurchaseOrder,
     addLineItem,
     updateLineItem,
     removeLineItem,

@@ -6,18 +6,82 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceFormData } from '@/hooks/useInvoiceForm';
+import { Search } from 'lucide-react';
 
 interface InvoiceGeneralDetailsPaneProps {
   formData: InvoiceFormData;
   updateField: (field: keyof InvoiceFormData, value: any) => void;
+  searchPurchaseOrder: (poNumber: string) => void;
 }
 
 const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   formData,
-  updateField
+  updateField,
+  searchPurchaseOrder
 }) => {
+  const handlePOSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    searchPurchaseOrder(value);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Purchase Order Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Purchase Order Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="purchaseOrderNumber">Purchase Order Number</Label>
+              <div className="relative">
+                <Input
+                  id="purchaseOrderNumber"
+                  value={formData.purchaseOrderNumber}
+                  onChange={handlePOSearch}
+                  placeholder="Search purchase order number"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="purchaseOrderCurrency">Purchase Order Currency</Label>
+              <Input
+                id="purchaseOrderCurrency"
+                value={formData.purchaseOrderCurrency}
+                placeholder="Auto-populated"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="purchaseOrderAmount">Purchase Order Amount</Label>
+              <Input
+                id="purchaseOrderAmount"
+                value={formData.purchaseOrderAmount || ''}
+                placeholder="Auto-populated"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="purchaseOrderDate">Purchase Order Date</Label>
+              <Input
+                id="purchaseOrderDate"
+                type="date"
+                value={formData.purchaseOrderDate}
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Invoice Information */}
       <Card>
         <CardHeader>
@@ -68,18 +132,6 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                   <SelectItem value="JPY">JPY</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="exchangeRate">Exchange Rate</Label>
-              <Input
-                id="exchangeRate"
-                type="number"
-                step="0.0001"
-                value={formData.exchangeRate}
-                onChange={(e) => updateField('exchangeRate', parseFloat(e.target.value) || 0)}
-                placeholder="1.0000"
-              />
             </div>
           </div>
         </CardContent>

@@ -19,6 +19,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     formData,
     currentStep,
     updateField,
+    searchPurchaseOrder,
     addLineItem,
     updateLineItem,
     removeLineItem,
@@ -133,6 +134,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
               currentStep={currentStep}
               formData={formData}
               updateField={updateField}
+              searchPurchaseOrder={searchPurchaseOrder}
               addLineItem={addLineItem}
               updateLineItem={updateLineItem}
               removeLineItem={removeLineItem}
