@@ -29,12 +29,6 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             Request ILC Issuance
           </h2>
-          <button
-            onClick={onBack}
-            className="text-corporate-blue hover:underline text-sm font-medium"
-          >
-            ← Back to Methods
-          </button>
         </div>
         
         <ImportLCProgressIndicator
@@ -54,7 +48,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex-shrink-0 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+      <div className="flex-shrink-0 mt-6">
         <ImportLCFormActions
           currentStep={currentStep}
           isValid={validateCurrentStep()}
@@ -64,6 +58,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           onSubmit={() => console.log('Submit')}
           onDiscard={() => console.log('Discard')}
           onClose={onClose}
+          onBack={onBack}
         />
       </div>
     </div>

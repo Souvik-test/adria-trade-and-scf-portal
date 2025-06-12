@@ -48,6 +48,175 @@ export type Database = {
         }
         Relationships: []
       }
+      import_lc_requests: {
+        Row: {
+          additional_amount: number | null
+          additional_conditions: string | null
+          advising_bank_swift_code: string | null
+          applicable_rules: string
+          applicant_account_number: string | null
+          applicant_address: string | null
+          applicant_name: string | null
+          available_by: string | null
+          available_with: string | null
+          beneficiary_address: string | null
+          beneficiary_bank_address: string | null
+          beneficiary_bank_name: string | null
+          beneficiary_bank_swift_code: string | null
+          beneficiary_name: string | null
+          corporate_reference: string
+          created_at: string | null
+          currency: string | null
+          description_of_goods: string | null
+          expiry_date: string | null
+          form_of_documentary_credit: string
+          id: string
+          issue_date: string | null
+          latest_shipment_date: string | null
+          lc_amount: number | null
+          lc_type: string | null
+          partial_shipments_allowed: boolean | null
+          place_of_expiry: string | null
+          popi_number: string | null
+          popi_type: string | null
+          port_of_discharge: string | null
+          port_of_loading: string | null
+          presentation_period: string | null
+          required_documents: string[] | null
+          status: string | null
+          tolerance: string | null
+          transshipment_allowed: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_amount?: number | null
+          additional_conditions?: string | null
+          advising_bank_swift_code?: string | null
+          applicable_rules?: string
+          applicant_account_number?: string | null
+          applicant_address?: string | null
+          applicant_name?: string | null
+          available_by?: string | null
+          available_with?: string | null
+          beneficiary_address?: string | null
+          beneficiary_bank_address?: string | null
+          beneficiary_bank_name?: string | null
+          beneficiary_bank_swift_code?: string | null
+          beneficiary_name?: string | null
+          corporate_reference: string
+          created_at?: string | null
+          currency?: string | null
+          description_of_goods?: string | null
+          expiry_date?: string | null
+          form_of_documentary_credit: string
+          id?: string
+          issue_date?: string | null
+          latest_shipment_date?: string | null
+          lc_amount?: number | null
+          lc_type?: string | null
+          partial_shipments_allowed?: boolean | null
+          place_of_expiry?: string | null
+          popi_number?: string | null
+          popi_type?: string | null
+          port_of_discharge?: string | null
+          port_of_loading?: string | null
+          presentation_period?: string | null
+          required_documents?: string[] | null
+          status?: string | null
+          tolerance?: string | null
+          transshipment_allowed?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_amount?: number | null
+          additional_conditions?: string | null
+          advising_bank_swift_code?: string | null
+          applicable_rules?: string
+          applicant_account_number?: string | null
+          applicant_address?: string | null
+          applicant_name?: string | null
+          available_by?: string | null
+          available_with?: string | null
+          beneficiary_address?: string | null
+          beneficiary_bank_address?: string | null
+          beneficiary_bank_name?: string | null
+          beneficiary_bank_swift_code?: string | null
+          beneficiary_name?: string | null
+          corporate_reference?: string
+          created_at?: string | null
+          currency?: string | null
+          description_of_goods?: string | null
+          expiry_date?: string | null
+          form_of_documentary_credit?: string
+          id?: string
+          issue_date?: string | null
+          latest_shipment_date?: string | null
+          lc_amount?: number | null
+          lc_type?: string | null
+          partial_shipments_allowed?: boolean | null
+          place_of_expiry?: string | null
+          popi_number?: string | null
+          popi_type?: string | null
+          port_of_discharge?: string | null
+          port_of_loading?: string | null
+          presentation_period?: string | null
+          required_documents?: string[] | null
+          status?: string | null
+          tolerance?: string | null
+          transshipment_allowed?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_lc_supporting_documents: {
+        Row: {
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          import_lc_request_id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          import_lc_request_id: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          import_lc_request_id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_lc_supporting_documents_import_lc_request_id_fkey"
+            columns: ["import_lc_request_id"]
+            isOneToOne: false
+            referencedRelation: "import_lc_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           created_at: string | null

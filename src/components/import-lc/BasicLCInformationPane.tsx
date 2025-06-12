@@ -1,14 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportLCFormData } from '@/hooks/useImportLCForm';
-import { searchPurchaseOrder } from '@/services/database';
+import POPISearchDropdown from './POPISearchDropdown';
 
 interface BasicLCInformationPaneProps {
   formData: ImportLCFormData;
@@ -19,187 +16,156 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
   formData,
   updateField
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-
-  const formOfDocumentaryCreditOptions = [
-    'Irrevocable Documentary Credit',
-    'Revocable Documentary Credit',
-    'Confirmed Irrevocable Documentary Credit',
-    'Unconfirmed Irrevocable Documentary Credit',
-    'Standby Letter of Credit',
-    'Transferable Letter of Credit'
-  ];
-
-  const applicableRulesOptions = [
-    'UCP Latest Version',
-    'UCP 600',
-    'ISP98',
-    'URDG 758',
-    'Other'
-  ];
-
-  const handlePOPISearch = async () => {
-    if (!searchTerm.trim()) return;
-
-    setIsSearching(true);
-    try {
-      const result = await searchPurchaseOrder(searchTerm);
-      if (result) {
-        updateField('popiNumber', result.po_number);
-        updateField('popiType', 'PO');
-        // Auto-populate description of goods from PO
-        if (result.notes) {
-          updateField('descriptionOfGoods', result.notes);
-        }
-      } else {
-        alert('PO/PI not found');
-      }
-    } catch (error) {
-      console.error('Error searching PO/PI:', error);
-      alert('Error searching PO/PI');
-    } finally {
-      setIsSearching(false);
+  const handlePOPISelect = (popi: any) => {
+    if (popi) {
+      updateField('popiNumber', popi.number);
+      updateField('popiType', popi.type);
+    } else {
+      updateField('popiNumber', '');
+      updateField('popiType', '');
     }
   };
 
-  // Auto-populate advising bank swift code when beneficiary bank swift code changes
-  useEffect(() => {
-    if (formData.beneficiaryBankSwiftCode) {
-      updateField('advisingBankSwiftCode', formData.beneficiaryBankSwiftCode);
-    }
-  }, [formData.beneficiaryBankSwiftCode, updateField]);
+  const selectedPOPI = formData.popiNumber ? {
+    id: '',
+    number: formData.popiNumber,
+    type: formData.popiType as 'PO' | 'PI',
+    date: '',
+    amount: 0,
+    currency: 'USD'
+  } : null;
 
   return (
-    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
-      <div className="space-y-6 pr-4">
-        <Card className="border border-gray-200 dark:border-gray-600">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-              Basic LC Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Purchase Order/Proforma Invoice Number */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-                Purchase Order/Pro-forma Invoice Number
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Enter PO/PI number to search"
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline" 
-                  onClick={handlePOPISearch}
-                  disabled={isSearching || !searchTerm.trim()}
-                  className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300"
-                >
-                  <Search className="w-4 h-4" />
-                </Button>
-              </div>
-              {formData.popiNumber && (
-                <div className="mt-2 text-sm text-green-600">
-                  Selected: {formData.popiType} - {formData.popiNumber}
-                </div>
-              )}
-            </div>
+    <div className="space-y-6 max-h-[calc(75vh-200px)] overflow-y-auto pr-2">
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
+            Purchase Order / Proforma Invoice Selection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <POPISearchDropdown
+            selectedPOPI={selectedPOPI}
+            onSelectPOPI={handlePOPISelect}
+            popiType={formData.popiType}
+            onTypeChange={(type) => updateField('popiType', type)}
+          />
+        </CardContent>
+      </Card>
 
-            {/* Form of Documentary Credit */}
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
+            Basic LC Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Form of Documentary Credit <span className="text-red-500">*</span>
               </Label>
               <Select value={formData.formOfDocumentaryCredit} onValueChange={(value) => updateField('formOfDocumentaryCredit', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select form of documentary credit" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select form" />
                 </SelectTrigger>
                 <SelectContent>
-                  {formOfDocumentaryCreditOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
+                  <SelectItem value="Irrevocable">Irrevocable</SelectItem>
+                  <SelectItem value="Confirmed">Confirmed</SelectItem>
+                  <SelectItem value="Unconfirmed">Unconfirmed</SelectItem>
+                  <SelectItem value="Standby">Standby</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Corporate Reference Number */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Corporate Reference Number <span className="text-red-500">*</span>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Corporate Reference <span className="text-red-500">*</span>
               </Label>
               <Input
                 value={formData.corporateReference}
-                onChange={(e) => updateField('corporateReference', e.target.value.slice(0, 16))}
-                placeholder="Enter corporate reference (max 16 characters)"
-                maxLength={16}
-                className="w-full"
+                onChange={(e) => updateField('corporateReference', e.target.value)}
+                placeholder="Enter corporate reference"
+                className="mt-1"
               />
-              <div className="text-xs text-gray-500 mt-1">
-                {formData.corporateReference.length}/16 characters
-              </div>
             </div>
+          </div>
 
-            {/* Applicable Rules */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Applicable Rules <span className="text-red-500">*</span>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Applicable Rules
               </Label>
               <Select value={formData.applicableRules} onValueChange={(value) => updateField('applicableRules', value)}>
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select rules" />
                 </SelectTrigger>
                 <SelectContent>
-                  {applicableRulesOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
+                  <SelectItem value="UCP Latest Version">UCP Latest Version</SelectItem>
+                  <SelectItem value="UCP 600">UCP 600</SelectItem>
+                  <SelectItem value="ISP98">ISP98</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Issue Date */}
-              <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Issue Date
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.issueDate}
-                  onChange={(e) => updateField('issueDate', e.target.value)}
-                />
-              </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                LC Type
+              </Label>
+              <Select value={formData.lcType} onValueChange={(value) => updateField('lcType', value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select LC type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="At Sight">At Sight</SelectItem>
+                  <SelectItem value="Usance">Usance</SelectItem>
+                  <SelectItem value="Mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-              {/* Expiry Date */}
-              <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Expiry Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={formData.expiryDate}
-                  onChange={(e) => updateField('expiryDate', e.target.value)}
-                />
-              </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Issue Date
+              </Label>
+              <Input
+                type="date"
+                value={formData.issueDate}
+                onChange={(e) => updateField('issueDate', e.target.value)}
+                className="mt-1"
+              />
             </div>
 
-            {/* Place of Expiry */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Expiry Date
+              </Label>
+              <Input
+                type="date"
+                value={formData.expiryDate}
+                onChange={(e) => updateField('expiryDate', e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Place of Expiry
               </Label>
               <Input
                 value={formData.placeOfExpiry}
                 onChange={(e) => updateField('placeOfExpiry', e.target.value)}
                 placeholder="Enter place of expiry"
+                className="mt-1"
               />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </ScrollArea>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
