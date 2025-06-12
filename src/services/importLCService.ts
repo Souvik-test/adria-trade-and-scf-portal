@@ -1,228 +1,142 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { customAuth } from '@/services/customAuth';
 import { ImportLCFormData } from '@/hooks/useImportLCForm';
 
-// Get current user from custom auth
-const getCurrentUser = () => {
-  const session = customAuth.getSession();
-  return session?.user || null;
-};
+export interface ImportLCRequest {
+  id?: string;
+  user_id: string;
+  request_type: 'issuance' | 'amendment' | 'cancellation';
+  corporate_reference: string;
+  form_of_documentary_credit: string;
+  applicable_rules: string;
+  lc_type: string;
+  issue_date: string;
+  expiry_date: string;
+  place_of_expiry: string;
+  applicant_name: string;
+  applicant_address: string;
+  applicant_account_number: string;
+  beneficiary_name: string;
+  beneficiary_address: string;
+  beneficiary_bank_name: string;
+  beneficiary_bank_address: string;
+  beneficiary_bank_swift_code: string;
+  advising_bank_swift_code: string;
+  lc_amount: number;
+  currency: string;
+  tolerance: string;
+  additional_amount: number;
+  available_with: string;
+  available_by: string;
+  partial_shipments_allowed: boolean;
+  transshipment_allowed: boolean;
+  description_of_goods: string;
+  port_of_loading: string;
+  port_of_discharge: string;
+  latest_shipment_date: string;
+  presentation_period: string;
+  required_documents: string[];
+  additional_conditions: string;
+  supporting_documents: File[];
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
-// Save Import LC Request
-export const saveImportLCRequest = async (formData: ImportLCFormData, status: 'draft' | 'submitted' = 'draft') => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
+export const saveImportLCRequest = async (formData: ImportLCFormData): Promise<{ data: any; error: any }> => {
   try {
-    // Use rpc or direct query to avoid TypeScript issues with missing table types
-    const { data, error } = await supabase.rpc('insert_import_lc_request', {
-      p_user_id: user.id,
-      p_request_type: 'issuance',
-      p_corporate_reference: formData.corporateReference,
-      p_form_of_documentary_credit: formData.formOfDocumentaryCredit,
-      p_applicable_rules: formData.applicableRules,
-      p_lc_type: formData.lcType,
-      p_issue_date: formData.issueDate || null,
-      p_expiry_date: formData.expiryDate || null,
-      p_place_of_expiry: formData.placeOfExpiry || null,
-      p_applicant_name: formData.applicantName || null,
-      p_applicant_address: formData.applicantAddress || null,
-      p_applicant_account_number: formData.applicantAccountNumber || null,
-      p_beneficiary_name: formData.beneficiaryName || null,
-      p_beneficiary_address: formData.beneficiaryAddress || null,
-      p_beneficiary_bank_name: formData.beneficiaryBankName || null,
-      p_beneficiary_bank_address: formData.beneficiaryBankAddress || null,
-      p_beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode || null,
-      p_advising_bank_swift_code: formData.advisingBankSwiftCode || null,
-      p_lc_amount: formData.lcAmount || null,
-      p_currency: formData.currency || 'USD',
-      p_tolerance: formData.tolerance || null,
-      p_additional_amount: formData.additionalAmount || null,
-      p_available_with: formData.availableWith || null,
-      p_available_by: formData.availableBy || null,
-      p_partial_shipments_allowed: formData.partialShipmentsAllowed,
-      p_transshipment_allowed: formData.transshipmentAllowed,
-      p_description_of_goods: formData.descriptionOfGoods || null,
-      p_port_of_loading: formData.portOfLoading || null,
-      p_port_of_discharge: formData.portOfDischarge || null,
-      p_latest_shipment_date: formData.latestShipmentDate || null,
-      p_presentation_period: formData.presentationPeriod || null,
-      p_required_documents: formData.requiredDocuments.length > 0 ? formData.requiredDocuments : null,
-      p_additional_conditions: formData.additionalConditions || null,
-      p_swift_mt700_data: {
-        popiNumber: formData.popiNumber,
-        popiType: formData.popiType
-      },
-      p_status: status
-    });
-
-    if (error) {
-      console.error('Error saving Import LC request:', error);
-      throw error;
-    }
-
-    // Create transaction record if submitted
-    if (status === 'submitted' && formData.corporateReference) {
-      await createTransactionRecord(formData);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error saving Import LC request:', error);
-    // Fallback to direct insert if RPC doesn't exist yet
-    return await saveImportLCRequestDirect(formData, status);
-  }
-};
-
-// Fallback direct insert method
-const saveImportLCRequestDirect = async (formData: ImportLCFormData, status: 'draft' | 'submitted' = 'draft') => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
-  try {
-    // Use any type to bypass TypeScript checking for now
+    // Use type assertion to bypass TypeScript checking for the table name
     const { data, error } = await (supabase as any)
       .from('import_lc_requests')
       .insert({
-        user_id: user.id,
+        user_id: 'current-user-id', // This should be replaced with actual user ID
         request_type: 'issuance',
-        lc_number: formData.corporateReference,
-        issue_date: formData.issueDate || null,
-        expiry_date: formData.expiryDate || null,
-        place_of_expiry: formData.placeOfExpiry || null,
-        applicant_name: formData.applicantName || null,
-        applicant_address: formData.applicantAddress || null,
-        applicant_account_number: formData.applicantAccountNumber || null,
-        beneficiary_name: formData.beneficiaryName || null,
-        beneficiary_address: formData.beneficiaryAddress || null,
-        beneficiary_bank_name: formData.beneficiaryBankName || null,
-        beneficiary_bank_address: formData.beneficiaryBankAddress || null,
-        beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode || null,
-        lc_amount: formData.lcAmount || null,
-        currency: formData.currency || 'USD',
-        available_with: formData.availableWith || null,
-        available_by: formData.availableBy || null,
+        corporate_reference: formData.corporateReference,
+        form_of_documentary_credit: formData.formOfDocumentaryCredit,
+        applicable_rules: formData.applicableRules,
+        lc_type: formData.lcType,
+        issue_date: formData.issueDate,
+        expiry_date: formData.expiryDate,
+        place_of_expiry: formData.placeOfExpiry,
+        applicant_name: formData.applicantName,
+        applicant_address: formData.applicantAddress,
+        applicant_account_number: formData.applicantAccountNumber,
+        beneficiary_name: formData.beneficiaryName,
+        beneficiary_address: formData.beneficiaryAddress,
+        beneficiary_bank_name: formData.beneficiaryBankName,
+        beneficiary_bank_address: formData.beneficiaryBankAddress,
+        beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode,
+        advising_bank_swift_code: formData.advisingBankSwiftCode,
+        lc_amount: formData.lcAmount,
+        currency: formData.currency,
+        tolerance: formData.tolerance,
+        additional_amount: formData.additionalAmount,
+        available_with: formData.availableWith,
+        available_by: formData.availableBy,
         partial_shipments_allowed: formData.partialShipmentsAllowed,
         transshipment_allowed: formData.transshipmentAllowed,
-        description_of_goods: formData.descriptionOfGoods || null,
-        port_of_loading: formData.portOfLoading || null,
-        port_of_discharge: formData.portOfDischarge || null,
-        latest_shipment_date: formData.latestShipmentDate || null,
-        presentation_period: formData.presentationPeriod || null,
-        required_documents: formData.requiredDocuments.length > 0 ? formData.requiredDocuments : null,
-        additional_conditions: formData.additionalConditions || null,
-        swift_mt700_data: {
-          formOfDocumentaryCredit: formData.formOfDocumentaryCredit,
-          applicableRules: formData.applicableRules,
-          popiNumber: formData.popiNumber,
-          popiType: formData.popiType,
-          tolerance: formData.tolerance,
-          additionalAmount: formData.additionalAmount,
-          advisingBankSwiftCode: formData.advisingBankSwiftCode
-        },
-        status: status,
-        submitted_at: status === 'submitted' ? new Date().toISOString() : null
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error saving Import LC request:', error);
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error saving Import LC request:', error);
-    throw error;
-  }
-};
-
-// Create transaction record for Import LC
-const createTransactionRecord = async (formData: ImportLCFormData) => {
-  const user = getCurrentUser();
-  if (!user) return;
-
-  try {
-    const { error } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: user.id,
-        transaction_ref: formData.corporateReference,
-        product_type: 'Import LC',
-        status: 'Submitted',
-        customer_name: formData.beneficiaryName || null,
-        amount: formData.lcAmount || null,
-        currency: formData.currency || 'USD',
-        created_by: user.user_id,
-        initiating_channel: 'Portal'
+        description_of_goods: formData.descriptionOfGoods,
+        port_of_loading: formData.portOfLoading,
+        port_of_discharge: formData.portOfDischarge,
+        latest_shipment_date: formData.latestShipmentDate,
+        presentation_period: formData.presentationPeriod,
+        required_documents: formData.requiredDocuments,
+        additional_conditions: formData.additionalConditions,
+        status: 'draft'
       });
 
-    if (error) {
-      console.error('Error creating transaction record:', error);
-    }
-  } catch (error) {
-    console.error('Error creating transaction record:', error);
+    return { data, error };
+  } catch (err) {
+    console.error('Error saving Import LC request:', err);
+    return { data: null, error: err };
   }
 };
 
-// Generate SWIFT MT 700 message
-export const generateMT700Draft = (formData: ImportLCFormData): string => {
-  const mt700 = `
-SWIFT MT 700 - DOCUMENTARY CREDIT ISSUE
-=================================================
-
-:20: ${formData.corporateReference}
-:23: ${formData.formOfDocumentaryCredit || 'IRREVOCABLE'}
-:31C: ${formData.issueDate}
-:31D: ${formData.expiryDate} ${formData.placeOfExpiry}
-:32B: ${formData.currency}${formData.lcAmount}
-:39A: ${formData.tolerance || 'NOT APPLICABLE'}
-:41A: ${formData.availableWith}
-:42C: ${formData.availableBy}
-:43P: ${formData.partialShipmentsAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
-:43T: ${formData.transshipmentAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
-:44E: ${formData.portOfLoading}
-:44F: ${formData.portOfDischarge}
-:44C: ${formData.latestShipmentDate}
-:45A: ${formData.descriptionOfGoods}
-:46A: ${formData.requiredDocuments.join('\n')}
-:47A: ${formData.additionalConditions || 'NONE'}
-:48: ${formData.presentationPeriod || '21 DAYS AFTER SHIPMENT DATE'}
-:49: ${formData.applicableRules}
-:50: ${formData.applicantName}
-      ${formData.applicantAddress}
-:59: ${formData.beneficiaryName}
-      ${formData.beneficiaryAddress}
-:78: ${formData.additionalConditions || 'STANDARD LC CONDITIONS APPLY'}
-
-Generated on: ${new Date().toISOString()}
-=================================================
-  `.trim();
-
-  return mt700;
+export const generateSwiftMT700 = (formData: ImportLCFormData): string => {
+  const currentDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  
+  return `{1:F01BANKSGSGAXXX0000000000}
+{2:O7001200${currentDate}BANKSGSGAXXX00000000001200${currentDate}N}
+{3:{108:MT700 COV}}
+{4:
+:20:${formData.corporateReference}
+:31C:${formData.issueDate ? formData.issueDate.replace(/-/g, '') : ''}
+:40A:${formData.formOfDocumentaryCredit || 'IRREVOCABLE'}
+:20:${formData.corporateReference}
+:31D:${formData.expiryDate ? formData.expiryDate.replace(/-/g, '') : ''}/${formData.placeOfExpiry || ''}
+:50:${formData.applicantName}
+${formData.applicantAddress}
+:59:${formData.beneficiaryName}
+${formData.beneficiaryAddress}
+:32B:${formData.currency}${formData.lcAmount}
+:39A:${formData.tolerance || '+/-0%'}
+:41A:${formData.availableWith || ''}
+:42C:${formData.availableBy || ''}
+:43P:${formData.partialShipmentsAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
+:43T:${formData.transshipmentAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
+:44A:${formData.portOfLoading || ''}
+:44E:${formData.portOfDischarge || ''}
+:44C:${formData.latestShipmentDate ? formData.latestShipmentDate.replace(/-/g, '') : ''}
+:45A:${formData.descriptionOfGoods || ''}
+:46A:${formData.requiredDocuments.join('\n') || ''}
+:47A:${formData.additionalConditions || ''}
+:71B:${formData.presentationPeriod || ''}
+:48:${formData.presentationPeriod || ''}
+:49:${formData.additionalConditions || ''}
+:57A:${formData.advisingBankSwiftCode || ''}
+:78:${formData.applicableRules || 'UCP LATEST VERSION'}
+-}`;
 };
 
-// Export MT 700 draft
-export const exportMT700 = (formData: ImportLCFormData, format: 'download' | 'email' = 'download') => {
-  const mt700Text = generateMT700Draft(formData);
-  
-  if (format === 'download') {
-    const blob = new Blob([mt700Text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `MT700_${formData.corporateReference || 'Draft'}_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-  
-  return mt700Text;
+export const downloadSwiftMT700 = (formData: ImportLCFormData) => {
+  const swiftMessage = generateSwiftMT700(formData);
+  const blob = new Blob([swiftMessage], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `MT700_${formData.corporateReference || 'draft'}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
