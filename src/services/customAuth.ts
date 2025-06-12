@@ -28,6 +28,20 @@ const verifyPassword = (password: string, hash: string): boolean => {
   return hashPassword(password) === hash;
 };
 
+// Store auth state change listeners
+let authStateChangeListeners: ((session: CustomSession | null) => void)[] = [];
+
+// Helper function to notify all listeners
+const notifyAuthStateChange = (session: CustomSession | null) => {
+  authStateChangeListeners.forEach(callback => {
+    try {
+      callback(session);
+    } catch (error) {
+      console.error('Error in auth state change callback:', error);
+    }
+  });
+};
+
 export const customAuth = {
   // Sign up new user
   signUp: async (userData: {
@@ -93,6 +107,9 @@ export const customAuth = {
       // Store session in localStorage
       localStorage.setItem('custom_session', JSON.stringify(session));
 
+      // Immediately notify all listeners about the new session
+      notifyAuthStateChange(session);
+
       return { session, error: null };
     } catch (error) {
       console.error('Signin error:', error);
@@ -103,6 +120,10 @@ export const customAuth = {
   // Sign out user
   signOut: async () => {
     localStorage.removeItem('custom_session');
+    
+    // Immediately notify all listeners about sign out
+    notifyAuthStateChange(null);
+    
     return { error: null };
   },
 
@@ -118,21 +139,20 @@ export const customAuth = {
     }
   },
 
-  // Session change listener (simplified)
+  // Session change listener (enhanced with immediate notifications)
   onAuthStateChange: (callback: (session: CustomSession | null) => void) => {
-    // Check for session changes
-    const checkSession = () => {
-      const session = customAuth.getSession();
-      callback(session);
-    };
+    // Add the callback to our listeners array
+    authStateChangeListeners.push(callback);
 
     // Initial check
-    checkSession();
+    const session = customAuth.getSession();
+    callback(session);
 
-    // Listen for storage changes
+    // Listen for storage changes (for cross-tab synchronization)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'custom_session') {
-        checkSession();
+        const session = customAuth.getSession();
+        callback(session);
       }
     };
 
@@ -140,6 +160,8 @@ export const customAuth = {
 
     return {
       unsubscribe: () => {
+        // Remove the callback from our listeners array
+        authStateChangeListeners = authStateChangeListeners.filter(cb => cb !== callback);
         window.removeEventListener('storage', handleStorageChange);
       }
     };
