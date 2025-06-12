@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImportLCFormData } from '@/hooks/useImportLCForm';
-import POPISearchDropdown from './POPISearchDropdown';
+import POPISearchableSelect from './POPISearchableSelect';
 
 interface BasicLCInformationPaneProps {
   formData: ImportLCFormData;
@@ -44,7 +44,7 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <POPISearchDropdown
+          <POPISearchableSelect
             selectedPOPI={selectedPOPI}
             onSelectPOPI={handlePOPISelect}
             popiType={formData.popiType}

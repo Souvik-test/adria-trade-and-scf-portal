@@ -7,6 +7,7 @@ import BeneficiaryInformationPane from './BeneficiaryInformationPane';
 import LCAmountTermsPane from './LCAmountTermsPane';
 import ShipmentDetailsPane from './ShipmentDetailsPane';
 import DocumentRequirementsPane from './DocumentRequirementsPane';
+import MT700PreviewPane from './MT700PreviewPane';
 
 interface ImportLCPaneRendererProps {
   currentStep: ImportLCFormStep;
@@ -60,6 +61,12 @@ const ImportLCPaneRenderer: React.FC<ImportLCPaneRendererProps> = ({
         <DocumentRequirementsPane
           formData={formData}
           updateField={updateField}
+        />
+      );
+    case 'preview':
+      return (
+        <MT700PreviewPane
+          formData={formData}
         />
       );
     default:

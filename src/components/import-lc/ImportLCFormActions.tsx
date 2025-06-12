@@ -26,7 +26,7 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
   onClose,
   onBack
 }) => {
-  const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
+  const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents', 'preview'];
   const currentStepIndex = steps.indexOf(currentStep);
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
@@ -45,11 +45,11 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
           </Button>
         ) : (
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={onPrevious}
-            className="px-6 text-gray-600 border-gray-300 hover:bg-gray-50"
+            className="px-6 text-corporate-blue hover:bg-corporate-blue/10"
           >
-            ← Previous
+            ← Go Back
           </Button>
         )}
       </div>
@@ -78,7 +78,7 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
             disabled={!isValid}
             className="px-8 bg-corporate-blue text-white hover:bg-corporate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit
+            Submit Request
           </Button>
         ) : (
           <Button

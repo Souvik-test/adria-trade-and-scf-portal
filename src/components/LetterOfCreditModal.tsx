@@ -81,14 +81,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             {type === 'import' ? 'Import' : 'Export'} Letter of Credit
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 p-2">
+        <div className="space-y-6 p-2 h-full overflow-hidden">
           {renderContent()}
         </div>
       </DialogContent>
