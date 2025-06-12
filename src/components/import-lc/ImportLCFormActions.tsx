@@ -26,30 +26,30 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
   onClose,
   onBack
 }) => {
-  const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents', 'preview'];
+  const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
   const currentStepIndex = steps.indexOf(currentStep);
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
   return (
-    <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
+    <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-600">
       {/* Left side - Go Back button */}
       <div className="flex gap-3">
         {isFirstStep ? (
           <Button
-            variant="ghost"
             onClick={onBack}
-            className="px-6 text-corporate-blue hover:bg-corporate-blue/10"
+            variant="outline"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
-            ← Go Back
+            Go Back
           </Button>
         ) : (
           <Button
-            variant="ghost"
             onClick={onPrevious}
-            className="px-6 text-corporate-blue hover:bg-corporate-blue/10"
+            variant="outline"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
-            ← Go Back
+            Go Back
           </Button>
         )}
       </div>
@@ -57,17 +57,17 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
       {/* Right side - Actions */}
       <div className="flex gap-3">
         <Button
-          variant="outline"
           onClick={onDiscard}
-          className="px-6 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+          variant="outline"
+          className="border-red-400 dark:border-red-500 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500 dark:hover:border-red-400 px-6 py-2 text-sm font-medium"
         >
           Discard
         </Button>
         
         <Button
-          variant="outline"
           onClick={onSaveDraft}
-          className="px-6 text-amber-600 border-amber-200 hover:bg-amber-50 hover:border-amber-300"
+          variant="outline"
+          className="border-amber-400 dark:border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
         >
           Save as Draft
         </Button>
@@ -76,7 +76,7 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
           <Button
             onClick={onSubmit}
             disabled={!isValid}
-            className="px-8 bg-corporate-blue text-white hover:bg-corporate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-corporate-blue text-white hover:bg-corporate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed px-8"
           >
             Submit Request
           </Button>
@@ -84,9 +84,9 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
           <Button
             onClick={onNext}
             disabled={!isValid}
-            className="px-8 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed px-8"
           >
-            Next →
+            Next
           </Button>
         )}
       </div>

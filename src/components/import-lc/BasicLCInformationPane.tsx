@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImportLCFormData } from '@/hooks/useImportLCForm';
-import POPISearchableSelect from './POPISearchableSelect';
+import POPISearchSection from './POPISearchSection';
 
 interface BasicLCInformationPaneProps {
   formData: ImportLCFormData;
@@ -16,27 +16,8 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
   formData,
   updateField
 }) => {
-  const handlePOPISelect = (popi: any) => {
-    if (popi) {
-      updateField('popiNumber', popi.number);
-      updateField('popiType', popi.type);
-    } else {
-      updateField('popiNumber', '');
-      updateField('popiType', '');
-    }
-  };
-
-  const selectedPOPI = formData.popiNumber ? {
-    id: '',
-    number: formData.popiNumber,
-    type: formData.popiType as 'PO' | 'PI',
-    date: '',
-    amount: 0,
-    currency: 'USD'
-  } : null;
-
   return (
-    <div className="space-y-6 max-h-[calc(75vh-200px)] overflow-y-auto pr-2">
+    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
       <Card className="border border-gray-200 dark:border-gray-600">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
@@ -44,11 +25,9 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <POPISearchableSelect
-            selectedPOPI={selectedPOPI}
-            onSelectPOPI={handlePOPISelect}
-            popiType={formData.popiType}
-            onTypeChange={(type) => updateField('popiType', type)}
+          <POPISearchSection
+            formData={formData}
+            updateField={updateField}
           />
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 
 export interface ImportLCFormData {
@@ -48,7 +49,7 @@ export interface ImportLCFormData {
   supportingDocuments: File[];
 }
 
-export type ImportLCFormStep = 'basic' | 'applicant' | 'beneficiary' | 'amount' | 'shipment' | 'documents' | 'preview';
+export type ImportLCFormStep = 'basic' | 'applicant' | 'beneficiary' | 'amount' | 'shipment' | 'documents';
 
 const useImportLCForm = () => {
   const [currentStep, setCurrentStep] = useState<ImportLCFormStep>('basic');
@@ -103,7 +104,7 @@ const useImportLCForm = () => {
   }, []);
 
   const nextStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents', 'preview'];
+    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -111,7 +112,7 @@ const useImportLCForm = () => {
   }, [currentStep]);
 
   const previousStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents', 'preview'];
+    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
@@ -133,8 +134,6 @@ const useImportLCForm = () => {
         return !!(formData.descriptionOfGoods && formData.latestShipmentDate);
       case 'documents':
         return formData.requiredDocuments.length > 0;
-      case 'preview':
-        return true; // Always valid for preview step
       default:
         return false;
     }
