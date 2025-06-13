@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ImportLCFormData } from '@/hooks/useImportLCForm';
 
 interface ImportLCFormProps {
   onBack: () => void;
@@ -142,11 +143,11 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   };
 
   // Create a wrapper function to handle boolean field updates with proper type conversion
-  const handleFieldUpdate = (field: string, value: any) => {
+  const handleFieldUpdate = (field: keyof ImportLCFormData, value: any) => {
     if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
-      updateField(field as keyof typeof formData, Boolean(value));
+      updateField(field, Boolean(value));
     } else {
-      updateField(field as keyof typeof formData, value);
+      updateField(field, value);
     }
   };
 
