@@ -135,12 +135,8 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
       </div>
 
       <POPISearchSection
-        selectedPOPI={formData.popiNumber}
-        selectedPOPIType={formData.popiType}
-        onPOPISelect={(popi) => {
-          updateField('popiNumber', popi.number);
-          updateField('popiType', popi.type);
-        }}
+        formData={formData}
+        updateField={updateField}
       />
     </div>
   );
