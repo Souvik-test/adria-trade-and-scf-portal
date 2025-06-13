@@ -141,6 +141,15 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     }
   };
 
+  // Create a wrapper function to handle boolean field updates with proper type conversion
+  const handleFieldUpdate = (field: string, value: any) => {
+    if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
+      updateField(field as keyof typeof formData, Boolean(value));
+    } else {
+      updateField(field as keyof typeof formData, value);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen overflow-hidden">
       {/* Main Form Content */}
@@ -166,7 +175,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             <ImportLCPaneRenderer
               currentStep={currentStep}
               formData={formData}
-              updateField={updateField}
+              updateField={handleFieldUpdate}
             />
           </ScrollArea>
         </div>
