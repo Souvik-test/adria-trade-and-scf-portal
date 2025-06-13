@@ -1,6 +1,23 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
+
+export interface PartyDetail {
+  id: string;
+  role: 'applicant' | 'beneficiary' | 'advising_bank' | 'issuing_bank' | 'confirming_bank';
+  name: string;
+  address: string;
+  swiftCode?: string;
+  accountNumber?: string;
+}
+
+export interface DocumentRequirement {
+  id: string;
+  name: string;
+  original: number;
+  copies: number;
+}
 
 export interface ImportLCFormData {
   // Basic LC Information
@@ -15,12 +32,13 @@ export interface ImportLCFormData {
   placeOfExpiry: string;
   confirmation: string;
 
-  // Applicant Information
+  // Party Information (updated structure)
+  parties: PartyDetail[];
+  
+  // Legacy fields for backward compatibility
   applicantName: string;
   applicantAddress: string;
   applicantAccountNumber: string;
-
-  // Beneficiary Information
   beneficiaryName: string;
   beneficiaryAddress: string;
   beneficiaryBankName: string;
@@ -45,7 +63,8 @@ export interface ImportLCFormData {
   latestShipmentDate: string;
   presentationPeriod: string;
 
-  // Document Requirements
+  // Document Requirements (updated structure)
+  documentRequirements: DocumentRequirement[];
   requiredDocuments: string[];
   additionalConditions: string;
   supportingDocuments: File[];
@@ -66,6 +85,7 @@ const useImportLCForm = () => {
     expiryDate: '',
     placeOfExpiry: '',
     confirmation: '',
+    parties: [],
     applicantName: '',
     applicantAddress: '',
     applicantAccountNumber: '',
@@ -88,6 +108,7 @@ const useImportLCForm = () => {
     portOfDischarge: '',
     latestShipmentDate: '',
     presentationPeriod: '',
+    documentRequirements: [],
     requiredDocuments: [],
     additionalConditions: '',
     supportingDocuments: []
@@ -128,18 +149,65 @@ const useImportLCForm = () => {
       case 'basic':
         return !!(formData.corporateReference && formData.formOfDocumentaryCredit);
       case 'parties':
-        return !!(formData.applicantName && formData.applicantAddress && 
-                 formData.beneficiaryName && formData.beneficiaryAddress);
+        const hasApplicant = formData.parties.some(p => p.role === 'applicant') || 
+                           (formData.applicantName && formData.applicantAddress);
+        const hasBeneficiary = formData.parties.some(p => p.role === 'beneficiary') || 
+                             (formData.beneficiaryName && formData.beneficiaryAddress);
+        return hasApplicant && hasBeneficiary;
       case 'amount':
         return !!(formData.lcAmount > 0 && formData.currency);
       case 'shipment':
         return !!(formData.descriptionOfGoods && formData.latestShipmentDate);
       case 'documents':
-        return formData.requiredDocuments.length > 0;
+        return formData.documentRequirements.length > 0 || formData.requiredDocuments.length > 0;
       default:
         return false;
     }
   }, [currentStep, formData]);
+
+  // Reset form
+  const resetForm = useCallback(() => {
+    setFormData({
+      popiNumber: '',
+      popiType: '',
+      formOfDocumentaryCredit: '',
+      corporateReference: '',
+      applicableRules: 'UCP Latest Version',
+      lcType: '',
+      issueDate: '',
+      expiryDate: '',
+      placeOfExpiry: '',
+      confirmation: '',
+      parties: [],
+      applicantName: '',
+      applicantAddress: '',
+      applicantAccountNumber: '',
+      beneficiaryName: '',
+      beneficiaryAddress: '',
+      beneficiaryBankName: '',
+      beneficiaryBankAddress: '',
+      beneficiaryBankSwiftCode: '',
+      advisingBankSwiftCode: '',
+      lcAmount: 0,
+      currency: 'USD',
+      tolerance: '',
+      additionalAmount: 0,
+      availableWith: '',
+      availableBy: '',
+      partialShipmentsAllowed: false,
+      transshipmentAllowed: false,
+      descriptionOfGoods: '',
+      portOfLoading: '',
+      portOfDischarge: '',
+      latestShipmentDate: '',
+      presentationPeriod: '',
+      documentRequirements: [],
+      requiredDocuments: [],
+      additionalConditions: '',
+      supportingDocuments: []
+    });
+    setCurrentStep('basic');
+  }, []);
 
   // Submit form
   const submitForm = useCallback(async () => {
@@ -149,6 +217,11 @@ const useImportLCForm = () => {
     }
 
     try {
+      // Sync party data to legacy fields for database compatibility
+      const applicantParty = formData.parties.find(p => p.role === 'applicant');
+      const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
+      const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
+
       const { data, error } = await supabase
         .from('import_lc_requests')
         .insert({
@@ -162,15 +235,15 @@ const useImportLCForm = () => {
           issue_date: formData.issueDate || null,
           expiry_date: formData.expiryDate || null,
           place_of_expiry: formData.placeOfExpiry,
-          applicant_name: formData.applicantName,
-          applicant_address: formData.applicantAddress,
-          applicant_account_number: formData.applicantAccountNumber,
-          beneficiary_name: formData.beneficiaryName,
-          beneficiary_address: formData.beneficiaryAddress,
+          applicant_name: applicantParty?.name || formData.applicantName,
+          applicant_address: applicantParty?.address || formData.applicantAddress,
+          applicant_account_number: applicantParty?.accountNumber || formData.applicantAccountNumber,
+          beneficiary_name: beneficiaryParty?.name || formData.beneficiaryName,
+          beneficiary_address: beneficiaryParty?.address || formData.beneficiaryAddress,
           beneficiary_bank_name: formData.beneficiaryBankName,
           beneficiary_bank_address: formData.beneficiaryBankAddress,
-          beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode,
-          advising_bank_swift_code: formData.advisingBankSwiftCode,
+          beneficiary_bank_swift_code: beneficiaryParty?.swiftCode || formData.beneficiaryBankSwiftCode,
+          advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
           lc_amount: formData.lcAmount,
           currency: formData.currency,
           tolerance: formData.tolerance,
@@ -184,7 +257,9 @@ const useImportLCForm = () => {
           port_of_discharge: formData.portOfDischarge,
           latest_shipment_date: formData.latestShipmentDate || null,
           presentation_period: formData.presentationPeriod,
-          required_documents: formData.requiredDocuments,
+          required_documents: formData.documentRequirements.length > 0 
+            ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
+            : formData.requiredDocuments,
           additional_conditions: formData.additionalConditions,
           status: 'submitted'
         })
@@ -210,7 +285,8 @@ const useImportLCForm = () => {
     nextStep,
     previousStep,
     validateCurrentStep,
-    submitForm
+    submitForm,
+    resetForm
   };
 };
 

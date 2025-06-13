@@ -1,14 +1,12 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, FileText, Trash2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
+import { Plus, Trash2 } from 'lucide-react';
+import { ImportLCFormData, DocumentRequirement } from '@/hooks/useImportLCForm';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
@@ -19,197 +17,166 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   formData,
   updateField
 }) => {
-  const [customDocument, setCustomDocument] = useState('');
+  const [newDocumentName, setNewDocumentName] = useState('');
 
   const standardDocuments = [
     'Commercial Invoice',
     'Packing List',
     'Bill of Lading',
-    'Insurance Certificate',
     'Certificate of Origin',
+    'Insurance Certificate',
+    'Quality Certificate',
     'Inspection Certificate',
-    'Beneficiary Certificate',
     'Weight Certificate',
-    'Quality Certificate'
+    'Fumigation Certificate',
+    'Health Certificate'
   ];
 
-  const handleDocumentSelect = (document: string, checked: boolean) => {
-    const updatedDocuments = checked
-      ? [...formData.requiredDocuments, document]
-      : formData.requiredDocuments.filter(doc => doc !== document);
-    updateField('requiredDocuments', updatedDocuments);
+  const addDocument = (documentName?: string) => {
+    const name = documentName || newDocumentName;
+    if (!name.trim()) return;
+
+    const newDoc: DocumentRequirement = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      original: 1,
+      copies: 0
+    };
+
+    updateField('documentRequirements', [...formData.documentRequirements, newDoc]);
+    setNewDocumentName('');
   };
 
-  const handleAddCustomDocument = () => {
-    if (customDocument.trim() && !formData.requiredDocuments.includes(customDocument.trim())) {
-      updateField('requiredDocuments', [...formData.requiredDocuments, customDocument.trim()]);
-      setCustomDocument('');
-    }
+  const removeDocument = (id: string) => {
+    updateField('documentRequirements', 
+      formData.documentRequirements.filter(doc => doc.id !== id)
+    );
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length > 0) {
-      updateField('supportingDocuments', [...formData.supportingDocuments, ...files]);
-    }
+  const updateDocument = (id: string, field: keyof DocumentRequirement, value: string | number) => {
+    updateField('documentRequirements',
+      formData.documentRequirements.map(doc => 
+        doc.id === id ? { ...doc, [field]: value } : doc
+      )
+    );
   };
 
-  const handleRemoveFile = (index: number) => {
-    const updatedFiles = formData.supportingDocuments.filter((_, i) => i !== index);
-    updateField('supportingDocuments', updatedFiles);
+  const formatDocumentDisplay = (doc: DocumentRequirement) => {
+    const originalText = doc.original === 1 ? '1 Original' : `${doc.original} Originals`;
+    const copyText = doc.copies === 0 ? '' : doc.copies === 1 ? ', 1 Copy' : `, ${doc.copies} Copies`;
+    return `${doc.name} - ${originalText}${copyText}`;
   };
 
   return (
-    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
-      <div className="space-y-6 pr-4">
-        <Card className="border border-gray-200 dark:border-gray-600">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-              Document Requirements
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Required Documents */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-                Required Documents <span className="text-red-500">*</span>
-              </Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {standardDocuments.map((doc) => (
-                  <div key={doc} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={doc}
-                      checked={formData.requiredDocuments.includes(doc)}
-                      onCheckedChange={(checked) => handleDocumentSelect(doc, checked as boolean)}
-                    />
-                    <Label htmlFor={doc} className="text-sm text-gray-700 dark:text-gray-300">
-                      {doc}
-                    </Label>
+    <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Document Requirements</h3>
+        
+        {/* Quick Add Standard Documents */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Quick Add Standard Documents
+          </Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+            {standardDocuments.map((doc) => (
+              <Button
+                key={doc}
+                onClick={() => addDocument(doc)}
+                variant="outline"
+                size="sm"
+                className="text-xs h-8 justify-start"
+                disabled={formData.documentRequirements.some(d => d.name === doc)}
+              >
+                {doc}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Document Addition */}
+        <div className="space-y-2 mb-6">
+          <Label htmlFor="customDocument">Add Custom Document</Label>
+          <div className="flex gap-2">
+            <Input
+              id="customDocument"
+              value={newDocumentName}
+              onChange={(e) => setNewDocumentName(e.target.value)}
+              placeholder="Enter document name"
+              onKeyPress={(e) => e.key === 'Enter' && addDocument()}
+            />
+            <Button onClick={() => addDocument()} disabled={!newDocumentName.trim()}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Document Requirements List */}
+        <div className="space-y-4">
+          {formData.documentRequirements.length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400">
+                No documents added yet. Add documents using the buttons above.
+              </p>
+            </div>
+          ) : (
+            formData.documentRequirements.map((doc) => (
+              <div key={doc.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">{doc.name}</Label>
+                    <p className="text-xs text-gray-500 mt-1">{formatDocumentDisplay(doc)}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom Document */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Add Custom Document
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  value={customDocument}
-                  onChange={(e) => setCustomDocument(e.target.value)}
-                  placeholder="Enter custom document name"
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline" 
-                  onClick={handleAddCustomDocument}
-                  disabled={!customDocument.trim()}
-                  className="bg-corporate-teal-100 hover:bg-corporate-teal-200 text-corporate-teal-700 border-corporate-teal-300"
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-
-            {/* Selected Documents Display */}
-            {formData.requiredDocuments.length > 0 && (
-              <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Selected Documents ({formData.requiredDocuments.length})
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {formData.requiredDocuments.map((doc, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-corporate-teal-100 text-corporate-teal-800 dark:bg-corporate-teal-900 dark:text-corporate-teal-200"
-                    >
-                      {doc}
-                    </span>
-                  ))}
+                  <Button
+                    onClick={() => removeDocument(doc.id)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`original-${doc.id}`} className="text-xs">Original(s)</Label>
+                    <Input
+                      id={`original-${doc.id}`}
+                      type="number"
+                      min="0"
+                      value={doc.original}
+                      onChange={(e) => updateDocument(doc.id, 'original', parseInt(e.target.value) || 0)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`copies-${doc.id}`} className="text-xs">Copy/Copies</Label>
+                    <Input
+                      id={`copies-${doc.id}`}
+                      type="number"
+                      min="0"
+                      value={doc.copies}
+                      onChange={(e) => updateDocument(doc.id, 'copies', parseInt(e.target.value) || 0)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
-            )}
-
-            {/* Additional Conditions */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Additional Conditions & Special Instructions
-              </Label>
-              <Textarea
-                value={formData.additionalConditions}
-                onChange={(e) => updateField('additionalConditions', e.target.value)}
-                placeholder="Enter any additional conditions or special instructions"
-                rows={4}
-              />
-            </div>
-
-            {/* Supporting Documents Upload */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-                Upload Supporting Documents
-              </Label>
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
-                <div className="text-gray-600 dark:text-gray-400 mb-2">
-                  Upload supporting documents
-                </div>
-                <input
-                  type="file"
-                  id="supporting-docs-upload"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                  multiple
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById('supporting-docs-upload')?.click()}
-                  className="mb-2"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Choose Files
-                </Button>
-                <div className="text-xs text-gray-500">
-                  Accepted formats: PDF, DOC, DOCX, PNG, JPG, JPEG
-                </div>
-              </div>
-            </div>
-
-            {/* Uploaded Files Display */}
-            {formData.supportingDocuments.length > 0 && (
-              <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
-                  Uploaded Files ({formData.supportingDocuments.length})
-                </Label>
-                <div className="space-y-2">
-                  {formData.supportingDocuments.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-corporate-teal-500" />
-                        <span className="text-sm font-medium">{file.name}</span>
-                        <span className="text-xs text-gray-500">
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveFile(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            ))
+          )}
+        </div>
       </div>
-    </ScrollArea>
+
+      <div>
+        <Label htmlFor="additionalConditions">Additional Conditions</Label>
+        <Textarea
+          id="additionalConditions"
+          value={formData.additionalConditions}
+          onChange={(e) => updateField('additionalConditions', e.target.value)}
+          placeholder="Enter any additional conditions or special instructions"
+          rows={4}
+        />
+      </div>
+    </div>
   );
 };
 

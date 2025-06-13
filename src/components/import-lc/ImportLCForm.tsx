@@ -8,6 +8,7 @@ import MT700SidebarPreview from './MT700SidebarPreview';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ImportLCFormProps {
   onBack: () => void;
@@ -24,7 +25,8 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     nextStep,
     previousStep,
     validateCurrentStep,
-    submitForm
+    submitForm,
+    resetForm
   } = useImportLCForm();
 
   const handleSubmit = async () => {
@@ -52,6 +54,11 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
         throw new Error('User not authenticated');
       }
 
+      // Sync party data to legacy fields for database compatibility
+      const applicantParty = formData.parties.find(p => p.role === 'applicant');
+      const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
+      const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
+
       const { error } = await supabase
         .from('import_lc_requests')
         .insert({
@@ -65,15 +72,15 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           issue_date: formData.issueDate || null,
           expiry_date: formData.expiryDate || null,
           place_of_expiry: formData.placeOfExpiry,
-          applicant_name: formData.applicantName,
-          applicant_address: formData.applicantAddress,
-          applicant_account_number: formData.applicantAccountNumber,
-          beneficiary_name: formData.beneficiaryName,
-          beneficiary_address: formData.beneficiaryAddress,
+          applicant_name: applicantParty?.name || formData.applicantName,
+          applicant_address: applicantParty?.address || formData.applicantAddress,
+          applicant_account_number: applicantParty?.accountNumber || formData.applicantAccountNumber,
+          beneficiary_name: beneficiaryParty?.name || formData.beneficiaryName,
+          beneficiary_address: beneficiaryParty?.address || formData.beneficiaryAddress,
           beneficiary_bank_name: formData.beneficiaryBankName,
           beneficiary_bank_address: formData.beneficiaryBankAddress,
-          beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode,
-          advising_bank_swift_code: formData.advisingBankSwiftCode,
+          beneficiary_bank_swift_code: beneficiaryParty?.swiftCode || formData.beneficiaryBankSwiftCode,
+          advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
           lc_amount: formData.lcAmount,
           currency: formData.currency,
           tolerance: formData.tolerance,
@@ -87,7 +94,9 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           port_of_discharge: formData.portOfDischarge,
           latest_shipment_date: formData.latestShipmentDate || null,
           presentation_period: formData.presentationPeriod,
-          required_documents: formData.requiredDocuments,
+          required_documents: formData.documentRequirements.length > 0 
+            ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
+            : formData.requiredDocuments,
           additional_conditions: formData.additionalConditions,
           status: 'draft'
         });
@@ -108,10 +117,17 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     }
   };
 
+  const handleDiscard = () => {
+    if (window.confirm('Are you sure you want to discard all changes? This action cannot be undone.')) {
+      resetForm();
+      onClose();
+    }
+  };
+
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full max-h-[90vh]">
       {/* Main Form Content */}
-      <div className="flex-1 flex flex-col max-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header with Progress */}
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-600 pb-4 mb-6 px-6 pt-6 bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">
@@ -129,11 +145,13 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-hidden px-6">
-          <ImportLCPaneRenderer
-            currentStep={currentStep}
-            formData={formData}
-            updateField={updateField}
-          />
+          <ScrollArea className="h-full">
+            <ImportLCPaneRenderer
+              currentStep={currentStep}
+              formData={formData}
+              updateField={updateField}
+            />
+          </ScrollArea>
         </div>
 
         {/* Actions */}
@@ -145,7 +163,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             onNext={nextStep}
             onSaveDraft={handleSaveDraft}
             onSubmit={handleSubmit}
-            onDiscard={() => console.log('Discard')}
+            onDiscard={handleDiscard}
             onClose={onClose}
             onBack={onBack}
           />
