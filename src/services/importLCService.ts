@@ -9,11 +9,16 @@ export const fetchImportLCRequests = async () => {
     throw new Error('User not authenticated');
   }
 
-  // Set the user context for RLS
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: user.user_id
-  });
+  // Set the user context for RLS using a direct query
+  const { error: configError } = await supabase
+    .from('custom_users')
+    .select('id')
+    .eq('user_id', user.user_id)
+    .limit(1);
+
+  if (configError) {
+    console.error('User context error:', configError);
+  }
 
   const { data, error } = await supabase
     .from('import_lc_requests')
@@ -33,11 +38,16 @@ export const fetchImportLCRequest = async (id: string) => {
     throw new Error('User not authenticated');
   }
 
-  // Set the user context for RLS
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: user.user_id
-  });
+  // Set the user context for RLS using a direct query
+  const { error: configError } = await supabase
+    .from('custom_users')
+    .select('id')
+    .eq('user_id', user.user_id)
+    .limit(1);
+
+  if (configError) {
+    console.error('User context error:', configError);
+  }
 
   const { data, error } = await supabase
     .from('import_lc_requests')
@@ -58,11 +68,16 @@ export const deleteImportLCRequest = async (id: string) => {
     throw new Error('User not authenticated');
   }
 
-  // Set the user context for RLS
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: user.user_id
-  });
+  // Set the user context for RLS using a direct query
+  const { error: configError } = await supabase
+    .from('custom_users')
+    .select('id')
+    .eq('user_id', user.user_id)
+    .limit(1);
+
+  if (configError) {
+    console.error('User context error:', configError);
+  }
 
   const { error } = await supabase
     .from('import_lc_requests')

@@ -16,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 interface POPIItem {
@@ -31,34 +30,32 @@ interface POPIItem {
 }
 
 interface POPISearchableSelectProps {
-  selectedPOPI: POPIItem | null;
-  onSelectPOPI: (popi: POPIItem | null) => void;
-  popiType: 'PO' | 'PI' | '';
-  onTypeChange: (type: 'PO' | 'PI' | '') => void;
+  type: 'PO' | 'PI';
+  value: string;
+  onChange: (value: string) => void;
 }
 
 const POPISearchableSelect: React.FC<POPISearchableSelectProps> = ({
-  selectedPOPI,
-  onSelectPOPI,
-  popiType,
-  onTypeChange
+  type,
+  value,
+  onChange
 }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<POPIItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (popiType) {
+    if (type) {
       fetchItems();
     } else {
       setItems([]);
     }
-  }, [popiType]);
+  }, [type]);
 
   const fetchItems = async () => {
     setLoading(true);
     try {
-      if (popiType === 'PO') {
+      if (type === 'PO') {
         const { data, error } = await supabase
           .from('purchase_orders')
           .select('id, po_number, po_date, grand_total, currency, vendor_supplier')
@@ -77,7 +74,7 @@ const POPISearchableSelect: React.FC<POPISearchableSelectProps> = ({
         })) || [];
 
         setItems(mappedData);
-      } else if (popiType === 'PI') {
+      } else if (type === 'PI') {
         const { data, error } = await supabase
           .from('proforma_invoices')
           .select('id, pi_number, pi_date, grand_total, currency, buyer_name')
@@ -104,97 +101,60 @@ const POPISearchableSelect: React.FC<POPISearchableSelectProps> = ({
     }
   };
 
-  const handleTypeChange = (type: 'PO' | 'PI') => {
-    onTypeChange(type);
-    onSelectPOPI(null);
-    setItems([]);
-  };
+  const selectedItem = items.find(item => item.number === value);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          POPI Type <span className="text-red-500">*</span>
-        </Label>
-        <div className="flex gap-4 mt-2">
-          <Button
-            type="button"
-            variant={popiType === 'PO' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('PO')}
-            className="px-6"
-          >
-            Purchase Order
-          </Button>
-          <Button
-            type="button"
-            variant={popiType === 'PI' ? 'default' : 'outline'}
-            onClick={() => handleTypeChange('PI')}
-            className="px-6"
-          >
-            Proforma Invoice
-          </Button>
-        </div>
-      </div>
-
-      {popiType && (
-        <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Select {popiType === 'PO' ? 'Purchase Order' : 'Proforma Invoice'}
-          </Label>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between mt-1"
-              >
-                {selectedPOPI
-                  ? `${selectedPOPI.number} - ${selectedPOPI.currency} ${selectedPOPI.amount.toLocaleString()}`
-                  : `Select ${popiType}...`}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput placeholder={`Search ${popiType}...`} />
-                <CommandList>
-                  <CommandEmpty>
-                    {loading ? 'Loading...' : `No ${popiType} found.`}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {items.map((item) => (
-                      <CommandItem
-                        key={item.id}
-                        value={item.number}
-                        onSelect={() => {
-                          onSelectPOPI(item);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedPOPI?.id === item.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium">{item.number}</div>
-                          <div className="text-sm text-gray-500">
-                            {item.type === 'PO' ? item.vendor_supplier : item.buyer_name} • 
-                            {item.currency} {item.amount.toLocaleString()} • {item.date}
-                          </div>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
-      )}
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {selectedItem
+            ? `${selectedItem.number} - ${selectedItem.currency} ${selectedItem.amount.toLocaleString()}`
+            : `Select ${type}...`}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0">
+        <Command>
+          <CommandInput placeholder={`Search ${type}...`} />
+          <CommandList>
+            <CommandEmpty>
+              {loading ? 'Loading...' : `No ${type} found.`}
+            </CommandEmpty>
+            <CommandGroup>
+              {items.map((item) => (
+                <CommandItem
+                  key={item.id}
+                  value={item.number}
+                  onSelect={() => {
+                    onChange(item.number);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === item.number ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">{item.number}</div>
+                    <div className="text-sm text-gray-500">
+                      {item.type === 'PO' ? item.vendor_supplier : item.buyer_name} • 
+                      {item.currency} {item.amount.toLocaleString()} • {item.date}
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };
 

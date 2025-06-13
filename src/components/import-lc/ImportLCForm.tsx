@@ -73,6 +73,12 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     }
   };
 
+  // Ensure validateCurrentStep returns a boolean
+  const isCurrentStepValid = () => {
+    const result = validateCurrentStep();
+    return Boolean(result);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen overflow-hidden">
       {/* Main Form Content */}
@@ -107,7 +113,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
         <div className="flex-shrink-0 px-6 pb-6">
           <ImportLCFormActions
             currentStep={currentStep}
-            isValid={validateCurrentStep()}
+            isValid={isCurrentStepValid()}
             onPrevious={previousStep}
             onNext={nextStep}
             onSaveDraft={handleSaveDraft}
