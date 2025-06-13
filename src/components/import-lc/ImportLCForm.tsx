@@ -59,6 +59,10 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
       const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
+      // Ensure boolean conversion for database fields
+      const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
+      const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
+
       const { error } = await supabase
         .from('import_lc_requests')
         .insert({
@@ -87,8 +91,8 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           additional_amount: formData.additionalAmount,
           available_with: formData.availableWith,
           available_by: formData.availableBy,
-          partial_shipments_allowed: formData.partialShipmentsAllowed === true,
-          transshipment_allowed: formData.transshipmentAllowed === true,
+          partial_shipments_allowed: partialShipmentsAllowed,
+          transshipment_allowed: transshipmentAllowed,
           description_of_goods: formData.descriptionOfGoods,
           port_of_loading: formData.portOfLoading,
           port_of_discharge: formData.portOfDischarge,
