@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ImportLCFormData, ImportLCFormStep } from '@/hooks/useImportLCForm';
+import { ImportLCFormData, ImportLCFormStep } from '@/types/importLC';
 import BasicLCInformationPane from './BasicLCInformationPane';
 import PartyDetailsPane from './PartyDetailsPane';
 import LCAmountTermsPane from './LCAmountTermsPane';

@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
+import { ImportLCFormData } from '@/types/importLC';
+import { SWIFT_TAGS } from '@/types/importLC';
+import SwiftTagLabel from './SwiftTagLabel';
 
 interface LCAmountTermsPaneProps {
   formData: ImportLCFormData;
@@ -38,9 +40,12 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* LC Amount */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  LC Amount <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    LC Amount <span className="text-red-500">*</span>
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.lcAmount} />
+                </div>
                 <Input
                   type="number"
                   value={formData.lcAmount || ''}
@@ -105,9 +110,12 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
 
             {/* Available With */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Available With
-              </Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Available With
+                </Label>
+                <SwiftTagLabel swiftInfo={SWIFT_TAGS.availableWith} />
+              </div>
               <Input
                 value={formData.availableWith}
                 onChange={(e) => updateField('availableWith', e.target.value)}
@@ -141,9 +149,12 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   checked={formData.partialShipmentsAllowed}
                   onCheckedChange={(checked) => handleBooleanChange('partialShipmentsAllowed', checked)}
                 />
-                <Label htmlFor="partialShipments" className="text-sm text-gray-700 dark:text-gray-300">
-                  Partial Shipments Allowed
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="partialShipments" className="text-sm text-gray-700 dark:text-gray-300">
+                    Partial Shipments Allowed
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.partialShipmentsAllowed} />
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -152,9 +163,12 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   checked={formData.transshipmentAllowed}
                   onCheckedChange={(checked) => handleBooleanChange('transshipmentAllowed', checked)}
                 />
-                <Label htmlFor="transshipment" className="text-sm text-gray-700 dark:text-gray-300">
-                  Transshipment Allowed
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="transshipment" className="text-sm text-gray-700 dark:text-gray-300">
+                    Transshipment Allowed
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.transshipmentAllowed} />
+                </div>
               </div>
             </div>
 
