@@ -15,8 +15,7 @@ const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
 }) => {
   const steps = [
     { key: 'basic', label: 'Basic LC Information', required: true },
-    { key: 'applicant', label: 'Applicant Information', required: true },
-    { key: 'beneficiary', label: 'Beneficiary Information', required: true },
+    { key: 'parties', label: 'Party Details', required: true },
     { key: 'amount', label: 'LC Amount & Terms', required: true },
     { key: 'shipment', label: 'Shipment Details', required: true },
     { key: 'documents', label: 'Document Requirements', required: true }
@@ -29,10 +28,8 @@ const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
     switch (stepKey) {
       case 'basic':
         return formData.corporateReference && formData.formOfDocumentaryCredit ? 'completed' : 'pending';
-      case 'applicant':
-        return formData.applicantName && formData.applicantAddress ? 'completed' : 'pending';
-      case 'beneficiary':
-        return formData.beneficiaryName && formData.beneficiaryAddress ? 'completed' : 'pending';
+      case 'parties':
+        return formData.applicantName && formData.applicantAddress && formData.beneficiaryName && formData.beneficiaryAddress ? 'completed' : 'pending';
       case 'amount':
         return formData.lcAmount > 0 && formData.currency ? 'completed' : 'pending';
       case 'shipment':
