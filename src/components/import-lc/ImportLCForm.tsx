@@ -61,9 +61,9 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
       const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
-      // Ensure proper boolean conversion for database fields
-      const partialShipmentsAllowed = formData.partialShipmentsAllowed === true || formData.partialShipmentsAllowed === 'true';
-      const transshipmentAllowed = formData.transshipmentAllowed === true || formData.transshipmentAllowed === 'true';
+      // Proper boolean conversion - handle both boolean and string values
+      const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
+      const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
       console.log('Form data being saved:', {
         user_id: user.id,
@@ -142,9 +142,9 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen overflow-hidden">
       {/* Main Form Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header with Progress */}
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-600 pb-4 mb-6 px-6 pt-6 bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">

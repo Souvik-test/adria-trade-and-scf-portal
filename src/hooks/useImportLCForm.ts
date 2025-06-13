@@ -227,9 +227,9 @@ const useImportLCForm = () => {
       const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
       const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
-      // Ensure proper boolean conversion
-      const partialShipmentsAllowed = formData.partialShipmentsAllowed === true || formData.partialShipmentsAllowed === 'true';
-      const transshipmentAllowed = formData.transshipmentAllowed === true || formData.transshipmentAllowed === 'true';
+      // Proper boolean conversion - handle both boolean and string values
+      const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
+      const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
       const insertData = {
         user_id: user.id,
