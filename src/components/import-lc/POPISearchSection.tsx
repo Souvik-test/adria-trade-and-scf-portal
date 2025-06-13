@@ -1,30 +1,13 @@
-
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { customAuth } from '@/services/customAuth';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
-
-interface POPIRecord {
-  id: string;
-  number: string;
-  type: 'PO' | 'PI';
-  date: string;
-  amount: number;
-  currency: string;
-  vendor_supplier?: string;
-  buyer_name?: string;
-  items?: Array<{
-    description: string;
-    quantity: number;
-    unit_price: number;
-  }>;
-}
+import POPISearchableSelect from './POPISearchableSelect';
+import POPISearchDropdown from './POPISearchDropdown';
+import { ImportLCFormData } from '@/types/importLC';
 
 interface POPISearchSectionProps {
   formData: ImportLCFormData;
@@ -35,189 +18,72 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
   formData,
   updateField
 }) => {
-  const [popiRecords, setPopiRecords] = useState<POPIRecord[]>([]);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<POPIRecord | null>(null);
-
-  useEffect(() => {
-    fetchPOPIRecords();
-  }, []);
-
-  const fetchPOPIRecords = async () => {
-    const user = customAuth.getSession()?.user;
-    if (!user) return;
-
-    setIsLoading(true);
-    try {
-      // Fetch Purchase Orders with line items
-      const { data: poData } = await supabase
-        .from('purchase_orders')
-        .select(`
-          id, po_number, po_date, grand_total, currency, vendor_supplier,
-          popi_line_items(description, quantity, unit_price)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      // Fetch Proforma Invoices with line items
-      const { data: piData } = await supabase
-        .from('proforma_invoices')
-        .select(`
-          id, pi_number, pi_date, grand_total, currency, buyer_name,
-          popi_line_items(description, quantity, unit_price)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      const records: POPIRecord[] = [
-        ...(poData || []).map(po => ({
-          id: po.id,
-          number: po.po_number,
-          type: 'PO' as const,
-          date: po.po_date || '',
-          amount: po.grand_total || 0,
-          currency: po.currency || 'USD',
-          vendor_supplier: po.vendor_supplier,
-          items: po.popi_line_items || []
-        })),
-        ...(piData || []).map(pi => ({
-          id: pi.id,
-          number: pi.pi_number,
-          type: 'PI' as const,
-          date: pi.pi_date || '',
-          amount: pi.grand_total || 0,
-          currency: pi.currency || 'USD',
-          buyer_name: pi.buyer_name,
-          items: pi.popi_line_items || []
-        }))
-      ];
-
-      setPopiRecords(records);
-    } catch (error) {
-      console.error('Error fetching POPI records:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handlePopulatePOPI = () => {
+    console.log('Populating POPI data for:', formData.popiNumber);
+    // TODO: Implement POPI data population logic
   };
-
-  const handlePOPISelect = (record: POPIRecord) => {
-    setSelectedRecord(record);
-    updateField('popiNumber', record.number);
-    updateField('popiType', record.type);
-    updateField('lcAmount', record.amount);
-    updateField('currency', record.currency);
-    
-    // Auto-populate goods description from line items
-    if (record.items && record.items.length > 0) {
-      const goodsDescription = record.items
-        .map(item => `${item.description} (Qty: ${item.quantity})`)
-        .join('\n');
-      updateField('descriptionOfGoods', goodsDescription);
-    }
-
-    // Auto-populate party details
-    if (record.type === 'PO' && record.vendor_supplier) {
-      updateField('beneficiaryName', record.vendor_supplier);
-    } else if (record.type === 'PI' && record.buyer_name) {
-      updateField('applicantName', record.buyer_name);
-    }
-
-    setIsSearchOpen(false);
-  };
-
-  const handleManualInput = (value: string) => {
-    updateField('popiNumber', value);
-    if (!value.trim()) {
-      updateField('popiType', '');
-      setSelectedRecord(null);
-    }
-  };
-
-  const validateLCAmount = (amount: number) => {
-    if (selectedRecord && amount > selectedRecord.amount) {
-      return `LC amount (${formData.currency} ${amount.toLocaleString()}) cannot exceed ${selectedRecord.type} amount (${selectedRecord.currency} ${selectedRecord.amount.toLocaleString()})`;
-    }
-    return null;
-  };
-
-  const lcAmountError = formData.lcAmount > 0 ? validateLCAmount(formData.lcAmount) : null;
 
   return (
-    <div>
-      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Purchase Order / Proforma Invoice Number
-      </Label>
-      <div className="flex gap-2 mt-1">
-        <div className="flex-1">
-          <Input
-            value={formData.popiNumber}
-            onChange={(e) => handleManualInput(e.target.value)}
-            placeholder="Type to search or enter PO/PI number"
-          />
-        </div>
-        <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon"
-              className="shrink-0"
-              disabled={isLoading}
+    <Card className="border border-gray-200 dark:border-gray-600">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          PO/PI Reference
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              PO/PI Type
+            </Label>
+            <Select 
+              value={formData.popiType} 
+              onValueChange={(value) => updateField('popiType', value as 'PO' | 'PI' | '')}
             >
-              <Search className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[400px] p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Search PO/PI records..." />
-              <CommandList>
-                <CommandEmpty>No records found.</CommandEmpty>
-                <CommandGroup>
-                  {popiRecords.map((record) => (
-                    <CommandItem
-                      key={record.id}
-                      onSelect={() => handlePOPISelect(record)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex flex-col w-full">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{record.number}</span>
-                          <span className="text-sm text-gray-500">
-                            {record.currency} {record.amount?.toLocaleString() || '0'}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {record.type} • {record.vendor_supplier || record.buyer_name} • {record.date}
-                        </div>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      {formData.popiType && (
-        <div className="mt-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            {formData.popiType === 'PO' ? 'Purchase Order' : 'Proforma Invoice'}
-          </span>
-          {selectedRecord && (
-            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-              {selectedRecord.currency} {selectedRecord.amount.toLocaleString()}
-            </span>
-          )}
-        </div>
-      )}
+              <SelectTrigger>
+                <SelectValue placeholder="Select PO or PI" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PO">Purchase Order (PO)</SelectItem>
+                <SelectItem value="PI">Proforma Invoice (PI)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      {lcAmountError && (
-        <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-600 dark:text-red-400">
-          {lcAmountError}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+              {formData.popiType ? `${formData.popiType} Number` : 'PO/PI Number'}
+            </Label>
+            {formData.popiType ? (
+              <POPISearchableSelect
+                type={formData.popiType}
+                value={formData.popiNumber}
+                onChange={(value) => updateField('popiNumber', value)}
+              />
+            ) : (
+              <Input
+                value={formData.popiNumber}
+                onChange={(e) => updateField('popiNumber', e.target.value)}
+                placeholder="Enter PO/PI number"
+                disabled
+              />
+            )}
+          </div>
         </div>
-      )}
-    </div>
+
+        {formData.popiNumber && formData.popiType && (
+          <div className="flex justify-end">
+            <Button 
+              onClick={handlePopulatePOPI}
+              className="bg-corporate-blue hover:bg-corporate-blue/90 text-white"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Populate from {formData.popiType}
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

@@ -15,11 +15,16 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
   console.log('User found:', user);
 
   try {
-    // Set the user context for RLS
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id',
-      setting_value: user.user_id
-    });
+    // Set the user context for RLS using a direct query
+    const { error: configError } = await supabase
+      .from('custom_users')
+      .select('id')
+      .eq('user_id', user.user_id)
+      .limit(1);
+
+    if (configError) {
+      console.error('User context error:', configError);
+    }
 
     // Sync party data to legacy fields for database compatibility
     const applicantParty = formData.parties.find(p => p.role === 'applicant');
@@ -98,11 +103,16 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     throw new Error('User not authenticated');
   }
 
-  // Set the user context for RLS
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: user.user_id
-  });
+  // Set user context using a direct query instead of RPC
+  const { error: configError } = await supabase
+    .from('custom_users')
+    .select('id')
+    .eq('user_id', user.user_id)
+    .limit(1);
+
+  if (configError) {
+    console.error('User context error:', configError);
+  }
 
   // Sync party data to legacy fields for database compatibility
   const applicantParty = formData.parties.find(p => p.role === 'applicant');

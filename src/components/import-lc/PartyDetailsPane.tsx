@@ -12,13 +12,17 @@ const PartyDetailsPane: React.FC<PartyDetailsPaneProps> = ({
   formData,
   updateField
 }) => {
+  const handleUpdateParties = (parties: any) => {
+    updateField('parties', parties);
+  };
+
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
       <div>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Party Details</h3>
         <PartyDetailsGrid
-          formData={formData}
-          updateField={updateField}
+          parties={formData.parties}
+          onUpdateParties={handleUpdateParties}
         />
       </div>
     </div>

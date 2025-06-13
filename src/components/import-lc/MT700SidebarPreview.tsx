@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
+import { ImportLCFormData } from '@/types/importLC';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
