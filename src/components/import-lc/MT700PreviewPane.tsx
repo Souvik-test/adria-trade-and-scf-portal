@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Mail, Eye } from 'lucide-react';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
+import { ImportLCFormData } from '@/types/importLC';
 
 interface MT700PreviewPaneProps {
   formData: ImportLCFormData;

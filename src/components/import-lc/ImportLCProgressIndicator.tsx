@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ImportLCFormData, ImportLCFormStep } from '@/hooks/useImportLCForm';
+import { ImportLCFormData, ImportLCFormStep } from '@/types/importLC';
 
 interface ImportLCProgressIndicatorProps {
   currentStep: ImportLCFormStep;

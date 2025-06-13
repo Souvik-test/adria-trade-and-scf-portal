@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
+import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
+import SwiftTagLabel from './SwiftTagLabel';
 
 interface ShipmentDetailsPaneProps {
   formData: ImportLCFormData;
@@ -28,28 +29,29 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
           <CardContent className="space-y-6">
             {/* Description of Goods */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Description of Goods <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Description of Goods <span className="text-red-500">*</span>
+                </Label>
+                <SwiftTagLabel swiftInfo={SWIFT_TAGS.descriptionOfGoods} />
+              </div>
               <Textarea
                 value={formData.descriptionOfGoods}
                 onChange={(e) => updateField('descriptionOfGoods', e.target.value)}
                 placeholder="Enter detailed description of goods"
                 rows={4}
               />
-              {formData.popiNumber && (
-                <div className="text-xs text-blue-600 mt-1">
-                  Auto-populated from {formData.popiType}: {formData.popiNumber}
-                </div>
-              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Port of Loading */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Port of Loading
-                </Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Port of Loading
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.portOfLoading} />
+                </div>
                 <Input
                   value={formData.portOfLoading}
                   onChange={(e) => updateField('portOfLoading', e.target.value)}
@@ -59,9 +61,12 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
 
               {/* Port of Discharge */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Port of Discharge
-                </Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Port of Discharge
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.portOfDischarge} />
+                </div>
                 <Input
                   value={formData.portOfDischarge}
                   onChange={(e) => updateField('portOfDischarge', e.target.value)}
@@ -73,9 +78,12 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Latest Shipment Date */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Latest Shipment Date <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Latest Shipment Date <span className="text-red-500">*</span>
+                  </Label>
+                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.latestShipmentDate} />
+                </div>
                 <Input
                   type="date"
                   value={formData.latestShipmentDate}

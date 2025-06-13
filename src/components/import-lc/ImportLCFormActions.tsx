@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ImportLCFormStep } from '@/hooks/useImportLCForm';
+import { ImportLCFormStep } from '@/types/importLC';
 
 interface ImportLCFormActionsProps {
   currentStep: ImportLCFormStep;

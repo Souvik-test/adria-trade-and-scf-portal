@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
-import { ImportLCFormData, DocumentRequirement } from '@/hooks/useImportLCForm';
+import { ImportLCFormData, DocumentRequirement } from '@/types/importLC';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
