@@ -147,7 +147,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
       updateField(field, Boolean(value) as ImportLCFormData[K]);
     } else {
-      updateField(field, value);
+      updateField(field, value as ImportLCFormData[K]);
     }
   };
 
