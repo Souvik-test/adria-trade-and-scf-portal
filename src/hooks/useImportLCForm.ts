@@ -12,6 +12,7 @@ export interface ImportLCFormData {
   issueDate: string;
   expiryDate: string;
   placeOfExpiry: string;
+  confirmation: string;
 
   // Applicant Information
   applicantName: string;
@@ -49,7 +50,7 @@ export interface ImportLCFormData {
   supportingDocuments: File[];
 }
 
-export type ImportLCFormStep = 'basic' | 'applicant' | 'beneficiary' | 'amount' | 'shipment' | 'documents';
+export type ImportLCFormStep = 'basic' | 'parties' | 'amount' | 'shipment' | 'documents';
 
 const useImportLCForm = () => {
   const [currentStep, setCurrentStep] = useState<ImportLCFormStep>('basic');
@@ -63,6 +64,7 @@ const useImportLCForm = () => {
     issueDate: '',
     expiryDate: '',
     placeOfExpiry: '',
+    confirmation: '',
     applicantName: '',
     applicantAddress: '',
     applicantAccountNumber: '',
@@ -104,7 +106,7 @@ const useImportLCForm = () => {
   }, []);
 
   const nextStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
+    const steps: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -112,7 +114,7 @@ const useImportLCForm = () => {
   }, [currentStep]);
 
   const previousStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'applicant', 'beneficiary', 'amount', 'shipment', 'documents'];
+    const steps: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
@@ -124,10 +126,9 @@ const useImportLCForm = () => {
     switch (currentStep) {
       case 'basic':
         return !!(formData.corporateReference && formData.formOfDocumentaryCredit);
-      case 'applicant':
-        return !!(formData.applicantName && formData.applicantAddress);
-      case 'beneficiary':
-        return !!(formData.beneficiaryName && formData.beneficiaryAddress);
+      case 'parties':
+        return !!(formData.applicantName && formData.applicantAddress && 
+                 formData.beneficiaryName && formData.beneficiaryAddress);
       case 'amount':
         return !!(formData.lcAmount > 0 && formData.currency);
       case 'shipment':
@@ -139,6 +140,66 @@ const useImportLCForm = () => {
     }
   }, [currentStep, formData]);
 
+  // Submit form
+  const submitForm = useCallback(async () => {
+    const user = customAuth.getSession()?.user;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('import_lc_requests')
+        .insert({
+          user_id: user.id,
+          popi_number: formData.popiNumber,
+          popi_type: formData.popiType,
+          form_of_documentary_credit: formData.formOfDocumentaryCredit,
+          corporate_reference: formData.corporateReference,
+          applicable_rules: formData.applicableRules,
+          lc_type: formData.lcType,
+          issue_date: formData.issueDate || null,
+          expiry_date: formData.expiryDate || null,
+          place_of_expiry: formData.placeOfExpiry,
+          applicant_name: formData.applicantName,
+          applicant_address: formData.applicantAddress,
+          applicant_account_number: formData.applicantAccountNumber,
+          beneficiary_name: formData.beneficiaryName,
+          beneficiary_address: formData.beneficiaryAddress,
+          beneficiary_bank_name: formData.beneficiaryBankName,
+          beneficiary_bank_address: formData.beneficiaryBankAddress,
+          beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode,
+          advising_bank_swift_code: formData.advisingBankSwiftCode,
+          lc_amount: formData.lcAmount,
+          currency: formData.currency,
+          tolerance: formData.tolerance,
+          additional_amount: formData.additionalAmount,
+          available_with: formData.availableWith,
+          available_by: formData.availableBy,
+          partial_shipments_allowed: formData.partialShipmentsAllowed,
+          transshipment_allowed: formData.transshipmentAllowed,
+          description_of_goods: formData.descriptionOfGoods,
+          port_of_loading: formData.portOfLoading,
+          port_of_discharge: formData.portOfDischarge,
+          latest_shipment_date: formData.latestShipmentDate || null,
+          presentation_period: formData.presentationPeriod,
+          required_documents: formData.requiredDocuments,
+          additional_conditions: formData.additionalConditions,
+          status: 'submitted'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log('Import LC request submitted successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Error submitting Import LC request:', error);
+      throw error;
+    }
+  }, [formData]);
+
   return {
     formData,
     currentStep,
@@ -147,7 +208,8 @@ const useImportLCForm = () => {
     goToStep,
     nextStep,
     previousStep,
-    validateCurrentStep
+    validateCurrentStep,
+    submitForm
   };
 };
 

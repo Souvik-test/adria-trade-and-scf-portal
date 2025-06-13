@@ -22,10 +22,10 @@ SWIFT MT 700 - ISSUE OF A DOCUMENTARY CREDIT
 {3:{108:MT700}}
 {4:
 :27:1/1
-:40A:IRREVOCABLE
+:40A:${formData.formOfDocumentaryCredit || 'IRREVOCABLE'}
 :20:${formData.corporateReference || '[REFERENCE]'}
 :31C:${formData.issueDate || '[ISSUE DATE]'}
-:40E:${formData.formOfDocumentaryCredit || '[FORM]'}
+:40E:${formData.applicableRules || '[APPLICABLE RULES]'}
 :31D:${formData.expiryDate || '[EXPIRY]'}${formData.placeOfExpiry || '[PLACE]'}
 :50:${formData.applicantName || '[APPLICANT NAME]'}
 ${formData.applicantAddress || '[APPLICANT ADDRESS]'}
@@ -42,37 +42,18 @@ ${formData.beneficiaryAddress || '[BENEFICIARY ADDRESS]'}
 :45A:${formData.descriptionOfGoods || '[GOODS DESCRIPTION]'}
 :46A:${formData.requiredDocuments.join('\n') || '[DOCUMENTS]'}
 :47A:${formData.additionalConditions || '[CONDITIONS]'}
+:49:${formData.confirmation || 'CONFIRMATION INSTRUCTIONS'}
 :71B:${formData.availableBy || 'PAYMENT'}
 :48:${formData.presentationPeriod || '21 DAYS AFTER SHIPMENT DATE'}
-:49:CONFIRMATION INSTRUCTIONS
 -}`.trim();
   };
 
   const handlePreview = () => {
     const content = generateMT700Content();
-    const newWindow = window.open('', '_blank');
-    if (newWindow) {
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>MT 700 Preview - ${formData.corporateReference || 'Draft'}</title>
-            <style>
-              body { font-family: 'Courier New', monospace; padding: 20px; background: #f5f5f5; }
-              .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-              pre { white-space: pre-wrap; font-size: 12px; line-height: 1.4; }
-              h2 { color: #1e40af; margin-bottom: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2>SWIFT MT 700 - Documentary Credit Preview</h2>
-              <pre>${content}</pre>
-            </div>
-          </body>
-        </html>
-      `);
-      newWindow.document.close();
-    }
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    URL.revokeObjectURL(url);
   };
 
   const handleDownload = () => {
@@ -186,30 +167,44 @@ ${formData.beneficiaryAddress || '[BENEFICIARY ADDRESS]'}
                   
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Reference:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Reference (20):</span>
                       <span className="font-mono text-xs">
                         {formData.corporateReference || '---'}
                       </span>
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Amount:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Amount (32B):</span>
                       <span className="font-mono text-xs">
                         {formData.currency} {formData.lcAmount ? formData.lcAmount.toLocaleString() : '---'}
                       </span>
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Beneficiary:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Beneficiary (59):</span>
                       <span className="font-mono text-xs truncate max-w-24">
                         {formData.beneficiaryName || '---'}
                       </span>
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Expiry:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Expiry (31D):</span>
                       <span className="font-mono text-xs">
                         {formData.expiryDate || '---'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Form (40A):</span>
+                      <span className="font-mono text-xs truncate max-w-24">
+                        {formData.formOfDocumentaryCredit || '---'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Confirmation (49):</span>
+                      <span className="font-mono text-xs">
+                        {formData.confirmation || '---'}
                       </span>
                     </div>
                     

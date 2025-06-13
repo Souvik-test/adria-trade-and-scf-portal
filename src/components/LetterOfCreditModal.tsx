@@ -65,7 +65,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     }
 
     return (
-      <>
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <ImportLCActionSection
           selectedAction={selectedAction}
           onActionSelect={handleActionSelect}
@@ -75,7 +75,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
           selectedAction={selectedAction}
           onMethodSelect={handleMethodSelect}
         />
-      </>
+      </div>
     );
   };
 

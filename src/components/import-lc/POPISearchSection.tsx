@@ -19,6 +19,11 @@ interface POPIRecord {
   currency: string;
   vendor_supplier?: string;
   buyer_name?: string;
+  items?: Array<{
+    description: string;
+    quantity: number;
+    unit_price: number;
+  }>;
 }
 
 interface POPISearchSectionProps {
@@ -33,6 +38,7 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
   const [popiRecords, setPopiRecords] = useState<POPIRecord[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<POPIRecord | null>(null);
 
   useEffect(() => {
     fetchPOPIRecords();
@@ -44,17 +50,23 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
 
     setIsLoading(true);
     try {
-      // Fetch Purchase Orders
+      // Fetch Purchase Orders with line items
       const { data: poData } = await supabase
         .from('purchase_orders')
-        .select('id, po_number, po_date, grand_total, currency, vendor_supplier')
+        .select(`
+          id, po_number, po_date, grand_total, currency, vendor_supplier,
+          popi_line_items(description, quantity, unit_price)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Fetch Proforma Invoices
+      // Fetch Proforma Invoices with line items
       const { data: piData } = await supabase
         .from('proforma_invoices')
-        .select('id, pi_number, pi_date, grand_total, currency, buyer_name')
+        .select(`
+          id, pi_number, pi_date, grand_total, currency, buyer_name,
+          popi_line_items(description, quantity, unit_price)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -66,7 +78,8 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
           date: po.po_date || '',
           amount: po.grand_total || 0,
           currency: po.currency || 'USD',
-          vendor_supplier: po.vendor_supplier
+          vendor_supplier: po.vendor_supplier,
+          items: po.popi_line_items || []
         })),
         ...(piData || []).map(pi => ({
           id: pi.id,
@@ -75,7 +88,8 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
           date: pi.pi_date || '',
           amount: pi.grand_total || 0,
           currency: pi.currency || 'USD',
-          buyer_name: pi.buyer_name
+          buyer_name: pi.buyer_name,
+          items: pi.popi_line_items || []
         }))
       ];
 
@@ -88,8 +102,27 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
   };
 
   const handlePOPISelect = (record: POPIRecord) => {
+    setSelectedRecord(record);
     updateField('popiNumber', record.number);
     updateField('popiType', record.type);
+    updateField('lcAmount', record.amount);
+    updateField('currency', record.currency);
+    
+    // Auto-populate goods description from line items
+    if (record.items && record.items.length > 0) {
+      const goodsDescription = record.items
+        .map(item => `${item.description} (Qty: ${item.quantity})`)
+        .join('\n');
+      updateField('descriptionOfGoods', goodsDescription);
+    }
+
+    // Auto-populate party details
+    if (record.type === 'PO' && record.vendor_supplier) {
+      updateField('beneficiaryName', record.vendor_supplier);
+    } else if (record.type === 'PI' && record.buyer_name) {
+      updateField('applicantName', record.buyer_name);
+    }
+
     setIsSearchOpen(false);
   };
 
@@ -97,8 +130,18 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
     updateField('popiNumber', value);
     if (!value.trim()) {
       updateField('popiType', '');
+      setSelectedRecord(null);
     }
   };
+
+  const validateLCAmount = (amount: number) => {
+    if (selectedRecord && amount > selectedRecord.amount) {
+      return `LC amount (${formData.currency} ${amount.toLocaleString()}) cannot exceed ${selectedRecord.type} amount (${selectedRecord.currency} ${selectedRecord.amount.toLocaleString()})`;
+    }
+    return null;
+  };
+
+  const lcAmountError = formData.lcAmount > 0 ? validateLCAmount(formData.lcAmount) : null;
 
   return (
     <div>
@@ -155,11 +198,23 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
           </PopoverContent>
         </Popover>
       </div>
+      
       {formData.popiType && (
         <div className="mt-2">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
             {formData.popiType === 'PO' ? 'Purchase Order' : 'Proforma Invoice'}
           </span>
+          {selectedRecord && (
+            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+              {selectedRecord.currency} {selectedRecord.amount.toLocaleString()}
+            </span>
+          )}
+        </div>
+      )}
+
+      {lcAmountError && (
+        <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-600 dark:text-red-400">
+          {lcAmountError}
         </div>
       )}
     </div>

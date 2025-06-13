@@ -2,8 +2,7 @@
 import React from 'react';
 import { ImportLCFormData, ImportLCFormStep } from '@/hooks/useImportLCForm';
 import BasicLCInformationPane from './BasicLCInformationPane';
-import ApplicantInformationPane from './ApplicantInformationPane';
-import BeneficiaryInformationPane from './BeneficiaryInformationPane';
+import PartyDetailsPane from './PartyDetailsPane';
 import LCAmountTermsPane from './LCAmountTermsPane';
 import ShipmentDetailsPane from './ShipmentDetailsPane';
 import DocumentRequirementsPane from './DocumentRequirementsPane';
@@ -27,16 +26,9 @@ const ImportLCPaneRenderer: React.FC<ImportLCPaneRendererProps> = ({
           updateField={updateField}
         />
       );
-    case 'applicant':
+    case 'parties':
       return (
-        <ApplicantInformationPane
-          formData={formData}
-          updateField={updateField}
-        />
-      );
-    case 'beneficiary':
-      return (
-        <BeneficiaryInformationPane
+        <PartyDetailsPane
           formData={formData}
           updateField={updateField}
         />
