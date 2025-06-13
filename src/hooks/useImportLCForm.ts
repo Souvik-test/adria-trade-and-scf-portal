@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
@@ -114,12 +113,21 @@ const useImportLCForm = () => {
     supportingDocuments: []
   });
 
-  // Update form field
+  // Update form field with proper type handling
   const updateField = useCallback((field: keyof ImportLCFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      // Handle boolean fields explicitly to ensure type safety
+      if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
+        return {
+          ...prev,
+          [field]: Boolean(value)
+        };
+      }
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
   }, []);
 
   // Navigation

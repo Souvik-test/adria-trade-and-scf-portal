@@ -1,4 +1,3 @@
-
 import React from 'react';
 import useImportLCForm from '@/hooks/useImportLCForm';
 import ImportLCProgressIndicator from './ImportLCProgressIndicator';
@@ -9,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ImportLCFormData } from '@/hooks/useImportLCForm';
 
 interface ImportLCFormProps {
   onBack: () => void;
@@ -142,16 +140,6 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     }
   };
 
-  // Type-safe field update wrapper that handles boolean conversion
-  const handleFieldUpdate = (field: keyof ImportLCFormData, value: any) => {
-    // Handle boolean fields explicitly
-    if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
-      updateField(field, Boolean(value));
-    } else {
-      updateField(field, value);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen overflow-hidden">
       {/* Main Form Content */}
@@ -177,7 +165,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             <ImportLCPaneRenderer
               currentStep={currentStep}
               formData={formData}
-              updateField={handleFieldUpdate}
+              updateField={updateField}
             />
           </ScrollArea>
         </div>
