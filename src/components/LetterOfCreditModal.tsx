@@ -79,6 +79,19 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     );
   };
 
+  // Full-screen mode for the manual form
+  if (selectedMethod === 'manual' && selectedAction === 'issuance') {
+    return (
+      <>
+        {isOpen && (
+          <div className="fixed inset-0 z-50">
+            {renderContent()}
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">

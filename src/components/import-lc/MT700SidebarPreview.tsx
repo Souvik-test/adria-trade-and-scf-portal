@@ -18,38 +18,42 @@ const MT700SidebarPreview: React.FC<MT700SidebarPreviewProps> = ({ formData }) =
     const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
     const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
-    return `
-MT 700 - LETTER OF CREDIT ISSUANCE
+    const swiftFields = [
+      { tag: ':20:', label: 'Documentary Credit Number', value: formData.corporateReference || 'N/A' },
+      { tag: ':23:', label: 'Type of Credit', value: formData.formOfDocumentaryCredit || 'IRREVOCABLE' },
+      { tag: ':31C:', label: 'Date of Issue', value: formData.issueDate || 'N/A' },
+      { tag: ':31D:', label: 'Date and Place of Expiry', value: `${formData.expiryDate || 'N/A'} ${formData.placeOfExpiry || 'N/A'}` },
+      { tag: ':32B:', label: 'Currency Code and Amount', value: `${formData.currency || 'USD'} ${formData.lcAmount || 0}` },
+      { tag: ':39A:', label: 'Percentage Credit Amount Tolerance', value: formData.tolerance || 'NOT ALLOWED' },
+      { tag: ':41A:', label: 'Available With/By', value: formData.availableWith || 'ANY BANK' },
+      { tag: ':42C:', label: 'Drafts At', value: formData.availableBy || 'BY PAYMENT' },
+      { tag: ':43P:', label: 'Partial Shipments', value: formData.partialShipmentsAllowed ? 'ALLOWED' : 'NOT ALLOWED' },
+      { tag: ':43T:', label: 'Transshipment', value: formData.transshipmentAllowed ? 'ALLOWED' : 'NOT ALLOWED' },
+      { tag: ':44A:', label: 'Loading on Board/Dispatch/Taking in Charge At', value: formData.portOfLoading || 'N/A' },
+      { tag: ':44E:', label: 'Port of Discharge', value: formData.portOfDischarge || 'N/A' },
+      { tag: ':44C:', label: 'Latest Date of Shipment', value: formData.latestShipmentDate || 'N/A' },
+      { tag: ':45A:', label: 'Description of Goods and/or Services', value: formData.descriptionOfGoods || 'N/A' },
+      { tag: ':46A:', label: 'Documents Required', value: formData.documentRequirements.length > 0 
+        ? formData.documentRequirements.map(doc => 
+            `${doc.name} - ${doc.original} Original(s), ${doc.copies} Copy/Copies`
+          ).join('\n') 
+        : formData.requiredDocuments.join('\n') || 'N/A' },
+      { tag: ':47A:', label: 'Additional Conditions', value: formData.additionalConditions || 'N/A' },
+      { tag: ':48:', label: 'Period for Presentation', value: formData.presentationPeriod || 'N/A' },
+      { tag: ':50:', label: 'Applicant', value: `${applicantParty?.name || formData.applicantName || 'N/A'}\n${applicantParty?.address || formData.applicantAddress || 'N/A'}` },
+      { tag: ':57A:', label: 'Advising Bank', value: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode || 'N/A' },
+      { tag: ':59:', label: 'Beneficiary', value: `${beneficiaryParty?.name || formData.beneficiaryName || 'N/A'}\n${beneficiaryParty?.address || formData.beneficiaryAddress || 'N/A'}` },
+      { tag: ':78:', label: 'Instructions to Paying/Accepting/Negotiating Bank', value: formData.additionalConditions || 'N/A' },
+      { tag: ':71B:', label: 'Charges', value: formData.additionalAmount > 0 ? `ADDITIONAL AMOUNT: ${formData.currency} ${formData.additionalAmount}` : 'NONE' }
+    ];
 
-:20: ${formData.corporateReference || 'N/A'}
-:23: ${formData.formOfDocumentaryCredit || 'IRREVOCABLE'}
-:31C: ${formData.issueDate || 'N/A'}
-:31D: ${formData.expiryDate || 'N/A'} ${formData.placeOfExpiry || 'N/A'}
-:32B: ${formData.currency || 'USD'} ${formData.lcAmount || 0}
-:39A: ${formData.tolerance || 'NOT ALLOWED'}
-:41A: ${formData.availableWith || 'ANY BANK'}
-:42C: ${formData.availableBy || 'BY PAYMENT'}
-:43P: ${formData.partialShipmentsAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
-:43T: ${formData.transshipmentAllowed ? 'ALLOWED' : 'NOT ALLOWED'}
-:44A: ${formData.portOfLoading || 'N/A'}
-:44E: ${formData.portOfDischarge || 'N/A'}
-:44C: ${formData.latestShipmentDate || 'N/A'}
-:45A: ${formData.descriptionOfGoods || 'N/A'}
-:46A: ${formData.documentRequirements.length > 0 
-  ? formData.documentRequirements.map(doc => 
-      `${doc.name} - ${doc.original} Original(s), ${doc.copies} Copy/Copies`
-    ).join('\n') 
-  : formData.requiredDocuments.join('\n') || 'N/A'}
-:47A: ${formData.additionalConditions || 'N/A'}
-:48: ${formData.presentationPeriod || 'N/A'}
-:50: ${applicantParty?.name || formData.applicantName || 'N/A'}
-${applicantParty?.address || formData.applicantAddress || 'N/A'}
-:57A: ${advisingBankParty?.swiftCode || formData.advisingBankSwiftCode || 'N/A'}
-:59: ${beneficiaryParty?.name || formData.beneficiaryName || 'N/A'}
-${beneficiaryParty?.address || formData.beneficiaryAddress || 'N/A'}
-:78: ${formData.additionalConditions || 'N/A'}
-:71B: ${formData.additionalAmount > 0 ? `ADDITIONAL AMOUNT: ${formData.currency} ${formData.additionalAmount}` : 'NONE'}
-`;
+    return `MT 700 - LETTER OF CREDIT ISSUANCE
+
+${swiftFields.map(field => 
+  `${field.tag} ${field.label}
+${field.value}
+
+`).join('')}`;
   };
 
   if (isCollapsed) {

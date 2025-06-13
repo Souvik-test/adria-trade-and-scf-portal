@@ -31,6 +31,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
 
   const handleSubmit = async () => {
     try {
+      console.log('Starting form submission...');
       await submitForm();
       toast({
         title: "Success",
@@ -41,7 +42,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       console.error('Submit error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit Import LC request",
+        description: error instanceof Error ? error.message : "Failed to submit Import LC request",
         variant: "destructive",
       });
     }
@@ -49,6 +50,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
 
   const handleSaveDraft = async () => {
     try {
+      console.log('Starting draft save...');
       const user = customAuth.getSession()?.user;
       if (!user) {
         throw new Error('User not authenticated');
@@ -59,9 +61,16 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
       const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
-      // Ensure boolean conversion for database fields
-      const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
-      const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
+      // Ensure proper boolean conversion for database fields
+      const partialShipmentsAllowed = formData.partialShipmentsAllowed === true || formData.partialShipmentsAllowed === 'true';
+      const transshipmentAllowed = formData.transshipmentAllowed === true || formData.transshipmentAllowed === 'true';
+
+      console.log('Form data being saved:', {
+        user_id: user.id,
+        partialShipmentsAllowed,
+        transshipmentAllowed,
+        formData
+      });
 
       const { error } = await supabase
         .from('import_lc_requests')
@@ -105,8 +114,12 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
           status: 'draft'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
+      console.log('Draft saved successfully');
       toast({
         title: "Success",
         description: "Draft saved successfully",
@@ -115,7 +128,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       console.error('Save draft error:', error);
       toast({
         title: "Error",
-        description: "Failed to save draft",
+        description: error instanceof Error ? error.message : "Failed to save draft",
         variant: "destructive",
       });
     }
@@ -129,7 +142,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   };
 
   return (
-    <div className="flex h-full w-full max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-800 flex h-screen w-screen">
       {/* Main Form Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header with Progress */}
