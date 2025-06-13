@@ -143,9 +143,9 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   };
 
   // Create a wrapper function to handle boolean field updates with proper type conversion
-  const handleFieldUpdate = (field: keyof ImportLCFormData, value: any) => {
+  const handleFieldUpdate = <K extends keyof ImportLCFormData>(field: K, value: any) => {
     if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
-      updateField(field, Boolean(value));
+      updateField(field, Boolean(value) as ImportLCFormData[K]);
     } else {
       updateField(field, value);
     }
