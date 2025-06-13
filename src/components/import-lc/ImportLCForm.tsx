@@ -1,3 +1,4 @@
+
 import React from 'react';
 import useImportLCForm from '@/hooks/useImportLCForm';
 import ImportLCProgressIndicator from './ImportLCProgressIndicator';
@@ -60,7 +61,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
       const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
 
-      // Proper boolean conversion - handle both boolean and string values
+      // Ensure proper boolean conversion
       const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
       const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 

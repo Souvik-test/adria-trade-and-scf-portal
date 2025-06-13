@@ -20,6 +20,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
   const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR'];
   const toleranceOptions = ['0%', '5%', '10%', '15%', '20%'];
 
+  // Helper function to ensure boolean conversion
+  const handleBooleanChange = (field: keyof ImportLCFormData, checked: boolean | "indeterminate") => {
+    updateField(field, Boolean(checked));
+  };
+
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <div className="space-y-6 pr-4">
@@ -134,7 +139,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                 <Checkbox
                   id="partialShipments"
                   checked={formData.partialShipmentsAllowed}
-                  onCheckedChange={(checked) => updateField('partialShipmentsAllowed', checked)}
+                  onCheckedChange={(checked) => handleBooleanChange('partialShipmentsAllowed', checked)}
                 />
                 <Label htmlFor="partialShipments" className="text-sm text-gray-700 dark:text-gray-300">
                   Partial Shipments Allowed
@@ -145,7 +150,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                 <Checkbox
                   id="transshipment"
                   checked={formData.transshipmentAllowed}
-                  onCheckedChange={(checked) => updateField('transshipmentAllowed', checked)}
+                  onCheckedChange={(checked) => handleBooleanChange('transshipmentAllowed', checked)}
                 />
                 <Label htmlFor="transshipment" className="text-sm text-gray-700 dark:text-gray-300">
                   Transshipment Allowed

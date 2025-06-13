@@ -114,13 +114,13 @@ const useImportLCForm = () => {
     supportingDocuments: []
   });
 
-  // Update form field with proper type handling - accepts string or boolean for boolean fields
+  // Update form field with proper type handling - now with explicit boolean conversion
   const updateField = useCallback((field: keyof ImportLCFormData, value: string | number | boolean | File[] | PartyDetail[] | DocumentRequirement[]) => {
     setFormData(prev => {
       // Handle boolean fields explicitly to ensure type safety
       if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
-        // Convert string values to boolean
-        const boolValue = typeof value === 'string' ? value === 'true' : Boolean(value);
+        // Ensure we always get a proper boolean value
+        const boolValue = typeof value === 'boolean' ? value : Boolean(value);
         return {
           ...prev,
           [field]: boolValue
