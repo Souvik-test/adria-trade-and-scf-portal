@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
@@ -114,7 +115,7 @@ const useImportLCForm = () => {
   });
 
   // Update form field with proper type handling - accepts string or boolean for boolean fields
-  const updateField = useCallback((field: keyof ImportLCFormData, value: any) => {
+  const updateField = useCallback((field: keyof ImportLCFormData, value: string | number | boolean | File[] | PartyDetail[] | DocumentRequirement[]) => {
     setFormData(prev => {
       // Handle boolean fields explicitly to ensure type safety
       if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
