@@ -34,6 +34,7 @@ serve(async (req) => {
         headers: corsHeaders,
       });
     }
+
     // Use service role to access custom_users
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -59,6 +60,7 @@ serve(async (req) => {
       });
     }
     const dbUserId = users[0].id;
+    const userFullName = users[0].full_name || "";
 
     // Prepare row to insert
     const insertData = {
@@ -90,21 +92,65 @@ serve(async (req) => {
         body: JSON.stringify([insertData]),
       }
     );
-    const result = await lcResp.json();
+    const lcResult = await lcResp.json();
 
     debugLogs.lcResp_ok = lcResp.ok;
     debugLogs.lcResp_status = lcResp.status;
-    debugLogs.lcResp_result = result && typeof result === "object" ? Object.keys(result) : null;
+    debugLogs.lcResp_result = lcResult && typeof lcResult === "object" ? Object.keys(lcResult) : null;
 
     if (!lcResp.ok) {
       console.log("DEBUG: Insert failed:", debugLogs);
-      return new Response(JSON.stringify({ error: result?.message ?? "Insert failed.", debug: debugLogs }), {
+      return new Response(JSON.stringify({ error: lcResult?.message ?? "Insert failed.", debug: debugLogs }), {
         status: 400,
         headers: corsHeaders,
       });
     }
+
+    // ---- INSERT INTO TRANSACTIONS (for dashboard + notification) ----
+    // Only do this for 'submitted' status, not drafts
+    if ((status || "submitted") === "submitted") {
+      const lcRow = Array.isArray(lcResult) ? lcResult[0] : lcResult[0] || lcResult.data?.[0] || lcResult.data;
+
+      const transactionInsertData = {
+        user_id: dbUserId,
+        transaction_ref: formData.corporate_reference || "", // The main reference for this LC
+        product_type: "LC",
+        status: "Submitted", // Use capitalized status for transactions UI
+        customer_name: formData.applicant_name || "",
+        amount: Number(formData.lc_amount ?? 0),
+        currency: formData.currency || "USD",
+        created_by: userFullName,
+        initiating_channel: "Portal"
+        // Add additional needed fields as mapped in the transactions table if needed
+      };
+
+      const txnResp = await fetch(
+        `${supabaseUrl}/rest/v1/transactions`,
+        {
+          method: "POST",
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify([transactionInsertData]),
+        }
+      );
+      const txnResult = await txnResp.json();
+      debugLogs.txnResp_ok = txnResp.ok;
+      debugLogs.txnResp_status = txnResp.status;
+      debugLogs.txnResp_result = txnResult;
+      if (!txnResp.ok) {
+        // Log but do not fail the LC request if this fails, it's a secondary action
+        debugLogs.txn_error = txnResult?.message ?? "Insert failed.";
+      }
+    }
+
+    // Notification is auto-generated from transactions trigger
+
     console.log("DEBUG: Success!", debugLogs);
-    return new Response(JSON.stringify({ data: result, debug: debugLogs }), { headers: corsHeaders });
+    return new Response(JSON.stringify({ data: lcResult, debug: debugLogs }), { headers: corsHeaders });
   } catch (error) {
     console.error("DEBUG: Error in function:", error);
     return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
