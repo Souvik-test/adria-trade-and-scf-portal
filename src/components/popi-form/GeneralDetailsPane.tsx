@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,16 +10,56 @@ import { POPIFormData } from '@/hooks/usePOPIForm';
 interface GeneralDetailsPaneProps {
   formData: POPIFormData;
   updateField: (field: keyof POPIFormData, value: any) => void;
+  initializeForm?: (type: 'purchase-order' | 'proforma-invoice') => void;
 }
 
 const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
   formData,
-  updateField
+  updateField,
+  initializeForm
 }) => {
   const isPO = formData.instrumentType === 'purchase-order';
 
+  // Handle main type change
+  const handleInstrumentTypeChange = (value: 'purchase-order' | 'proforma-invoice') => {
+    // Update the field and trigger init for the correct form prepopulation.
+    updateField('instrumentType', value);
+    if (initializeForm) {
+      initializeForm(value);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* INSTRUMENT TYPE SELECTION CARD */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-700 dark:text-corporate-teal-300">
+            Select Document Type
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <Label htmlFor="instrumentType">Document Type *</Label>
+            <Select
+              value={formData.instrumentType}
+              onValueChange={(value: any) =>
+                handleInstrumentTypeChange(value as 'purchase-order' | 'proforma-invoice')
+              }
+            >
+              <SelectTrigger className="mt-1" id="instrumentType">
+                <SelectValue placeholder="Select Document Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="purchase-order">Purchase Order</SelectItem>
+                <SelectItem value="proforma-invoice">Pro-forma Invoice</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* INFO FORM CARDS */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -230,3 +271,4 @@ const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
 };
 
 export default GeneralDetailsPane;
+
