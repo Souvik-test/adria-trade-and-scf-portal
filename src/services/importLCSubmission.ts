@@ -11,9 +11,10 @@ const submitImportLCEdge = async (
   formData: ImportLCFormData,
   status: 'submitted' | 'draft'
 ) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) {
-    throw new Error('User not authenticated');
+  // Always get a fresh session
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (!session || !session.user || !session.access_token) {
+    throw new Error('User not authenticated (no session or access token)');
   }
 
   const user = session.user;
