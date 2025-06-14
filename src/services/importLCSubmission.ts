@@ -30,9 +30,45 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
     const requiredDocuments: string[] = formData.documentRequirements.length > 0 
       ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-      : (formData.requiredDocuments as string[]);
+      : Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
 
-    const insertData = {
+    const insertData: {
+      user_id: string;
+      popi_number: string;
+      popi_type: string;
+      form_of_documentary_credit: string;
+      corporate_reference: string;
+      applicable_rules: string;
+      lc_type: string;
+      issue_date: string | null;
+      expiry_date: string | null;
+      place_of_expiry: string;
+      applicant_name: string;
+      applicant_address: string;
+      applicant_account_number: string;
+      beneficiary_name: string;
+      beneficiary_address: string;
+      beneficiary_bank_name: string;
+      beneficiary_bank_address: string;
+      beneficiary_bank_swift_code: string;
+      advising_bank_swift_code: string;
+      lc_amount: number;
+      currency: string;
+      tolerance: number;
+      additional_amount: number;
+      available_with: string;
+      available_by: string;
+      partial_shipments_allowed: boolean;
+      transshipment_allowed: boolean;
+      description_of_goods: string;
+      port_of_loading: string;
+      port_of_discharge: string;
+      latest_shipment_date: string | null;
+      presentation_period: string;
+      required_documents: string[];
+      additional_conditions: string;
+      status: string;
+    } = {
       user_id: user.id,
       popi_number: formData.popiNumber,
       popi_type: formData.popiType,
@@ -65,7 +101,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       port_of_discharge: formData.portOfDischarge,
       latest_shipment_date: formData.latestShipmentDate || null,
       presentation_period: formData.presentationPeriod,
-      required_documents: requiredDocuments,
+      required_documents: [...requiredDocuments], // explicit string[] spread
       additional_conditions: formData.additionalConditions,
       status: 'submitted'
     };
@@ -108,9 +144,45 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
 
   const requiredDocuments: string[] = formData.documentRequirements.length > 0 
     ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-    : (formData.requiredDocuments as string[]);
+    : Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
 
-  const insertData = {
+  const insertData: {
+    user_id: string;
+    popi_number: string;
+    popi_type: string;
+    form_of_documentary_credit: string;
+    corporate_reference: string;
+    applicable_rules: string;
+    lc_type: string;
+    issue_date: string | null;
+    expiry_date: string | null;
+    place_of_expiry: string;
+    applicant_name: string;
+    applicant_address: string;
+    applicant_account_number: string;
+    beneficiary_name: string;
+    beneficiary_address: string;
+    beneficiary_bank_name: string;
+    beneficiary_bank_address: string;
+    beneficiary_bank_swift_code: string;
+    advising_bank_swift_code: string;
+    lc_amount: number;
+    currency: string;
+    tolerance: number;
+    additional_amount: number;
+    available_with: string;
+    available_by: string;
+    partial_shipments_allowed: boolean;
+    transshipment_allowed: boolean;
+    description_of_goods: string;
+    port_of_loading: string;
+    port_of_discharge: string;
+    latest_shipment_date: string | null;
+    presentation_period: string;
+    required_documents: string[];
+    additional_conditions: string;
+    status: string;
+  } = {
     user_id: user.id,
     popi_number: formData.popiNumber,
     popi_type: formData.popiType,
@@ -143,7 +215,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: requiredDocuments,
+    required_documents: [...requiredDocuments], // explicit string[] spread
     additional_conditions: formData.additionalConditions,
     status: 'draft'
   };
