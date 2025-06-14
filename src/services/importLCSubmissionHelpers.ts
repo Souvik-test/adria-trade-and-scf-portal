@@ -1,4 +1,3 @@
-
 import { ImportLCFormData } from '@/types/importLC';
 
 type InsertData = {
@@ -23,7 +22,7 @@ type InsertData = {
   advising_bank_swift_code: string;
   lc_amount: number;
   currency: string;
-  tolerance: number;
+  tolerance: string;
   additional_amount: number;
   available_with: string;
   available_by: string;
@@ -64,7 +63,7 @@ export function buildInsertData(
   user: { id: string; user_id?: string },
   formData: ImportLCFormData,
   status: 'submitted' | 'draft'
-): InsertData {
+) {
   const { applicantParty, beneficiaryParty, advisingBankParty } = getParties(formData);
   const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
   const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
@@ -92,7 +91,7 @@ export function buildInsertData(
     advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
     lc_amount: formData.lcAmount,
     currency: formData.currency,
-    tolerance: Number(formData.tolerance) || 0,
+    tolerance: String(formData.tolerance ?? ''),
     additional_amount: formData.additionalAmount,
     available_with: formData.availableWith,
     available_by: formData.availableBy,
@@ -103,7 +102,7 @@ export function buildInsertData(
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: [...requiredDocuments], // Always string[]
+    required_documents: [...requiredDocuments],
     additional_conditions: formData.additionalConditions,
     status,
   };
