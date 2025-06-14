@@ -1,50 +1,59 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2 } from 'lucide-react';
-import { ImportLCFormData, DocumentRequirement, SWIFT_TAGS } from '@/types/importLC';
+import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus } from 'lucide-react';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
   updateField: (field: keyof ImportLCFormData, value: any) => void;
 }
 
-const genDocId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+const COMMON_DOC_TYPES = [
+  'Invoice',
+  'Packing List',
+  'Bill of Lading',
+  'Insurance Certificate',
+  'Certificate of Origin',
+  "Beneficiary’s Certificate"
+];
 
 const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   formData,
   updateField
 }) => {
-  const [newDoc, setNewDoc] = useState<DocumentRequirement>({
-    id: genDocId(),
-    name: '',
-    original: 1,
-    copies: 1
-  });
+  // Merge saved and common doc types for UI; avoid duplicates
+  const [customDocName, setCustomDocName] = useState('');
+  const savedDocs = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
+  const initialSet = new Set([...COMMON_DOC_TYPES, ...savedDocs]);
+  const [docTypes, setDocTypes] = useState<string[]>(Array.from(initialSet));
 
-  const addDocument = () => {
-    if (newDoc.name.trim()) {
-      const newDocWithId = { ...newDoc, id: genDocId() };
-      const updatedDocs = [...formData.documentRequirements, newDocWithId];
-      updateField('documentRequirements', updatedDocs);
-      setNewDoc({ id: genDocId(), name: '', original: 1, copies: 1 });
+  // Ensure formData.requiredDocuments is an array of strings
+  const selectedDocs: string[] = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
+
+  const handleCheckboxChange = (docType: string, checked: boolean) => {
+    let updated: string[];
+    if (checked) {
+      updated = [...selectedDocs, docType];
+    } else {
+      updated = selectedDocs.filter((d) => d !== docType);
     }
+    updateField('requiredDocuments', updated);
   };
 
-  const removeDocument = (index: number) => {
-    const updatedDocs = formData.documentRequirements.filter((_, i) => i !== index);
-    updateField('documentRequirements', updatedDocs);
-  };
-
-  const updateDocument = (index: number, field: keyof DocumentRequirement, value: string | number) => {
-    const updatedDocs = formData.documentRequirements.map((doc, i) => 
-      i === index ? { ...doc, [field]: value } : doc
-    );
-    updateField('documentRequirements', updatedDocs);
+  const handleAddCustomDoc = () => {
+    const trimmed = customDocName.trim();
+    if (trimmed && !docTypes.includes(trimmed)) {
+      setDocTypes(types => [...types, trimmed]);
+      updateField('requiredDocuments', [...selectedDocs, trimmed]);
+    }
+    setCustomDocName('');
   };
 
   return (
@@ -59,93 +68,42 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
           <div>
             <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
 
-            {/* Existing Documents */}
-            <div className="space-y-4 mb-4">
-              {formData.documentRequirements.map((doc, index) => (
-                <div key={doc.id || index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div className="md:col-span-2">
-                      <Label className="text-sm font-medium">Document Name</Label>
-                      <Input
-                        value={doc.name}
-                        onChange={(e) => updateDocument(index, 'name', e.target.value)}
-                        placeholder="Document name"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Originals</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={doc.original}
-                        onChange={(e) => updateDocument(index, 'original', parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Copies</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={doc.copies}
-                          onChange={(e) => updateDocument(index, 'copies', parseInt(e.target.value) || 0)}
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => removeDocument(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+              Select Required Documents
+            </Label>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              {docTypes.map((docType) => (
+                <div key={docType} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={docType}
+                    checked={selectedDocs.includes(docType)}
+                    onCheckedChange={(checked) => handleCheckboxChange(docType, checked as boolean)}
+                  />
+                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    {docType}
+                  </Label>
                 </div>
               ))}
             </div>
-
-            {/* Add New Document */}
-            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div className="md:col-span-2">
-                  <Label className="text-sm font-medium">Document Name</Label>
-                  <Input
-                    value={newDoc.name}
-                    onChange={(e) => setNewDoc({ ...newDoc, name: e.target.value })}
-                    placeholder="Enter document name"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Originals</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newDoc.original}
-                    onChange={(e) => setNewDoc({ ...newDoc, original: parseInt(e.target.value) || 1 })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Copies</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      value={newDoc.copies}
-                      onChange={(e) => setNewDoc({ ...newDoc, copies: parseInt(e.target.value) || 0 })}
-                    />
-                    <Button
-                      onClick={addDocument}
-                      className="bg-corporate-blue hover:bg-corporate-blue/90"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            {/* Add Custom Document Type */}
+            <div className="flex gap-2 mt-4">
+              <Input
+                value={customDocName}
+                onChange={(e) => setCustomDocName(e.target.value)}
+                placeholder="Enter custom document type"
+                maxLength={40}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleAddCustomDoc}
+                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+                disabled={!customDocName.trim()}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
             </div>
           </div>
-
           <div>
             <SwiftTagLabel tag=":48:" label="Presentation Period" />
             <Input
@@ -154,7 +112,6 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
               placeholder="e.g., 21 days after shipment date"
             />
           </div>
-
           <div>
             <SwiftTagLabel tag=":47A:" label="Additional Conditions" />
             <Textarea
