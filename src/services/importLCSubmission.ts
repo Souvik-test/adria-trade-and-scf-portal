@@ -18,6 +18,12 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
   try {
     const insertData = buildInsertData(user, formData, 'submitted');
+    // Fix: ensure required_documents is string[]
+    if (!Array.isArray(insertData.required_documents)) {
+      insertData.required_documents = [];
+    }
+    insertData.required_documents = [...(insertData.required_documents as string[])];
+
     console.log('Attempting to insert data:', insertData);
 
     // Use RPC call to bypass RLS temporarily for submission
@@ -48,6 +54,11 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   }
 
   const insertData = buildInsertData(user, formData, 'draft');
+  // Fix: ensure required_documents is string[]
+  if (!Array.isArray(insertData.required_documents)) {
+    insertData.required_documents = [];
+  }
+  insertData.required_documents = [...(insertData.required_documents as string[])];
 
   const { error } = await supabase
     .rpc('insert_import_lc_request', {
@@ -61,3 +72,4 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
 
   console.log('Draft saved successfully');
 };
+
