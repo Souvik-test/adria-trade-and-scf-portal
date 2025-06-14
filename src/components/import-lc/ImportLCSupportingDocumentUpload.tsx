@@ -6,14 +6,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ImportLCFormData } from "@/types/importLC";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, FilePlus } from "lucide-react";
 
 interface Props {
-  docKey: string;
+  docKey: string; // Used for keying, but can be 'custom-X'
   label: string;
   lcId: string;
   updateField: (field: keyof ImportLCFormData, value: any) => void;
   formData: ImportLCFormData;
+  isCustom?: boolean; // Show as custom doc
 }
 
 const STORAGE_BUCKET = "lc-supporting-documents";
@@ -23,22 +24,13 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
   label,
   lcId,
   updateField,
-  formData
+  formData,
+  isCustom = false
 }) => {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-
-  // Helper to return the path in form state, if exists (in case of restore from draft)
-  const getDefaultValue = (): string | undefined => {
-    const found = Array.isArray(formData.supportingDocuments)
-      ? formData.supportingDocuments.find(
-          (f: any) => f && f.name && f.name.startsWith(label)
-        )
-      : undefined;
-    return found ? found.name : undefined;
-  };
 
   // Upload handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,13 +44,13 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
     setUploading(true);
     try {
       const filename = `${lcId || "draft"}_${label.replace(/ /g, "_")}_${selectedFile.name}`;
-      // Make bucket if not exists
+      // Ensure bucket exists (error safe)
       let bucketRes = await supabase.storage.getBucket(STORAGE_BUCKET);
       if (!bucketRes.data) {
         await supabase.storage.createBucket(STORAGE_BUCKET, { public: false });
       }
 
-      // Upload the file
+      // Upload file
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .upload(filename, selectedFile, {
@@ -66,7 +58,7 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
         });
       if (error) throw error;
 
-      // Save file info in formData (you may want to persist to DB in real case)
+      // Save in form state by replacing prior doc w/ same label
       updateField("supportingDocuments", [
         ...(Array.isArray(formData.supportingDocuments)
           ? formData.supportingDocuments.filter(
@@ -95,20 +87,25 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
   };
 
   return (
-    <div>
-      <Label className="text-sm mb-1 block">{label}</Label>
-      <div className="flex gap-2 items-center">
+    <div className={`border rounded-md p-3 mb-2 flex flex-col items-start shadow-sm bg-white dark:bg-gray-900 ${isCustom ? 'border-corporate-teal-400' : 'border-gray-200 dark:border-gray-700'}`}>
+      <div className="flex items-center gap-2 w-full">
+        <FilePlus className={`w-4 h-4 ${isCustom ? 'text-corporate-teal-700' : 'text-gray-400'}`} />
+        <Label className="text-xs font-medium text-corporate-teal-700 w-full truncate">
+          {label}
+        </Label>
+      </div>
+      <div className="flex gap-2 items-center mt-2 w-full">
         <Input
           type="file"
           accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
           onChange={handleFileChange}
-          className="flex-1"
+          className="w-full text-xs"
           disabled={uploading}
         />
         <Button
           size="sm"
           variant="outline"
-          className="px-3"
+          className={`px-3 ${isCustom ? 'border-corporate-teal-600 text-corporate-teal-800' : ''}`}
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
         >
@@ -121,8 +118,8 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
         </Button>
       </div>
       {uploadedUrl && (
-        <div className="text-xs text-green-700 mt-1 break-all">
-          Uploaded: <span className="underline">{uploadedUrl}</span>
+        <div className="text-xs text-green-700 mt-2 break-all">
+          <span className="font-medium">Uploaded:</span> <span className="underline">{uploadedUrl}</span>
         </div>
       )}
     </div>

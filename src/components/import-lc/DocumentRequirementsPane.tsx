@@ -37,13 +37,12 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   formData,
   updateField
 }) => {
-  // Merge saved and common doc types for UI; avoid duplicates
+  // UI state for custom doc selection (checkbox add)
   const [customDocName, setCustomDocName] = useState('');
   const savedDocs = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
   const initialSet = new Set([...COMMON_DOC_TYPES, ...savedDocs]);
   const [docTypes, setDocTypes] = useState<string[]>(Array.from(initialSet));
 
-  // Ensure formData.requiredDocuments is an array of strings
   const selectedDocs: string[] = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
 
   const handleCheckboxChange = (docType: string, checked: boolean) => {
@@ -65,6 +64,19 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
     setCustomDocName('');
   };
 
+  // Supporting document state for custom uploads
+  const [customDocUploads, setCustomDocUploads] = useState<{ label: string; key: string }[]>([]);
+  const [customDocUploadName, setCustomDocUploadName] = useState('');
+
+  const handleAddCustomUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = customDocUploadName.trim();
+    if (trimmed && !customDocUploads.some(d => d.label === trimmed)) {
+      setCustomDocUploads(u => [...u, { label: trimmed, key: `custom-${u.length + 1}` }]);
+      setCustomDocUploadName('');
+    }
+  };
+
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
       <Card className="border border-gray-200 dark:border-gray-600">
@@ -74,6 +86,8 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+
+          {/* Required Document Checkboxes */}
           <div>
             <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
@@ -112,12 +126,13 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
               </Button>
             </div>
           </div>
-          {/* Supporting Document Upload Section */}
+
+          {/* Supporting Document Upload */}
           <div>
-            <Label className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 block">
-              Upload Supporting Documents
+            <Label className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1 block">
+              Supporting Documents Upload
             </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {SUPPORTING_DOC_LABELS.map((doc) => (
                 <ImportLCSupportingDocumentUpload
                   key={doc.key}
@@ -128,8 +143,44 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
                   formData={formData}
                 />
               ))}
+              {/* Custom Uploads */}
+              {customDocUploads.map((c) => (
+                <ImportLCSupportingDocumentUpload
+                  key={c.key}
+                  docKey={c.key}
+                  label={c.label}
+                  lcId={formData.corporateReference || ""}
+                  updateField={updateField}
+                  formData={formData}
+                  isCustom
+                />
+              ))}
+            </div>
+            {/* Add custom document upload */}
+            <form className="flex gap-2 mt-3" onSubmit={handleAddCustomUpload}>
+              <Input
+                value={customDocUploadName}
+                onChange={(e) => setCustomDocUploadName(e.target.value)}
+                placeholder="Upload custom document"
+                maxLength={40}
+                className="flex-1"
+              />
+              <Button
+                type="submit"
+                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+                disabled={!customDocUploadName.trim()}
+                tabIndex={-1}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </form>
+            <div className="text-xs text-gray-500 mt-1">
+              Upload short, clear PDF, DOC, or image docs. You may also add & upload custom supporting docs as needed.
             </div>
           </div>
+
+          {/* Presentation Period */}
           <div>
             <SwiftTagLabel tag=":48:" label="Presentation Period" />
             <Input
@@ -138,6 +189,7 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
               placeholder="e.g., 21 days after shipment date"
             />
           </div>
+          {/* Additional Conditions */}
           <div>
             <SwiftTagLabel tag=":47A:" label="Additional Conditions" />
             <Textarea

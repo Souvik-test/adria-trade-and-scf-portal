@@ -7,19 +7,24 @@ const useImportLCFormValidation = (formData: ImportLCFormData, currentStep: Impo
   const validateCurrentStep = useCallback(() => {
     switch (currentStep) {
       case 'basic':
+        // PO/PI is now fully optional for LC issuance
         return !!(formData.corporateReference && formData.formOfDocumentaryCredit);
       case 'parties':
-        const hasApplicant = formData.parties.some(p => p.role === 'applicant') || 
-                           (formData.applicantName && formData.applicantAddress);
-        const hasBeneficiary = formData.parties.some(p => p.role === 'beneficiary') || 
-                             (formData.beneficiaryName && formData.beneficiaryAddress);
+        // Only require applicant & beneficiary (from parties array OR legacy fields)
+        const hasApplicant = Array.isArray(formData.parties)
+          ? formData.parties.some(p => p.role === 'applicant' && p.name && p.address)
+          : (formData.applicantName && formData.applicantAddress);
+        const hasBeneficiary = Array.isArray(formData.parties)
+          ? formData.parties.some(p => p.role === 'beneficiary' && p.name && p.address)
+          : (formData.beneficiaryName && formData.beneficiaryAddress);
         return hasApplicant && hasBeneficiary;
       case 'amount':
         return !!(formData.lcAmount > 0 && formData.currency);
       case 'shipment':
         return !!(formData.descriptionOfGoods && formData.latestShipmentDate);
       case 'documents':
-        return formData.documentRequirements.length > 0 || formData.requiredDocuments.length > 0;
+        return (Array.isArray(formData.documentRequirements) && formData.documentRequirements.length > 0)
+          || (Array.isArray(formData.requiredDocuments) && formData.requiredDocuments.length > 0);
       default:
         return false;
     }

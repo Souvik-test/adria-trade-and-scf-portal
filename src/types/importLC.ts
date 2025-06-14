@@ -88,9 +88,10 @@ export const SWIFT_TAGS: Record<string, SwiftTagInfo> = {
     description: 'Irrevocable/Revocable Documentary Credit',
     required: true
   },
+  // CHANGED: "Currency Code, Amount" => "Amount"
   lcAmount: {
     tag: ':32B:',
-    label: 'Currency Code, Amount',
+    label: 'Amount',
     description: 'Currency and amount of the credit',
     required: true
   },

@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,7 +20,6 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
   const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR'];
   const toleranceOptions = ['0%', '5%', '10%', '15%', '20%'];
 
-  // Helper function to ensure boolean conversion
   const handleBooleanChange = (field: keyof ImportLCFormData, checked: boolean | "indeterminate") => {
     updateField(field, Boolean(checked));
   };
@@ -35,14 +34,15 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+
+            {/* --- FIELD: Amount (Currency + Amount together) --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* LC Amount */}
               <div>
                 <SwiftTagLabel 
-                    tag={SWIFT_TAGS.lcAmount.tag} 
-                    label={SWIFT_TAGS.lcAmount.label} 
-                    required={SWIFT_TAGS.lcAmount.required} 
-                  />
+                  tag={SWIFT_TAGS.lcAmount.tag} 
+                  label={SWIFT_TAGS.lcAmount.label}
+                  required={SWIFT_TAGS.lcAmount.required}
+                />
                 <Input
                   type="number"
                   value={formData.lcAmount || ''}
@@ -52,12 +52,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   step="0.01"
                 />
               </div>
-
-              {/* Currency */}
               <div>
+                {/* Only label via SwiftTagLabel -- remove duplicate Label */}
                 <SwiftTagLabel
-                  tag={"Currency"}
-                  label={"Currency"}
+                  tag="Currency"
+                  label="Currency"
                   required={true}
                 />
                 <Select value={formData.currency} onValueChange={(value) => updateField('currency', value)}>
@@ -73,12 +72,12 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
               </div>
             </div>
 
+            {/* --- FIELD: Tolerance --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tolerance */}
               <div>
                 <SwiftTagLabel
-                  tag={"Tolerance"}
-                  label={"Tolerance"}
+                  tag="Tolerance"
+                  label="Tolerance"
                   required={false}
                 />
                 <Select value={formData.tolerance} onValueChange={(value) => updateField('tolerance', value)}>
@@ -92,12 +91,10 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Additional Amount */}
               <div>
                 <SwiftTagLabel
-                  tag={"Additional Amount"}
-                  label={"Additional Amount"}
+                  tag="Additional Amount"
+                  label="Additional Amount"
                   required={false}
                 />
                 <Input
@@ -111,13 +108,13 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
               </div>
             </div>
 
-            {/* Available With */}
+            {/* --- FIELD: Available With --- */}
             <div>
               <SwiftTagLabel 
-                  tag={SWIFT_TAGS.availableWith.tag} 
-                  label={SWIFT_TAGS.availableWith.label}
-                  required={SWIFT_TAGS.availableWith.required}
-                />
+                tag={SWIFT_TAGS.availableWith.tag}
+                label={SWIFT_TAGS.availableWith.label}
+                required={SWIFT_TAGS.availableWith.required}
+              />
               <Input
                 value={formData.availableWith}
                 onChange={(e) => updateField('availableWith', e.target.value)}
@@ -125,11 +122,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
               />
             </div>
 
-            {/* Available By */}
+            {/* --- FIELD: Available By --- */}
             <div>
               <SwiftTagLabel
-                tag={"Available By"}
-                label={"Available By"}
+                tag="Available By"
+                label="Available By"
                 required={false}
               />
               <Select value={formData.availableBy} onValueChange={(value) => updateField('availableBy', value)}>
@@ -145,7 +142,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
               </Select>
             </div>
 
-            {/* Shipment Options */}
+            {/* --- FIELD: Partial/Transshipment --- */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -174,6 +171,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
               </div>
             </div>
 
+            {/* --- POPI AMOUNT WARNING (optional, only if popiNumber exists) --- */}
             {formData.popiNumber && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
                 <div className="text-sm text-yellow-800 dark:text-yellow-200">
@@ -181,6 +179,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                 </div>
               </div>
             )}
+
           </CardContent>
         </Card>
       </div>
