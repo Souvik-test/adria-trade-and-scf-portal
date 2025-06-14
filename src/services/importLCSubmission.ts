@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { ImportLCFormData } from '@/types/importLC';
@@ -17,20 +18,16 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
   try {
     const insertData = buildInsertData(user, formData, 'submitted');
-    // Ensure required_documents is string[] or empty array
-    let requiredDocs: string[] = [];
-    if (Array.isArray(insertData.required_documents)) {
-      requiredDocs = insertData.required_documents.filter((d): d is string => typeof d === 'string');
-    }
-    insertData.required_documents = requiredDocs;
+    // Force type: ensure required_documents is string[]
+    insertData.required_documents = Array.isArray(insertData.required_documents)
+      ? insertData.required_documents.filter((d): d is string => typeof d === 'string')
+      : [];
 
     console.log('Attempting to insert data:', insertData);
 
-    // Use RPC call to bypass RLS temporarily for submission
     const { data, error } = await supabase
-      .rpc('insert_import_lc_request', {
-        request_data: insertData
-      });
+      .from('import_lc_requests')
+      .insert([insertData]);
 
     if (error) {
       console.error('Database insert error:', error);
@@ -54,17 +51,13 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   }
 
   const insertData = buildInsertData(user, formData, 'draft');
-  // Ensure required_documents is string[] or empty array
-  let requiredDocs: string[] = [];
-  if (Array.isArray(insertData.required_documents)) {
-    requiredDocs = insertData.required_documents.filter((d): d is string => typeof d === 'string');
-  }
-  insertData.required_documents = requiredDocs;
+  insertData.required_documents = Array.isArray(insertData.required_documents)
+    ? insertData.required_documents.filter((d): d is string => typeof d === 'string')
+    : [];
 
   const { error } = await supabase
-    .rpc('insert_import_lc_request', {
-      request_data: insertData
-    });
+    .from('import_lc_requests')
+    .insert([insertData]);
 
   if (error) {
     console.error('Database error:', error);
