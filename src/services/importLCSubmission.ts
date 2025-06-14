@@ -28,9 +28,15 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
     const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
     const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
-    const requiredDocuments: string[] = formData.documentRequirements.length > 0 
-      ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-      : Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
+    const requiredDocuments: string[] =
+      formData.documentRequirements.length > 0
+        ? formData.documentRequirements.map(
+            (doc) =>
+              `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
+          )
+        : Array.isArray(formData.requiredDocuments)
+          ? [...formData.requiredDocuments]
+          : [];
 
     const insertData: {
       user_id: string;
@@ -90,7 +96,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
       lc_amount: formData.lcAmount,
       currency: formData.currency,
-      tolerance: formData.tolerance,
+      tolerance: Number(formData.tolerance) || 0,
       additional_amount: formData.additionalAmount,
       available_with: formData.availableWith,
       available_by: formData.availableBy,
@@ -101,7 +107,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       port_of_discharge: formData.portOfDischarge,
       latest_shipment_date: formData.latestShipmentDate || null,
       presentation_period: formData.presentationPeriod,
-      required_documents: [...requiredDocuments], // explicit string[] spread
+      required_documents: [...requiredDocuments],
       additional_conditions: formData.additionalConditions,
       status: 'submitted'
     };
@@ -142,9 +148,15 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
   const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
-  const requiredDocuments: string[] = formData.documentRequirements.length > 0 
-    ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-    : Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
+  const requiredDocuments: string[] =
+    formData.documentRequirements.length > 0
+      ? formData.documentRequirements.map(
+          (doc) =>
+            `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
+        )
+      : Array.isArray(formData.requiredDocuments)
+        ? [...formData.requiredDocuments]
+        : [];
 
   const insertData: {
     user_id: string;
@@ -204,7 +216,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
     lc_amount: formData.lcAmount,
     currency: formData.currency,
-    tolerance: formData.tolerance,
+    tolerance: Number(formData.tolerance) || 0,
     additional_amount: formData.additionalAmount,
     available_with: formData.availableWith,
     available_by: formData.availableBy,
@@ -215,7 +227,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: [...requiredDocuments], // explicit string[] spread
+    required_documents: [...requiredDocuments],
     additional_conditions: formData.additionalConditions,
     status: 'draft'
   };
