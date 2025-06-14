@@ -36,16 +36,13 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   const [poSearchOpen, setPoSearchOpen] = useState(false);
   const [isLoadingPOs, setIsLoadingPOs] = useState(false);
 
-  // Fetch POs with optional forced reload
+  // Fetch POs (all, no user filter)
   const fetchPurchaseOrders = useCallback(async () => {
-    const user = customAuth.getSession()?.user;
-    if (!user) return;
     setIsLoadingPOs(true);
     try {
       const { data, error } = await supabase
         .from('purchase_orders')
         .select('id, po_number, vendor_supplier, currency, grand_total, po_date')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Error fetching purchase orders:', error);
