@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
@@ -29,16 +28,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
           <CardContent className="space-y-6">
             {/* Description of Goods */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Description of Goods <span className="text-red-500">*</span>
-                </Label>
-                <SwiftTagLabel 
-                  tag={SWIFT_TAGS.descriptionOfGoods.tag}
-                  label={SWIFT_TAGS.descriptionOfGoods.label}
-                  required={SWIFT_TAGS.descriptionOfGoods.required}
-                />
-              </div>
+              <SwiftTagLabel 
+                tag={SWIFT_TAGS.descriptionOfGoods.tag}
+                label={SWIFT_TAGS.descriptionOfGoods.label}
+                required={SWIFT_TAGS.descriptionOfGoods.required}
+              />
               <Textarea
                 value={formData.descriptionOfGoods}
                 onChange={(e) => updateField('descriptionOfGoods', e.target.value)}
@@ -50,16 +44,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Port of Loading */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Port of Loading
-                  </Label>
-                  <SwiftTagLabel 
-                    tag={SWIFT_TAGS.portOfLoading.tag}
-                    label={SWIFT_TAGS.portOfLoading.label}
-                    required={SWIFT_TAGS.portOfLoading.required}
-                  />
-                </div>
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.portOfLoading.tag}
+                  label={SWIFT_TAGS.portOfLoading.label}
+                  required={SWIFT_TAGS.portOfLoading.required}
+                />
                 <Input
                   value={formData.portOfLoading}
                   onChange={(e) => updateField('portOfLoading', e.target.value)}
@@ -69,16 +58,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
 
               {/* Port of Discharge */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Port of Discharge
-                  </Label>
-                  <SwiftTagLabel 
-                    tag={SWIFT_TAGS.portOfDischarge.tag}
-                    label={SWIFT_TAGS.portOfDischarge.label}
-                    required={SWIFT_TAGS.portOfDischarge.required}
-                  />
-                </div>
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.portOfDischarge.tag}
+                  label={SWIFT_TAGS.portOfDischarge.label}
+                  required={SWIFT_TAGS.portOfDischarge.required}
+                />
                 <Input
                   value={formData.portOfDischarge}
                   onChange={(e) => updateField('portOfDischarge', e.target.value)}
@@ -90,16 +74,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Latest Shipment Date */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Latest Shipment Date <span className="text-red-500">*</span>
-                  </Label>
-                  <SwiftTagLabel 
-                    tag={SWIFT_TAGS.latestShipmentDate.tag}
-                    label={SWIFT_TAGS.latestShipmentDate.label}
-                    required={SWIFT_TAGS.latestShipmentDate.required}
-                  />
-                </div>
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.latestShipmentDate.tag}
+                  label={SWIFT_TAGS.latestShipmentDate.label}
+                  required={SWIFT_TAGS.latestShipmentDate.required}
+                />
                 <Input
                   type="date"
                   value={formData.latestShipmentDate}
@@ -109,9 +88,10 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
 
               {/* Presentation Period */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Presentation Period
-                </Label>
+                <SwiftTagLabel
+                  tag=":48:"
+                  label="Presentation Period"
+                />
                 <Input
                   value={formData.presentationPeriod}
                   onChange={(e) => updateField('presentationPeriod', e.target.value)}

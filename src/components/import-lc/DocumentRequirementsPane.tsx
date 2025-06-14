@@ -9,6 +9,7 @@ import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
+import ImportLCSupportingDocumentUpload from './ImportLCSupportingDocumentUpload';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
@@ -22,6 +23,14 @@ const COMMON_DOC_TYPES = [
   'Insurance Certificate',
   'Certificate of Origin',
   "Beneficiary’s Certificate"
+];
+
+// Supporting document types for upload
+const SUPPORTING_DOC_LABELS = [
+  { key: 'lcApplication', label: 'LC Application' },
+  { key: 'purchaseOrder', label: 'Purchase Order' },
+  { key: 'proformaInvoice', label: 'Pro-forma Invoice' },
+  { key: 'contract', label: 'Contract' },
 ];
 
 const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
@@ -67,7 +76,6 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
         <CardContent className="space-y-6">
           <div>
             <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
-
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
               Select Required Documents
             </Label>
@@ -102,6 +110,24 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
                 <Plus className="h-4 w-4 mr-1" />
                 Add
               </Button>
+            </div>
+          </div>
+          {/* Supporting Document Upload Section */}
+          <div>
+            <Label className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-2 block">
+              Upload Supporting Documents
+            </Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SUPPORTING_DOC_LABELS.map((doc) => (
+                <ImportLCSupportingDocumentUpload
+                  key={doc.key}
+                  docKey={doc.key}
+                  label={doc.label}
+                  lcId={formData.corporateReference || ""}
+                  updateField={updateField}
+                  formData={formData}
+                />
+              ))}
             </div>
           </div>
           <div>

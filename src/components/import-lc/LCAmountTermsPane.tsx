@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,16 +38,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* LC Amount */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    LC Amount <span className="text-red-500">*</span>
-                  </Label>
-                  <SwiftTagLabel 
+                <SwiftTagLabel 
                     tag={SWIFT_TAGS.lcAmount.tag} 
                     label={SWIFT_TAGS.lcAmount.label} 
                     required={SWIFT_TAGS.lcAmount.required} 
                   />
-                </div>
                 <Input
                   type="number"
                   value={formData.lcAmount || ''}
@@ -61,9 +55,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
 
               {/* Currency */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Currency <span className="text-red-500">*</span>
-                </Label>
+                <SwiftTagLabel
+                  tag={"Currency"}
+                  label={"Currency"}
+                  required={true}
+                />
                 <Select value={formData.currency} onValueChange={(value) => updateField('currency', value)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -80,9 +76,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Tolerance */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Tolerance
-                </Label>
+                <SwiftTagLabel
+                  tag={"Tolerance"}
+                  label={"Tolerance"}
+                  required={false}
+                />
                 <Select value={formData.tolerance} onValueChange={(value) => updateField('tolerance', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select tolerance" />
@@ -97,9 +95,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
 
               {/* Additional Amount */}
               <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Additional Amount
-                </Label>
+                <SwiftTagLabel
+                  tag={"Additional Amount"}
+                  label={"Additional Amount"}
+                  required={false}
+                />
                 <Input
                   type="number"
                   value={formData.additionalAmount || ''}
@@ -113,16 +113,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
 
             {/* Available With */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Available With
-                </Label>
-                <SwiftTagLabel 
+              <SwiftTagLabel 
                   tag={SWIFT_TAGS.availableWith.tag} 
                   label={SWIFT_TAGS.availableWith.label}
                   required={SWIFT_TAGS.availableWith.required}
                 />
-              </div>
               <Input
                 value={formData.availableWith}
                 onChange={(e) => updateField('availableWith', e.target.value)}
@@ -132,9 +127,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
 
             {/* Available By */}
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Available By
-              </Label>
+              <SwiftTagLabel
+                tag={"Available By"}
+                label={"Available By"}
+                required={false}
+              />
               <Select value={formData.availableBy} onValueChange={(value) => updateField('availableBy', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select availability method" />
@@ -156,16 +153,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   checked={formData.partialShipmentsAllowed}
                   onCheckedChange={(checked) => handleBooleanChange('partialShipmentsAllowed', checked)}
                 />
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="partialShipments" className="text-sm text-gray-700 dark:text-gray-300">
-                    Partial Shipments Allowed
-                  </Label>
-                  <SwiftTagLabel 
-                    tag={SWIFT_TAGS.partialShipmentsAllowed.tag} 
-                    label={SWIFT_TAGS.partialShipmentsAllowed.label}
-                    required={SWIFT_TAGS.partialShipmentsAllowed.required}
-                  />
-                </div>
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.partialShipmentsAllowed.tag} 
+                  label={SWIFT_TAGS.partialShipmentsAllowed.label}
+                  required={SWIFT_TAGS.partialShipmentsAllowed.required}
+                />
               </div>
 
               <div className="flex items-center space-x-2">
@@ -174,16 +166,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   checked={formData.transshipmentAllowed}
                   onCheckedChange={(checked) => handleBooleanChange('transshipmentAllowed', checked)}
                 />
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="transshipment" className="text-sm text-gray-700 dark:text-gray-300">
-                    Transshipment Allowed
-                  </Label>
-                  <SwiftTagLabel 
-                    tag={SWIFT_TAGS.transshipmentAllowed.tag}
-                    label={SWIFT_TAGS.transshipmentAllowed.label}
-                    required={SWIFT_TAGS.transshipmentAllowed.required}
-                  />
-                </div>
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.transshipmentAllowed.tag}
+                  label={SWIFT_TAGS.transshipmentAllowed.label}
+                  required={SWIFT_TAGS.transshipmentAllowed.required}
+                />
               </div>
             </div>
 

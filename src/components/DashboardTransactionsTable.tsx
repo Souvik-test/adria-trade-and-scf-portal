@@ -1,10 +1,17 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink } from "lucide-react";
 import TransactionViewModal from "@/components/TransactionViewModal";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationLink,
+  PaginationNext,
+} from "@/components/ui/pagination";
 
 interface Transaction {
   id: string;
@@ -54,6 +61,8 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
+const PAGE_SIZE = 10;
+
 const DashboardTransactionsTable: React.FC<Props> = ({
   transactions,
   isLoading,
@@ -63,6 +72,9 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fix: Support correct filtering for Import LCs by matching value and label
   const filteredTransactions = transactions.filter((transaction) => {
@@ -75,9 +87,25 @@ const DashboardTransactionsTable: React.FC<Props> = ({
     return true;
   });
 
+  // Calculate pagination variables
+  const total = filteredTransactions.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pagedTransactions =
+    filteredTransactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Reset pagination when filter changes or new data
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [transactionFilter, transactions.length]);
+
   const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsViewModalOpen(true);
+  };
+
+  // Handler for changing page
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -110,6 +138,11 @@ const DashboardTransactionsTable: React.FC<Props> = ({
             </div>
           ) : (
             <div className="overflow-x-auto">
+              <div className="text-xs text-gray-500 mb-1 flex items-center gap-2">
+                {`Showing ${(total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1)}-${
+                  Math.min(currentPage * PAGE_SIZE, total)
+                } of ${total} transactions`}
+              </div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left">
@@ -124,8 +157,8 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   </tr>
                 </thead>
                 <tbody className="text-xs">
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction) => (
+                  {pagedTransactions.length > 0 ? (
+                    pagedTransactions.map((transaction) => (
                       <tr key={transaction.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="py-2">
                           <button
@@ -154,6 +187,51 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   )}
                 </tbody>
               </table>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <Pagination className="mt-4">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        asChild
+                        href="#"
+                        onClick={e => {
+                          e.preventDefault();
+                          if (currentPage > 1) handlePageChange(currentPage - 1);
+                        }}
+                        aria-disabled={currentPage === 1}
+                      />
+                    </PaginationItem>
+                    {/* Show numbered page links */}
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          asChild
+                          href="#"
+                          isActive={i + 1 === currentPage}
+                          onClick={e => {
+                            e.preventDefault();
+                            handlePageChange(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        asChild
+                        href="#"
+                        onClick={e => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                        }}
+                        aria-disabled={currentPage === totalPages}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </div>
           )}
         </CardContent>
