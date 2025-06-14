@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
 import { ImportLCFormData, DocumentRequirement } from '@/types/importLC';
+import SwiftTagLabel from './SwiftTagLabel';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
@@ -17,165 +17,151 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   formData,
   updateField
 }) => {
-  const [newDocumentName, setNewDocumentName] = useState('');
+  const [newDoc, setNewDoc] = useState<DocumentRequirement>({
+    name: '',
+    original: 1,
+    copies: 1
+  });
 
-  const standardDocuments = [
-    'Commercial Invoice',
-    'Packing List',
-    'Bill of Lading',
-    'Certificate of Origin',
-    'Insurance Certificate',
-    'Quality Certificate',
-    'Inspection Certificate',
-    'Weight Certificate',
-    'Fumigation Certificate',
-    'Health Certificate'
-  ];
-
-  const addDocument = (documentName?: string) => {
-    const name = documentName || newDocumentName;
-    if (!name.trim()) return;
-
-    const newDoc: DocumentRequirement = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      original: 1,
-      copies: 0
-    };
-
-    updateField('documentRequirements', [...formData.documentRequirements, newDoc]);
-    setNewDocumentName('');
+  const addDocument = () => {
+    if (newDoc.name.trim()) {
+      const updatedDocs = [...formData.documentRequirements, newDoc];
+      updateField('documentRequirements', updatedDocs);
+      setNewDoc({ name: '', original: 1, copies: 1 });
+    }
   };
 
-  const removeDocument = (id: string) => {
-    updateField('documentRequirements', 
-      formData.documentRequirements.filter(doc => doc.id !== id)
+  const removeDocument = (index: number) => {
+    const updatedDocs = formData.documentRequirements.filter((_, i) => i !== index);
+    updateField('documentRequirements', updatedDocs);
+  };
+
+  const updateDocument = (index: number, field: keyof DocumentRequirement, value: string | number) => {
+    const updatedDocs = formData.documentRequirements.map((doc, i) => 
+      i === index ? { ...doc, [field]: value } : doc
     );
-  };
-
-  const updateDocument = (id: string, field: keyof DocumentRequirement, value: string | number) => {
-    updateField('documentRequirements',
-      formData.documentRequirements.map(doc => 
-        doc.id === id ? { ...doc, [field]: value } : doc
-      )
-    );
-  };
-
-  const formatDocumentDisplay = (doc: DocumentRequirement) => {
-    const originalText = doc.original === 1 ? '1 Original' : `${doc.original} Originals`;
-    const copyText = doc.copies === 0 ? '' : doc.copies === 1 ? ', 1 Copy' : `, ${doc.copies} Copies`;
-    return `${doc.name} - ${originalText}${copyText}`;
+    updateField('documentRequirements', updatedDocs);
   };
 
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Document Requirements</h3>
-        
-        {/* Quick Add Standard Documents */}
-        <div className="mb-6">
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Quick Add Standard Documents
-          </Label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-            {standardDocuments.map((doc) => (
-              <Button
-                key={doc}
-                onClick={() => addDocument(doc)}
-                variant="outline"
-                size="sm"
-                className="text-xs h-8 justify-start"
-                disabled={formData.documentRequirements.some(d => d.name === doc)}
-              >
-                {doc}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Custom Document Addition */}
-        <div className="space-y-2 mb-6">
-          <Label htmlFor="customDocument">Add Custom Document</Label>
-          <div className="flex gap-2">
-            <Input
-              id="customDocument"
-              value={newDocumentName}
-              onChange={(e) => setNewDocumentName(e.target.value)}
-              placeholder="Enter document name"
-              onKeyPress={(e) => e.key === 'Enter' && addDocument()}
-            />
-            <Button onClick={() => addDocument()} disabled={!newDocumentName.trim()}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Document Requirements List */}
-        <div className="space-y-4">
-          {formData.documentRequirements.length === 0 ? (
-            <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400">
-                No documents added yet. Add documents using the buttons above.
-              </p>
-            </div>
-          ) : (
-            formData.documentRequirements.map((doc) => (
-              <div key={doc.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium">{doc.name}</Label>
-                    <p className="text-xs text-gray-500 mt-1">{formatDocumentDisplay(doc)}</p>
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            Document Requirements
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <SwiftTagLabel tag=":46A:" label="Required Documents" required />
+            
+            {/* Existing Documents */}
+            <div className="space-y-4 mb-4">
+              {formData.documentRequirements.map((doc, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div className="md:col-span-2">
+                      <Label className="text-sm font-medium">Document Name</Label>
+                      <Input
+                        value={doc.name}
+                        onChange={(e) => updateDocument(index, 'name', e.target.value)}
+                        placeholder="Document name"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Originals</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={doc.original}
+                        onChange={(e) => updateDocument(index, 'original', parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Copies</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={doc.copies}
+                          onChange={(e) => updateDocument(index, 'copies', parseInt(e.target.value) || 0)}
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeDocument(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <Button
-                    onClick={() => removeDocument(doc.id)}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`original-${doc.id}`} className="text-xs">Original(s)</Label>
+              ))}
+            </div>
+
+            {/* Add New Document */}
+            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="md:col-span-2">
+                  <Label className="text-sm font-medium">Document Name</Label>
+                  <Input
+                    value={newDoc.name}
+                    onChange={(e) => setNewDoc({ ...newDoc, name: e.target.value })}
+                    placeholder="Enter document name"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Originals</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={newDoc.original}
+                    onChange={(e) => setNewDoc({ ...newDoc, original: parseInt(e.target.value) || 1 })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Copies</Label>
+                  <div className="flex gap-2">
                     <Input
-                      id={`original-${doc.id}`}
                       type="number"
                       min="0"
-                      value={doc.original}
-                      onChange={(e) => updateDocument(doc.id, 'original', parseInt(e.target.value) || 0)}
-                      className="h-8 text-sm"
+                      value={newDoc.copies}
+                      onChange={(e) => setNewDoc({ ...newDoc, copies: parseInt(e.target.value) || 0 })}
                     />
-                  </div>
-                  <div>
-                    <Label htmlFor={`copies-${doc.id}`} className="text-xs">Copy/Copies</Label>
-                    <Input
-                      id={`copies-${doc.id}`}
-                      type="number"
-                      min="0"
-                      value={doc.copies}
-                      onChange={(e) => updateDocument(doc.id, 'copies', parseInt(e.target.value) || 0)}
-                      className="h-8 text-sm"
-                    />
+                    <Button
+                      onClick={addDocument}
+                      className="bg-corporate-blue hover:bg-corporate-blue/90"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <div>
-        <Label htmlFor="additionalConditions">Additional Conditions</Label>
-        <Textarea
-          id="additionalConditions"
-          value={formData.additionalConditions}
-          onChange={(e) => updateField('additionalConditions', e.target.value)}
-          placeholder="Enter any additional conditions or special instructions"
-          rows={4}
-        />
-      </div>
+          <div>
+            <SwiftTagLabel tag=":48:" label="Presentation Period" />
+            <Input
+              value={formData.presentationPeriod}
+              onChange={(e) => updateField('presentationPeriod', e.target.value)}
+              placeholder="e.g., 21 days after shipment date"
+            />
+          </div>
+
+          <div>
+            <SwiftTagLabel tag=":47A:" label="Additional Conditions" />
+            <Textarea
+              value={formData.additionalConditions}
+              onChange={(e) => updateField('additionalConditions', e.target.value)}
+              placeholder="Enter any additional conditions for the LC"
+              rows={4}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

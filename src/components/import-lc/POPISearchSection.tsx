@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -6,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import POPISearchableSelect from './POPISearchableSelect';
-import POPISearchDropdown from './POPISearchDropdown';
 import { ImportLCFormData } from '@/types/importLC';
+import { populatePOPIData } from './POPIDataPopulator';
+import { useToast } from '@/hooks/use-toast';
 
 interface POPISearchSectionProps {
   formData: ImportLCFormData;
@@ -18,9 +20,38 @@ const POPISearchSection: React.FC<POPISearchSectionProps> = ({
   formData,
   updateField
 }) => {
-  const handlePopulatePOPI = () => {
+  const { toast } = useToast();
+
+  const handlePopulatePOPI = async () => {
+    if (!formData.popiType || !formData.popiNumber) {
+      toast({
+        title: "Error",
+        description: "Please select PO/PI type and number first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('Populating POPI data for:', formData.popiNumber);
-    // TODO: Implement POPI data population logic
+    
+    const result = await populatePOPIData(
+      formData.popiType,
+      formData.popiNumber,
+      updateField
+    );
+
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: result.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

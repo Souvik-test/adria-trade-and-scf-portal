@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ImportLCFormData } from '@/types/importLC';
 import POPISearchSection from './POPISearchSection';
+import SwiftTagLabel from './SwiftTagLabel';
 
 interface BasicLCInformationPaneProps {
   formData: ImportLCFormData;
@@ -19,125 +20,107 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
 }) => {
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic LC Information</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="corporateReference">Corporate Reference *</Label>
-            <Input
-              id="corporateReference"
-              value={formData.corporateReference}
-              onChange={(e) => updateField('corporateReference', e.target.value)}
-              placeholder="Enter corporate reference"
-            />
-          </div>
+      <POPISearchSection formData={formData} updateField={updateField} />
+      
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            LC Basic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <SwiftTagLabel tag=":40A:" label="Form of Documentary Credit" required />
+              <Select 
+                value={formData.formOfDocumentaryCredit} 
+                onValueChange={(value) => updateField('formOfDocumentaryCredit', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select form" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IRREVOCABLE">Irrevocable</SelectItem>
+                  <SelectItem value="TRANSFERABLE">Transferable</SelectItem>
+                  <SelectItem value="STANDBY">Stand-by</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="formOfDocumentaryCredit">Form of Documentary Credit *</Label>
-            <Select
-              value={formData.formOfDocumentaryCredit}
-              onValueChange={(value) => updateField('formOfDocumentaryCredit', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select form" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="IRREVOCABLE">Irrevocable</SelectItem>
-                <SelectItem value="IRREVOCABLE CONFIRMED">Irrevocable Confirmed</SelectItem>
-                <SelectItem value="IRREVOCABLE UNCONFIRMED">Irrevocable Unconfirmed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <SwiftTagLabel tag=":20:" label="Corporate Reference" required />
+              <Input
+                value={formData.corporateReference}
+                onChange={(e) => updateField('corporateReference', e.target.value)}
+                placeholder="Enter corporate reference"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="applicableRules">Applicable Rules</Label>
-            <Select
-              value={formData.applicableRules}
-              onValueChange={(value) => updateField('applicableRules', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UCP Latest Version">UCP Latest Version</SelectItem>
-                <SelectItem value="UCP 600">UCP 600</SelectItem>
-                <SelectItem value="ISP 98">ISP 98</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <SwiftTagLabel tag=":40E:" label="Applicable Rules" required />
+              <Select 
+                value={formData.applicableRules} 
+                onValueChange={(value) => updateField('applicableRules', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select applicable rules" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UCP Latest Version">UCP Latest Version</SelectItem>
+                  <SelectItem value="UCP 600">UCP 600</SelectItem>
+                  <SelectItem value="ISBP">ISBP</SelectItem>
+                  <SelectItem value="eUCP">eUCP</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="lcType">LC Type</Label>
-            <Select
-              value={formData.lcType}
-              onValueChange={(value) => updateField('lcType', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select LC type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SIGHT">Sight LC</SelectItem>
-                <SelectItem value="USANCE">Usance LC</SelectItem>
-                <SelectItem value="TRANSFERABLE">Transferable LC</SelectItem>
-                <SelectItem value="BACK_TO_BACK">Back to Back LC</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <SwiftTagLabel tag=":40A:" label="LC Type" />
+              <Select 
+                value={formData.lcType} 
+                onValueChange={(value) => updateField('lcType', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select LC type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SIGHT">Sight LC</SelectItem>
+                  <SelectItem value="USANCE">Usance LC</SelectItem>
+                  <SelectItem value="DEFERRED">Deferred Payment LC</SelectItem>
+                  <SelectItem value="ACCEPTANCE">Acceptance LC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="issueDate">Issue Date</Label>
-            <Input
-              id="issueDate"
-              type="date"
-              value={formData.issueDate}
-              onChange={(e) => updateField('issueDate', e.target.value)}
-            />
-          </div>
+            <div>
+              <SwiftTagLabel tag=":31C:" label="Issue Date" />
+              <Input
+                type="date"
+                value={formData.issueDate}
+                onChange={(e) => updateField('issueDate', e.target.value)}
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="expiryDate">Expiry Date</Label>
-            <Input
-              id="expiryDate"
-              type="date"
-              value={formData.expiryDate}
-              onChange={(e) => updateField('expiryDate', e.target.value)}
-            />
-          </div>
+            <div>
+              <SwiftTagLabel tag=":31D:" label="Expiry Date" required />
+              <Input
+                type="date"
+                value={formData.expiryDate}
+                onChange={(e) => updateField('expiryDate', e.target.value)}
+              />
+            </div>
 
-          <div className="md:col-span-2">
-            <Label htmlFor="placeOfExpiry">Place of Expiry</Label>
-            <Input
-              id="placeOfExpiry"
-              value={formData.placeOfExpiry}
-              onChange={(e) => updateField('placeOfExpiry', e.target.value)}
-              placeholder="Enter place of expiry"
-            />
+            <div className="md:col-span-2">
+              <SwiftTagLabel tag=":31D:" label="Place of Expiry" required />
+              <Input
+                value={formData.placeOfExpiry}
+                onChange={(e) => updateField('placeOfExpiry', e.target.value)}
+                placeholder="Enter place of expiry"
+              />
+            </div>
           </div>
-
-          <div>
-            <Label htmlFor="confirmation">Confirmation</Label>
-            <Select
-              value={formData.confirmation}
-              onValueChange={(value) => updateField('confirmation', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select confirmation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                <SelectItem value="UNCONFIRMED">Unconfirmed</SelectItem>
-                <SelectItem value="MAY ADD">May Add</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <POPISearchSection
-        formData={formData}
-        updateField={updateField}
-      />
+        </CardContent>
+      </Card>
     </div>
   );
 };

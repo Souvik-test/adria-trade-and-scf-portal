@@ -1,37 +1,24 @@
 
 import React from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SwiftTagInfo } from '@/types/importLC';
+import { Badge } from '@/components/ui/badge';
 
 interface SwiftTagLabelProps {
-  swiftInfo: SwiftTagInfo;
-  className?: string;
+  tag: string;
+  label: string;
+  required?: boolean;
 }
 
-const SwiftTagLabel: React.FC<SwiftTagLabelProps> = ({ swiftInfo, className = '' }) => {
+const SwiftTagLabel: React.FC<SwiftTagLabelProps> = ({ tag, label, required = false }) => {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className={`inline-flex items-center gap-1 ${className}`}>
-            <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded">
-              {swiftInfo.tag}
-            </span>
-            {swiftInfo.required && (
-              <span className="text-red-500 text-xs">*</span>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <div className="max-w-xs">
-            <p className="font-semibold">{swiftInfo.label}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {swiftInfo.description}
-            </p>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex items-center gap-2 mb-2">
+      <Badge variant="outline" className="bg-corporate-teal-50 text-corporate-teal-700 border-corporate-teal-200">
+        {tag}
+      </Badge>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </span>
+    </div>
   );
 };
 
