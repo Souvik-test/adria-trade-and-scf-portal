@@ -29,6 +29,10 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
     const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
     const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
+    const requiredDocuments: string[] = formData.documentRequirements.length > 0 
+      ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
+      : formData.requiredDocuments;
+
     const insertData = {
       user_id: user.id,
       popi_number: formData.popiNumber,
@@ -62,9 +66,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       port_of_discharge: formData.portOfDischarge,
       latest_shipment_date: formData.latestShipmentDate || null,
       presentation_period: formData.presentationPeriod,
-      required_documents: formData.documentRequirements.length > 0 
-        ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-        : formData.requiredDocuments,
+      required_documents: requiredDocuments as string[],
       additional_conditions: formData.additionalConditions,
       status: 'submitted'
     };
@@ -105,6 +107,10 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
   const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
 
+  const requiredDocuments: string[] = formData.documentRequirements.length > 0 
+    ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
+    : formData.requiredDocuments;
+
   const insertData = {
     user_id: user.id,
     popi_number: formData.popiNumber,
@@ -138,9 +144,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: formData.documentRequirements.length > 0 
-      ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-      : formData.requiredDocuments,
+    required_documents: requiredDocuments as string[],
     additional_conditions: formData.additionalConditions,
     status: 'draft'
   };

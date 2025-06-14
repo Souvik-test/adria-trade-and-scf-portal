@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ImportLCFormData } from '@/types/importLC';
-import { SWIFT_TAGS } from '@/types/importLC';
+import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 
 interface LCAmountTermsPaneProps {
@@ -44,7 +43,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     LC Amount <span className="text-red-500">*</span>
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.lcAmount} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.lcAmount.tag} 
+                    label={SWIFT_TAGS.lcAmount.label} 
+                    required={SWIFT_TAGS.lcAmount.required} 
+                  />
                 </div>
                 <Input
                   type="number"
@@ -114,7 +117,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Available With
                 </Label>
-                <SwiftTagLabel swiftInfo={SWIFT_TAGS.availableWith} />
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.availableWith.tag} 
+                  label={SWIFT_TAGS.availableWith.label}
+                  required={SWIFT_TAGS.availableWith.required}
+                />
               </div>
               <Input
                 value={formData.availableWith}
@@ -153,7 +160,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   <Label htmlFor="partialShipments" className="text-sm text-gray-700 dark:text-gray-300">
                     Partial Shipments Allowed
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.partialShipmentsAllowed} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.partialShipmentsAllowed.tag} 
+                    label={SWIFT_TAGS.partialShipmentsAllowed.label}
+                    required={SWIFT_TAGS.partialShipmentsAllowed.required}
+                  />
                 </div>
               </div>
 
@@ -167,7 +178,11 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   <Label htmlFor="transshipment" className="text-sm text-gray-700 dark:text-gray-300">
                     Transshipment Allowed
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.transshipmentAllowed} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.transshipmentAllowed.tag}
+                    label={SWIFT_TAGS.transshipmentAllowed.label}
+                    required={SWIFT_TAGS.transshipmentAllowed.required}
+                  />
                 </div>
               </div>
             </div>

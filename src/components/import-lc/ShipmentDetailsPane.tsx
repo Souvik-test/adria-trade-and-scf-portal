@@ -33,7 +33,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Description of Goods <span className="text-red-500">*</span>
                 </Label>
-                <SwiftTagLabel swiftInfo={SWIFT_TAGS.descriptionOfGoods} />
+                <SwiftTagLabel 
+                  tag={SWIFT_TAGS.descriptionOfGoods.tag}
+                  label={SWIFT_TAGS.descriptionOfGoods.label}
+                  required={SWIFT_TAGS.descriptionOfGoods.required}
+                />
               </div>
               <Textarea
                 value={formData.descriptionOfGoods}
@@ -50,7 +54,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Port of Loading
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.portOfLoading} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.portOfLoading.tag}
+                    label={SWIFT_TAGS.portOfLoading.label}
+                    required={SWIFT_TAGS.portOfLoading.required}
+                  />
                 </div>
                 <Input
                   value={formData.portOfLoading}
@@ -65,7 +73,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Port of Discharge
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.portOfDischarge} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.portOfDischarge.tag}
+                    label={SWIFT_TAGS.portOfDischarge.label}
+                    required={SWIFT_TAGS.portOfDischarge.required}
+                  />
                 </div>
                 <Input
                   value={formData.portOfDischarge}
@@ -82,7 +94,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Latest Shipment Date <span className="text-red-500">*</span>
                   </Label>
-                  <SwiftTagLabel swiftInfo={SWIFT_TAGS.latestShipmentDate} />
+                  <SwiftTagLabel 
+                    tag={SWIFT_TAGS.latestShipmentDate.tag}
+                    label={SWIFT_TAGS.latestShipmentDate.label}
+                    required={SWIFT_TAGS.latestShipmentDate.required}
+                  />
                 </div>
                 <Input
                   type="date"

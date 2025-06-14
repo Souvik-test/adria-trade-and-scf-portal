@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
-import { ImportLCFormData, DocumentRequirement } from '@/types/importLC';
+import { ImportLCFormData, DocumentRequirement, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 
 interface DocumentRequirementsPaneProps {
@@ -13,11 +13,14 @@ interface DocumentRequirementsPaneProps {
   updateField: (field: keyof ImportLCFormData, value: any) => void;
 }
 
+const genDocId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+
 const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   formData,
   updateField
 }) => {
   const [newDoc, setNewDoc] = useState<DocumentRequirement>({
+    id: genDocId(),
     name: '',
     original: 1,
     copies: 1
@@ -25,9 +28,10 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
 
   const addDocument = () => {
     if (newDoc.name.trim()) {
-      const updatedDocs = [...formData.documentRequirements, newDoc];
+      const newDocWithId = { ...newDoc, id: genDocId() };
+      const updatedDocs = [...formData.documentRequirements, newDocWithId];
       updateField('documentRequirements', updatedDocs);
-      setNewDoc({ name: '', original: 1, copies: 1 });
+      setNewDoc({ id: genDocId(), name: '', original: 1, copies: 1 });
     }
   };
 
@@ -53,12 +57,12 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <SwiftTagLabel tag=":46A:" label="Required Documents" required />
-            
+            <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
+
             {/* Existing Documents */}
             <div className="space-y-4 mb-4">
               {formData.documentRequirements.map((doc, index) => (
-                <div key={index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                <div key={doc.id || index} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div className="md:col-span-2">
                       <Label className="text-sm font-medium">Document Name</Label>
