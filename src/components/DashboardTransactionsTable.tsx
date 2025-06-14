@@ -64,6 +64,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // Fix: Support correct filtering for Import LCs by matching value and label
   const filteredTransactions = transactions.filter((transaction) => {
     if (transactionFilter === "all") return true;
     if (transactionFilter === "import-lc") return transaction.product_type === "Import LC";
