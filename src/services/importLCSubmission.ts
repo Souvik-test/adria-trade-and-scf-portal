@@ -34,6 +34,7 @@ const submitImportLCEdge = async (
   if (!session?.user) {
     throw new Error('User not authenticated');
   }
+
   // Build clean insert data like before
   const user = session.user;
   const insertData = buildInsertData(user, formData, status);
@@ -52,15 +53,17 @@ const submitImportLCEdge = async (
       }),
     }
   );
-  // Defensive: handle non-JSON response
+
+  // Read the response as text once, then try to parse as JSON
+  const bodyText = await resp.text();
   let result;
   try {
-    result = await resp.json();
+    result = JSON.parse(bodyText);
   } catch (err) {
-    const text = await resp.text();
-    console.error("Expected JSON but got non-JSON response:", text);
+    console.error("Expected JSON but got non-JSON response:", bodyText);
     throw new Error('Unexpected server response. Please check the function deployment and URL.');
   }
+
   if (!resp.ok) {
     throw new Error(result?.error || 'Failed to submit LC');
   }
