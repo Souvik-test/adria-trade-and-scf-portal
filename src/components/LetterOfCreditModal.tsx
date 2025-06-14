@@ -36,19 +36,21 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     }
   };
 
-  // Determine which modal content to render
+  // Export LC: Use Dialog for modal, just like import path
   if (type === "export") {
-    // Render Export LC modal/flow (process & method cards)
     return (
-      <>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="bg-background rounded-lg shadow-2xl max-w-6xl w-full mx-4 md:mx-auto max-h-[90vh] overflow-auto border animate-fade-in relative">
-              <ExportLCModalContent onClose={onClose} />
-            </div>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+              Export Letter of Credit
+            </DialogTitle>
+          </DialogHeader>
+          <div className="h-full w-full overflow-hidden">
+            <ExportLCModalContent onClose={onClose} />
           </div>
-        )}
-      </>
+        </DialogContent>
+      </Dialog>
     );
   }
 
