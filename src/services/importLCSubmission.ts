@@ -13,7 +13,9 @@ const submitImportLCEdge = async (
 ) => {
   // Always get a fresh session
   const { data: { session }, error } = await supabase.auth.getSession();
+  console.log("DEBUG: Supabase.getSession() result", { session, error });
   if (!session || !session.user || !session.access_token) {
+    console.error("DEBUG: No session or access token!", { session, error });
     throw new Error('User not authenticated (no session or access token)');
   }
 
@@ -22,6 +24,16 @@ const submitImportLCEdge = async (
 
   // Pass access token for edge auth
   const fnUrl = getSupabaseFunctionUrl();
+
+  // Log what is being sent in the request
+  console.log("DEBUG: Sending edge function request", {
+    fnUrl,
+    insertData,
+    session_user_id: session.user.id,
+    session_token_short: session.access_token.slice(0, 10) + "...",
+    status,
+  });
+
   const resp = await fetch(fnUrl, {
     method: 'POST',
     headers: { 
@@ -40,9 +52,12 @@ const submitImportLCEdge = async (
   try {
     result = JSON.parse(bodyText);
   } catch (err) {
-    console.error("Expected JSON but got non-JSON response:", bodyText);
+    console.error("DEBUG: Expected JSON but got non-JSON response:", bodyText);
     throw new Error('Unexpected server response. Please check the function deployment and URL.');
   }
+
+  // Log the full body response for debugging
+  console.log("DEBUG: Edge function response", { ok: resp.ok, status: resp.status, result });
 
   if (!resp.ok) {
     throw new Error(result?.error || 'Failed to submit LC');
