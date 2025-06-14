@@ -1,52 +1,33 @@
 
+// All database service methods now use Supabase Auth for user identification.
 import { supabase } from '@/integrations/supabase/client';
-import { customAuth } from '@/services/customAuth';
 
-// Get current user from custom auth
+// Get current Supabase Auth user (returns uuid and .user_metadata, not custom_users)
 const getCurrentUser = () => {
-  const session = customAuth.getSession();
-  return session?.user || null;
+  const user =
+    supabase.auth.getUser &&
+    typeof supabase.auth.getUser === 'function'
+      ? (window as any).__supabaseUser ||
+        (supabase.auth.getUser as any)() // fallback for SSR/compat, but not needed usually
+      : null;
+
+  // Modern method: sync via session
+  // State management: since this is not a hook, always use .auth.getSession
+  // NOTE: this is async, so wrap in async if needed
+  if (user && user.id) return user;
+  // fallback (async always use getSession in callsites if needed)
+  return null;
 };
 
-// Function to create transaction record
-const createTransactionRecord = async (productType: string, formData: any, actualTransactionNumber: string) => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
-  try {
-    // Create transaction record with actual transaction number as reference
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: user.id,
-        transaction_ref: actualTransactionNumber, // Use the actual form number (PO/PI/Invoice number)
-        product_type: productType,
-        status: 'Submitted',
-        customer_name: getCustomerName(productType, formData),
-        amount: getAmount(productType, formData),
-        currency: formData.currency || 'USD',
-        created_by: user.user_id,
-        initiating_channel: 'Portal'
-      })
-      .select()
-      .single();
-
-    if (transactionError) {
-      console.error('Error creating transaction:', transactionError);
-      throw transactionError;
-    }
-
-    console.log('Transaction record created:', transaction);
-    return transaction;
-  } catch (error) {
-    console.error('Error in createTransactionRecord:', error);
-    throw error;
-  }
+// Updated async version to actually work correctly everywhere
+const getCurrentUserAsync = async () => {
+  // Strongly recommended: always fetch Supabase Auth session right before DB call
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data || !data.session || !data.session.user) return null;
+  return data.session.user;
 };
 
-// Helper function to get customer name based on product type
+// -- Helper: get metadata depending on the product_type (should map to the form field keys now) --
 const getCustomerName = (productType: string, formData: any) => {
   switch (productType) {
     case 'PO':
@@ -60,7 +41,6 @@ const getCustomerName = (productType: string, formData: any) => {
   }
 };
 
-// Helper function to get amount based on product type
 const getAmount = (productType: string, formData: any) => {
   switch (productType) {
     case 'PO':
@@ -73,19 +53,41 @@ const getAmount = (productType: string, formData: any) => {
   }
 };
 
-// Purchase Order functions
-export const savePurchaseOrder = async (formData: any) => {
-  const user = getCurrentUser();
+const createTransactionRecord = async (productType: string, formData: any, actualTransactionNumber: string) => {
+  const user = await getCurrentUserAsync();
   if (!user) {
-    console.error('No authenticated user found');
     throw new Error('User not authenticated');
   }
-
-  console.log('Saving PO with user ID:', user.id);
-  console.log('PO Form data:', formData);
-
   try {
-    // Insert purchase order using custom user's UUID id
+    // Use the correct Supabase Auth UUID
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: user.id,
+        transaction_ref: actualTransactionNumber,
+        product_type: productType,
+        status: 'Submitted',
+        customer_name: getCustomerName(productType, formData),
+        amount: getAmount(productType, formData),
+        currency: formData.currency || 'USD',
+        created_by: user.email || user.id,
+        initiating_channel: 'Portal'
+      })
+      .select()
+      .single();
+
+    if (transactionError) throw transactionError;
+    return transaction;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Purchase Order functions
+export const savePurchaseOrder = async (formData: any) => {
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
+  try {
     const { data: po, error: poError } = await supabase
       .from('purchase_orders')
       .insert({
@@ -110,15 +112,8 @@ export const savePurchaseOrder = async (formData: any) => {
       })
       .select()
       .single();
+    if (poError) throw poError;
 
-    if (poError) {
-      console.error('PO insertion error:', poError);
-      throw poError;
-    }
-
-    console.log('PO inserted successfully:', po);
-
-    // Insert line items
     if (formData.items && formData.items.length > 0) {
       const lineItems = formData.items.map((item: any) => ({
         purchase_order_id: po.id,
@@ -129,44 +124,20 @@ export const savePurchaseOrder = async (formData: any) => {
         tax_rate: item.taxRate,
         line_total: item.lineTotal
       }));
-
-      console.log('Inserting line items:', lineItems);
-
-      const { error: itemsError } = await supabase
-        .from('popi_line_items')
-        .insert(lineItems);
-
-      if (itemsError) {
-        console.error('Line items insertion error:', itemsError);
-        throw itemsError;
-      }
-
-      console.log('Line items inserted successfully');
+      const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
+      if (itemsError) throw itemsError;
     }
-
-    // Create transaction record with actual PO number as transaction reference
     await createTransactionRecord('PO', formData, formData.poNumber);
-
     return po;
   } catch (error) {
-    console.error('Error saving purchase order:', error);
     throw error;
   }
 };
 
-// Proforma Invoice functions
 export const saveProformaInvoice = async (formData: any) => {
-  const user = getCurrentUser();
-  if (!user) {
-    console.error('No authenticated user found');
-    throw new Error('User not authenticated');
-  }
-
-  console.log('Saving PI with user ID:', user.id);
-  console.log('PI Form data:', formData);
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
-    // Insert proforma invoice using custom user's UUID id
     const { data: pi, error: piError } = await supabase
       .from('proforma_invoices')
       .insert({
@@ -193,14 +164,8 @@ export const saveProformaInvoice = async (formData: any) => {
       .select()
       .single();
 
-    if (piError) {
-      console.error('PI insertion error:', piError);
-      throw piError;
-    }
+    if (piError) throw piError;
 
-    console.log('PI inserted successfully:', pi);
-
-    // Insert line items
     if (formData.items && formData.items.length > 0) {
       const lineItems = formData.items.map((item: any) => ({
         proforma_invoice_id: pi.id,
@@ -212,43 +177,20 @@ export const saveProformaInvoice = async (formData: any) => {
         line_total: item.lineTotal
       }));
 
-      console.log('Inserting PI line items:', lineItems);
-
-      const { error: itemsError } = await supabase
-        .from('popi_line_items')
-        .insert(lineItems);
-
-      if (itemsError) {
-        console.error('PI line items insertion error:', itemsError);
-        throw itemsError;
-      }
-
-      console.log('PI line items inserted successfully');
+      const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
+      if (itemsError) throw itemsError;
     }
-
-    // Create transaction record with actual PI number as transaction reference
     await createTransactionRecord('PI', formData, formData.piNumber);
-
     return pi;
   } catch (error) {
-    console.error('Error saving proforma invoice:', error);
     throw error;
   }
 };
 
-// Invoice functions
 export const saveInvoice = async (formData: any) => {
-  const user = getCurrentUser();
-  if (!user) {
-    console.error('No authenticated user found');
-    throw new Error('User not authenticated');
-  }
-
-  console.log('Saving Invoice with user ID:', user.id);
-  console.log('Invoice Form data:', formData);
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
-    // Insert invoice using custom user's UUID id
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
       .insert({
@@ -275,15 +217,8 @@ export const saveInvoice = async (formData: any) => {
       })
       .select()
       .single();
+    if (invoiceError) throw invoiceError;
 
-    if (invoiceError) {
-      console.error('Invoice insertion error:', invoiceError);
-      throw invoiceError;
-    }
-
-    console.log('Invoice inserted successfully:', invoice);
-
-    // Insert line items
     if (formData.lineItems && formData.lineItems.length > 0) {
       const lineItems = formData.lineItems.map((item: any) => ({
         invoice_id: invoice.id,
@@ -294,40 +229,20 @@ export const saveInvoice = async (formData: any) => {
         line_total: item.lineTotal
       }));
 
-      console.log('Inserting invoice line items:', lineItems);
-
-      const { error: itemsError } = await supabase
-        .from('invoice_line_items')
-        .insert(lineItems);
-
-      if (itemsError) {
-        console.error('Invoice line items insertion error:', itemsError);
-        throw itemsError;
-      }
-
-      console.log('Invoice line items inserted successfully');
+      const { error: itemsError } = await supabase.from('invoice_line_items').insert(lineItems);
+      if (itemsError) throw itemsError;
     }
-
-    // Create transaction record with actual invoice number as transaction reference
     await createTransactionRecord('Invoice', formData, formData.invoiceNumber);
-
     return invoice;
   } catch (error) {
-    console.error('Error saving invoice:', error);
     throw error;
   }
 };
 
 // Search purchase order
 export const searchPurchaseOrder = async (poNumber: string) => {
-  const user = getCurrentUser();
-  if (!user) {
-    console.error('No authenticated user found');
-    throw new Error('User not authenticated');
-  }
-
-  console.log('Searching PO with user ID:', user.id, 'PO Number:', poNumber);
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
     const { data, error } = await supabase
       .from('purchase_orders')
@@ -336,91 +251,59 @@ export const searchPurchaseOrder = async (poNumber: string) => {
       .eq('po_number', poNumber)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('PO search error:', error);
-      throw error;
-    }
-
-    console.log('PO search result:', data);
+    if (error && error.code !== 'PGRST116') throw error;
     return data;
   } catch (error) {
-    console.error('Error searching purchase order:', error);
     throw error;
   }
 };
 
 // Fetch user notifications
 export const fetchNotifications = async () => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', user.id)
       .order('timestamp', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching notifications:', error);
-      throw error;
-    }
-
+    if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching notifications:', error);
     throw error;
   }
 };
 
 // Fetch user transactions
 export const fetchTransactions = async () => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching transactions:', error);
-      throw error;
-    }
-
+    if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching transactions:', error);
     throw error;
   }
 };
 
 // Mark notification as read
 export const markNotificationAsRead = async (notificationId: string) => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
   try {
     const { error } = await supabase
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId)
       .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error marking notification as read:', error);
-      throw error;
-    }
+    if (error) throw error;
   } catch (error) {
-    console.error('Error marking notification as read:', error);
     throw error;
   }
 };
