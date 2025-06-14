@@ -16,15 +16,18 @@ serve(async (req) => {
     const debugLogs: any = {};
     const { session, formData, status } = await req.json();
 
+    // Accept either session.user.id or session.user.user_id for compatibility
+    const sessionUserId = session?.user?.user_id || session?.user?.id || null;
+
     debugLogs.session_present = !!session;
     debugLogs.session_user = !!session?.user;
-    debugLogs.session_user_id = session?.user?.user_id || null;
+    debugLogs.session_user_id = sessionUserId;
     debugLogs.session_token_short = session?.access_token ? `${session.access_token.slice(0, 10)}...` : null;
     debugLogs.status = status;
     debugLogs.formData_keys = formData ? Object.keys(formData) : null;
 
     // Validate minimal session info
-    if (!session || !session.user || !session.user.user_id) {
+    if (!session || !session.user || !sessionUserId) {
       console.log("DEBUG: Invalid session info:", debugLogs);
       return new Response(JSON.stringify({ error: "Missing or invalid session.", debug: debugLogs }), {
         status: 401,
@@ -34,11 +37,10 @@ serve(async (req) => {
     // Use service role to access custom_users
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const { user_id } = session.user;
 
     // Step 1: find the user (get UUID to insert as user_id foreign key)
     const userResp = await fetch(
-      `${supabaseUrl}/rest/v1/custom_users?user_id=eq.${encodeURIComponent(user_id)}`,
+      `${supabaseUrl}/rest/v1/custom_users?user_id=eq.${encodeURIComponent(sessionUserId)}`,
       {
         headers: {
           apikey: supabaseKey,
