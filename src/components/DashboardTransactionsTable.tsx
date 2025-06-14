@@ -193,7 +193,6 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
-                        asChild
                         href="#"
                         onClick={e => {
                           e.preventDefault();
@@ -206,7 +205,6 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <PaginationItem key={i}>
                         <PaginationLink
-                          asChild
                           href="#"
                           isActive={i + 1 === currentPage}
                           onClick={e => {
@@ -220,7 +218,6 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     ))}
                     <PaginationItem>
                       <PaginationNext
-                        asChild
                         href="#"
                         onClick={e => {
                           e.preventDefault();
