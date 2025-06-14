@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
@@ -9,8 +8,6 @@ interface AuthGuardProps {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { user, loading } = useAuth();
-
-  console.log('AuthGuard - Loading:', loading, 'User:', user?.user_id);
 
   if (loading) {
     return (
@@ -27,11 +24,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   }
 
   if (!user) {
-    console.log('AuthGuard - No user found, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('AuthGuard - User authenticated, rendering children');
   return <>{children}</>;
 };
 
