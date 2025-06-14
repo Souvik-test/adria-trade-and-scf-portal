@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceFormData } from '@/hooks/useInvoiceForm';
-import { Search } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -36,15 +36,10 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   const [poSearchOpen, setPoSearchOpen] = useState(false);
   const [isLoadingPOs, setIsLoadingPOs] = useState(false);
 
-  // Fetch purchase orders when component mounts
-  useEffect(() => {
-    fetchPurchaseOrders();
-  }, []);
-
-  const fetchPurchaseOrders = async () => {
+  // Fetch POs with optional forced reload
+  const fetchPurchaseOrders = useCallback(async () => {
     const user = customAuth.getSession()?.user;
     if (!user) return;
-
     setIsLoadingPOs(true);
     try {
       const { data, error } = await supabase
@@ -52,7 +47,6 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
         .select('id, po_number, vendor_supplier, currency, grand_total, po_date')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) {
         console.error('Error fetching purchase orders:', error);
       } else {
@@ -63,7 +57,19 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
     } finally {
       setIsLoadingPOs(false);
     }
-  };
+  }, []);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchPurchaseOrders();
+  }, [fetchPurchaseOrders]);
+
+  // Refetch POs every time the popover is opened
+  useEffect(() => {
+    if (poSearchOpen) {
+      fetchPurchaseOrders();
+    }
+  }, [poSearchOpen, fetchPurchaseOrders]);
 
   const handlePOSelect = (selectedPO: PurchaseOrder) => {
     // Auto-populate fields when PO is selected
@@ -88,6 +94,10 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
     }
   };
 
+  const handleRefreshPOs = async () => {
+    await fetchPurchaseOrders();
+  };
+
   return (
     <div className="space-y-6">
       {/* Purchase Order Details */}
@@ -99,7 +109,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="purchaseOrderNumber">Purchase Order Number</Label>
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1 items-center">
                 <div className="flex-1">
                   <Input
                     id="purchaseOrderNumber"
@@ -115,36 +125,56 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                       size="icon"
                       className="shrink-0"
                       disabled={isLoadingPOs}
+                      aria-label="Search PO"
                     >
                       <Search className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[400px] p-0" align="start">
+                    <div className="flex items-center justify-between px-3 py-2 border-b">
+                      <span className="text-sm font-semibold">Your Purchase Orders</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Refresh PO List"
+                        onClick={handleRefreshPOs}
+                        disabled={isLoadingPOs}
+                        className="ml-2"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isLoadingPOs ? "animate-spin" : ""}`} />
+                      </Button>
+                    </div>
                     <Command>
                       <CommandInput placeholder="Search purchase orders..." />
                       <CommandList>
-                        <CommandEmpty>No purchase orders found.</CommandEmpty>
-                        <CommandGroup>
-                          {purchaseOrders.map((po) => (
-                            <CommandItem
-                              key={po.id}
-                              onSelect={() => handlePOSelect(po)}
-                              className="cursor-pointer"
-                            >
-                              <div className="flex flex-col w-full">
-                                <div className="flex justify-between items-center">
-                                  <span className="font-medium">{po.po_number}</span>
-                                  <span className="text-sm text-gray-500">
-                                    {po.currency} {po.grand_total?.toLocaleString() || '0'}
-                                  </span>
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {po.vendor_supplier} • {po.po_date}
-                                </div>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        {isLoadingPOs ? (
+                          <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                        ) : (
+                          <>
+                            <CommandEmpty>No purchase orders found.</CommandEmpty>
+                            <CommandGroup>
+                              {purchaseOrders.map((po) => (
+                                <CommandItem
+                                  key={po.id}
+                                  onSelect={() => handlePOSelect(po)}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex flex-col w-full">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-medium">{po.po_number}</span>
+                                      <span className="text-sm text-gray-500">
+                                        {po.currency} {po.grand_total?.toLocaleString() || '0'}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {po.vendor_supplier} • {po.po_date}
+                                    </div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </>
+                        )}
                       </CommandList>
                     </Command>
                   </PopoverContent>
