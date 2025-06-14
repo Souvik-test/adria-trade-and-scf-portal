@@ -2,28 +2,22 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
 
-// Helper to fetch the next unique transaction ref from Supabase
-const getUniqueTransactionRef = async (productType: string) => {
-  // Fix TS2345 error by casting params object to { product_type: string }
-  const { data, error } = await supabase.rpc('generate_transaction_ref', { product_type: productType } as { product_type: string });
-  if (error || !data) {
-    throw new Error(`Failed to generate transaction ref for ${productType}: ${error?.message}`);
-  }
-  return data;
-};
+// Remove the getUniqueTransactionRef function since we no longer auto-generate refs.
 
 // Save Purchase Order
 export const savePurchaseOrder = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
-    // Ensure unique PO number
-    const uniquePONumber = await getUniqueTransactionRef('PO');
+    // Use user-provided PO number
+    const userPONumber = formData.poNumber;
+    if (!userPONumber) throw new Error('Please provide a PO reference number.');
+
     const { data: po, error: poError } = await supabase
       .from('purchase_orders')
       .insert({
         user_id: user.id,
-        po_number: uniquePONumber,
+        po_number: userPONumber,
         po_date: formData.poDate,
         vendor_supplier: formData.vendorSupplier,
         expected_delivery_date: formData.expectedDeliveryDate,
@@ -58,8 +52,8 @@ export const savePurchaseOrder = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PO', formData, uniquePONumber);
-    return { ...po, po_number: uniquePONumber };
+    await createTransactionRecord('PO', formData, userPONumber);
+    return { ...po, po_number: userPONumber };
   } catch (error) {
     throw error;
   }
@@ -70,13 +64,15 @@ export const saveProformaInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
-    // Ensure unique PI number
-    const uniquePINumber = await getUniqueTransactionRef('PI');
+    // Use user-provided PI number
+    const userPINumber = formData.piNumber;
+    if (!userPINumber) throw new Error('Please provide a PI reference number.');
+
     const { data: pi, error: piError } = await supabase
       .from('proforma_invoices')
       .insert({
         user_id: user.id,
-        pi_number: uniquePINumber,
+        pi_number: userPINumber,
         pi_date: formData.piDate,
         valid_until_date: formData.validUntilDate,
         buyer_name: formData.buyerName,
@@ -114,8 +110,8 @@ export const saveProformaInvoice = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PI', formData, uniquePINumber);
-    return { ...pi, pi_number: uniquePINumber };
+    await createTransactionRecord('PI', formData, userPINumber);
+    return { ...pi, pi_number: userPINumber };
   } catch (error) {
     throw error;
   }
@@ -126,12 +122,15 @@ export const saveInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
+    const invoiceNumber = formData.invoiceNumber;
+    if (!invoiceNumber) throw new Error('Please provide an Invoice reference number.');
+
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
       .insert({
         user_id: user.id,
         invoice_type: formData.invoiceType,
-        invoice_number: formData.invoiceNumber,
+        invoice_number: invoiceNumber,
         invoice_date: formData.invoiceDate,
         due_date: formData.dueDate,
         purchase_order_number: formData.purchaseOrderNumber,
@@ -167,7 +166,7 @@ export const saveInvoice = async (formData: any) => {
       const { error: itemsError } = await supabase.from('invoice_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('Invoice', formData, formData.invoiceNumber);
+    await createTransactionRecord('Invoice', formData, invoiceNumber);
     return invoice;
   } catch (error) {
     throw error;
