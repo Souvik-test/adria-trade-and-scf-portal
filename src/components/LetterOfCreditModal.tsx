@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ImportLCActionSection from './import-lc/ImportLCActionSection';
 import ImportLCMethodSection from './import-lc/ImportLCMethodSection';
 import ImportLCForm from './import-lc/ImportLCForm';
+import ExportLCModalContent from "./export-lc/ExportLCModalContent";
 
 interface LetterOfCreditModalProps {
   isOpen: boolean;
@@ -35,6 +35,22 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       setSelectedAction(null);
     }
   };
+
+  // Determine which modal content to render
+  if (type === "export") {
+    // Render Export LC modal/flow (process & method cards)
+    return (
+      <>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="bg-background rounded-lg shadow-2xl max-w-6xl w-full mx-4 md:mx-auto max-h-[90vh] overflow-auto border animate-fade-in relative">
+              <ExportLCModalContent onClose={onClose} />
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   const renderContent = () => {
     if (selectedMethod === 'manual' && selectedAction === 'issuance') {
