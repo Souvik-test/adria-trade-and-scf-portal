@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -9,6 +8,7 @@ import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
+import { FilePlus } from "lucide-react";
 import ImportLCSupportingDocumentUpload from './ImportLCSupportingDocumentUpload';
 
 interface DocumentRequirementsPaneProps {
@@ -25,7 +25,7 @@ const COMMON_DOC_TYPES = [
   "Beneficiary’s Certificate"
 ];
 
-// Supporting document types for upload
+// Predefined supporting docs for upload
 const SUPPORTING_DOC_LABELS = [
   { key: 'lcApplication', label: 'LC Application' },
   { key: 'purchaseOrder', label: 'Purchase Order' },
@@ -64,7 +64,7 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
     setCustomDocName('');
   };
 
-  // Supporting document state for custom uploads
+  // Custom upload state
   const [customDocUploads, setCustomDocUploads] = useState<{ label: string; key: string }[]>([]);
   const [customDocUploadName, setCustomDocUploadName] = useState('');
 
@@ -79,27 +79,35 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
 
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
-      <Card className="border border-gray-200 dark:border-gray-600">
+      <Card className="border border-corporate-teal-100 dark:border-corporate-teal-800 shadow">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-300">
             Document Requirements
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-7">
 
           {/* Required Document Checkboxes */}
           <div>
             <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
-              Select Required Documents
+              Select required presentation documents:
             </Label>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {docTypes.map((docType) => (
+              {COMMON_DOC_TYPES.map((docType) => (
                 <div key={docType} className="flex items-center space-x-2">
                   <Checkbox
                     id={docType}
-                    checked={selectedDocs.includes(docType)}
-                    onCheckedChange={(checked) => handleCheckboxChange(docType, checked as boolean)}
+                    checked={Array.isArray(formData.requiredDocuments) && formData.requiredDocuments.includes(docType)}
+                    onCheckedChange={(checked) => {
+                      let updated: string[] = Array.isArray(formData.requiredDocuments) ? [...formData.requiredDocuments] : [];
+                      if (checked) {
+                        updated = [...updated, docType];
+                      } else {
+                        updated = updated.filter((d) => d !== docType);
+                      }
+                      updateField('requiredDocuments', updated);
+                    }}
                   />
                   <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                     {docType}
@@ -110,29 +118,46 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
             {/* Add Custom Document Type */}
             <div className="flex gap-2 mt-4">
               <Input
-                value={customDocName}
-                onChange={(e) => setCustomDocName(e.target.value)}
-                placeholder="Enter custom document type"
+                value={customDocUploadName}
+                onChange={(e) => setCustomDocUploadName(e.target.value)}
+                placeholder="Add custom document type"
                 maxLength={40}
                 className="flex-1"
               />
               <Button
-                onClick={handleAddCustomDoc}
+                onClick={handleAddCustomUpload}
                 className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
-                disabled={!customDocName.trim()}
+                disabled={!customDocUploadName.trim()}
+                type="button"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add
               </Button>
             </div>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {customDocUploads.map((c) => (
+                <span key={c.key} className="inline-flex items-center px-2 py-1 rounded bg-corporate-teal-100 text-xs text-corporate-teal-700 gap-1 shadow border border-corporate-teal-200">
+                  <FilePlus className="w-3 h-3 mr-0.5 text-corporate-teal-500" />
+                  {c.label}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* Supporting Document Upload */}
+          {/* Supporting Document Uploads, much more visually attractive, includes custom option */}
           <div>
-            <Label className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1 block">
-              Supporting Documents Upload
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-base font-semibold text-corporate-teal-700 dark:text-corporate-teal-200">
+                Upload Supporting Documents
+              </Label>
+              <span className="text-xs text-corporate-teal-500">
+                PDF, DOC, or Image. Required for verification.
+              </span>
+            </div>
+            <div className="text-xs text-gray-600 mb-2 max-w-lg">
+              Attach key files supporting your LC request. Upload the most relevant standard documents below, or add a custom supporting document if needed.
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {SUPPORTING_DOC_LABELS.map((doc) => (
                 <ImportLCSupportingDocumentUpload
                   key={doc.key}
@@ -156,27 +181,8 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
                 />
               ))}
             </div>
-            {/* Add custom document upload */}
-            <form className="flex gap-2 mt-3" onSubmit={handleAddCustomUpload}>
-              <Input
-                value={customDocUploadName}
-                onChange={(e) => setCustomDocUploadName(e.target.value)}
-                placeholder="Upload custom document"
-                maxLength={40}
-                className="flex-1"
-              />
-              <Button
-                type="submit"
-                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
-                disabled={!customDocUploadName.trim()}
-                tabIndex={-1}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
-            </form>
-            <div className="text-xs text-gray-500 mt-1">
-              Upload short, clear PDF, DOC, or image docs. You may also add & upload custom supporting docs as needed.
+            <div className="text-xs text-gray-500 mt-2 leading-snug">
+              <strong>Tip:</strong> Use the &quot;Add custom document type&quot; field above to create a unique upload for less common files (e.g., Insurance Addendum).
             </div>
           </div>
 

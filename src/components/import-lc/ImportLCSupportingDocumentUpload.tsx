@@ -87,14 +87,14 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
   };
 
   return (
-    <div className={`border rounded-md p-3 mb-2 flex flex-col items-start shadow-sm bg-white dark:bg-gray-900 ${isCustom ? 'border-corporate-teal-400' : 'border-gray-200 dark:border-gray-700'}`}>
+    <div className={`rounded-lg bg-gradient-to-br from-white to-corporate-teal-50 dark:from-gray-900 dark:to-corporate-teal-950 p-3 flex flex-col items-start gap-2 w-full border border-corporate-teal-100 shadow ${isCustom ? 'ring-2 ring-corporate-teal-300' : ''}`}>
       <div className="flex items-center gap-2 w-full">
-        <FilePlus className={`w-4 h-4 ${isCustom ? 'text-corporate-teal-700' : 'text-gray-400'}`} />
-        <Label className="text-xs font-medium text-corporate-teal-700 w-full truncate">
+        <FilePlus className={`w-4 h-4 ${isCustom ? 'text-corporate-teal-600' : 'text-corporate-teal-400'}`} />
+        <span className={`text-xs font-semibold ${isCustom ? "text-corporate-teal-700" : "text-corporate-teal-600"} truncate`}>
           {label}
-        </Label>
+        </span>
       </div>
-      <div className="flex gap-2 items-center mt-2 w-full">
+      <div className="flex gap-3 items-center w-full">
         <Input
           type="file"
           accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
@@ -105,7 +105,7 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
         <Button
           size="sm"
           variant="outline"
-          className={`px-3 ${isCustom ? 'border-corporate-teal-600 text-corporate-teal-800' : ''}`}
+          className="px-3 border-corporate-teal-600 text-corporate-teal-800"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
         >
@@ -118,7 +118,7 @@ const ImportLCSupportingDocumentUpload: React.FC<Props> = ({
         </Button>
       </div>
       {uploadedUrl && (
-        <div className="text-xs text-green-700 mt-2 break-all">
+        <div className="text-xs text-green-700 mt-1 break-all">
           <span className="font-medium">Uploaded:</span> <span className="underline">{uploadedUrl}</span>
         </div>
       )}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,7 +34,7 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
           </CardHeader>
           <CardContent className="space-y-6">
 
-            {/* --- FIELD: Amount (Currency + Amount together) --- */}
+            {/* --- FIELD: Amount (Currency + Amount together, deduplicated labels) --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <SwiftTagLabel 
@@ -53,7 +52,6 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                 />
               </div>
               <div>
-                {/* Only label via SwiftTagLabel -- remove duplicate Label */}
                 <SwiftTagLabel
                   tag="Currency"
                   label="Currency"

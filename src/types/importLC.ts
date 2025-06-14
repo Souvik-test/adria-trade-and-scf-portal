@@ -75,6 +75,7 @@ export interface SwiftTagInfo {
   required: boolean;
 }
 
+// Only change 'lcAmount' field's label
 export const SWIFT_TAGS: Record<string, SwiftTagInfo> = {
   corporateReference: {
     tag: ':20:',
@@ -88,11 +89,10 @@ export const SWIFT_TAGS: Record<string, SwiftTagInfo> = {
     description: 'Irrevocable/Revocable Documentary Credit',
     required: true
   },
-  // CHANGED: "Currency Code, Amount" => "Amount"
   lcAmount: {
     tag: ':32B:',
     label: 'Amount',
-    description: 'Currency and amount of the credit',
+    description: 'Amount of the credit', // No mention of currency code!
     required: true
   },
   applicantName: {

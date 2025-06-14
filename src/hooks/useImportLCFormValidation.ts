@@ -7,7 +7,7 @@ const useImportLCFormValidation = (formData: ImportLCFormData, currentStep: Impo
   const validateCurrentStep = useCallback(() => {
     switch (currentStep) {
       case 'basic':
-        // PO/PI is now fully optional for LC issuance
+        // PO/PI is fully optional now, submission should not be blocked by empty popiNumber/type
         return !!(formData.corporateReference && formData.formOfDocumentaryCredit);
       case 'parties':
         // Only require applicant & beneficiary (from parties array OR legacy fields)
