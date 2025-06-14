@@ -35,12 +35,12 @@ const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-corporate-teal-700 dark:text-corporate-teal-300">
-            Select Document Type
+            Select Instrument Type
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div>
-            <Label htmlFor="instrumentType">Document Type *</Label>
+            <Label htmlFor="instrumentType">Instrument Type *</Label>
             <Select
               value={formData.instrumentType}
               onValueChange={(value: any) =>
@@ -48,7 +48,7 @@ const GeneralDetailsPane: React.FC<GeneralDetailsPaneProps> = ({
               }
             >
               <SelectTrigger className="mt-1" id="instrumentType">
-                <SelectValue placeholder="Select Document Type" />
+                <SelectValue placeholder="Select Instrument Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="purchase-order">Purchase Order</SelectItem>
