@@ -18,11 +18,12 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
   try {
     const insertData = buildInsertData(user, formData, 'submitted');
-    // Fix: ensure required_documents is string[]
-    if (!Array.isArray(insertData.required_documents)) {
-      insertData.required_documents = [];
+    // Ensure required_documents is string[]
+    let requiredDocs: string[] = [];
+    if (Array.isArray(insertData.required_documents)) {
+      requiredDocs = [...insertData.required_documents];
     }
-    insertData.required_documents = [...(insertData.required_documents as string[])];
+    insertData.required_documents = requiredDocs;
 
     console.log('Attempting to insert data:', insertData);
 
@@ -54,11 +55,12 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   }
 
   const insertData = buildInsertData(user, formData, 'draft');
-  // Fix: ensure required_documents is string[]
-  if (!Array.isArray(insertData.required_documents)) {
-    insertData.required_documents = [];
+  // Ensure required_documents is string[]
+  let requiredDocs: string[] = [];
+  if (Array.isArray(insertData.required_documents)) {
+    requiredDocs = [...insertData.required_documents];
   }
-  insertData.required_documents = [...(insertData.required_documents as string[])];
+  insertData.required_documents = requiredDocs;
 
   const { error } = await supabase
     .rpc('insert_import_lc_request', {
@@ -72,4 +74,3 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
 
   console.log('Draft saved successfully');
 };
-
