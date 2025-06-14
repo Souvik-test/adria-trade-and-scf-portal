@@ -677,7 +677,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_transaction_ref: {
+        Args: { product_type: string }
+        Returns: string
+      }
     }
     Enums: {
       product_type:

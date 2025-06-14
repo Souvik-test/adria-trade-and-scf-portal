@@ -4,8 +4,8 @@ import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecor
 
 // Helper to fetch the next unique transaction ref from Supabase
 const getUniqueTransactionRef = async (productType: string) => {
-  // Typecast params to any to avoid TS2345 error due to "@supabase/supabase-js" generated types
-  const { data, error } = await supabase.rpc('generate_transaction_ref', { product_type: productType } as any);
+  // Fix TS2345 error by casting params object to { product_type: string }
+  const { data, error } = await supabase.rpc('generate_transaction_ref', { product_type: productType } as { product_type: string });
   if (error || !data) {
     throw new Error(`Failed to generate transaction ref for ${productType}: ${error?.message}`);
   }
