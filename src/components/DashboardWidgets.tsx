@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3, ExternalLink } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { fetchTransactions } from '@/services/database';
+import { fetchTransactions } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 import TransactionViewModal from '@/components/TransactionViewModal';
 import DashboardTransactionsTable from '@/components/DashboardTransactionsTable';

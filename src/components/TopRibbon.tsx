@@ -1,4 +1,3 @@
-
 import { Moon, Sun, Bell, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -6,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import NotificationsPanel from "@/components/NotificationsPanel";
-import { fetchNotifications } from "@/services/database";
+import { fetchNotifications } from '@/services/notificationService';
 
 const TopRibbon = () => {
   const { theme, setTheme } = useTheme();

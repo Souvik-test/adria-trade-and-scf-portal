@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, User, Building, CreditCard, FileText, MapPin } from 'lucide-react';
-import { fetchTransactions } from '@/services/database';
+// import { fetchTransactions } from '@/services/database';
+import { fetchTransactions } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 
 interface Transaction {

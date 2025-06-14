@@ -1,5 +1,5 @@
-
-import React, { useEffect } from 'react';
+import React from 'react';
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import useInvoiceForm from '@/hooks/useInvoiceForm';
 import InvoiceProgressIndicator from './invoice-form/InvoiceProgressIndicator';
 import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
-import { saveInvoice, searchPurchaseOrder } from '@/services/database';
+import { saveInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceFormProps {

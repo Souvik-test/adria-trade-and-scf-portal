@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Archive, Clock, ExternalLink } from 'lucide-react';
-import { fetchNotifications, markNotificationAsRead } from '@/services/database';
+// import { fetchNotifications, markNotificationAsRead } from '@/services/database';
+import { fetchNotifications, markNotificationAsRead } from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
 import TransactionViewModal from '@/components/TransactionViewModal';
 
