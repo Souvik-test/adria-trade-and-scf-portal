@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, FileText, Clock, AlertTriangle, CheckCircle, Users, Building, Banknote, CreditCard, PieChart, BarChart3, ExternalLink } from 'lucide-react';
@@ -84,6 +83,19 @@ const DashboardWidgets: React.FC = () => {
     }
   };
 
+  // Add a function to filter transactions by product type
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (transactionFilter === 'all') return true;
+    // Consider "Import LC" as one filter and so forth
+    if (transactionFilter === 'import-lc') return transaction.product_type === 'Import LC';
+    if (transactionFilter === 'po') return transaction.product_type === 'PO';
+    if (transactionFilter === 'pi') return transaction.product_type === 'PI';
+    if (transactionFilter === 'invoice') return transaction.product_type === 'Invoice';
+    if (transactionFilter === 'bg') return transaction.product_type === 'BG';
+    // Fallback: show all if unknown filter
+    return true;
+  });
+
   const widgets = [
     {
       title: 'Transaction Status',
@@ -92,12 +104,15 @@ const DashboardWidgets: React.FC = () => {
         <div className="space-y-2">
           <Select value={transactionFilter} onValueChange={setTransactionFilter}>
             <SelectTrigger className="w-full text-xs">
-              <SelectValue />
+              <SelectValue placeholder="Filter Transactions" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Import Letter of Credit</SelectItem>
-              <SelectItem value="pending">Export Letter of Credit</SelectItem>
-              <SelectItem value="completed">Bank Guarantees</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="import-lc">Import Letter of Credit</SelectItem>
+              <SelectItem value="po">Purchase Order (PO)</SelectItem>
+              <SelectItem value="pi">Proforma Invoice (PI)</SelectItem>
+              <SelectItem value="invoice">Invoice</SelectItem>
+              <SelectItem value="bg">Bank Guarantee</SelectItem>
             </SelectContent>
           </Select>
           <div className="space-y-1">
@@ -277,7 +292,7 @@ const DashboardWidgets: React.FC = () => {
     <div className="p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Trade Finance Dashboard</h2>
       
-      {/* My Transactions Table - Now at the top */}
+      {/* My Transactions Table */}
       <Card className="cursor-move" draggable>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -305,8 +320,8 @@ const DashboardWidgets: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="text-xs">
-                  {transactions.length > 0 ? (
-                    transactions.map((transaction) => (
+                  {filteredTransactions.length > 0 ? (
+                    filteredTransactions.map((transaction) => (
                       <tr key={transaction.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="py-2">
                           <button
@@ -331,7 +346,7 @@ const DashboardWidgets: React.FC = () => {
                   ) : (
                     <tr>
                       <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                        No transactions found. Create your first PO, PI, or Invoice to see them here.
+                        No transactions found. Create your first PO, PI, Invoice, or Import LC to see them here.
                       </td>
                     </tr>
                   )}
