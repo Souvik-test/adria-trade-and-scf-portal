@@ -27,6 +27,7 @@ const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
     if (method === 'manual' && selectedAction === 'create') {
       setShowForm(true);
     } else {
+      // TODO: Handle other methods (bulk import, etc) in the future if needed
       console.log(`Opening ${method} for ${selectedAction} action`);
     }
   };
@@ -35,9 +36,10 @@ const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
     setShowForm(false);
   };
 
+  // Modal should ALWAYS be fullscreen for this form
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-[100vw] max-h-[100vh] w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         {/* Modal header with dynamic back or default header */}
         {showForm ? (
           <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
@@ -59,7 +61,7 @@ const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
 
         <div className="flex-1 overflow-auto p-6">
           {showForm ? (
-            <POPIForm />
+            <POPIForm onClose={onClose} />
           ) : (
             <div className="space-y-8">
               <ActionSection
@@ -80,4 +82,3 @@ const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
 };
 
 export default POPIModal;
-
