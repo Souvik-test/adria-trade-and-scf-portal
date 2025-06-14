@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { ImportLCFormData } from '@/types/importLC';
@@ -18,10 +17,10 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
   try {
     const insertData = buildInsertData(user, formData, 'submitted');
-    // Ensure required_documents is string[]
+    // Ensure required_documents is string[] or empty array
     let requiredDocs: string[] = [];
     if (Array.isArray(insertData.required_documents)) {
-      requiredDocs = [...(insertData.required_documents as string[])];
+      requiredDocs = insertData.required_documents.filter((d): d is string => typeof d === 'string');
     }
     insertData.required_documents = requiredDocs;
 
@@ -55,10 +54,10 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   }
 
   const insertData = buildInsertData(user, formData, 'draft');
-  // Ensure required_documents is string[]
+  // Ensure required_documents is string[] or empty array
   let requiredDocs: string[] = [];
   if (Array.isArray(insertData.required_documents)) {
-    requiredDocs = [...(insertData.required_documents as string[])];
+    requiredDocs = insertData.required_documents.filter((d): d is string => typeof d === 'string');
   }
   insertData.required_documents = requiredDocs;
 
