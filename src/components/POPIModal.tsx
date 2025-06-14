@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import POPIForm from './POPIForm';
@@ -39,10 +38,7 @@ const POPIModal: React.FC<POPIModalProps> = ({ onClose, onBack }) => {
 
   if (showForm) {
     return (
-      <POPIForm 
-        onClose={handleFormClose}
-        onBack={handleFormBack}
-      />
+      <POPIForm />
     );
   }
 
