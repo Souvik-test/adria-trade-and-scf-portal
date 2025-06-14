@@ -2,16 +2,27 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
 
+// Helper to fetch the next unique transaction ref from Supabase
+const getUniqueTransactionRef = async (productType: string) => {
+  const { data, error } = await supabase.rpc('generate_transaction_ref', { product_type: productType });
+  if (error || !data) {
+    throw new Error(`Failed to generate transaction ref for ${productType}: ${error?.message}`);
+  }
+  return data;
+};
+
 // Save Purchase Order
 export const savePurchaseOrder = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
+    // Ensure unique PO number
+    const uniquePONumber = await getUniqueTransactionRef('PO');
     const { data: po, error: poError } = await supabase
       .from('purchase_orders')
       .insert({
         user_id: user.id,
-        po_number: formData.poNumber,
+        po_number: uniquePONumber,
         po_date: formData.poDate,
         vendor_supplier: formData.vendorSupplier,
         expected_delivery_date: formData.expectedDeliveryDate,
@@ -46,8 +57,8 @@ export const savePurchaseOrder = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PO', formData, formData.poNumber);
-    return po;
+    await createTransactionRecord('PO', formData, uniquePONumber);
+    return { ...po, po_number: uniquePONumber };
   } catch (error) {
     throw error;
   }
@@ -58,11 +69,13 @@ export const saveProformaInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
+    // Ensure unique PI number
+    const uniquePINumber = await getUniqueTransactionRef('PI');
     const { data: pi, error: piError } = await supabase
       .from('proforma_invoices')
       .insert({
         user_id: user.id,
-        pi_number: formData.piNumber,
+        pi_number: uniquePINumber,
         pi_date: formData.piDate,
         valid_until_date: formData.validUntilDate,
         buyer_name: formData.buyerName,
@@ -100,8 +113,8 @@ export const saveProformaInvoice = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PI', formData, formData.piNumber);
-    return pi;
+    await createTransactionRecord('PI', formData, uniquePINumber);
+    return { ...pi, pi_number: uniquePINumber };
   } catch (error) {
     throw error;
   }
