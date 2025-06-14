@@ -1,10 +1,13 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { ImportLCFormData } from '@/types/importLC';
+import { buildInsertData } from './importLCSubmissionHelpers';
 
+// Submit Import LC Request
 export const submitImportLCRequest = async (formData: ImportLCFormData) => {
   console.log('submitForm called with formData:', formData);
-  
+
   const user = customAuth.getSession()?.user;
   if (!user) {
     console.error('No user session found');
@@ -14,104 +17,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
   console.log('User found:', user);
 
   try {
-    // Set user context for RLS by creating a custom header
-    const headers = {
-      'x-user-id': user.user_id
-    };
-
-    // Sync party data to legacy fields for database compatibility
-    const applicantParty = formData.parties.find(p => p.role === 'applicant');
-    const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
-    const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
-
-    // Proper boolean conversion - handle both boolean and string values
-    const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
-    const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
-
-    const requiredDocuments: string[] =
-      formData.documentRequirements.length > 0
-        ? formData.documentRequirements.map(
-            (doc) =>
-              `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
-          )
-        : Array.isArray(formData.requiredDocuments)
-          ? [...(formData.requiredDocuments as string[])]
-          : ([] as string[]);
-
-    const insertData: {
-      user_id: string;
-      popi_number: string;
-      popi_type: string;
-      form_of_documentary_credit: string;
-      corporate_reference: string;
-      applicable_rules: string;
-      lc_type: string;
-      issue_date: string | null;
-      expiry_date: string | null;
-      place_of_expiry: string;
-      applicant_name: string;
-      applicant_address: string;
-      applicant_account_number: string;
-      beneficiary_name: string;
-      beneficiary_address: string;
-      beneficiary_bank_name: string;
-      beneficiary_bank_address: string;
-      beneficiary_bank_swift_code: string;
-      advising_bank_swift_code: string;
-      lc_amount: number;
-      currency: string;
-      tolerance: number;
-      additional_amount: number;
-      available_with: string;
-      available_by: string;
-      partial_shipments_allowed: boolean;
-      transshipment_allowed: boolean;
-      description_of_goods: string;
-      port_of_loading: string;
-      port_of_discharge: string;
-      latest_shipment_date: string | null;
-      presentation_period: string;
-      required_documents: string[];
-      additional_conditions: string;
-      status: string;
-    } = {
-      user_id: user.id,
-      popi_number: formData.popiNumber,
-      popi_type: formData.popiType,
-      form_of_documentary_credit: formData.formOfDocumentaryCredit,
-      corporate_reference: formData.corporateReference,
-      applicable_rules: formData.applicableRules,
-      lc_type: formData.lcType,
-      issue_date: formData.issueDate || null,
-      expiry_date: formData.expiryDate || null,
-      place_of_expiry: formData.placeOfExpiry,
-      applicant_name: applicantParty?.name || formData.applicantName,
-      applicant_address: applicantParty?.address || formData.applicantAddress,
-      applicant_account_number: applicantParty?.accountNumber || formData.applicantAccountNumber,
-      beneficiary_name: beneficiaryParty?.name || formData.beneficiaryName,
-      beneficiary_address: beneficiaryParty?.address || formData.beneficiaryAddress,
-      beneficiary_bank_name: formData.beneficiaryBankName,
-      beneficiary_bank_address: formData.beneficiaryBankAddress,
-      beneficiary_bank_swift_code: beneficiaryParty?.swiftCode || formData.beneficiaryBankSwiftCode,
-      advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
-      lc_amount: formData.lcAmount,
-      currency: formData.currency,
-      tolerance: Number(formData.tolerance) || 0,
-      additional_amount: formData.additionalAmount,
-      available_with: formData.availableWith,
-      available_by: formData.availableBy,
-      partial_shipments_allowed: partialShipmentsAllowed,
-      transshipment_allowed: transshipmentAllowed,
-      description_of_goods: formData.descriptionOfGoods,
-      port_of_loading: formData.portOfLoading,
-      port_of_discharge: formData.portOfDischarge,
-      latest_shipment_date: formData.latestShipmentDate || null,
-      presentation_period: formData.presentationPeriod,
-      required_documents: requiredDocuments as string[],
-      additional_conditions: formData.additionalConditions,
-      status: 'submitted'
-    };
-
+    const insertData = buildInsertData(user, formData, 'submitted');
     console.log('Attempting to insert data:', insertData);
 
     // Use RPC call to bypass RLS temporarily for submission
@@ -133,6 +39,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
   }
 };
 
+// Save Draft Import LC Request
 export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   console.log('Starting draft save...');
   const user = customAuth.getSession()?.user;
@@ -140,97 +47,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     throw new Error('User not authenticated');
   }
 
-  // Same logic as submit but with status 'draft'
-  const applicantParty = formData.parties.find(p => p.role === 'applicant');
-  const beneficiaryParty = formData.parties.find(p => p.role === 'beneficiary');
-  const advisingBankParty = formData.parties.find(p => p.role === 'advising_bank');
-
-  const partialShipmentsAllowed = Boolean(formData.partialShipmentsAllowed);
-  const transshipmentAllowed = Boolean(formData.transshipmentAllowed);
-
-  const requiredDocuments: string[] =
-    formData.documentRequirements.length > 0
-      ? formData.documentRequirements.map(
-          (doc) =>
-            `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
-        )
-      : Array.isArray(formData.requiredDocuments)
-        ? [...(formData.requiredDocuments as string[])]
-        : ([] as string[]);
-
-  const insertData: {
-    user_id: string;
-    popi_number: string;
-    popi_type: string;
-    form_of_documentary_credit: string;
-    corporate_reference: string;
-    applicable_rules: string;
-    lc_type: string;
-    issue_date: string | null;
-    expiry_date: string | null;
-    place_of_expiry: string;
-    applicant_name: string;
-    applicant_address: string;
-    applicant_account_number: string;
-    beneficiary_name: string;
-    beneficiary_address: string;
-    beneficiary_bank_name: string;
-    beneficiary_bank_address: string;
-    beneficiary_bank_swift_code: string;
-    advising_bank_swift_code: string;
-    lc_amount: number;
-    currency: string;
-    tolerance: number;
-    additional_amount: number;
-    available_with: string;
-    available_by: string;
-    partial_shipments_allowed: boolean;
-    transshipment_allowed: boolean;
-    description_of_goods: string;
-    port_of_loading: string;
-    port_of_discharge: string;
-    latest_shipment_date: string | null;
-    presentation_period: string;
-    required_documents: string[];
-    additional_conditions: string;
-    status: string;
-  } = {
-    user_id: user.id,
-    popi_number: formData.popiNumber,
-    popi_type: formData.popiType,
-    form_of_documentary_credit: formData.formOfDocumentaryCredit,
-    corporate_reference: formData.corporateReference,
-    applicable_rules: formData.applicableRules,
-    lc_type: formData.lcType,
-    issue_date: formData.issueDate || null,
-    expiry_date: formData.expiryDate || null,
-    place_of_expiry: formData.placeOfExpiry,
-    applicant_name: applicantParty?.name || formData.applicantName,
-    applicant_address: applicantParty?.address || formData.applicantAddress,
-    applicant_account_number: applicantParty?.accountNumber || formData.applicantAccountNumber,
-    beneficiary_name: beneficiaryParty?.name || formData.beneficiaryName,
-    beneficiary_address: beneficiaryParty?.address || formData.beneficiaryAddress,
-    beneficiary_bank_name: formData.beneficiaryBankName,
-    beneficiary_bank_address: formData.beneficiaryBankAddress,
-    beneficiary_bank_swift_code: beneficiaryParty?.swiftCode || formData.beneficiaryBankSwiftCode,
-    advising_bank_swift_code: advisingBankParty?.swiftCode || formData.advisingBankSwiftCode,
-    lc_amount: formData.lcAmount,
-    currency: formData.currency,
-    tolerance: Number(formData.tolerance) || 0,
-    additional_amount: formData.additionalAmount,
-    available_with: formData.availableWith,
-    available_by: formData.availableBy,
-    partial_shipments_allowed: partialShipmentsAllowed,
-    transshipment_allowed: transshipmentAllowed,
-    description_of_goods: formData.descriptionOfGoods,
-    port_of_loading: formData.portOfLoading,
-    port_of_discharge: formData.portOfDischarge,
-    latest_shipment_date: formData.latestShipmentDate || null,
-    presentation_period: formData.presentationPeriod,
-    required_documents: requiredDocuments as string[],
-    additional_conditions: formData.additionalConditions,
-    status: 'draft'
-  };
+  const insertData = buildInsertData(user, formData, 'draft');
 
   const { error } = await supabase
     .rpc('insert_import_lc_request', {
