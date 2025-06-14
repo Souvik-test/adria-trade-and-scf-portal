@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { ImportLCFormData } from '@/types/importLC';
@@ -31,7 +30,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
 
     const requiredDocuments: string[] = formData.documentRequirements.length > 0 
       ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-      : formData.requiredDocuments;
+      : (formData.requiredDocuments as string[]);
 
     const insertData = {
       user_id: user.id,
@@ -66,7 +65,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       port_of_discharge: formData.portOfDischarge,
       latest_shipment_date: formData.latestShipmentDate || null,
       presentation_period: formData.presentationPeriod,
-      required_documents: requiredDocuments as string[],
+      required_documents: requiredDocuments,
       additional_conditions: formData.additionalConditions,
       status: 'submitted'
     };
@@ -109,7 +108,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
 
   const requiredDocuments: string[] = formData.documentRequirements.length > 0 
     ? formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} Original${doc.original > 1 ? 's' : ''}, ${doc.copies} Cop${doc.copies === 1 ? 'y' : 'ies'}`)
-    : formData.requiredDocuments;
+    : (formData.requiredDocuments as string[]);
 
   const insertData = {
     user_id: user.id,
@@ -144,7 +143,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: requiredDocuments as string[],
+    required_documents: requiredDocuments,
     additional_conditions: formData.additionalConditions,
     status: 'draft'
   };
