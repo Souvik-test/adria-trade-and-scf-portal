@@ -35,8 +35,8 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
               `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
           )
         : Array.isArray(formData.requiredDocuments)
-          ? [...formData.requiredDocuments]
-          : [];
+          ? [...(formData.requiredDocuments as string[])]
+          : ([] as string[]);
 
     const insertData: {
       user_id: string;
@@ -107,7 +107,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
       port_of_discharge: formData.portOfDischarge,
       latest_shipment_date: formData.latestShipmentDate || null,
       presentation_period: formData.presentationPeriod,
-      required_documents: [...requiredDocuments],
+      required_documents: requiredDocuments as string[],
       additional_conditions: formData.additionalConditions,
       status: 'submitted'
     };
@@ -155,8 +155,8 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
             `${doc.name} - ${doc.original} Original${doc.original > 1 ? "s" : ""}, ${doc.copies} Cop${doc.copies === 1 ? "y" : "ies"}`
         )
       : Array.isArray(formData.requiredDocuments)
-        ? [...formData.requiredDocuments]
-        : [];
+        ? [...(formData.requiredDocuments as string[])]
+        : ([] as string[]);
 
   const insertData: {
     user_id: string;
@@ -227,7 +227,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
     port_of_discharge: formData.portOfDischarge,
     latest_shipment_date: formData.latestShipmentDate || null,
     presentation_period: formData.presentationPeriod,
-    required_documents: [...requiredDocuments],
+    required_documents: requiredDocuments as string[],
     additional_conditions: formData.additionalConditions,
     status: 'draft'
   };
