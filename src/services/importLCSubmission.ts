@@ -21,7 +21,7 @@ export const submitImportLCRequest = async (formData: ImportLCFormData) => {
     // Ensure required_documents is string[]
     let requiredDocs: string[] = [];
     if (Array.isArray(insertData.required_documents)) {
-      requiredDocs = [...insertData.required_documents];
+      requiredDocs = [...(insertData.required_documents as string[])];
     }
     insertData.required_documents = requiredDocs;
 
@@ -58,7 +58,7 @@ export const saveDraftImportLCRequest = async (formData: ImportLCFormData) => {
   // Ensure required_documents is string[]
   let requiredDocs: string[] = [];
   if (Array.isArray(insertData.required_documents)) {
-    requiredDocs = [...insertData.required_documents];
+    requiredDocs = [...(insertData.required_documents as string[])];
   }
   insertData.required_documents = requiredDocs;
 
