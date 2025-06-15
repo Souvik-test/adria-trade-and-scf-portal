@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import RequestLCTransferLayout from "./RequestLCTransferLayout";
 import RequestLCTransferPaneRenderer from "./RequestLCTransferPaneRenderer";
@@ -55,6 +54,11 @@ const SummaryBar = ({ form }: any) => (
   </aside>
 );
 
+// Add missing Props interface
+interface Props {
+  onClose: () => void;
+}
+
 const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
   const form = useRequestLCTransferForm(onClose);
   const [requestId, setRequestId] = React.useState("TRF-2025-00123");
@@ -86,4 +90,3 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
 };
 
 export default RequestLCTransferForm;
-
