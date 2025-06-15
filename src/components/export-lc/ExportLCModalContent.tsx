@@ -1,16 +1,19 @@
+
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
-import ReviewPreAdvicedLCForm from "./ReviewPreAdvicedLCForm";
+// Remove ReviewPreAdvicedLCForm import!
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface ExportLCModalContentProps {
   onClose: () => void;
+  onManualReviewFullScreen?: () => void; // NEW: Callback to request full-screen mode
 }
 
 const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
   onClose,
+  onManualReviewFullScreen,
 }) => {
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -22,24 +25,14 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 
   const handleMethodSelect = (method: string) => {
     if (!selectedProcess) return;
+
+    if (selectedProcess === "review" && method === "manual" && onManualReviewFullScreen) {
+      // Ask parent to show full screen
+      onManualReviewFullScreen();
+      return;
+    }
     setSelectedMethod(method);
   };
-
-  // Render the Review Pre-adviced LC full-screen form outside of the modal content
-  if (selectedProcess === "review" && selectedMethod === "manual") {
-    // Fullscreen: let this escape the Dialog/Modal parent
-    return (
-      <div className="fixed inset-0 z-50">
-        <ReviewPreAdvicedLCForm
-          onBack={() => setSelectedMethod(null)}
-          onClose={onClose}
-          onSaveDraft={() => {
-            // simulate save draft
-          }}
-        />
-      </div>
-    );
-  }
 
   // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {
@@ -87,3 +80,4 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 };
 
 export default ExportLCModalContent;
+

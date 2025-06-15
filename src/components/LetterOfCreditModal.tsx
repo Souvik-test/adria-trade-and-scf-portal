@@ -16,6 +16,7 @@ type ActionType = 'issuance' | 'amendment' | 'cancellation' | null;
 const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClose, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [reviewManualFullScreen, setReviewManualFullScreen] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -36,8 +37,33 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     }
   };
 
+  const handleExportManualFullScreen = () => {
+    setReviewManualFullScreen(true);
+  };
+  const handleExportManualBack = () => {
+    setReviewManualFullScreen(false);
+  };
+
   // Export LC: Use Dialog for modal, just like import path
   if (type === "export") {
+    // Show full screen ReviewPreAdvicedLCForm 
+    if (reviewManualFullScreen) {
+      return (
+        <div className="fixed inset-0 z-50">
+          <import("./export-lc/ReviewPreAdvicedLCForm").then(({ default: ReviewPreAdvicedLCForm }) => (
+            <ReviewPreAdvicedLCForm
+              onBack={handleExportManualBack}
+              onClose={() => {
+                handleExportManualBack();
+                onClose();
+              }}
+              onSaveDraft={() => { /* simulate save draft */ }}
+            />
+          ))}
+        </div>
+      );
+    }
+    // Normal dialog
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
@@ -47,7 +73,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
             </DialogTitle>
           </DialogHeader>
           <div className="h-full w-full overflow-hidden">
-            <ExportLCModalContent onClose={onClose} />
+            <ExportLCModalContent onClose={onClose} onManualReviewFullScreen={handleExportManualFullScreen} />
           </div>
         </DialogContent>
       </Dialog>
