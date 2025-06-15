@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Search } from "lucide-react";
@@ -97,19 +98,6 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
   const [lcReference, setLcReference] = useState(initialLcData.lcReference); // new editable state
   const { toast } = useToast();
 
-  // ===== Debug / Fallback section =====
-  // If props are critically missing, show a visible message
-  if (!onBack || !onClose) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-gray-900">
-        <div className="bg-red-100 text-red-800 p-4 rounded-lg">
-          <strong>Error:</strong> Required props missing for ReviewPreAdvicedLCForm<br />
-          <span className="text-gray-700 text-xs">Check if onBack and onClose are passed correctly.</span>
-        </div>
-      </div>
-    );
-  }
-
   // Optional: Handler for search icon/button
   const handleLcSearch = () => {
     toast({
@@ -195,13 +183,6 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex">
-      {/* Debug bar at top for trouble-shooting */}
-      <div className="px-4 py-2 text-xs text-gray-400 bg-gray-50 border-b sticky top-0 z-20">
-        <span>Component: <code>ReviewPreAdvicedLCForm</code></span>
-        <span className="ml-2">LC Ref: <code>{lcReference}</code></span>
-        <span className="ml-2">Action: <code>{String(action)}</code></span>
-        <span className="ml-2">Expanded: <code>{String(expanded)}</code></span>
-      </div>
       <div className="max-w-6xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
         {/* Form Header */}
         <ReviewPreAdvicedLCHeader
@@ -260,3 +241,4 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
 export default ReviewPreAdvicedLCForm;
 
 // The Form has now been split into smaller focused files for maintainability!
+
