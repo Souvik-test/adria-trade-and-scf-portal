@@ -67,27 +67,33 @@ const RequestLCTransferLayout: React.FC<Props> = ({
           return (
             <li key={label} className="flex flex-col items-center relative w-full">
               <div
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 rounded-full border-2 text-base transition-colors",
-                  isDone ? "bg-corporate-blue border-corporate-blue text-white" :
-                  isActive ? "bg-white border-corporate-blue text-corporate-blue animate-glow" :
-                  "bg-gray-100 border-gray-200 text-gray-400"
-                )}
+                className={
+                  [
+                    "flex items-center justify-center w-10 h-10 rounded-full border-2 text-base transition-colors",
+                    isDone
+                      ? "bg-corporate-blue border-corporate-blue text-white"
+                      : isActive
+                      ? "bg-white border-corporate-blue text-corporate-blue" // removed animate-glow class
+                      : "bg-gray-100 border-gray-200 text-gray-400"
+                  ].join(" ")
+                }
               >
                 <Icon className="w-5 h-5" />
               </div>
-              <span className={cn(
-                "mt-1 text-xs font-medium text-center max-w-[70px]",
-                isActive ? "text-corporate-blue" : "text-gray-400"
-              )}>
+              <span className={
+                [
+                  "mt-1 text-xs font-medium text-center max-w-[70px]",
+                  isActive ? "text-corporate-blue" : "text-gray-400"
+                ].join(" ")
+              }>
                 {label}
               </span>
               {/* Connectors */}
               {idx < stepLabels.length - 1 && (
-                <span className={cn(
+                <span className={[
                   "absolute top-5 left-full h-1 w-8 md:w-16",
                   isDone ? "bg-corporate-blue" : "bg-gray-200"
-                )}></span>
+                ].join(" ")}></span>
               )}
             </li>
           );
