@@ -13,7 +13,7 @@ function toPgDate(date: string | null | undefined): string | null {
   return date;
 }
 
-// Save Export LC Review (Pre-adviced) to DB
+// Save Export LC Review (Pre-adviced) to DB and also create matching transaction manually
 export const saveExportLCReview = async ({
   action,
   comments,
@@ -26,7 +26,7 @@ export const saveExportLCReview = async ({
   const user = await getCurrentUserAsync();
   if (!user) throw new Error("User not authenticated");
 
-  // Compose record respecting the Insert type (fields must be present in type)
+  // Compose record for review table
   const insertData = {
     user_id: user.id,
     lc_reference: lcData.lcReference,
@@ -45,13 +45,33 @@ export const saveExportLCReview = async ({
     // status auto-set on insert
   };
 
-  // Insert as a single-row array for strict typing; Supabase expects this.
-  const { data, error } = await supabase
+  // Insert review first
+  const { data: reviewData, error: reviewError } = await supabase
     .from("export_lc_reviews")
     .insert([insertData])
     .select()
     .single();
 
-  if (error) throw error;
-  return data;
+  if (reviewError) throw reviewError;
+
+  // Insert transaction row (manually, now that the trigger is removed)
+  const transactionInsert = {
+    user_id: user.id,
+    transaction_ref: lcData.lcReference,
+    product_type: "Export LC",
+    status: reviewData.status || "Submitted",
+    customer_name: lcData.parties?.[1]?.name || null, // Beneficiary (Exporter)
+    amount: lcData.amount,
+    currency: lcData.currency,
+    created_by: user.email || user.id,
+    initiating_channel: "Portal",
+  };
+
+  const { error: transactionError } = await supabase
+    .from("transactions")
+    .insert([transactionInsert]);
+
+  if (transactionError) throw transactionError;
+
+  return reviewData;
 };
