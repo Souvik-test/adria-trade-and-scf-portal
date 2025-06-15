@@ -1,24 +1,24 @@
 
-// All step panes imported and rendered by key
+import React from "react";
 import { LCTransferFormStep } from "@/types/exportLCTransfer";
-import LCInformationPane from "./steps/LCInformationPane";
-import TransferDetailsPane from "./steps/TransferDetailsPane";
-import NewBeneficiaryPane from "./steps/NewBeneficiaryPane";
-import DocumentsPane from "./steps/DocumentsPane";
-import ReviewSubmitPane from "./steps/ReviewSubmitPane";
+import LCInformationPaneV2 from "./steps/LCInformationPaneV2";
+import TransferDetailsPaneV2 from "./steps/TransferDetailsPaneV2";
+import NewBeneficiaryPaneV2 from "./steps/NewBeneficiaryPaneV2";
+import DocumentsPaneV2 from "./steps/DocumentsPaneV2";
+import ReviewSubmitPaneV2 from "./steps/ReviewSubmitPaneV2";
 
 const paneMap = {
-  "lc-info": LCInformationPane,
-  "transfer-details": TransferDetailsPane,
-  "new-beneficiary": NewBeneficiaryPane,
-  "documents": DocumentsPane,
-  "review": ReviewSubmitPane,
+  "lc-info": LCInformationPaneV2,
+  "transfer-details": TransferDetailsPaneV2,
+  "new-beneficiary": NewBeneficiaryPaneV2,
+  "documents": DocumentsPaneV2,
+  "review": ReviewSubmitPaneV2,
 } as const;
 
 const RequestLCTransferPaneRenderer = ({ form }: { form: any }) => {
   const StepPane = paneMap[form.step as LCTransferFormStep];
   if (!StepPane) {
-    // Debug output for visibility if step is missing/bad
+    // fallback for debugging
     return (
       <div className="max-w-3xl mx-auto py-8 flex flex-col items-center justify-center">
         <div className="bg-red-100 text-red-800 p-4 rounded-lg">
@@ -31,15 +31,8 @@ const RequestLCTransferPaneRenderer = ({ form }: { form: any }) => {
       </div>
     );
   }
-  // Add debug to ensure we are rendering proper pane
   return (
-    <div className="max-w-3xl mx-auto py-8">
-      {/* Debug info */}
-      <div className="mb-2 text-xs text-gray-400">
-        Rendering step: <code>{form.step}</code>
-      </div>
-      <StepPane form={form} />
-    </div>
+    <StepPane form={form} />
   );
 };
 
