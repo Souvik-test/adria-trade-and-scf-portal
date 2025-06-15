@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
 
@@ -207,4 +206,83 @@ export const fetchTransactions = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+// Amendment Response Save
+export const saveAmendmentResponse = async ({
+  lcReference,
+  amendmentNumber,
+  action,
+  comments,
+  parties,
+  lcAmount,
+  shipment,
+  documents,
+  additionalConditions,
+  specialInstructions,
+}: {
+  lcReference: string;
+  amendmentNumber: string;
+  action: 'accept' | 'refuse';
+  comments: string;
+  parties: any;
+  lcAmount: any;
+  shipment: any;
+  documents: any;
+  additionalConditions?: string;
+  specialInstructions?: string;
+}) => {
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error("User not authenticated");
+
+  // 1. Insert into export_lc_amendment_responses
+  const { data: resp, error: respError } = await supabase
+    .from('export_lc_amendment_responses')
+    .insert({
+      user_id: user.id,
+      lc_reference: lcReference,
+      amendment_number: amendmentNumber,
+      action,
+      comments,
+      parties,
+      lc_amount: lcAmount,
+      shipment,
+      documents,
+      additional_conditions: additionalConditions,
+      special_instructions: specialInstructions,
+      status: "Submitted",
+    })
+    .select()
+    .single();
+  if (respError) throw respError;
+
+  // 2. Insert into transactions as product_type "LC Amendment"
+  const txnRef = `${lcReference}/AMD/${amendmentNumber}`;
+  const { error: txnError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: user.id,
+      transaction_ref: txnRef,
+      product_type: "LC Amendment",
+      status: "Submitted",
+      customer_name: parties?.find((p: any) => p.role === "Applicant")?.name ?? null,
+      amount: Number(lcAmount?.creditAmount?.replace(/[^0-9.-]/g, "")) || null,
+      currency: lcAmount?.currency ?? "USD",
+      created_by: user.full_name ?? "User",
+      initiating_channel: 'Portal',
+    });
+  if (txnError) throw txnError;
+
+  // 3. Insert notification
+  const { error: notifError } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: user.id,
+      transaction_ref: txnRef,
+      transaction_type: "LC Amendment",
+      message: `Amendment response (${action}) submitted for LC ${lcReference}, Amendment #${amendmentNumber}`,
+    });
+  if (notifError) throw notifError;
+
+  return resp;
 };

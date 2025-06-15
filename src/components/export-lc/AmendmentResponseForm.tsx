@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import AmendmentResponseDetailsAccordion from "./AmendmentResponseDetailsAccordion";
 import AmendmentSidebarResponsePanel from "./AmendmentSidebarResponsePanel";
@@ -6,6 +5,7 @@ import AmendmentChangesSummaryModal from "./AmendmentChangesSummaryModal";
 import AmendmentResponseActionsBar from "./AmendmentResponseActionsBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { saveAmendmentResponse } from "@/services/transactionService";
 
 const MOCK_AMEND_DATA = {
   lcReference: "LC/2024/EXP/001234",
@@ -73,15 +73,37 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await saveAmendmentResponse({
+        lcReference,
+        amendmentNumber: MOCK_AMEND_DATA.amendmentNumber,
+        action: action as "accept" | "refuse",
+        comments,
+        parties: MOCK_AMEND_DATA.parties,
+        lcAmount: MOCK_AMEND_DATA.lcAmount,
+        shipment: MOCK_AMEND_DATA.shipment,
+        documents: MOCK_AMEND_DATA.documents,
+        additionalConditions: MOCK_AMEND_DATA.additionalConditions,
+        specialInstructions: MOCK_AMEND_DATA.specialInstructions,
+      });
       toast({
         title: "Success",
         description: "Your amendment response has been submitted.",
         variant: "default",
       });
       onClose();
-    }, 1200);
+    } catch (err: any) {
+      setErrorMsg(
+        err?.message || "Failed to submit amendment response. Please try again."
+      );
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to submit amendment response.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDiscard = () => {

@@ -48,6 +48,57 @@ export type Database = {
         }
         Relationships: []
       }
+      export_lc_amendment_responses: {
+        Row: {
+          action: string
+          additional_conditions: string | null
+          amendment_number: string
+          comments: string | null
+          documents: Json | null
+          id: string
+          lc_amount: Json | null
+          lc_reference: string
+          parties: Json | null
+          shipment: Json | null
+          special_instructions: string | null
+          status: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          additional_conditions?: string | null
+          amendment_number: string
+          comments?: string | null
+          documents?: Json | null
+          id?: string
+          lc_amount?: Json | null
+          lc_reference: string
+          parties?: Json | null
+          shipment?: Json | null
+          special_instructions?: string | null
+          status?: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          additional_conditions?: string | null
+          amendment_number?: string
+          comments?: string | null
+          documents?: Json | null
+          id?: string
+          lc_amount?: Json | null
+          lc_reference?: string
+          parties?: Json | null
+          shipment?: Json | null
+          special_instructions?: string | null
+          status?: string
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       export_lc_reviews: {
         Row: {
           action: string
