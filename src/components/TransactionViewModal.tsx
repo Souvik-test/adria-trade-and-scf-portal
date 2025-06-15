@@ -170,6 +170,12 @@ const TransactionViewModal: React.FC<TransactionViewModalProps> = ({
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-600">Process:</span>
+                <Badge variant="outline" className="text-sm">
+                  {transaction.process_type || "-"}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-600">Status:</span>
                 <Badge className={getStatusColor(transaction.status)}>
                   {transaction.status}

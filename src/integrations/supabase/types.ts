@@ -695,6 +695,7 @@ export type Database = {
           initiating_channel: string | null
           operations: string | null
           party_form: string | null
+          process_type: string | null
           product_type: string
           status: string
           transaction_ref: string
@@ -714,6 +715,7 @@ export type Database = {
           initiating_channel?: string | null
           operations?: string | null
           party_form?: string | null
+          process_type?: string | null
           product_type: string
           status?: string
           transaction_ref: string
@@ -733,6 +735,7 @@ export type Database = {
           initiating_channel?: string | null
           operations?: string | null
           party_form?: string | null
+          process_type?: string | null
           product_type?: string
           status?: string
           transaction_ref?: string

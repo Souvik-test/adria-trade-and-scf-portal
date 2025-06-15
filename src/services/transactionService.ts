@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
+import { getProductAndProcessType } from './processTypeMapping';
 
 // Remove the getUniqueTransactionRef function since we no longer auto-generate refs.
 
@@ -8,10 +9,13 @@ export const savePurchaseOrder = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
-    // Use user-provided PO number
     const userPONumber = formData.poNumber;
     if (!userPONumber) throw new Error('Please provide a PO reference number.');
-
+    // Use processTypeMapping for PO
+    const { product_type, process_type } = getProductAndProcessType({
+      actionType: formData.actionType || "create",
+      productType: "PO",
+    });
     const { data: po, error: poError } = await supabase
       .from('purchase_orders')
       .insert({
@@ -51,7 +55,8 @@ export const savePurchaseOrder = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PO', formData, userPONumber);
+    // Pass process_type to transaction record
+    await createTransactionRecord(product_type, formData, userPONumber, process_type);
     return { ...po, po_number: userPONumber };
   } catch (error) {
     throw error;
@@ -63,10 +68,12 @@ export const saveProformaInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
-    // Use user-provided PI number
     const userPINumber = formData.piNumber;
     if (!userPINumber) throw new Error('Please provide a PI reference number.');
-
+    const { product_type, process_type } = getProductAndProcessType({
+      actionType: formData.actionType || "create",
+      productType: "PI",
+    });
     const { data: pi, error: piError } = await supabase
       .from('proforma_invoices')
       .insert({
@@ -92,7 +99,6 @@ export const saveProformaInvoice = async (formData: any) => {
       })
       .select()
       .single();
-
     if (piError) throw piError;
 
     if (formData.items && formData.items.length > 0) {
@@ -109,7 +115,7 @@ export const saveProformaInvoice = async (formData: any) => {
       const { error: itemsError } = await supabase.from('popi_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('PI', formData, userPINumber);
+    await createTransactionRecord(product_type, formData, userPINumber, process_type);
     return { ...pi, pi_number: userPINumber };
   } catch (error) {
     throw error;
@@ -123,6 +129,12 @@ export const saveInvoice = async (formData: any) => {
   try {
     const invoiceNumber = formData.invoiceNumber;
     if (!invoiceNumber) throw new Error('Please provide an Invoice reference number.');
+    // If invoiceType is "Credit Note" or "Debit Note"
+    const { product_type, process_type } = getProductAndProcessType({
+      actionType: formData.actionType || "create",
+      invoiceType: formData.invoiceType,
+      productType: formData.productType ?? "Invoice",
+    });
 
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
@@ -165,7 +177,7 @@ export const saveInvoice = async (formData: any) => {
       const { error: itemsError } = await supabase.from('invoice_line_items').insert(lineItems);
       if (itemsError) throw itemsError;
     }
-    await createTransactionRecord('Invoice', formData, invoiceNumber);
+    await createTransactionRecord(product_type, formData, invoiceNumber, process_type);
     return invoice;
   } catch (error) {
     throw error;
@@ -256,14 +268,19 @@ export const saveAmendmentResponse = async ({
     .single();
   if (respError) throw respError;
 
-  // 2. Insert into transactions as product_type "LC Amendment"
+  // 2. Insert into transactions as product_type "Export LC"
+  const { product_type, process_type } = getProductAndProcessType({
+    actionType: "record-amendment-consent",
+    productType: "Export LC",
+  });
   const txnRef = `${lcReference}/AMD/${amendmentNumber}`;
   const { error: txnError } = await supabase
     .from('transactions')
     .insert({
       user_id: user.id,
       transaction_ref: txnRef,
-      product_type: "LC Amendment",
+      product_type,
+      process_type,
       status: "Submitted",
       customer_name: parties?.find((p: any) => p.role === "Applicant")?.name ?? null,
       amount: Number(lcAmount?.creditAmount?.replace(/[^0-9.-]/g, "")) || null,
@@ -279,7 +296,7 @@ export const saveAmendmentResponse = async ({
     .insert({
       user_id: user.id,
       transaction_ref: txnRef,
-      transaction_type: "LC Amendment",
+      transaction_type: product_type,
       message: `Amendment response (${action}) submitted for LC ${lcReference}, Amendment #${amendmentNumber}`,
     });
   if (notifError) throw notifError;

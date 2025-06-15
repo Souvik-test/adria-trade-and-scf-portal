@@ -1,4 +1,3 @@
-
 // All database service methods now use Supabase Auth for user identification.
 import { supabase } from '@/integrations/supabase/client';
 
@@ -46,7 +45,12 @@ const getAmount = (productType: string, formData: any) => {
   }
 };
 
-const createTransactionRecord = async (productType: string, formData: any, actualTransactionNumber: string) => {
+const createTransactionRecord = async (
+  productType: string,
+  formData: any,
+  actualTransactionNumber: string,
+  processType?: string
+) => {
   const user = await getCurrentUserAsync();
   if (!user) {
     throw new Error('User not authenticated');
@@ -58,6 +62,7 @@ const createTransactionRecord = async (productType: string, formData: any, actua
         user_id: user.id,
         transaction_ref: actualTransactionNumber,
         product_type: productType,
+        process_type: processType || "Create",
         status: 'Submitted',
         customer_name: getCustomerName(productType, formData),
         amount: getAmount(productType, formData),

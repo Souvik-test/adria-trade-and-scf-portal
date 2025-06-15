@@ -17,6 +17,7 @@ interface Transaction {
   id: string;
   transaction_ref: string;
   product_type: string;
+  process_type?: string;
   status: string;
   customer_name: string | null;
   amount: number | null;
@@ -76,13 +77,16 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fix: Support correct filtering for Import LCs by matching value and label
+  // Fix: Support correct filtering for new product types
   const filteredTransactions = transactions.filter((transaction) => {
     if (transactionFilter === "all") return true;
     if (transactionFilter === "import-lc") return transaction.product_type === "Import LC";
+    if (transactionFilter === "export-lc") return transaction.product_type === "Export LC";
     if (transactionFilter === "po") return transaction.product_type === "PO";
     if (transactionFilter === "pi") return transaction.product_type === "PI";
     if (transactionFilter === "invoice") return transaction.product_type === "Invoice";
+    if (transactionFilter === "credit-note") return transaction.product_type === "Credit Note";
+    if (transactionFilter === "debit-note") return transaction.product_type === "Debit Note";
     if (transactionFilter === "bg") return transaction.product_type === "BG";
     return true;
   });
@@ -125,9 +129,12 @@ const DashboardTransactionsTable: React.FC<Props> = ({
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="import-lc">Import Letter of Credit</SelectItem>
+                <SelectItem value="export-lc">Export Letter of Credit</SelectItem>
                 <SelectItem value="po">Purchase Order (PO)</SelectItem>
                 <SelectItem value="pi">Proforma Invoice (PI)</SelectItem>
                 <SelectItem value="invoice">Invoice</SelectItem>
+                <SelectItem value="credit-note">Credit Note</SelectItem>
+                <SelectItem value="debit-note">Debit Note</SelectItem>
                 <SelectItem value="bg">Bank Guarantee</SelectItem>
               </SelectContent>
             </Select>
@@ -148,6 +155,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   <tr className="border-b text-left">
                     <th className="pb-2">Transaction Ref</th>
                     <th className="pb-2">Product Type</th>
+                    <th className="pb-2">Process</th>
                     <th className="pb-2">Customer</th>
                     <th className="pb-2">Amount</th>
                     <th className="pb-2">Status</th>
@@ -170,6 +178,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                           </button>
                         </td>
                         <td className="py-2">{transaction.product_type}</td>
+                        <td className="py-2">{transaction.process_type || "-"}</td>
                         <td className="py-2">{transaction.customer_name || "-"}</td>
                         <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
@@ -180,7 +189,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={9} className="py-8 text-center text-gray-500 dark:text-gray-400">
                         No transactions found. Create your first PO, PI, Invoice, or Import LC to see them here.
                       </td>
                     </tr>
