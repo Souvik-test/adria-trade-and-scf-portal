@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
@@ -68,14 +67,6 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
         <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
           Export Letter of Credit
         </DialogTitle>
-        <Button
-          variant="ghost"
-          className="absolute top-4 right-4"
-          aria-label="Close"
-          onClick={onClose}
-        >
-          <span className="sr-only">Close</span>&times;
-        </Button>
       </DialogHeader>
 
       <ExportLCProcessSection

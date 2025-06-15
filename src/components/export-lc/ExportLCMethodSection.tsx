@@ -14,9 +14,8 @@ const methodCards = [
     id: "manual",
     title: "Manual",
     description:
-      "Enter export LC details manually through forms (coming soon)",
+      "Enter export LC details manually through forms",
     icon: FileText,
-    comingSoon: true,
   },
   {
     id: "upload",
@@ -46,8 +45,14 @@ const ExportLCMethodSection: React.FC<ExportLCMethodSectionProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {methodCards.map((card) => {
         const Icon = card.icon;
-        const isEnabled = !!selectedProcess;
-        const isComingSoon = card.comingSoon;
+        let isEnabled = !!selectedProcess;
+        let isComingSoon = !!card.comingSoon;
+
+        // Only Manual is enabled for 'review' (pre-adviced LC)
+        if (card.id === "manual") {
+          isComingSoon = selectedProcess !== "review";
+        }
+
         return (
           <Card
             key={card.id}
@@ -59,6 +64,8 @@ const ExportLCMethodSection: React.FC<ExportLCMethodSectionProps> = ({
                 : "border-gray-200 dark:border-gray-600 hover:border-corporate-blue-300 dark:hover:border-corporate-blue-400 cursor-pointer"
             }`}
             onClick={isEnabled && !isComingSoon ? () => onMethodSelect(card.id) : undefined}
+            tabIndex={isEnabled && !isComingSoon ? 0 : -1}
+            aria-disabled={!isEnabled || isComingSoon}
           >
             <CardHeader className="text-center">
               <div
