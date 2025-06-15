@@ -70,11 +70,14 @@ const AmendmentSidebarResponsePanel = ({
           </span>
           <Button
             variant="default"
-            className="ml-auto px-3 py-1 text-xs font-bold rounded-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-md animate-pulse transition-all duration-200"
+            className="ml-auto px-3 py-1 text-xs font-bold rounded-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-md animate-glow transition-all duration-200 border-2 border-yellow-500 ring-2 ring-yellow-300"
             onClick={onViewChanges}
-            style={{ minWidth: "105px" }}
+            style={{ minWidth: "120px" }}
           >
-            View Changes
+            <span className="font-semibold flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z" /></svg>
+              View Changes
+            </span>
           </Button>
         </div>
         <div className="text-xs text-gray-600 dark:text-gray-400">

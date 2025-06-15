@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -118,13 +117,24 @@ export default {
 					'100%': {
 						transform: 'rotateY(0deg)'
 					}
+				},
+				'glow': {
+					'0%, 100%': {
+						boxShadow: '0 0 8px 2px #facc15, 0 0 0 transparent',
+						backgroundColor: '#fde047'
+					},
+					'50%': {
+						boxShadow: '0 0 20px 6px #facc15, 0 0 0 transparent',
+						backgroundColor: '#ffe066'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'flip': 'flip 0.6s ease-in-out',
-				'flip-back': 'flip-back 0.6s ease-in-out'
+				'flip-back': 'flip-back 0.6s ease-in-out',
+				'glow': 'glow 1.2s ease-in-out infinite',
 			}
 		}
 	},
