@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUserAsync } from "./database";
+import { getProductAndProcessType } from "./processTypeMapping"; // <-- Add this import
 
 // Helper to ISO format date strings as YYYY-MM-DD or null
 function toPgDate(date: string | null | undefined): string | null {
@@ -54,11 +55,17 @@ export const saveExportLCReview = async ({
 
   if (reviewError) throw reviewError;
 
-  // Insert transaction row (manually, now that the trigger is removed)
+  // Insert transaction row with correct product/process type by mapping
+  const { product_type, process_type } = getProductAndProcessType({
+    actionType: "review-pre-adviced-lc",
+    productType: "Export LC",
+  });
+
   const transactionInsert = {
     user_id: user.id,
     transaction_ref: lcData.lcReference,
-    product_type: "Export LC",
+    product_type,
+    process_type, // <-- Set process_type appropriately
     status: reviewData.status || "Submitted",
     customer_name: lcData.parties?.[1]?.name || null, // Beneficiary (Exporter)
     amount: lcData.amount,
