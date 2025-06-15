@@ -8,19 +8,18 @@ import { Button } from "@/components/ui/button";
 interface ExportLCModalContentProps {
   onClose: () => void;
   onManualReviewFullScreen?: () => void;
-  onAmendmentResponseFullScreen?: () => void; // NEW: for amendment response full screen
+  onAmendmentResponseFullScreen?: () => void; // for amendment response full screen
+  onRequestTransferFullScreen?: () => void; // NEW for transfer request
 }
 
 const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
   onClose,
   onManualReviewFullScreen,
   onAmendmentResponseFullScreen,
+  onRequestTransferFullScreen,
 }) => {
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-
-  // Full screen state for transfer process
-  const [transferFullScreen, setTransferFullScreen] = useState(false);
 
   const handleProcessSelect = (process: string) => {
     setSelectedProcess(process);
@@ -39,27 +38,15 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
       onAmendmentResponseFullScreen();
       return;
     }
-    // Manual for transfer: show request transfer full screen form
-    if (selectedProcess === "transfer" && method === "manual") {
-      setTransferFullScreen(true);
+    // Manual for transfer: trigger full screen via parent callback
+    if (selectedProcess === "transfer" && method === "manual" && onRequestTransferFullScreen) {
+      onClose(); // Close Dialog
+      onRequestTransferFullScreen();
       return;
     }
     setSelectedMethod(method);
   };
 
-  // If transfer full screen, show the form
-  if (transferFullScreen) {
-    return (
-      <div className="fixed inset-0 z-50">
-        <RequestLCTransferForm onClose={() => {
-          setTransferFullScreen(false);
-          onClose();
-        }} />
-      </div>
-    );
-  }
-
-  // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {
     return (
       <div className="min-h-[34rem] flex flex-col items-center justify-center py-20 px-4">
