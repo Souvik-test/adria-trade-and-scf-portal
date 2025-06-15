@@ -31,6 +31,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
+  // Fetch LCs when dropdown opens or when search query changes
   useEffect(() => {
     if (open) fetchLCs(query);
     // eslint-disable-next-line
@@ -40,43 +41,65 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     setLoading(true);
     let filter = supabase
       .from("import_lc_requests")
-      .select("id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issuing_bank:beneficiary_bank_name, issue_date, place_of_expiry")
+      .select(
+        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, beneficiary_bank_name, issuing_bank, issue_date, place_of_expiry"
+      )
       .eq("is_transferable", true)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(50);
 
     if (search && search.trim().length > 1) {
       filter = filter.ilike("corporate_reference", `%${search.trim()}%`);
     }
+
     const { data, error } = await filter;
     setLoading(false);
-    if (error) {
+
+    if (error || !data) {
       setLCs([]);
       return;
     }
-    setLCs(data || []);
+    setLCs(data);
   };
 
-  const selectedLC = lcs.find((lc) => lc.corporate_reference === value);
+  const selectedLC = lcs.find(lc => lc.corporate_reference === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" className={cn("w-full justify-between", !value && "text-muted-foreground")}>
-          {selectedLC
-            ? `${selectedLC.corporate_reference} • ${selectedLC.currency ?? ""} ${selectedLC.lc_amount?.toLocaleString() ?? ""}`
-            : value
-            ? value
-            : "Search & select LC Number..."}
+        <Button
+          variant="outline"
+          role="combobox"
+          className={cn(
+            "w-full justify-between font-semibold border-corporate-blue/30",
+            !value && "text-muted-foreground"
+          )}
+        >
+          {selectedLC ? (
+            <>
+              <span className="text-corporate-blue">{selectedLC.corporate_reference}</span>
+              <span className="mx-2 text-muted-foreground">
+                • {selectedLC.currency ?? ""} {selectedLC.lc_amount?.toLocaleString() ?? ""}
+              </span>
+              <span className="hidden md:inline text-xs">
+                {selectedLC.beneficiary_name ? `• Ben: ${selectedLC.beneficiary_name}` : ""}
+                {selectedLC.expiry_date ? ` • Exp: ${selectedLC.expiry_date}` : ""}
+              </span>
+            </>
+          ) : value ? (
+            value
+          ) : (
+            "Search & select LC Number..."
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full min-w-[320px] p-0 z-[101] bg-background">
+      <PopoverContent className="w-full min-w-[370px] p-0 z-[110] bg-background">
         <Command>
-          <CommandInput 
+          <CommandInput
             placeholder="Type LC Number / Corporate Reference to search"
             value={query}
-            onValueChange={(val) => {
+            onValueChange={val => {
               setQuery(val);
               fetchLCs(val);
             }}
@@ -87,7 +110,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
               {loading ? "Loading..." : "No transferable LCs found"}
             </CommandEmpty>
             <CommandGroup>
-              {lcs.map((lc) => (
+              {lcs.map(lc => (
                 <CommandItem
                   value={lc.corporate_reference}
                   key={lc.id}
@@ -95,13 +118,20 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                     onChange(lc);
                     setOpen(false);
                   }}
+                  className="py-2"
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === lc.corporate_reference ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn("mr-2 h-4 w-4", value === lc.corporate_reference ? "opacity-100" : "opacity-0")}
+                  />
                   <div>
-                    <div className="font-medium">{lc.corporate_reference}</div>
+                    <div className="font-bold text-corporate-blue">
+                      {lc.corporate_reference}
+                      <span className="ml-2 text-xs text-muted-foreground">{lc.currency} {lc.lc_amount?.toLocaleString()}</span>
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {lc.currency} {lc.lc_amount?.toLocaleString() ?? ""}
-                      {lc.beneficiary_name ? ` • ${lc.beneficiary_name}` : ""}
+                      {lc.issuing_bank ? `${lc.issuing_bank}` : ""}
+                      {lc.applicant_name ? ` • Applicant: ${lc.applicant_name}` : ""}
+                      {lc.beneficiary_name ? ` • Ben: ${lc.beneficiary_name}` : ""}
                       {lc.expiry_date ? ` • Exp: ${lc.expiry_date}` : ""}
                     </div>
                   </div>

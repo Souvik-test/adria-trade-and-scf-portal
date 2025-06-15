@@ -6,14 +6,15 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import TransferableLCSearchSelect from "../TransferableLCSearchSelect";
 
-const InfoRow = ({ label, value, forceReadOnly = true }) => (
-  <div className="flex items-center gap-3 mb-2">
-    <Label className="text-foreground w-[170px] min-w-[130px]">{label}</Label>
+const InfoField = ({ label, value, className = "" }: { label: string; value?: string | number; className?: string }) => (
+  <div className={`flex flex-col ${className}`}>
+    <Label className="text-xs text-muted-foreground font-semibold mb-1">{label}</Label>
     <Input
-      value={value || ""}
-      readOnly={forceReadOnly}
-      className="flex-1 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 cursor-not-allowed"
+      value={value ?? ""}
+      readOnly
+      className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-0 ring-1 ring-corporate-blue/5 focus:ring-corporate-blue/70 shadow-sm cursor-not-allowed font-medium"
       tabIndex={-1}
+      style={{ color: "#15699E" }}
     />
   </div>
 );
@@ -22,30 +23,34 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
   const { form: formData, updateField, updateLCReferenceFromImportLC } = form;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <section className="mb-6">
+    <div className="max-w-3xl mx-auto flex flex-col gap-8">
+      {/* LC Information */}
+      <section>
         <h3 className="font-semibold text-lg mb-4 text-corporate-blue dark:text-corporate-blue">LC Information</h3>
-        {/* Transferable LC Reference */}
-        <Label className="block mb-2 text-foreground font-medium">LC Number / Corporate Reference <span className="text-red-500">*</span></Label>
-        <TransferableLCSearchSelect
-          value={formData.lcReference}
-          onChange={(lcObj) => {
-            updateLCReferenceFromImportLC(lcObj);
-          }}
-        />
+        <div className="mb-3">
+          <Label className="block mb-2 text-foreground font-medium">LC Number / Corporate Reference <span className="text-red-500">*</span></Label>
+          <TransferableLCSearchSelect
+            value={formData.lcReference}
+            onChange={lcObj => updateLCReferenceFromImportLC(lcObj)}
+          />
+        </div>
 
-        <div className="mt-6 space-y-2">
-          <InfoRow label="Issuing Bank" value={formData.issuingBank} />
-          <InfoRow label="Applicant Name" value={formData.applicant} />
-          <InfoRow label="Currency" value={formData.currency} />
-          <InfoRow label="LC Amount" value={formData.amount} />
-          <InfoRow label="Expiry Date" value={formData.expiryDate} />
-          <InfoRow label="Current Beneficiary" value={formData.currentBeneficiary} />
-          <InfoRow label="Issue Date" value={formData.issueDate} />
-          <InfoRow label="Place of Expiry" value={formData.placeOfExpiry} />
+        {/* 3 fields per row grid layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mt-6">
+          <InfoField label="Issuing Bank" value={formData.issuingBank} />
+          <InfoField label="Applicant Name" value={formData.applicant} />
+          <InfoField label="Currency" value={formData.currency} />
+
+          <InfoField label="LC Amount" value={formData.amount} />
+          <InfoField label="Expiry Date" value={formData.expiryDate} />
+          <InfoField label="Current Beneficiary" value={formData.currentBeneficiary} />
+
+          <InfoField label="Issue Date" value={formData.issueDate} />
+          <InfoField label="Place of Expiry" value={formData.placeOfExpiry} />
         </div>
       </section>
 
+      {/* Transfer Details */}
       <section>
         <h3 className="font-semibold text-lg mb-4 text-corporate-blue dark:text-corporate-blue">Transfer Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -89,3 +94,4 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
 };
 
 export default LCAndTransferPane;
+
