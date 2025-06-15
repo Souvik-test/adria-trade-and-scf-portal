@@ -1,4 +1,3 @@
-
 import React from "react";
 import RequestLCTransferLayout from "./RequestLCTransferLayout";
 import RequestLCTransferPaneRenderer from "./RequestLCTransferPaneRenderer";
@@ -13,44 +12,80 @@ const SummaryBar = ({ form }: any) => (
       Summary
     </div>
     <section className="mb-6">
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">LC Information</h4>
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+        LC Information
+      </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
         <span className="text-muted-foreground text-sm">Reference:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.lcReference || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.lcReference || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Issuance Date:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.issuanceDate || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.issuanceDate || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Advising Bank:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.advisingBank || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.advisingBank || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Issuing Bank:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.issuingBank || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.issuingBank || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Applicant:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.applicant || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.applicant || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Beneficiary:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.currentBeneficiary || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.currentBeneficiary || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Currency:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.currency || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.currency || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Amount:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.amount ? `${form.form.currency || ""} ${form.form.amount}` : <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.amount
+            ? `${form.form.currency || ""} ${form.form.amount}`
+            : <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Expiry Date:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.expiryDate || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.expiryDate || <span className="text-muted-foreground">-</span>}
+        </span>
       </div>
     </section>
     <section className="mb-6">
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">Transfer</h4>
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+        Transfer
+      </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
         <span className="text-muted-foreground text-sm">Type:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.transferType || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.transferType || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Amount:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.transferAmount ? `${form.form.currency || ""} ${form.form.transferAmount}` : <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.transferAmount
+            ? `${form.form.currency || ""} ${form.form.transferAmount}`
+            : <span className="text-muted-foreground">-</span>}
+        </span>
       </div>
     </section>
     <section>
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">New Beneficiary</h4>
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+        New Beneficiary
+      </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
         <span className="text-muted-foreground text-sm">Name:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.newBeneficiary?.name || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.newBeneficiary?.name || <span className="text-muted-foreground">-</span>}
+        </span>
         <span className="text-muted-foreground text-sm">Country:</span>
-        <span className="text-foreground text-sm font-medium break-all">{form.form.newBeneficiary?.country || <span className="text-muted-foreground">-</span>}</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.newBeneficiary?.country || <span className="text-muted-foreground">-</span>}
+        </span>
       </div>
     </section>
   </aside>
@@ -81,7 +116,7 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
             </div>
             {isFinalStep && (
               <div className="w-full max-w-5xl mx-auto mt-2 px-2 z-10 relative mb-2">
-                <div className="flex items-center gap-2 bg-muted border border-muted-foreground dark:bg-muted/40 dark:border-muted-foreground/30 rounded-md px-4 py-3 mb-3">
+                <div className="flex items-center gap-2 bg-muted border border-border dark:bg-muted/40 rounded-md px-4 py-3 mb-3">
                   <Checkbox
                     id="agree"
                     checked={agree}
@@ -98,7 +133,7 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
             </div>
           </RequestLCTransferLayout>
         </div>
-        {/* Summary Bar - now aligned with the button bar, not at top */}
+        {/* Summary Bar - now aligned with button bar, not at top */}
         <div className="flex flex-col justify-end pb-6">
           <SummaryBar form={form} />
         </div>

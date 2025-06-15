@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { transferStepOrder, LCTransferFormStep } from "@/types/exportLCTransfer";
@@ -18,18 +17,16 @@ interface Props {
 const RequestLCTransferFormActions: React.FC<Props> = ({
   step, stepIdx, goBack, goNext, saveDraft, discard, submitForm, isSubmitting, canSubmit
 }) => {
-  // Only show Go Back if not on the first pane
   const showGoBack = stepIdx > 0;
-  // Check for final step correctly
   const isFinal = step === "beneficiary-docs";
 
   return (
-    <div className="flex flex-wrap gap-2 border-t bg-white/80 p-4 md:p-6 justify-between items-center">
+    <div className="flex flex-wrap gap-2 border-t border-border bg-card p-4 md:p-6 justify-between items-center transition-colors">
       <div className="flex gap-2 flex-1">
         {showGoBack && (
           <Button
             variant="outline"
-            className="min-w-[110px] border-gray-400 text-gray-600 hover:bg-gray-50"
+            className="min-w-[110px] border-gray-400 text-gray-600 dark:text-gray-300 dark:border-gray-600 hover:bg-muted"
             onClick={goBack}
             disabled={isSubmitting}
           >
@@ -40,7 +37,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
       <div className="flex gap-2 ml-auto">
         <Button
           variant="outline"
-          className="min-w-[110px] border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+          className="min-w-[110px] border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
           onClick={discard}
           disabled={isSubmitting}
         >
@@ -48,7 +45,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         </Button>
         <Button
           variant="outline"
-          className="min-w-[130px] border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+          className="min-w-[130px] border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-yellow-900/20"
           onClick={saveDraft}
           disabled={isSubmitting}
         >
@@ -57,7 +54,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         {isFinal ? (
           <Button
             variant="default"
-            className="min-w-[110px] bg-green-600 hover:bg-green-700 text-white"
+            className="min-w-[110px] bg-green-600 hover:bg-green-700 text-white dark:bg-green-700 dark:hover:bg-green-800"
             onClick={submitForm}
             disabled={isSubmitting || !canSubmit}
           >
@@ -66,7 +63,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         ) : (
           <Button
             variant="default"
-            className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white"
+            className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white dark:bg-corporate-blue dark:hover:bg-corporate-blue"
             onClick={goNext}
             disabled={isSubmitting}
           >
