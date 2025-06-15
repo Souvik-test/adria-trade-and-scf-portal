@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const LCAndTransferPane = ({ form }: { form: any }) => {
   // Compute values for transfer logic as before
@@ -31,22 +32,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
               placeholder="LC Issuance Date"
             />
           </div>
-          <div>
-            <Label className="font-medium mb-1 block text-foreground">Advising Bank</Label>
-            <Input
-              value={form.form.advisingBank}
-              onChange={e => form.updateField({ advisingBank: e.target.value })}
-              placeholder="Advising bank"
-            />
-          </div>
-          <div>
-            <Label className="font-medium mb-1 block text-foreground">Issuing Bank</Label>
-            <Input
-              value={form.form.issuingBank}
-              onChange={e => form.updateField({ issuingBank: e.target.value })}
-              placeholder="Bank name"
-            />
-          </div>
+          {/* Removed Advising Bank and Issuing Bank fields */}
           <div>
             <Label className="font-medium mb-1 block text-foreground">Applicant</Label>
             <Input
@@ -100,35 +86,31 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <Label className="font-medium mb-1 block text-foreground">Transfer Type</Label>
-            <div className="flex items-center gap-4 mt-1">
-              <label className="inline-flex items-center gap-2 text-foreground">
-                <input
-                  type="radio"
-                  value="Full"
-                  checked={form.form.transferType === "Full"}
-                  onChange={() => {
-                    form.updateField({
-                      transferType: "Full",
-                      transferAmount: lcAmount, // set to full LC amount on selecting Full
-                    });
-                  }}
-                />
-                Full Transfer
-              </label>
-              <label className="inline-flex items-center gap-2 text-foreground">
-                <input
-                  type="radio"
-                  value="Partial"
-                  checked={form.form.transferType === "Partial"}
-                  onChange={() => {
-                    form.updateField({
-                      transferType: "Partial"
-                    });
-                  }}
-                />
-                Partial Transfer
-              </label>
-            </div>
+            <RadioGroup
+              className="flex items-center gap-6 mt-1"
+              value={form.form.transferType}
+              onValueChange={val => {
+                if (val === "Full") {
+                  form.updateField({
+                    transferType: "Full",
+                    transferAmount: lcAmount,
+                  });
+                } else {
+                  form.updateField({
+                    transferType: "Partial",
+                  });
+                }
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="Full" id="transfer-type-full" />
+                <label htmlFor="transfer-type-full" className="text-sm text-foreground cursor-pointer">Full Transfer</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="Partial" id="transfer-type-partial" />
+                <label htmlFor="transfer-type-partial" className="text-sm text-foreground cursor-pointer">Partial Transfer</label>
+              </div>
+            </RadioGroup>
           </div>
           <div>
             <Label className="font-medium mb-1 block text-foreground">Transfer Amount</Label>
@@ -193,3 +175,4 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
 };
 
 export default LCAndTransferPane;
+
