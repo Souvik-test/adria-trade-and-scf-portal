@@ -1,8 +1,8 @@
+
 import React from "react";
-import { File, PersonStanding, Check } from "lucide-react";
+import { File, PersonStanding } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 2 step only: LC Information + Transfer Details, then New Beneficiary + Documents
 const stepIcons = [
   File,
   PersonStanding,
@@ -63,7 +63,7 @@ const RequestLCTransferLayout: React.FC<Props> = ({
             <li key={label} className="flex flex-col items-center relative w-full">
               <div
                 className={cn(
-                  "flex items-center justify-center w-12 h-12 rounded-full border-2 text-base transition-colors",
+                  "flex items-center justify-center w-12 h-12 rounded-full border-2 text-base transition-colors shadow-sm",
                   isDone
                     ? "bg-corporate-blue border-corporate-blue text-white"
                     : isActive
@@ -85,7 +85,7 @@ const RequestLCTransferLayout: React.FC<Props> = ({
                 <span className={cn(
                   "absolute top-7 left-full h-1 w-12 md:w-28",
                   isDone ? "bg-corporate-blue" : "bg-border"
-                )}></span>
+                )} />
               )}
             </li>
           );

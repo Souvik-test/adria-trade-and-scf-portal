@@ -1,3 +1,4 @@
+
 import React from "react";
 import RequestLCTransferLayout from "./RequestLCTransferLayout";
 import RequestLCTransferPaneRenderer from "./RequestLCTransferPaneRenderer";
@@ -5,14 +6,14 @@ import RequestLCTransferFormActions from "./RequestLCTransferFormActions";
 import { useRequestLCTransferForm } from "@/hooks/useRequestLCTransferForm";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Dark/light mode adaptive colors using Tailwind color tokens
+// Cohesive Summary Bar for both light/dark
 const SummaryBar = ({ form }: any) => (
-  <aside className="w-[350px] min-w-[290px] h-fit max-h-[90vh] shadow-lg bg-card border border-border rounded-xl p-6 animate-fade-in overflow-auto mx-4 transition-colors">
-    <div className="font-bold mb-4 text-corporate-blue dark:text-corporate-blue/80 text-lg flex items-center gap-2">
+  <aside className="w-[350px] min-w-[290px] h-fit max-h-[90vh] shadow-xl bg-card border border-border rounded-2xl p-6 animate-fade-in overflow-auto mx-4 transition-colors">
+    <div className="font-bold mb-4 text-corporate-blue dark:text-corporate-blue text-lg flex items-center gap-2">
       Summary
     </div>
     <section className="mb-6">
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue">
         LC Information
       </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
@@ -57,7 +58,7 @@ const SummaryBar = ({ form }: any) => (
       </div>
     </section>
     <section className="mb-6">
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue">
         Transfer
       </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
@@ -74,7 +75,7 @@ const SummaryBar = ({ form }: any) => (
       </div>
     </section>
     <section>
-      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue/80">
+      <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue">
         New Beneficiary
       </h4>
       <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
@@ -91,7 +92,6 @@ const SummaryBar = ({ form }: any) => (
   </aside>
 );
 
-// Props interface
 interface Props {
   onClose: () => void;
 }
@@ -101,7 +101,6 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
   const [requestId, setRequestId] = React.useState("TRF-2025-00123");
   const [agree, setAgree] = React.useState(false);
 
-  // Only require agreement for last step (beneficiary-docs)
   const isFinalStep = form.step === "beneficiary-docs";
   const canSubmit = !isFinalStep || agree;
 
@@ -109,14 +108,14 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
     <div className="fixed inset-0 z-50 bg-background flex w-full h-full min-h-screen overflow-auto transition-colors">
       <div className="flex-1 flex flex-row items-stretch w-full h-full max-w-full justify-center">
         {/* Main form section and button bar */}
-        <div className="flex-1 flex flex-col overflow-y-auto px-2 md:px-5 pt-2 pb-6" style={{ maxWidth: "calc(100vw - 390px)" }}>
+        <div className="flex-1 flex flex-col overflow-y-auto px-0 md:px-0 pt-0 pb-0" style={{ maxWidth: "calc(100vw - 390px)" }}>
           <RequestLCTransferLayout stepIdx={form.stepIdx} requestId={requestId} setRequestId={setRequestId}>
             <div className="flex-grow flex flex-col w-full">
               <RequestLCTransferPaneRenderer form={form} />
             </div>
             {isFinalStep && (
               <div className="w-full max-w-5xl mx-auto mt-2 px-2 z-10 relative mb-2">
-                <div className="flex items-center gap-2 bg-muted border border-border dark:bg-muted/40 rounded-md px-4 py-3 mb-3">
+                <div className="flex items-center gap-2 bg-muted border border-border rounded-md px-4 py-3 mb-3 shadow-sm">
                   <Checkbox
                     id="agree"
                     checked={agree}
@@ -133,7 +132,7 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
             </div>
           </RequestLCTransferLayout>
         </div>
-        {/* Summary Bar - now aligned with button bar, not at top */}
+        {/* Summary Bar */}
         <div className="flex flex-col justify-end pb-6">
           <SummaryBar form={form} />
         </div>

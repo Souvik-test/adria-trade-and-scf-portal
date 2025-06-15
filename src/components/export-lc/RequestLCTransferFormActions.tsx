@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { transferStepOrder, LCTransferFormStep } from "@/types/exportLCTransfer";
@@ -21,7 +22,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
   const isFinal = step === "beneficiary-docs";
 
   return (
-    <div className="flex flex-wrap gap-2 border-t border-border bg-card p-4 md:p-6 justify-between items-center transition-colors">
+    <div className="flex flex-wrap gap-2 border-t border-border bg-card p-4 md:p-6 justify-between items-center transition-colors shadow-sm">
       <div className="flex gap-2 flex-1">
         {showGoBack && (
           <Button
@@ -63,7 +64,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         ) : (
           <Button
             variant="default"
-            className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white dark:bg-corporate-blue dark:hover:bg-corporate-blue"
+            className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white dark:bg-corporate-blue dark:hover:bg-corporate-blue/80"
             onClick={goNext}
             disabled={isSubmitting}
           >
