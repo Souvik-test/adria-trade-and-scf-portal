@@ -1,9 +1,21 @@
 
+export type LCTransferFormStep = 
+  | 'lc-and-transfer'  // Step 1: LC Information & Transfer Details
+  | 'beneficiary-docs'; // Step 2: New Beneficiary Info & Documents
+
+export const transferStepOrder: LCTransferFormStep[] = [
+  'lc-and-transfer',
+  'beneficiary-docs'
+];
+
 export type TransferType = 'Full' | 'Partial';
 
 export interface NewBeneficiary {
   name: string;
   address: string;
+  country?: string; // made optional as in the form
+  bankName?: string;
+  bankAddress?: string;
   swiftCode: string;
   accountNumber: string;
 }
@@ -23,27 +35,13 @@ export interface LCTransferFormData {
   transferAmount: number | '';
   transferConditions: string;
 
-  // Step 3: New Beneficiary Info
+  // Step 3: New Beneficiary Info & Documents
   newBeneficiary: NewBeneficiary;
 
   // Step 4: Supporting Documents
   requiredDocuments: string[];
   supportingDocuments: File[];
 
-  // Step 5: Review (no fields, just summary)
+  // Optionally for checked state on required documents
+  requiredDocumentsChecked?: Record<string, boolean>;
 }
-
-export type LCTransferFormStep = 
-  | 'lc-info'
-  | 'transfer-details'
-  | 'new-beneficiary'
-  | 'documents'
-  | 'review';
-
-export const transferStepOrder: LCTransferFormStep[] = [
-  'lc-info',
-  'transfer-details',
-  'new-beneficiary',
-  'documents',
-  'review',
-];

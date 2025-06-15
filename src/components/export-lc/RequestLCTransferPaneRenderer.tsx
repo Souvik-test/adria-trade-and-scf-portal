@@ -3,20 +3,15 @@ import React from "react";
 import { LCTransferFormStep } from "@/types/exportLCTransfer";
 import LCAndTransferPane from "./steps/LCAndTransferPane";
 import NewBeneficiaryAndDocumentsPane from "./steps/NewBeneficiaryAndDocumentsPane";
-import ReviewSubmitPaneV2 from "./steps/ReviewSubmitPaneV2";
 
-const paneMap = {
-  "lc-info": LCAndTransferPane,
-  "transfer-details": LCAndTransferPane,
-  "new-beneficiary": NewBeneficiaryAndDocumentsPane,
-  "documents": NewBeneficiaryAndDocumentsPane,
-  "review": ReviewSubmitPaneV2,
-} as const;
+const paneMap: Record<LCTransferFormStep, React.ComponentType<{ form: any }>> = {
+  "lc-and-transfer": LCAndTransferPane,
+  "beneficiary-docs": NewBeneficiaryAndDocumentsPane,
+};
 
 const RequestLCTransferPaneRenderer = ({ form }: { form: any }) => {
   const StepPane = paneMap[form.step as LCTransferFormStep];
   if (!StepPane) {
-    // fallback for debugging
     return (
       <div className="max-w-3xl mx-auto py-8 flex flex-col items-center justify-center">
         <div className="bg-red-100 text-red-800 p-4 rounded-lg">

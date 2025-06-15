@@ -16,11 +16,15 @@ const INITIAL_FORM: LCTransferFormData = {
   newBeneficiary: {
     name: "",
     address: "",
+    country: "",
+    bankName: "",
+    bankAddress: "",
     swiftCode: "",
     accountNumber: "",
   },
   requiredDocuments: [],
   supportingDocuments: [],
+  requiredDocumentsChecked: {},
 };
 
 export function useRequestLCTransferForm(onClose: () => void) {
@@ -51,12 +55,10 @@ export function useRequestLCTransferForm(onClose: () => void) {
 
   // Save as Draft, Submit, Discard logic
   const saveDraft = () => {
-    // TODO: implement actual service call
     alert("Save as draft not yet implemented.");
   };
   const submitForm = () => {
     setIsSubmitting(true);
-    // TODO: implement actual submit/service call
     setTimeout(() => {
       setIsSubmitting(false);
       alert("Transfer Submitted! (Not yet implemented)");

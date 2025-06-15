@@ -1,22 +1,17 @@
 
 import React from "react";
-import { File, ArrowRight, PersonStanding, Upload, Check } from "lucide-react";
+import { File, PersonStanding, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// 2 step only: LC Information + Transfer Details, then New Beneficiary + Documents
 const stepIcons = [
   File,
-  ArrowRight,
   PersonStanding,
-  Upload,
-  Check,
 ];
 
 const stepLabels = [
-  "LC Information",
-  "Transfer Details",
-  "New Beneficiary",
-  "Documents",
-  "Review & Submit"
+  "LC Information & Transfer Details",
+  "New Beneficiary & Documents"
 ];
 
 interface Props {
@@ -24,7 +19,6 @@ interface Props {
   requestId?: string;
   setRequestId?: (id: string) => void;
   children?: React.ReactNode;
-  // onBack removed, no arrow/back icon on top
 }
 
 const RequestLCTransferLayout: React.FC<Props> = ({
@@ -38,7 +32,7 @@ const RequestLCTransferLayout: React.FC<Props> = ({
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-6 py-4 md:py-3 bg-white border-b shadow-sm relative">
       <div className="flex items-center gap-4 mb-2 sm:mb-0">
         <div className="bg-corporate-blue text-white rounded-full p-3">
-          <ArrowRight className="w-7 h-7" />
+          <File className="w-7 h-7" />
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">Request LC Transfer</h1>
@@ -57,9 +51,9 @@ const RequestLCTransferLayout: React.FC<Props> = ({
       </div>
     </div>
 
-    {/* Step Progress Bar */}
+    {/* Step Progress Bar - two step only */}
     <div className="flex justify-center mt-3 mb-6 px-1">
-      <ol className="flex w-full max-w-5xl mx-auto justify-between items-center">
+      <ol className="flex w-full max-w-4xl mx-auto justify-between items-center">
         {stepLabels.map((label, idx) => {
           const Icon = stepIcons[idx];
           const isActive = idx === stepIdx;
@@ -67,33 +61,30 @@ const RequestLCTransferLayout: React.FC<Props> = ({
           return (
             <li key={label} className="flex flex-col items-center relative w-full">
               <div
-                className={
-                  [
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 text-base transition-colors",
-                    isDone
-                      ? "bg-corporate-blue border-corporate-blue text-white"
-                      : isActive
-                      ? "bg-white border-corporate-blue text-corporate-blue" // removed animate-glow class
-                      : "bg-gray-100 border-gray-200 text-gray-400"
-                  ].join(" ")
-                }
+                className={cn(
+                  "flex items-center justify-center w-12 h-12 rounded-full border-2 text-base transition-colors",
+                  isDone
+                    ? "bg-corporate-blue border-corporate-blue text-white"
+                    : isActive
+                    ? "bg-white border-corporate-blue text-corporate-blue"
+                    : "bg-gray-100 border-gray-200 text-gray-400"
+                )}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-6 h-6" />
               </div>
               <span className={
                 [
-                  "mt-1 text-xs font-medium text-center max-w-[70px]",
+                  "mt-2 text-sm font-bold text-center max-w-[124px]",
                   isActive ? "text-corporate-blue" : "text-gray-400"
                 ].join(" ")
               }>
                 {label}
               </span>
-              {/* Connectors */}
               {idx < stepLabels.length - 1 && (
-                <span className={[
-                  "absolute top-5 left-full h-1 w-8 md:w-16",
+                <span className={cn(
+                  "absolute top-7 left-full h-1 w-12 md:w-28",
                   isDone ? "bg-corporate-blue" : "bg-gray-200"
-                ].join(" ")}></span>
+                )}></span>
               )}
             </li>
           );
