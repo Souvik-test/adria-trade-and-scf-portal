@@ -53,6 +53,20 @@ export function useRequestLCTransferForm(onClose: () => void) {
     setForm(curr => ({ ...curr, newBeneficiary: { ...curr.newBeneficiary, ...patch } }));
   };
 
+  // Specialized updater for LC selection
+  const updateLCReferenceFromImportLC = (lc: any) => {
+    setForm(curr => ({
+      ...curr,
+      lcReference: lc.popi_number,
+      issuingBank: lc.issuing_bank_name || curr.issuingBank,
+      applicant: lc.applicant_name || curr.applicant,
+      currency: lc.currency || curr.currency,
+      amount: lc.lc_amount || curr.amount,
+      expiryDate: lc.expiry_date || curr.expiryDate,
+      // "currentBeneficiary" could be extended if needed
+    }));
+  };
+
   // Save as Draft, Submit, Discard logic
   const saveDraft = () => {
     alert("Save as draft not yet implemented.");
@@ -72,7 +86,7 @@ export function useRequestLCTransferForm(onClose: () => void) {
   };
 
   return {
-    form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary,
+    form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary, updateLCReferenceFromImportLC,
     saveDraft, submitForm, discard, isSubmitting
   };
 }
