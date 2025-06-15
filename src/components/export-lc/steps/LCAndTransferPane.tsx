@@ -169,7 +169,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
           </div>
           <div className="col-span-full md:col-span-3">
             <Label className="font-medium mb-1 block text-foreground">Transfer Conditions</Label>
-            <div className="bg-accent border border-border rounded-lg p-4 text-sm text-foreground min-h-[104px] transition-colors">
+            <div className="bg-corporate-blue/10 border border-corporate-blue rounded-lg p-4 text-sm text-corporate-blue min-h-[104px] transition-colors">
               <ul className="list-disc ml-5">
                 <li>
                   Transfer is subject to terms and conditions of the original LC
