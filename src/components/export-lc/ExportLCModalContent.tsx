@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
-// Remove ReviewPreAdvicedLCForm import!
+import AmendmentResponseForm from "./AmendmentResponseForm";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -26,13 +25,25 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
   const handleMethodSelect = (method: string) => {
     if (!selectedProcess) return;
 
+    // Manual for review process: open full screen via parent callback
     if (selectedProcess === "review" && method === "manual" && onManualReviewFullScreen) {
-      // Ask parent to show full screen
       onManualReviewFullScreen();
+      return;
+    }
+    // Manual for amendment consent: show amendment response form
+    if (selectedProcess === "amendConsent" && method === "manual") {
+      setSelectedMethod("manual");
       return;
     }
     setSelectedMethod(method);
   };
+
+  // New: If "record amendment consent" + manual, render full-screen AmendmentResponseForm
+  if (selectedProcess === "amendConsent" && selectedMethod === "manual") {
+    return (
+      <AmendmentResponseForm onClose={() => setSelectedMethod(null)} />
+    );
+  }
 
   // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {
@@ -80,4 +91,3 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 };
 
 export default ExportLCModalContent;
-
