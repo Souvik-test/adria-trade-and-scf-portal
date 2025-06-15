@@ -18,9 +18,10 @@ interface Props {
 const RequestLCTransferFormActions: React.FC<Props> = ({
   step, stepIdx, goBack, goNext, saveDraft, discard, submitForm, isSubmitting, canSubmit
 }) => {
-  const isFinal = step === "review";
   // Only show Go Back if not on the first pane
   const showGoBack = stepIdx > 0;
+  // Check for final step correctly
+  const isFinal = step === "beneficiary-docs";
 
   return (
     <div className="flex flex-wrap gap-2 border-t bg-white/80 p-4 md:p-6 justify-between items-center">
