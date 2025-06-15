@@ -1,17 +1,15 @@
 
 import React from "react";
 import { LCTransferFormStep } from "@/types/exportLCTransfer";
-import LCInformationPaneV2 from "./steps/LCInformationPaneV2";
-import TransferDetailsPaneV2 from "./steps/TransferDetailsPaneV2";
-import NewBeneficiaryPaneV2 from "./steps/NewBeneficiaryPaneV2";
-import DocumentsPaneV2 from "./steps/DocumentsPaneV2";
+import LCAndTransferPane from "./steps/LCAndTransferPane";
+import NewBeneficiaryAndDocumentsPane from "./steps/NewBeneficiaryAndDocumentsPane";
 import ReviewSubmitPaneV2 from "./steps/ReviewSubmitPaneV2";
 
 const paneMap = {
-  "lc-info": LCInformationPaneV2,
-  "transfer-details": TransferDetailsPaneV2,
-  "new-beneficiary": NewBeneficiaryPaneV2,
-  "documents": DocumentsPaneV2,
+  "lc-info": LCAndTransferPane,
+  "transfer-details": LCAndTransferPane,
+  "new-beneficiary": NewBeneficiaryAndDocumentsPane,
+  "documents": NewBeneficiaryAndDocumentsPane,
   "review": ReviewSubmitPaneV2,
 } as const;
 
