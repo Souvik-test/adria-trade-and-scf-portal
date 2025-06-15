@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,13 +9,13 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
   const isFull = form.form.transferType === "Full";
 
   return (
-    <div className="w-full bg-white border rounded-2xl shadow-md p-8 max-w-none">
+    <div className="w-full bg-card border border-border rounded-2xl shadow-md p-8 max-w-none transition-colors">
       {/* LC Information Section */}
       <div>
         <h2 className="text-lg font-semibold text-corporate-blue mb-4">LC Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div>
-            <Label className="font-medium mb-1 block">LC Number</Label>
+            <Label className="font-medium mb-1 block text-foreground">LC Number</Label>
             <Input
               value={form.form.lcReference}
               onChange={e => form.updateField({ lcReference: e.target.value })}
@@ -22,7 +23,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Issuance Date</Label>
+            <Label className="font-medium mb-1 block text-foreground">Issuance Date</Label>
             <Input
               type="date"
               value={form.form.issuanceDate || ""}
@@ -31,7 +32,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Advising Bank</Label>
+            <Label className="font-medium mb-1 block text-foreground">Advising Bank</Label>
             <Input
               value={form.form.advisingBank}
               onChange={e => form.updateField({ advisingBank: e.target.value })}
@@ -39,7 +40,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Issuing Bank</Label>
+            <Label className="font-medium mb-1 block text-foreground">Issuing Bank</Label>
             <Input
               value={form.form.issuingBank}
               onChange={e => form.updateField({ issuingBank: e.target.value })}
@@ -47,22 +48,22 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Applicant</Label>
+            <Label className="font-medium mb-1 block text-foreground">Applicant</Label>
             <Input
               value={form.form.applicant}
               onChange={e => form.updateField({ applicant: e.target.value })}
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Current Beneficiary</Label>
+            <Label className="font-medium mb-1 block text-foreground">Current Beneficiary</Label>
             <Input
               value={form.form.currentBeneficiary}
               onChange={e => form.updateField({ currentBeneficiary: e.target.value })}
             />
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Currency</Label>
-            <select className="block w-full border rounded-md px-3 py-2 mt-1"
+            <Label className="font-medium mb-1 block text-foreground">Currency</Label>
+            <select className="block w-full border border-border rounded-md px-3 py-2 mt-1 bg-background text-foreground"
               value={form.form.currency}
               onChange={e => form.updateField({ currency: e.target.value })}>
               <option value="">Select Currency</option>
@@ -71,9 +72,9 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             </select>
           </div>
           <div>
-            <Label className="font-medium mb-1 block">LC Amount</Label>
+            <Label className="font-medium mb-1 block text-foreground">LC Amount</Label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-gray-400">$</span>
+              <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
               <Input
                 type="number"
                 className="pl-8"
@@ -84,7 +85,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             </div>
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Expiry Date</Label>
+            <Label className="font-medium mb-1 block text-foreground">Expiry Date</Label>
             <Input
               type="date"
               value={form.form.expiryDate}
@@ -98,9 +99,9 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
         <h2 className="text-lg font-semibold text-corporate-blue mb-4">Transfer Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <Label className="font-medium mb-1 block">Transfer Type</Label>
+            <Label className="font-medium mb-1 block text-foreground">Transfer Type</Label>
             <div className="flex items-center gap-4 mt-1">
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 text-foreground">
                 <input
                   type="radio"
                   value="Full"
@@ -114,7 +115,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
                 />
                 Full Transfer
               </label>
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 text-foreground">
                 <input
                   type="radio"
                   value="Partial"
@@ -130,7 +131,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             </div>
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Transfer Amount</Label>
+            <Label className="font-medium mb-1 block text-foreground">Transfer Amount</Label>
             <Input
               type="number"
               value={
@@ -149,16 +150,16 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
               }}
               placeholder="Enter amount"
             />
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {typeof lcAmount === "number" && !isNaN(lcAmount)
                 ? <>LC Amount: <span className="font-semibold text-corporate-blue">{form.form.currency || "..." } {lcAmount.toLocaleString()}</span></>
                 : null}
             </div>
           </div>
           <div>
-            <Label className="font-medium mb-1 block">Is Transferable?</Label>
+            <Label className="font-medium mb-1 block text-foreground">Is Transferable?</Label>
             <select
-              className="block w-full border rounded-md px-3 py-2 mt-1 bg-gray-100 cursor-not-allowed"
+              className="block w-full border border-border rounded-md px-3 py-2 mt-1 bg-muted text-foreground cursor-not-allowed"
               value="Yes"
               disabled
             >
@@ -167,8 +168,8 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             </select>
           </div>
           <div className="col-span-full md:col-span-3">
-            <Label className="font-medium mb-1 block">Transfer Conditions</Label>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-700 min-h-[104px]">
+            <Label className="font-medium mb-1 block text-foreground">Transfer Conditions</Label>
+            <div className="bg-accent border border-border rounded-lg p-4 text-sm text-foreground min-h-[104px] transition-colors">
               <ul className="list-disc ml-5">
                 <li>
                   Transfer is subject to terms and conditions of the original LC
