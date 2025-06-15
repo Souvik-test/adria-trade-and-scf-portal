@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -129,8 +128,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                       <span className="ml-2 text-xs text-muted-foreground">{lc.currency} {lc.lc_amount?.toLocaleString()}</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {lc.beneficiary_bank_name ? `${lc.beneficiary_bank_name}` : ""}
-                      {lc.applicant_name ? ` • Applicant: ${lc.applicant_name}` : ""}
+                      {lc.applicant_name ? `Applicant: ${lc.applicant_name}` : ""}
                       {lc.beneficiary_name ? ` • Ben: ${lc.beneficiary_name}` : ""}
                       {lc.expiry_date ? ` • Exp: ${lc.expiry_date}` : ""}
                     </div>
