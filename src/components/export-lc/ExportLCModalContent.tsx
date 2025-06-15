@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
-// Removed import of AmendmentResponseForm here, will render outside when needed
+import RequestLCTransferForm from "./RequestLCTransferForm";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +18,9 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 }) => {
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+
+  // Full screen state for transfer process
+  const [transferFullScreen, setTransferFullScreen] = useState(false);
 
   const handleProcessSelect = (process: string) => {
     setSelectedProcess(process);
@@ -37,8 +39,25 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
       onAmendmentResponseFullScreen();
       return;
     }
+    // Manual for transfer: show request transfer full screen form
+    if (selectedProcess === "transfer" && method === "manual") {
+      setTransferFullScreen(true);
+      return;
+    }
     setSelectedMethod(method);
   };
+
+  // If transfer full screen, show the form
+  if (transferFullScreen) {
+    return (
+      <div className="fixed inset-0 z-50">
+        <RequestLCTransferForm onClose={() => {
+          setTransferFullScreen(false);
+          onClose();
+        }} />
+      </div>
+    );
+  }
 
   // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {
