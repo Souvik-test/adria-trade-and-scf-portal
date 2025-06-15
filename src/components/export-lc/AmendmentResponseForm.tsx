@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import AmendmentResponseDetailsAccordion from "./AmendmentResponseDetailsAccordion";
 import AmendmentSidebarResponsePanel from "./AmendmentSidebarResponsePanel";
@@ -51,9 +52,8 @@ interface AmendmentResponseFormProps {
 }
 
 const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
-  onClose
+  onClose,
 }) => {
-  // State for the editable lcReference, action, comments, and modal
   const [lcReference, setLcReference] = useState(MOCK_AMEND_DATA.lcReference);
   const [action, setAction] = useState<ActionChoice>(null);
   const [comments, setComments] = useState("");
@@ -78,13 +78,12 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
       toast({
         title: "Success",
         description: "Your amendment response has been submitted.",
-        variant: "default"
+        variant: "default",
       });
       onClose();
     }, 1200);
   };
 
-  // Bottom bar actions
   const handleDiscard = () => {
     if (
       window.confirm(
@@ -96,11 +95,10 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
   };
 
   const handleSaveDraft = () => {
-    // Simulate saving draft
     toast({
       title: "Saved as Draft",
       description: "Your amendment response has been saved as a draft.",
-      variant: "default"
+      variant: "default",
     });
   };
 
@@ -111,7 +109,10 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
         <div className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-0 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-2 sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <span role="img" aria-label="amendment">📝</span> Record Amendment Response
+              <span role="img" aria-label="amendment">
+                📝
+              </span>{" "}
+              Record Amendment Response
             </span>
           </div>
         </div>
@@ -122,6 +123,8 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
             <AmendmentResponseDetailsAccordion
               lcReference={lcReference}
               onLcReferenceChange={setLcReference}
+              issueDate={MOCK_AMEND_DATA.issueDate}
+              expiryDate={MOCK_AMEND_DATA.expiryDate}
               amendmentNumber={MOCK_AMEND_DATA.amendmentNumber}
               amendmentDate={MOCK_AMEND_DATA.amendmentDate}
               changes={MOCK_AMEND_DATA.changes}
@@ -146,6 +149,16 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
               commentsError={errorMsg}
               changesCount={MOCK_AMEND_DATA.changes.length}
               onViewChanges={() => setShowChanges(true)}
+              lcData={{
+                lcReference,
+                issueDate: MOCK_AMEND_DATA.issueDate,
+                expiryDate: MOCK_AMEND_DATA.expiryDate,
+                lcAmount: MOCK_AMEND_DATA.lcAmount,
+                parties: MOCK_AMEND_DATA.parties,
+                shipment: MOCK_AMEND_DATA.shipment,
+                documents: MOCK_AMEND_DATA.documents,
+                additionalConditions: MOCK_AMEND_DATA.additionalConditions,
+              }}
             />
           </div>
         </div>
@@ -154,7 +167,6 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
           handleDiscard={handleDiscard}
           handleSaveDraft={handleSaveDraft}
         />
-        {/* Modal: show change summary */}
         {showChanges && (
           <AmendmentChangesSummaryModal
             open={showChanges}
