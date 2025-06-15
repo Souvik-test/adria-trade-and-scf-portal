@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +34,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
           />
         </div>
 
-        {/* 3 fields per row grid layout */}
+        {/* 3 fields per row grid layout (old layout, color/styling preserved) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mt-6">
           <InfoField label="Issuing Bank" value={formData.issuingBank} />
           <InfoField label="Applicant Name" value={formData.applicant} />
@@ -94,4 +93,3 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
 };
 
 export default LCAndTransferPane;
-

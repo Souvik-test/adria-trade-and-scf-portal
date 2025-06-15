@@ -42,7 +42,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     let filter = supabase
       .from("import_lc_requests")
       .select(
-        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, beneficiary_bank_name, issuing_bank, issue_date, place_of_expiry"
+        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issue_date, place_of_expiry, beneficiary_bank_name"
       )
       .eq("is_transferable", true)
       .order("created_at", { ascending: false })
@@ -59,7 +59,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
       setLCs([]);
       return;
     }
-    setLCs(data);
+    setLCs(data as TransferableLC[]);
   };
 
   const selectedLC = lcs.find(lc => lc.corporate_reference === value);
@@ -129,7 +129,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                       <span className="ml-2 text-xs text-muted-foreground">{lc.currency} {lc.lc_amount?.toLocaleString()}</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {lc.issuing_bank ? `${lc.issuing_bank}` : ""}
+                      {lc.beneficiary_bank_name ? `${lc.beneficiary_bank_name}` : ""}
                       {lc.applicant_name ? ` • Applicant: ${lc.applicant_name}` : ""}
                       {lc.beneficiary_name ? ` • Ben: ${lc.beneficiary_name}` : ""}
                       {lc.expiry_date ? ` • Exp: ${lc.expiry_date}` : ""}
