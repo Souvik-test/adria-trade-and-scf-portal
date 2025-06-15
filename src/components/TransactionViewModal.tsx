@@ -12,6 +12,7 @@ interface Transaction {
   id: string;
   transaction_ref: string;
   product_type: string;
+  process_type?: string; // <-- Fix: Add this property as optional
   status: string;
   customer_name: string | null;
   amount: number | null;
