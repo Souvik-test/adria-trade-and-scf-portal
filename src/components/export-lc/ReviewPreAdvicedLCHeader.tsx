@@ -1,9 +1,13 @@
 
 import React from "react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 interface ReviewPreAdvicedLCHeaderProps {
   lcReference: string;
+  setLcReference: (value: string) => void;
+  onLcSearch: () => void;
   issueDate: string;
   expiryDate: string;
   amount: number;
@@ -13,6 +17,8 @@ interface ReviewPreAdvicedLCHeaderProps {
 
 const ReviewPreAdvicedLCHeader: React.FC<ReviewPreAdvicedLCHeaderProps> = ({
   lcReference,
+  setLcReference,
+  onLcSearch,
   issueDate,
   expiryDate,
   amount,
@@ -36,8 +42,26 @@ const ReviewPreAdvicedLCHeader: React.FC<ReviewPreAdvicedLCHeaderProps> = ({
     <div className="mt-4 md:mt-0 flex flex-col md:flex-row md:items-end gap-2">
       <div className="flex items-end gap-1">
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">LC Reference</div>
-          <div className="font-medium tracking-wide">{lcReference}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">LC Reference</div>
+          <div className="flex items-center">
+            <Input
+              value={lcReference}
+              onChange={(e) => setLcReference(e.target.value)}
+              placeholder="Enter LC Reference"
+              className="w-[220px] pr-10"
+              aria-label="LC Reference"
+            />
+            <Button
+              type="button"
+              onClick={onLcSearch}
+              variant="ghost"
+              size="icon"
+              className="ml-1"
+              aria-label="Search LC Reference"
+            >
+              <Search className="w-4 h-4 text-gray-500" />
+            </Button>
+          </div>
         </div>
       </div>
       <div className="flex gap-4 ml-0 md:ml-8">

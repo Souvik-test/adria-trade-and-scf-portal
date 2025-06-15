@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { saveExportLCReview } from "@/services/exportLCReviewService";
 
@@ -94,7 +95,18 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
   const [comments, setComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lcReference, setLcReference] = useState(initialLcData.lcReference); // new editable state
   const { toast } = useToast();
+
+  // Optional: Handler for search icon/button
+  const handleLcSearch = () => {
+    toast({
+      title: "LC Reference Search",
+      description: `Search for LC Reference: ${lcReference}`,
+      variant: "default",
+    });
+    // You may implement search dialog/modal here if needed.
+  };
 
   // expand/collapse panes
   const togglePane = (pane: string) => {
@@ -131,7 +143,10 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
       await saveExportLCReview({
         action,
         comments,
-        lcData: initialLcData,
+        lcData: {
+          ...initialLcData,
+          lcReference, // Use the editable LC reference for the backend
+        },
       });
 
       toast({
@@ -171,7 +186,9 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
       <div className="max-w-6xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
         {/* Form Header */}
         <ReviewPreAdvicedLCHeader
-          lcReference={initialLcData.lcReference}
+          lcReference={lcReference}
+          setLcReference={setLcReference}
+          onLcSearch={handleLcSearch}
           issueDate={initialLcData.issueDate}
           expiryDate={initialLcData.expiryDate}
           amount={initialLcData.amount}
@@ -206,7 +223,7 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
               submitting={submitting}
               commentsMandatory={action === "refuse"}
               commentsError={errorMsg}
-              lcData={initialLcData}
+              lcData={{...initialLcData, lcReference}}
             />
           </div>
         </div>
@@ -224,3 +241,4 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
 export default ReviewPreAdvicedLCForm;
 
 // The Form has now been split into smaller focused files for maintainability!
+
