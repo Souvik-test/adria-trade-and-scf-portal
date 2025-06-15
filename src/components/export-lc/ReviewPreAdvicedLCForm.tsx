@@ -88,6 +88,7 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
   const [action, setAction] = useState<ActionChoice>(null);
   const [comments, setComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // expand/collapse panes
   const togglePane = (pane: string) => {
@@ -96,8 +97,14 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
     );
   };
 
-  // Simulate submit/save/discard
+  // Handle submission (validation)
   const handleSubmit = () => {
+    setErrorMsg(null);
+    // Validation: require comments if refusing
+    if (action === "refuse" && !comments.trim()) {
+      setErrorMsg("Comments are required when refusing the LC.");
+      return;
+    }
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
@@ -217,22 +224,15 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
               handleSubmit={handleSubmit}
               onSaveDraft={onSaveDraft}
               submitting={submitting}
+              commentsMandatory={action === "refuse"}
+              commentsError={errorMsg}
+              lcData={initialLcData}
             />
           </div>
         </div>
 
         {/* Bottom Sticky Action Bar (for navigation/buttons) */}
-        <div className="sticky bottom-0 z-10 mt-6 px-0 md:px-6 py-5 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <Button
-              onClick={onBack}
-              variant="outline"
-              className="gap-2 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Go Back
-            </Button>
-          </div>
+        <div className="sticky bottom-0 z-10 mt-6 px-0 md:px-6 py-5 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center justify-end gap-4">
           <div className="flex gap-3">
             <Button
               onClick={handleDiscard}
@@ -248,13 +248,7 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
             >
               Save as Draft
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!action}
-              className="bg-corporate-blue hover:bg-corporate-blue/90 text-white disabled:opacity-50 px-8"
-            >
-              Submit
-            </Button>
+            {/* Submit and Go Back buttons removed */}
           </div>
         </div>
       </div>
@@ -263,3 +257,6 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
 };
 
 export default ReviewPreAdvicedLCForm;
+
+// NOTE: This file is now getting long (266+ lines).
+// Please consider asking me to refactor it into smaller components for easier maintenance!
