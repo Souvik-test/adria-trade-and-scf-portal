@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,7 +54,6 @@ const AmendmentResponseActionPane: React.FC<AmendmentResponseActionPaneProps> = 
         size="lg"
         className="w-full mt-4"
         onClick={handleSubmit}
-        loading={submitting}
         disabled={submitting}
       >
         Submit Response
