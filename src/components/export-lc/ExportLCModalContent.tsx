@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
@@ -38,8 +39,12 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
     setSelectedMethod(method);
   };
 
+  // Debug: Show current process and method
+  console.log("ExportLCModalContent: selectedProcess", selectedProcess, "selectedMethod", selectedMethod);
+
   // New: If "record amendment consent" + manual, render full-screen AmendmentResponseForm
   if (selectedProcess === "amendConsent" && selectedMethod === "manual") {
+    console.log("Rendering AmendmentResponseForm for amendment consent/manual");
     return (
       <AmendmentResponseForm onClose={() => setSelectedMethod(null)} />
     );
