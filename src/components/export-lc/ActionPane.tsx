@@ -118,7 +118,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             className="flex-1"
             onClick={() => { /* fake email */ }}
           >
-            <span role="img" aria-label="mail">✉️</span> Email Copy
+            <span role="img" aria-label="mail">✉️</span> Email
           </Button>
         </div>
       </div>
