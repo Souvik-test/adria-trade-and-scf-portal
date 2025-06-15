@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
+import ReviewPreAdvicedLCForm from "./ReviewPreAdvicedLCForm";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +26,20 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
     setSelectedMethod(method);
   };
 
-  // If a method is picked (all are "coming soon") render a stub + back button
+  // Review Pre-adviced LC, Manual: show full-screen form
+  if (selectedProcess === "review" && selectedMethod === "manual") {
+    return (
+      <ReviewPreAdvicedLCForm
+        onBack={() => setSelectedMethod(null)}
+        onClose={onClose}
+        onSaveDraft={() => {
+          // simulate save draft
+        }}
+      />
+    );
+  }
+
+  // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {
     return (
       <div className="min-h-[34rem] flex flex-col items-center justify-center py-20 px-4">
