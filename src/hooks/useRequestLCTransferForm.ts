@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { LCTransferFormStep, transferStepOrder, LCTransferFormData } from "@/types/exportLCTransfer";
 
@@ -10,6 +9,8 @@ const INITIAL_FORM: LCTransferFormData = {
   amount: "",
   expiryDate: "",
   currentBeneficiary: "",
+  issueDate: "",
+  placeOfExpiry: "",
   transferType: "Full",
   transferAmount: "",
   transferConditions: "",
@@ -28,7 +29,7 @@ const INITIAL_FORM: LCTransferFormData = {
 };
 
 export function useRequestLCTransferForm(onClose: () => void) {
-  const [form, setForm] = useState<LCTransferFormData>(INITIAL_FORM);
+  const [form, setForm] = useState(INITIAL_FORM);
   const [stepIdx, setStepIdx] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,33 +42,34 @@ export function useRequestLCTransferForm(onClose: () => void) {
     if (stepIdx > 0) setStepIdx(i => i - 1);
     else onClose();
   };
-  const goToStep = (key: LCTransferFormStep) => {
+  const goToStep = (key) => {
     setStepIdx(transferStepOrder.indexOf(key));
   };
-  const updateField = (patch: Partial<LCTransferFormData>) => {
+  const updateField = (patch) => {
     setForm(curr => ({ ...curr, ...patch }));
   };
 
-  // For nested fields
-  const updateNewBeneficiary = (patch: Partial<LCTransferFormData["newBeneficiary"]>) => {
+  const updateNewBeneficiary = (patch) => {
     setForm(curr => ({ ...curr, newBeneficiary: { ...curr.newBeneficiary, ...patch } }));
   };
 
-  // Specialized updater for LC selection
-  const updateLCReferenceFromImportLC = (lc: any) => {
+  // Specialized updater for LC selection. Accepts full LC object.
+  const updateLCReferenceFromImportLC = (lc) => {
     setForm(curr => ({
       ...curr,
-      lcReference: lc.popi_number,
-      issuingBank: lc.issuing_bank_name || curr.issuingBank,
-      applicant: lc.applicant_name || curr.applicant,
-      currency: lc.currency || curr.currency,
-      amount: lc.lc_amount || curr.amount,
-      expiryDate: lc.expiry_date || curr.expiryDate,
-      // "currentBeneficiary" could be extended if needed
+      lcReference: lc.corporate_reference,
+      issuingBank: lc.issuing_bank ?? lc.issuingBank ?? "",
+      applicant: lc.applicant_name ?? lc.applicant ?? "",
+      currency: lc.currency ?? "",
+      amount: lc.lc_amount ?? "",
+      expiryDate: lc.expiry_date ?? "",
+      currentBeneficiary: lc.beneficiary_name ?? "",
+      issueDate: lc.issue_date ?? "",
+      placeOfExpiry: lc.place_of_expiry ?? "",
+      // keep other fields intact
     }));
   };
 
-  // Save as Draft, Submit, Discard logic
   const saveDraft = () => {
     alert("Save as draft not yet implemented.");
   };

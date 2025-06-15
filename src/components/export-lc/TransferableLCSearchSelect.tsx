@@ -1,22 +1,23 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TransferableLC {
   id: string;
-  popi_number: string;
+  corporate_reference: string;
   applicant_name?: string;
   currency?: string;
   lc_amount?: number;
   expiry_date?: string;
   beneficiary_name?: string;
-  issuing_bank_name?: string;
+  issuing_bank?: string;
+  issue_date?: string;
+  place_of_expiry?: string;
 }
 
 interface TransferableLCSearchSelectProps {
@@ -39,13 +40,13 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     setLoading(true);
     let filter = supabase
       .from("import_lc_requests")
-      .select("id, popi_number, applicant_name, lc_amount, currency, expiry_date, beneficiary_name")
+      .select("id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issuing_bank:beneficiary_bank_name, issue_date, place_of_expiry")
       .eq("is_transferable", true)
       .order("created_at", { ascending: false })
       .limit(30);
 
     if (search && search.trim().length > 1) {
-      filter = filter.ilike("popi_number", `%${search.trim()}%`);
+      filter = filter.ilike("corporate_reference", `%${search.trim()}%`);
     }
     const { data, error } = await filter;
     setLoading(false);
@@ -56,24 +57,24 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     setLCs(data || []);
   };
 
-  const selectedLC = lcs.find((lc) => lc.popi_number === value);
+  const selectedLC = lcs.find((lc) => lc.corporate_reference === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" role="combobox" className={cn("w-full justify-between", !value && "text-muted-foreground")}>
           {selectedLC
-            ? `${selectedLC.popi_number} • ${selectedLC.currency ?? ""} ${selectedLC.lc_amount?.toLocaleString() ?? ""}`
+            ? `${selectedLC.corporate_reference} • ${selectedLC.currency ?? ""} ${selectedLC.lc_amount?.toLocaleString() ?? ""}`
             : value
             ? value
             : "Search & select LC Number..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full min-w-[280px] p-0 z-[101] bg-background">
+      <PopoverContent className="w-full min-w-[320px] p-0 z-[101] bg-background">
         <Command>
           <CommandInput 
-            placeholder="Type LC Number to search"
+            placeholder="Type LC Number / Corporate Reference to search"
             value={query}
             onValueChange={(val) => {
               setQuery(val);
@@ -88,16 +89,16 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
             <CommandGroup>
               {lcs.map((lc) => (
                 <CommandItem
-                  value={lc.popi_number}
+                  value={lc.corporate_reference}
                   key={lc.id}
                   onSelect={() => {
                     onChange(lc);
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === lc.popi_number ? "opacity-100" : "opacity-0")} />
+                  <Check className={cn("mr-2 h-4 w-4", value === lc.corporate_reference ? "opacity-100" : "opacity-0")} />
                   <div>
-                    <div className="font-medium">{lc.popi_number}</div>
+                    <div className="font-medium">{lc.corporate_reference}</div>
                     <div className="text-xs text-muted-foreground">
                       {lc.currency} {lc.lc_amount?.toLocaleString() ?? ""}
                       {lc.beneficiary_name ? ` • ${lc.beneficiary_name}` : ""}
@@ -115,4 +116,3 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
 };
 
 export default TransferableLCSearchSelect;
-
