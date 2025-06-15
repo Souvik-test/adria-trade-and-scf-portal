@@ -31,7 +31,11 @@ const LCInformationPaneV2 = ({ form }: { form: any }) => (
       </div>
       <div>
         <Label className="font-medium">Is Transferable?</Label>
-        <select className="block w-full border rounded-md px-3 py-2 mt-1" value="Yes" readOnly>
+        <select
+          className="block w-full border rounded-md px-3 py-2 mt-1 bg-gray-100 cursor-not-allowed"
+          value="Yes"
+          disabled
+        >
           <option>Yes</option>
           <option>No</option>
         </select>
