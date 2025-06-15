@@ -1,6 +1,15 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+
+// Import new panes
+import PartyInfoPane from "./PartyInfoPane";
+import LCAmtPane from "./LCAmtPane";
+import ShipmentPane from "./ShipmentPane";
+import DocumentsRequiredPane from "./DocumentsRequiredPane";
+import AdditionalConditionsPane from "./AdditionalConditionsPane";
+import ActionPane from "./ActionPane";
 
 interface ReviewPreAdvicedLCFormProps {
   onBack: () => void;
@@ -111,9 +120,7 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
   // Pane open/close icons
   const PaneChevron = ({ open }: { open: boolean }) => (
     <span
-      className={`transition-transform duration-150 ${
-        open ? "rotate-180" : ""
-      }`}
+      className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
     >
       ▼
     </span>
@@ -163,267 +170,54 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
           </div>
         </div>
 
-        {/* Main body - left: details; right: action (on wide screens) */}
+        {/* Main body - left: details; right: action */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 mt-2">
           <div className="flex-1 mt-2">
             <div className="space-y-4">
-
-              {/* Parties Information Pane */}
-              <section className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                <button
-                  className="flex items-center gap-2 w-full px-6 py-4 text-left"
-                  onClick={() => togglePane("parties")}
-                  aria-expanded={expanded.includes("parties")}
-                  type="button"
-                >
-                  <span className="text-blue-600 dark:text-blue-400 text-lg">🧾</span>
-                  <span className="font-semibold text-lg text-gray-800 dark:text-white">
-                    Parties Information
-                  </span>
-                  <div className="ml-auto"><PaneChevron open={expanded.includes("parties")} /></div>
-                </button>
-                {expanded.includes("parties") && (
-                  <div className="px-6 pb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {initialLcData.parties.map((party) => (
-                        <div
-                          className={`rounded-xl p-4 ${party.accent}`}
-                          key={party.role}
-                        >
-                          <div className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-1">
-                            {party.role}
-                          </div>
-                          <div className="font-semibold text-gray-900 dark:text-white text-base leading-snug">
-                            {party.name}
-                          </div>
-                          <div className="text-gray-700 dark:text-gray-400 whitespace-pre-line text-sm">
-                            {party.address}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* LC Amount Pane */}
-              <section className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                <button
-                  className="flex items-center gap-2 w-full px-6 py-4 text-left"
-                  onClick={() => togglePane("amount")}
-                  aria-expanded={expanded.includes("amount")}
-                  type="button"
-                >
-                  <span className="text-green-600 dark:text-green-400 text-lg">💲</span>
-                  <span className="font-semibold text-lg text-gray-800 dark:text-white">LC Amount</span>
-                  <div className="ml-auto"><PaneChevron open={expanded.includes("amount")} /></div>
-                </button>
-                {expanded.includes("amount") && (
-                  <div className="px-6 pb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">Credit Amount</span>
-                      <span className="text-2xl font-bold text-green-700 dark:text-green-300">{initialLcData.lcAmount.creditAmount}</span>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">Tolerance</span>
-                      <span className="text-xl font-semibold text-gray-900 dark:text-gray-200">{initialLcData.lcAmount.tolerance}</span>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">Available With</span>
-                      <span className="text-lg font-semibold text-gray-900 dark:text-gray-200">{initialLcData.lcAmount.availableWith}</span>
-                    </div>
-                    <div className="col-span-1 md:col-span-3 rounded-lg bg-gray-50 dark:bg-gray-800 p-4 mt-2">
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mb-2 block">Available By</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-200">{initialLcData.lcAmount.availableBy}</span>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* Shipment & Delivery Pane */}
-              <section className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                <button
-                  className="flex items-center gap-2 w-full px-6 py-4 text-left"
-                  onClick={() => togglePane("shipment")}
-                  aria-expanded={expanded.includes("shipment")}
-                  type="button"
-                >
-                  <span className="text-blue-600 dark:text-blue-400 text-lg">🌐</span>
-                  <span className="font-semibold text-lg text-gray-800 dark:text-white">Shipment & Delivery</span>
-                  <div className="ml-auto"><PaneChevron open={expanded.includes("shipment")} /></div>
-                </button>
-                {expanded.includes("shipment") && (
-                  <div className="px-6 pb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Shipment From</div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{initialLcData.shipment.shipmentFrom}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Shipment To</div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{initialLcData.shipment.shipmentTo}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Partial Shipments</div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{initialLcData.shipment.partialShipments}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Transshipment</div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{initialLcData.shipment.transshipment}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Latest Shipment Date</div>
-                        <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                          <span role="img" aria-label="calendar">📅</span> {initialLcData.shipment.latestShipmentDate}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-500 dark:text-gray-400 mb-1">Presentation Period</div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{initialLcData.shipment.presentationPeriod}</div>
-                      </div>
-                    </div>
-                    <div className="mt-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4">
-                      <div className="font-medium text-sm text-blue-900 dark:text-blue-200 mb-1">
-                        <span role="img" aria-label="cube">📦</span> Description of Goods/Services
-                      </div>
-                      <div className="text-gray-900 dark:text-gray-200">
-                        {initialLcData.shipment.description}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* Documents Required Pane */}
-              <section className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                <button
-                  className="flex items-center gap-2 w-full px-6 py-4 text-left"
-                  onClick={() => togglePane("documents")}
-                  aria-expanded={expanded.includes("documents")}
-                  type="button"
-                >
-                  <span className="text-purple-600 dark:text-purple-300 text-lg">📄</span>
-                  <span className="font-semibold text-lg text-gray-800 dark:text-white">Documents Required</span>
-                  <div className="ml-auto"><PaneChevron open={expanded.includes("documents")} /></div>
-                </button>
-                {expanded.includes("documents") && (
-                  <div className="px-6 pb-4 space-y-2">
-                    {initialLcData.documents.map((doc, i) => (
-                      <div
-                        key={doc}
-                        className="flex items-center gap-2 rounded-lg px-4 py-2 bg-gray-50 dark:bg-gray-800 text-base font-medium text-gray-900 dark:text-gray-100"
-                      >
-                        <span className="w-6 h-6 flex items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 text-sm">{i+1}</span>
-                        {doc}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              {/* Additional Conditions Pane */}
-              <section className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                <button
-                  className="flex items-center gap-2 w-full px-6 py-4 text-left"
-                  onClick={() => togglePane("additional")}
-                  aria-expanded={expanded.includes("additional")}
-                  type="button"
-                >
-                  <span className="text-amber-600 dark:text-amber-300 text-lg">⚠️</span>
-                  <span className="font-semibold text-lg text-gray-800 dark:text-white">Additional Conditions</span>
-                  <div className="ml-auto"><PaneChevron open={expanded.includes("additional")} /></div>
-                </button>
-                {expanded.includes("additional") && (
-                  <div className="px-6 pb-4 space-y-3">
-                    <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-4">
-                      <div className="text-xs font-medium text-gray-600 dark:text-amber-100 mb-1">
-                        Additional Conditions
-                      </div>
-                      <div className="text-gray-900 dark:text-white">{initialLcData.additionalConditions}</div>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
-                      <div className="text-xs font-medium text-gray-600 dark:text-amber-100 mb-1">
-                        Special Instructions
-                      </div>
-                      <div className="text-gray-900 dark:text-white">{initialLcData.specialInstructions}</div>
-                    </div>
-                  </div>
-                )}
-              </section>
+              <PartyInfoPane
+                expanded={expanded.includes("parties")}
+                togglePane={() => togglePane("parties")}
+                parties={initialLcData.parties}
+                PaneChevron={PaneChevron}
+              />
+              <LCAmtPane
+                expanded={expanded.includes("amount")}
+                togglePane={() => togglePane("amount")}
+                lcAmount={initialLcData.lcAmount}
+                PaneChevron={PaneChevron}
+              />
+              <ShipmentPane
+                expanded={expanded.includes("shipment")}
+                togglePane={() => togglePane("shipment")}
+                shipment={initialLcData.shipment}
+                PaneChevron={PaneChevron}
+              />
+              <DocumentsRequiredPane
+                expanded={expanded.includes("documents")}
+                togglePane={() => togglePane("documents")}
+                documents={initialLcData.documents}
+                PaneChevron={PaneChevron}
+              />
+              <AdditionalConditionsPane
+                expanded={expanded.includes("additional")}
+                togglePane={() => togglePane("additional")}
+                additionalConditions={initialLcData.additionalConditions}
+                specialInstructions={initialLcData.specialInstructions}
+                PaneChevron={PaneChevron}
+              />
             </div>
           </div>
-
           {/* Right-side Action Pane (wide screens) */}
           <div className="mt-4 md:mt-2 md:ml-6 md:w-[360px]">
-            <div className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 px-6 py-6">
-              <div className="font-semibold text-lg text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                <span role="img" aria-label="msg">💬</span> Action Required
-              </div>
-              <div className="mb-4">
-                <div className="text-xs font-medium text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded p-2">
-                  Review Status<br />
-                  <span className="font-normal">Please review the LC details and select your response</span>
-                </div>
-              </div>
-              <div className="mb-4">
-                <div className="font-medium text-gray-700 dark:text-gray-200 mb-2">Select Action:</div>
-                <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      className="form-radio text-green-600 accent-green-600"
-                      checked={action === "accept"}
-                      onChange={() => setAction("accept")}
-                    />
-                    <span className="text-green-700 dark:text-green-400 font-semibold">✔ Accept LC</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      className="form-radio text-red-500 accent-red-500"
-                      checked={action === "refuse"}
-                      onChange={() => setAction("refuse")}
-                    />
-                    <span className="text-red-600 dark:text-red-400 font-semibold">✖ Refuse LC</span>
-                  </label>
-                </div>
-              </div>
-              <div className="mb-4">
-                <div className="font-medium text-gray-700 dark:text-gray-200 mb-1">Comments</div>
-                <textarea
-                  className="w-full border rounded p-2 min-h-[72px] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white resize-y"
-                  value={comments}
-                  onChange={(e) => setComments(e.target.value)}
-                  placeholder="Add any comments or notes..."
-                />
-              </div>
-              <Button
-                className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white font-semibold py-2 mt-2 disabled:opacity-40"
-                disabled={!action}
-                onClick={handleSubmit}
-              >
-                Select Action
-              </Button>
-              <div className="mt-6">
-                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Quick Actions</div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => { /* fake download */ }}
-                  >
-                    <span role="img" aria-label="download">⬇</span> Download PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => { /* fake email */ }}
-                  >
-                    <span role="img" aria-label="mail">✉️</span> Email Copy
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <ActionPane
+              action={action}
+              setAction={setAction}
+              comments={comments}
+              setComments={setComments}
+              handleSubmit={handleSubmit}
+              onSaveDraft={onSaveDraft}
+              submitting={submitting}
+            />
           </div>
         </div>
 
