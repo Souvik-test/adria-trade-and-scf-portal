@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { LCTransferFormStep, transferStepOrder, LCTransferFormData } from "@/types/exportLCTransfer";
 
@@ -9,9 +10,6 @@ const INITIAL_FORM: LCTransferFormData = {
   amount: "",
   expiryDate: "",
   currentBeneficiary: "",
-  issueDate: "",
-  placeOfExpiry: "",
-  beneficiaryBankName: "",
   transferType: "Full",
   transferAmount: "",
   transferConditions: "",
@@ -30,7 +28,7 @@ const INITIAL_FORM: LCTransferFormData = {
 };
 
 export function useRequestLCTransferForm(onClose: () => void) {
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] = useState<LCTransferFormData>(INITIAL_FORM);
   const [stepIdx, setStepIdx] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,35 +41,19 @@ export function useRequestLCTransferForm(onClose: () => void) {
     if (stepIdx > 0) setStepIdx(i => i - 1);
     else onClose();
   };
-  const goToStep = (key) => {
+  const goToStep = (key: LCTransferFormStep) => {
     setStepIdx(transferStepOrder.indexOf(key));
   };
-  const updateField = (patch) => {
+  const updateField = (patch: Partial<LCTransferFormData>) => {
     setForm(curr => ({ ...curr, ...patch }));
   };
 
-  const updateNewBeneficiary = (patch) => {
+  // For nested fields
+  const updateNewBeneficiary = (patch: Partial<LCTransferFormData["newBeneficiary"]>) => {
     setForm(curr => ({ ...curr, newBeneficiary: { ...curr.newBeneficiary, ...patch } }));
   };
 
-  // Specialized updater for LC selection. Accepts full LC object.
-  const updateLCReferenceFromImportLC = (lc) => {
-    setForm(curr => ({
-      ...curr,
-      lcReference: lc.corporate_reference,
-      issuingBank: lc.issuing_bank ?? lc.issuingBank ?? "",
-      applicant: lc.applicant_name ?? lc.applicant ?? "",
-      currency: lc.currency ?? "",
-      amount: lc.lc_amount ?? "",
-      expiryDate: lc.expiry_date ?? "",
-      currentBeneficiary: lc.beneficiary_name ?? "",
-      issueDate: lc.issue_date ?? "",
-      placeOfExpiry: lc.place_of_expiry ?? "",
-      beneficiaryBankName: lc.beneficiary_bank_name ?? "",
-      // keep other fields intact
-    }));
-  };
-
+  // Save as Draft, Submit, Discard logic
   const saveDraft = () => {
     alert("Save as draft not yet implemented.");
   };
@@ -90,7 +72,7 @@ export function useRequestLCTransferForm(onClose: () => void) {
   };
 
   return {
-    form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary, updateLCReferenceFromImportLC,
+    form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary,
     saveDraft, submitForm, discard, isSubmitting
   };
 }

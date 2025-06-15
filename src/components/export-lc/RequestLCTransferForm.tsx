@@ -1,3 +1,4 @@
+
 import React from "react";
 import RequestLCTransferLayout from "./RequestLCTransferLayout";
 import RequestLCTransferPaneRenderer from "./RequestLCTransferPaneRenderer";
@@ -20,17 +21,17 @@ const SummaryBar = ({ form }: any) => (
         <span className="text-foreground text-sm font-medium break-all">
           {form.form.lcReference || <span className="text-muted-foreground">-</span>}
         </span>
-        <span className="text-muted-foreground text-sm">Issuing Bank:</span>
+        <span className="text-muted-foreground text-sm">Issuance Date:</span>
         <span className="text-foreground text-sm font-medium break-all">
-          {form.form.issuingBank || <span className="text-muted-foreground">-</span>}
-        </span>
-        <span className="text-muted-foreground text-sm">Beneficiary Bank Name:</span>
-        <span className="text-foreground text-sm font-medium break-all">
-          {form.form.beneficiaryBankName || <span className="text-muted-foreground">-</span>}
+          {form.form.issuanceDate || <span className="text-muted-foreground">-</span>}
         </span>
         <span className="text-muted-foreground text-sm">Advising Bank:</span>
         <span className="text-foreground text-sm font-medium break-all">
           {form.form.advisingBank || <span className="text-muted-foreground">-</span>}
+        </span>
+        <span className="text-muted-foreground text-sm">Issuing Bank:</span>
+        <span className="text-foreground text-sm font-medium break-all">
+          {form.form.issuingBank || <span className="text-muted-foreground">-</span>}
         </span>
         <span className="text-muted-foreground text-sm">Applicant:</span>
         <span className="text-foreground text-sm font-medium break-all">

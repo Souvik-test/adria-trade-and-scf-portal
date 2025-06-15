@@ -1,4 +1,3 @@
-
 import { ImportLCFormData } from '@/types/importLC';
 
 type InsertData = {
@@ -37,7 +36,6 @@ type InsertData = {
   required_documents: string[];
   additional_conditions: string;
   status: string;
-  is_transferable: boolean; // ADD this to insert type
 };
 
 export function getParties(formData: ImportLCFormData) {
@@ -107,6 +105,5 @@ export function buildInsertData(
     required_documents: [...requiredDocuments],
     additional_conditions: formData.additionalConditions,
     status,
-    is_transferable: formData.isTransferable ?? false // Include new field
   };
 }

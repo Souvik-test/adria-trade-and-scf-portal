@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { ImportLCFormData, ImportLCFormStep, PartyDetail, DocumentRequirement } from '@/types/importLC';
 
@@ -14,7 +15,6 @@ const useImportLCFormState = () => {
     expiryDate: '',
     placeOfExpiry: '',
     confirmation: '',
-    isTransferable: false, // new default value
     parties: [],
     applicantName: '',
     applicantAddress: '',
@@ -44,19 +44,22 @@ const useImportLCFormState = () => {
     supportingDocuments: []
   });
 
-  // Update form field (BOOLEAN explicit for isTransferable)
-  const updateField = useCallback((field: keyof ImportLCFormData, value: any) => {
+  // Update form field with proper type handling and explicit boolean conversion
+  const updateField = useCallback((field: keyof ImportLCFormData, value: string | number | boolean | File[] | PartyDetail[] | DocumentRequirement[]) => {
     setFormData(prev => {
-      if (
-        field === 'partialShipmentsAllowed' ||
-        field === 'transshipmentAllowed' ||
-        field === 'isTransferable'
-      ) {
-        // Ensure proper boolean
-        const boolValue = typeof value === 'boolean' ? value : value === 'true' || value === true;
-        return { ...prev, [field]: boolValue };
+      // Handle boolean fields explicitly to ensure type safety
+      if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
+        // Ensure we always get a proper boolean value
+        const boolValue = typeof value === 'boolean' ? value : Boolean(value);
+        return {
+          ...prev,
+          [field]: boolValue
+        };
       }
-      return { ...prev, [field]: value };
+      return {
+        ...prev,
+        [field]: value
+      };
     });
   }, []);
 
@@ -73,7 +76,6 @@ const useImportLCFormState = () => {
       expiryDate: '',
       placeOfExpiry: '',
       confirmation: '',
-      isTransferable: false, // new default value
       parties: [],
       applicantName: '',
       applicantAddress: '',
