@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,10 +15,9 @@ interface TransferableLC {
   lc_amount?: number;
   expiry_date?: string;
   beneficiary_name?: string;
-  issuing_bank?: string;
+  beneficiary_bank_name?: string;
   issue_date?: string;
   place_of_expiry?: string;
-  beneficiary_bank_name?: string;
 }
 
 interface TransferableLCSearchSelectProps {
@@ -39,13 +39,25 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     // eslint-disable-next-line
   }, [open, query]);
 
-  // fetchLCs now only filters if query is not empty
+  // Only fetch columns that exist in import_lc_requests
   const fetchLCs = async (search: string) => {
     setLoading(true);
+
     let filter = supabase
       .from("import_lc_requests")
       .select(
-        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issuing_bank, issue_date, place_of_expiry, beneficiary_bank_name"
+        `
+        id,
+        corporate_reference,
+        applicant_name,
+        currency,
+        lc_amount,
+        expiry_date,
+        beneficiary_name,
+        beneficiary_bank_name,
+        issue_date,
+        place_of_expiry
+        `
       )
       .eq("is_transferable", true)
       .order("created_at", { ascending: false })
@@ -59,16 +71,19 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
     setLoading(false);
 
     if (error || !data) {
+      console.error("Supabase error:", error);
       setLCs([]);
       return;
     }
     // Debug log
-    console.log("Fetched LCs:", data);
+    console.log("[TransferableLCSearchSelect] Fetched LCs:", data);
     setLCs(data as TransferableLC[]);
   };
 
   // Always try to select from LCs if the value matches a corporate_reference
-  const selectedLC = lcs.find(lc => lc.corporate_reference === value);
+  const selectedLC: TransferableLC | undefined = lcs.find(
+    (lc) => lc.corporate_reference === value
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -87,7 +102,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
               <span className="text-xs text-muted-foreground">
                 {selectedLC.currency ?? ""} {selectedLC.lc_amount?.toLocaleString() ?? ""}
                 {selectedLC.beneficiary_bank_name ? (
-                  <span className="ml-2">• <span className="font-medium text-foreground">Beneficiary Bank:</span> {selectedLC.beneficiary_bank_name}</span>
+                  <span className="ml-2">• <span className="font-medium text-foreground">Beneficiary Bank:</span> <span className="text-foreground">{selectedLC.beneficiary_bank_name}</span></span>
                 ) : ""}
                 {selectedLC.beneficiary_name ? (
                   <span className="ml-2">• Ben: {selectedLC.beneficiary_name}</span>
@@ -141,16 +156,26 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       {lc.beneficiary_bank_name && (
-                        <span><span className="font-medium text-foreground">Beneficiary Bank:</span> {lc.beneficiary_bank_name}{" • "}</span>
+                        <span>
+                          <span className="font-medium text-foreground">Beneficiary Bank:</span>{" "}
+                          <span className="text-foreground">{lc.beneficiary_bank_name}</span>
+                          {" • "}
+                        </span>
                       )}
                       {lc.applicant_name && (
-                        <span>Applicant: {lc.applicant_name}{" • "}</span>
+                        <span>
+                          Applicant: {lc.applicant_name}{" • "}
+                        </span>
                       )}
                       {lc.beneficiary_name && (
-                        <span>Ben: {lc.beneficiary_name}{" • "}</span>
+                        <span>
+                          Ben: {lc.beneficiary_name}{" • "}
+                        </span>
                       )}
                       {lc.expiry_date && (
-                        <span>Exp: {lc.expiry_date}</span>
+                        <span>
+                          Exp: {lc.expiry_date}
+                        </span>
                       )}
                     </div>
                   </div>
