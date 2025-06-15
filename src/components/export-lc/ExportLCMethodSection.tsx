@@ -48,9 +48,9 @@ const ExportLCMethodSection: React.FC<ExportLCMethodSectionProps> = ({
         let isEnabled = !!selectedProcess;
         let isComingSoon = !!card.comingSoon;
 
-        // Only Manual is enabled for 'review' (pre-adviced LC)
+        // Fix: "Manual" is enabled for 'review' and 'amendConsent' processes only
         if (card.id === "manual") {
-          isComingSoon = selectedProcess !== "review";
+          isComingSoon = !(selectedProcess === "review" || selectedProcess === "amendConsent");
         }
 
         return (
@@ -112,3 +112,4 @@ const ExportLCMethodSection: React.FC<ExportLCMethodSectionProps> = ({
 );
 
 export default ExportLCMethodSection;
+
