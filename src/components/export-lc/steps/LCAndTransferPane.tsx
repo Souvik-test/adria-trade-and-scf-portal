@@ -33,8 +33,6 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
             onChange={lcObj => updateLCReferenceFromImportLC(lcObj)}
           />
         </div>
-
-        {/* 3 fields per row grid layout (old layout, color/styling preserved) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mt-6">
           <InfoField label="Issuing Bank" value={formData.issuingBank} />
           <InfoField label="Applicant Name" value={formData.applicant} />
@@ -46,6 +44,16 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
 
           <InfoField label="Issue Date" value={formData.issueDate} />
           <InfoField label="Place of Expiry" value={formData.placeOfExpiry} />
+          {/* Beneficiary Bank Name input */}
+          <div className="flex flex-col">
+            <Label className="text-xs text-muted-foreground font-semibold mb-1">Beneficiary Bank Name</Label>
+            <Input
+              value={formData.beneficiaryBankName || ""}
+              onChange={e => updateField({ beneficiaryBankName: e.target.value })}
+              placeholder="Enter Beneficiary Bank Name"
+              className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 border-0 ring-1 ring-corporate-blue/5 focus:ring-corporate-blue/70 shadow-sm font-medium"
+            />
+          </div>
         </div>
       </section>
 

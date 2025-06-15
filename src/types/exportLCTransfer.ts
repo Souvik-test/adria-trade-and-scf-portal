@@ -23,6 +23,7 @@ export interface NewBeneficiary {
 export interface LCTransferFormData {
   lcReference: string;
   issuingBank: string;
+  beneficiaryBankName?: string;
   applicant: string;
   currency: string;
   amount: number | '';

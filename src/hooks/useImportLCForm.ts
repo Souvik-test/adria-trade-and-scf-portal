@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { ImportLCFormStep } from '@/types/importLC';
 import useImportLCFormState from './useImportLCFormState';
@@ -13,6 +12,13 @@ const useImportLCForm = () => {
     updateField,
     resetForm
   } = useImportLCFormState();
+
+  // Add a helper for issuingBank backward compatibility if not present
+  const getIssuingBank = () => {
+    // Try to get from parties first (usually role: 'issuing_bank')
+    const bankParty = formData.parties?.find((p) => p.role === 'issuing_bank');
+    return bankParty?.name || formData['issuingBank'] || '';
+  };
 
   const { validateCurrentStep } = useImportLCFormValidation(formData, currentStep);
 
@@ -48,7 +54,10 @@ const useImportLCForm = () => {
   }, [formData]);
 
   return {
-    formData,
+    formData: {
+      ...formData,
+      issuingBank: getIssuingBank()
+    },
     currentStep,
     setCurrentStep,
     updateField,

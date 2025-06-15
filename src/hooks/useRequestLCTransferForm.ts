@@ -11,6 +11,7 @@ const INITIAL_FORM: LCTransferFormData = {
   currentBeneficiary: "",
   issueDate: "",
   placeOfExpiry: "",
+  beneficiaryBankName: "",
   transferType: "Full",
   transferAmount: "",
   transferConditions: "",
@@ -66,6 +67,7 @@ export function useRequestLCTransferForm(onClose: () => void) {
       currentBeneficiary: lc.beneficiary_name ?? "",
       issueDate: lc.issue_date ?? "",
       placeOfExpiry: lc.place_of_expiry ?? "",
+      beneficiaryBankName: lc.beneficiary_bank_name ?? "",
       // keep other fields intact
     }));
   };
