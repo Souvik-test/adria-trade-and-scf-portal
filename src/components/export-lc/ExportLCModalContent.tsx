@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
@@ -25,7 +24,6 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 
   const handleMethodSelect = (method: string) => {
     if (!selectedProcess) return;
-
     // Manual for review process: open full screen via parent callback
     if (selectedProcess === "review" && method === "manual" && onManualReviewFullScreen) {
       onManualReviewFullScreen();
@@ -39,20 +37,10 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
     setSelectedMethod(method);
   };
 
-  // Debug: Show current process and method
-  // console.log("ExportLCModalContent: selectedProcess", selectedProcess, "selectedMethod", selectedMethod);
-
-  // If "record amendment consent" + manual, render full-screen AmendmentResponseForm with overlay
+  // If "record amendment consent" + manual, render AmendmentResponseForm directly, full-screen
   if (selectedProcess === "amendConsent" && selectedMethod === "manual") {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/50" />
-        {/* AmendmentResponseForm covers the full window, with a high z-index. */}
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
-          <AmendmentResponseForm onClose={() => setSelectedMethod(null)} />
-        </div>
-      </div>
+      <AmendmentResponseForm onClose={() => setSelectedMethod(null)} />
     );
   }
 
