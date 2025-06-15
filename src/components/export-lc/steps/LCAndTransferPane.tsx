@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,15 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
               value={form.form.lcReference}
               onChange={e => form.updateField({ lcReference: e.target.value })}
               placeholder="LC-xxxxxxx"
+            />
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block">Issuance Date</Label>
+            <Input
+              type="date"
+              value={form.form.issuanceDate || ""}
+              onChange={e => form.updateField({ issuanceDate: e.target.value })}
+              placeholder="LC Issuance Date"
             />
           </div>
           <div>
