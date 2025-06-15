@@ -268,7 +268,7 @@ export const saveAmendmentResponse = async ({
       customer_name: parties?.find((p: any) => p.role === "Applicant")?.name ?? null,
       amount: Number(lcAmount?.creditAmount?.replace(/[^0-9.-]/g, "")) || null,
       currency: lcAmount?.currency ?? "USD",
-      created_by: user.full_name ?? "User",
+      created_by: user.email ?? user.id ?? "User",
       initiating_channel: 'Portal',
     });
   if (txnError) throw txnError;
