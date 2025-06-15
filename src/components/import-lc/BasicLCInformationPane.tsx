@@ -118,6 +118,22 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
                 placeholder="Enter place of expiry"
               />
             </div>
+            {/* New Transferable Dropdown */}
+            <div className="md:col-span-2">
+              <Label className="block mb-1 font-medium text-foreground">Transferable</Label>
+              <Select 
+                value={formData.isTransferable ? "yes" : "no"}
+                onValueChange={(value) => updateField('isTransferable', value === "yes")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Yes/No" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

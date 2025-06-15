@@ -1,4 +1,3 @@
-
 export interface PartyDetail {
   id: string;
   role: 'applicant' | 'beneficiary' | 'advising_bank' | 'issuing_bank' | 'confirming_bank';
@@ -27,6 +26,7 @@ export interface ImportLCFormData {
   expiryDate: string;
   placeOfExpiry: string;
   confirmation: string;
+  isTransferable: boolean;
 
   // Party Information (updated structure)
   parties: PartyDetail[];

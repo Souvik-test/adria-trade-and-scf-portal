@@ -182,6 +182,7 @@ export type Database = {
           expiry_date: string | null
           form_of_documentary_credit: string
           id: string
+          is_transferable: boolean | null
           issue_date: string | null
           latest_shipment_date: string | null
           lc_amount: number | null
@@ -222,6 +223,7 @@ export type Database = {
           expiry_date?: string | null
           form_of_documentary_credit: string
           id?: string
+          is_transferable?: boolean | null
           issue_date?: string | null
           latest_shipment_date?: string | null
           lc_amount?: number | null
@@ -262,6 +264,7 @@ export type Database = {
           expiry_date?: string | null
           form_of_documentary_credit?: string
           id?: string
+          is_transferable?: boolean | null
           issue_date?: string | null
           latest_shipment_date?: string | null
           lc_amount?: number | null
