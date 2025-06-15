@@ -58,7 +58,7 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex flex-col animate-fade-in">
       <div className="max-w-4xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
         {/* Header */}
         <AmendmentResponseHeader
@@ -70,11 +70,9 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
           onViewChanges={() => setShowChanges(true)}
           onBack={onClose}
         />
-        {/* Content (summary on left, actions on right) */}
-        <div className="flex-1 flex flex-col md:flex-row gap-4 mt-2">
-          {/* Could add amendment details,"summary" in left column here */}
-          <div className="flex-1"></div>
-          <div className="mt-4 md:mt-2 md:ml-6 md:w-[360px]">
+        {/* Content: center the action pane */}
+        <div className="flex-1 flex justify-center items-center mt-4">
+          <div className="w-full max-w-md">
             <AmendmentResponseActionPane
               action={action}
               setAction={setAction}
@@ -100,3 +98,4 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
 };
 
 export default AmendmentResponseForm;
+
