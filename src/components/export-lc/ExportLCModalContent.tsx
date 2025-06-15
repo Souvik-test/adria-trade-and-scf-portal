@@ -1,25 +1,28 @@
+
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
-import AmendmentResponseForm from "./AmendmentResponseForm";
+// Removed import of AmendmentResponseForm here, will render outside when needed
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface ExportLCModalContentProps {
   onClose: () => void;
-  onManualReviewFullScreen?: () => void; // NEW: Callback to request full-screen mode
+  onManualReviewFullScreen?: () => void;
+  onAmendmentResponseFullScreen?: () => void; // NEW: for amendment response full screen
 }
 
 const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
   onClose,
   onManualReviewFullScreen,
+  onAmendmentResponseFullScreen,
 }) => {
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
   const handleProcessSelect = (process: string) => {
     setSelectedProcess(process);
-    setSelectedMethod(null); // Reset method on process change
+    setSelectedMethod(null);
   };
 
   const handleMethodSelect = (method: string) => {
@@ -29,20 +32,13 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
       onManualReviewFullScreen();
       return;
     }
-    // Manual for amendment consent: show amendment response form
-    if (selectedProcess === "amendConsent" && method === "manual") {
-      setSelectedMethod("manual");
+    // Manual for amendment consent: open full screen via parent callback
+    if (selectedProcess === "amendConsent" && method === "manual" && onAmendmentResponseFullScreen) {
+      onAmendmentResponseFullScreen();
       return;
     }
     setSelectedMethod(method);
   };
-
-  // If "record amendment consent" + manual, render AmendmentResponseForm directly, full-screen
-  if (selectedProcess === "amendConsent" && selectedMethod === "manual") {
-    return (
-      <AmendmentResponseForm onClose={() => setSelectedMethod(null)} />
-    );
-  }
 
   // If a method is picked (all others are "coming soon") render a stub + back button
   if (selectedMethod) {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ImportLCActionSection from './import-lc/ImportLCActionSection';
@@ -6,6 +5,7 @@ import ImportLCMethodSection from './import-lc/ImportLCMethodSection';
 import ImportLCForm from './import-lc/ImportLCForm';
 import ExportLCModalContent from "./export-lc/ExportLCModalContent";
 import ReviewPreAdvicedLCForm from "./export-lc/ReviewPreAdvicedLCForm";
+import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
 
 interface LetterOfCreditModalProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [reviewManualFullScreen, setReviewManualFullScreen] = useState(false);
+  const [amendmentResponseFullScreen, setAmendmentResponseFullScreen] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -46,6 +47,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     setReviewManualFullScreen(false);
   };
 
+  // HANDLER for amendment response full screen mode
+  const handleAmendmentResponseFullScreen = () => {
+    setAmendmentResponseFullScreen(true);
+  };
+  const handleAmendmentResponseBack = () => {
+    setAmendmentResponseFullScreen(false);
+  };
+
   // Export LC: Use Dialog for modal, just like import path
   if (type === "export") {
     // Show full screen ReviewPreAdvicedLCForm 
@@ -63,6 +72,18 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
         </div>
       );
     }
+
+    // Show full screen AmendmentResponseForm
+    if (amendmentResponseFullScreen) {
+      return (
+        <div className="fixed inset-0 z-50">
+          <AmendmentResponseForm
+            onClose={handleAmendmentResponseBack}
+          />
+        </div>
+      );
+    }
+
     // Normal dialog
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,7 +94,11 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
             </DialogTitle>
           </DialogHeader>
           <div className="h-full w-full overflow-hidden">
-            <ExportLCModalContent onClose={onClose} onManualReviewFullScreen={handleExportManualFullScreen} />
+            <ExportLCModalContent 
+              onClose={onClose} 
+              onManualReviewFullScreen={handleExportManualFullScreen}
+              onAmendmentResponseFullScreen={handleAmendmentResponseFullScreen}
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -154,4 +179,3 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 };
 
 export default LetterOfCreditModal;
-
