@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import AmendmentResponseDetailsAccordion from "./AmendmentResponseDetailsAccordion";
 import AmendmentSidebarResponsePanel from "./AmendmentSidebarResponsePanel";
 import AmendmentChangesSummaryModal from "./AmendmentChangesSummaryModal";
+import AmendmentResponseActionsBar from "./AmendmentResponseActionsBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -84,63 +84,85 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
     }, 1200);
   };
 
+  // Bottom bar actions
+  const handleDiscard = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to discard all changes? This action cannot be undone."
+      )
+    ) {
+      onClose();
+    }
+  };
+
+  const handleSaveDraft = () => {
+    // Simulate saving draft
+    toast({
+      title: "Saved as Draft",
+      description: "Your amendment response has been saved as a draft.",
+      variant: "default"
+    });
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex flex-col animate-fade-in">
-      {/* Top Bar & Header */}
-      <div className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-0 md:px-10 py-4 flex flex-col md:flex-row items-center justify-between gap-2 sticky top-0 z-20 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span role="img" aria-label="amendment">📝</span> Record Amendment Response
-          </span>
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex">
+      <div className="max-w-6xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
+        {/* Top Bar & Header */}
+        <div className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-0 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-2 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <span role="img" aria-label="amendment">📝</span> Record Amendment Response
+            </span>
+          </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="secondary" className="text-xs px-3 py-1 h-8 rounded" disabled>Draft MT 707</Button>
-          <Button variant="outline" className="text-xs px-3 py-1 h-8 rounded" disabled>Email</Button>
-          <Button variant="ghost" className="text-xs px-3 py-1 h-8 rounded" onClick={onClose}>Close</Button>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col md:flex-row justify-center gap-5 pb-10 md:pb-6 px-2 md:px-10 py-5">
+          {/* LEFT: Accordions/details */}
+          <div className="flex-1 max-w-2xl">
+            <AmendmentResponseDetailsAccordion
+              lcReference={lcReference}
+              onLcReferenceChange={setLcReference}
+              amendmentNumber={MOCK_AMEND_DATA.amendmentNumber}
+              amendmentDate={MOCK_AMEND_DATA.amendmentDate}
+              changes={MOCK_AMEND_DATA.changes}
+              parties={MOCK_AMEND_DATA.parties}
+              lcAmount={MOCK_AMEND_DATA.lcAmount}
+              shipment={MOCK_AMEND_DATA.shipment}
+              documents={MOCK_AMEND_DATA.documents}
+              additionalConditions={MOCK_AMEND_DATA.additionalConditions}
+              specialInstructions={MOCK_AMEND_DATA.specialInstructions}
+            />
+          </div>
+          {/* RIGHT: Sticky panel actions */}
+          <div className="w-full md:max-w-xs mt-10 md:mt-0">
+            <AmendmentSidebarResponsePanel
+              action={action}
+              setAction={setAction}
+              comments={comments}
+              setComments={setComments}
+              submitting={submitting}
+              handleSubmit={handleSubmit}
+              commentsMandatory={action === "refuse"}
+              commentsError={errorMsg}
+              changesCount={MOCK_AMEND_DATA.changes.length}
+              onViewChanges={() => setShowChanges(true)}
+            />
+          </div>
         </div>
-      </div>
-      {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row justify-center gap-5 pb-10 md:pb-6 px-2 md:px-10 py-5 max-w-[1600px] mx-auto">
-        {/* LEFT: Accordions/details */}
-        <div className="flex-1 max-w-2xl">
-          <AmendmentResponseDetailsAccordion
-            lcReference={lcReference}
-            onLcReferenceChange={setLcReference}
-            amendmentNumber={MOCK_AMEND_DATA.amendmentNumber}
-            amendmentDate={MOCK_AMEND_DATA.amendmentDate}
-            changes={MOCK_AMEND_DATA.changes}
-            parties={MOCK_AMEND_DATA.parties}
-            lcAmount={MOCK_AMEND_DATA.lcAmount}
-            shipment={MOCK_AMEND_DATA.shipment}
-            documents={MOCK_AMEND_DATA.documents}
-            additionalConditions={MOCK_AMEND_DATA.additionalConditions}
-            specialInstructions={MOCK_AMEND_DATA.specialInstructions}
-          />
-        </div>
-        {/* RIGHT: Sticky panel actions */}
-        <div className="w-full md:max-w-xs mt-10 md:mt-0">
-          <AmendmentSidebarResponsePanel
-            action={action}
-            setAction={setAction}
-            comments={comments}
-            setComments={setComments}
-            submitting={submitting}
-            handleSubmit={handleSubmit}
-            commentsMandatory={action === "refuse"}
-            commentsError={errorMsg}
-            changesCount={MOCK_AMEND_DATA.changes.length}
-            onViewChanges={() => setShowChanges(true)}
-          />
-        </div>
-      </div>
-      {/* Modal: show change summary */}
-      {showChanges && (
-        <AmendmentChangesSummaryModal
-          open={showChanges}
-          onClose={() => setShowChanges(false)}
-          changes={MOCK_AMEND_DATA.changes}
+        {/* Bottom sticky bar */}
+        <AmendmentResponseActionsBar
+          handleDiscard={handleDiscard}
+          handleSaveDraft={handleSaveDraft}
         />
-      )}
+        {/* Modal: show change summary */}
+        {showChanges && (
+          <AmendmentChangesSummaryModal
+            open={showChanges}
+            onClose={() => setShowChanges(false)}
+            changes={MOCK_AMEND_DATA.changes}
+          />
+        )}
+      </div>
     </div>
   );
 };
