@@ -69,9 +69,9 @@ const AmendmentSidebarResponsePanel = ({
           </span>
           <Button
             variant="outline"
-            className="ml-auto px-4 py-2 text-xs font-bold rounded-md border-2 border-yellow-500 text-yellow-900 dark:text-yellow-100 bg-yellow-100 hover:bg-yellow-200 hover:border-yellow-600 transition-all duration-200 shadow-sm"
+            className="ml-auto px-4 py-2 text-xs font-bold rounded-md border-2 border-corporate-blue bg-corporate-teal-50 text-corporate-blue hover:bg-corporate-teal-100 hover:border-corporate-teal-600 transition-all duration-200 shadow-sm"
             onClick={onViewChanges}
-            style={{ minWidth: "120px" }}
+            style={{ minWidth: '120px' }}
           >
             <span className="font-semibold flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z" /></svg>
