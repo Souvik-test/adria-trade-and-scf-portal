@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -402,7 +401,6 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
                 className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white font-semibold py-2 mt-2 disabled:opacity-40"
                 disabled={!action}
                 onClick={handleSubmit}
-                loading={submitting}
               >
                 Select Action
               </Button>
