@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,8 +68,8 @@ const AmendmentSidebarResponsePanel = ({
             Amendment Pending
           </span>
           <Button
-            variant="default"
-            className="ml-auto px-3 py-1 text-xs font-bold rounded-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-md animate-glow transition-all duration-200 border-2 border-yellow-500 ring-2 ring-yellow-300"
+            variant="outline"
+            className="ml-auto px-4 py-2 text-xs font-bold rounded-md border-2 border-yellow-500 text-yellow-900 dark:text-yellow-100 bg-yellow-100 hover:bg-yellow-200 hover:border-yellow-600 transition-all duration-200 shadow-sm"
             onClick={onViewChanges}
             style={{ minWidth: "120px" }}
           >
