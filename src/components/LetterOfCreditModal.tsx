@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ImportLCActionSection from './import-lc/ImportLCActionSection';
 import ImportLCMethodSection from './import-lc/ImportLCMethodSection';
 import ImportLCForm from './import-lc/ImportLCForm';
 import ExportLCModalContent from "./export-lc/ExportLCModalContent";
+import ReviewPreAdvicedLCForm from "./export-lc/ReviewPreAdvicedLCForm";
 
 interface LetterOfCreditModalProps {
   isOpen: boolean;
@@ -50,16 +52,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     if (reviewManualFullScreen) {
       return (
         <div className="fixed inset-0 z-50">
-          <import("./export-lc/ReviewPreAdvicedLCForm").then(({ default: ReviewPreAdvicedLCForm }) => (
-            <ReviewPreAdvicedLCForm
-              onBack={handleExportManualBack}
-              onClose={() => {
-                handleExportManualBack();
-                onClose();
-              }}
-              onSaveDraft={() => { /* simulate save draft */ }}
-            />
-          ))}
+          <ReviewPreAdvicedLCForm
+            onBack={handleExportManualBack}
+            onClose={() => {
+              handleExportManualBack();
+              onClose();
+            }}
+            onSaveDraft={() => { /* simulate save draft */ }}
+          />
         </div>
       );
     }
@@ -123,7 +123,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     );
   };
 
-  // Full-screen mode for the manual form
+  // Full-screen mode for the manual form (import side)
   if (selectedMethod === 'manual' && selectedAction === 'issuance') {
     return (
       <>
@@ -154,3 +154,4 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 };
 
 export default LetterOfCreditModal;
+
