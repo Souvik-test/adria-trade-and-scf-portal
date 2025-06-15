@@ -31,18 +31,21 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
 
-  // Fetch LCs when dropdown opens or when search query changes
+  // Fetch transferable LCs when query changes or dropdown opens
   useEffect(() => {
-    if (open) fetchLCs(query);
+    if (open) {
+      fetchLCs(query);
+    }
     // eslint-disable-next-line
-  }, [open]);
+  }, [open, query]);
 
+  // fetchLCs now only filters if query is not empty
   const fetchLCs = async (search: string) => {
     setLoading(true);
     let filter = supabase
       .from("import_lc_requests")
       .select(
-        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issue_date, place_of_expiry, beneficiary_bank_name"
+        "id, corporate_reference, applicant_name, currency, lc_amount, expiry_date, beneficiary_name, issuing_bank, issue_date, place_of_expiry, beneficiary_bank_name"
       )
       .eq("is_transferable", true)
       .order("created_at", { ascending: false })
@@ -59,9 +62,12 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
       setLCs([]);
       return;
     }
+    // Debug log
+    console.log("Fetched LCs:", data);
     setLCs(data as TransferableLC[]);
   };
 
+  // Always try to select from LCs if the value matches a corporate_reference
   const selectedLC = lcs.find(lc => lc.corporate_reference === value);
 
   return (
@@ -76,16 +82,21 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
           )}
         >
           {selectedLC ? (
-            <>
-              <span className="text-corporate-blue">{selectedLC.corporate_reference}</span>
-              <span className="mx-2 text-muted-foreground">
-                • {selectedLC.currency ?? ""} {selectedLC.lc_amount?.toLocaleString() ?? ""}
+            <div className="flex flex-col">
+              <span className="text-corporate-blue font-bold">{selectedLC.corporate_reference}</span>
+              <span className="text-xs text-muted-foreground">
+                {selectedLC.currency ?? ""} {selectedLC.lc_amount?.toLocaleString() ?? ""}
+                {selectedLC.beneficiary_bank_name ? (
+                  <span className="ml-2">• <span className="font-medium text-foreground">Beneficiary Bank:</span> {selectedLC.beneficiary_bank_name}</span>
+                ) : ""}
+                {selectedLC.beneficiary_name ? (
+                  <span className="ml-2">• Ben: {selectedLC.beneficiary_name}</span>
+                ) : ""}
+                {selectedLC.expiry_date ? (
+                  <span className="ml-2">• Exp: {selectedLC.expiry_date}</span>
+                ) : ""}
               </span>
-              <span className="hidden md:inline text-xs">
-                {selectedLC.beneficiary_name ? `• Ben: ${selectedLC.beneficiary_name}` : ""}
-                {selectedLC.expiry_date ? ` • Exp: ${selectedLC.expiry_date}` : ""}
-              </span>
-            </>
+            </div>
           ) : value ? (
             value
           ) : (
@@ -101,7 +112,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
             value={query}
             onValueChange={val => {
               setQuery(val);
-              fetchLCs(val);
+              // no need to call fetchLCs here, useEffect handles it
             }}
             autoFocus
           />
@@ -118,7 +129,7 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                     onChange(lc);
                     setOpen(false);
                   }}
-                  className="py-2"
+                  className="py-2 px-2"
                 >
                   <Check
                     className={cn("mr-2 h-4 w-4", value === lc.corporate_reference ? "opacity-100" : "opacity-0")}
@@ -128,11 +139,19 @@ const TransferableLCSearchSelect: React.FC<TransferableLCSearchSelectProps> = ({
                       {lc.corporate_reference}
                       <span className="ml-2 text-xs text-muted-foreground">{lc.currency} {lc.lc_amount?.toLocaleString()}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {lc.beneficiary_bank_name ? `${lc.beneficiary_bank_name}` : ""}
-                      {lc.applicant_name ? ` • Applicant: ${lc.applicant_name}` : ""}
-                      {lc.beneficiary_name ? ` • Ben: ${lc.beneficiary_name}` : ""}
-                      {lc.expiry_date ? ` • Exp: ${lc.expiry_date}` : ""}
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {lc.beneficiary_bank_name && (
+                        <span><span className="font-medium text-foreground">Beneficiary Bank:</span> {lc.beneficiary_bank_name}{" • "}</span>
+                      )}
+                      {lc.applicant_name && (
+                        <span>Applicant: {lc.applicant_name}{" • "}</span>
+                      )}
+                      {lc.beneficiary_name && (
+                        <span>Ben: {lc.beneficiary_name}{" • "}</span>
+                      )}
+                      {lc.expiry_date && (
+                        <span>Exp: {lc.expiry_date}</span>
+                      )}
                     </div>
                   </div>
                 </CommandItem>
