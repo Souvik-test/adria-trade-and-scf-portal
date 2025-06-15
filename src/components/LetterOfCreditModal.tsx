@@ -49,7 +49,6 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     setReviewManualFullScreen(false);
   };
 
-  // HANDLER for amendment response full screen mode
   const handleAmendmentResponseFullScreen = () => {
     setAmendmentResponseFullScreen(true);
   };
@@ -57,19 +56,15 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     setAmendmentResponseFullScreen(false);
   };
 
-  // HANDLER for transfer-request manual full screen mode
   const handleTransferFullScreen = () => {
     setTransferFullScreen(true);
   };
   const handleTransferFullScreenClose = () => {
     setTransferFullScreen(false);
-    // All modals are closed, call global onClose
-    onClose();
+    // Do not call onClose() unless user wants to fully exit.
   };
 
-  // Export LC: Use Dialog for modal, just like import path
   if (type === "export") {
-    // Show full screen ReviewPreAdvicedLCForm 
     if (reviewManualFullScreen) {
       return (
         <div className="fixed inset-0 z-50">
@@ -85,7 +80,6 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       );
     }
 
-    // Show full screen AmendmentResponseForm
     if (amendmentResponseFullScreen) {
       return (
         <div className="fixed inset-0 z-50">
@@ -96,10 +90,9 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       );
     }
 
-    // Show full screen LC Transfer request form
     if (transferFullScreen) {
       return (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50 bg-background">
           <RequestLCTransferForm
             onClose={handleTransferFullScreenClose}
           />
@@ -107,7 +100,6 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       );
     }
 
-    // Normal dialog
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
@@ -121,7 +113,9 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
               onClose={onClose} 
               onManualReviewFullScreen={handleExportManualFullScreen}
               onAmendmentResponseFullScreen={handleAmendmentResponseFullScreen}
-              onRequestTransferFullScreen={handleTransferFullScreen}
+              onRequestTransferFullScreen={() => {
+                setTransferFullScreen(true);
+              }}
             />
           </div>
         </DialogContent>
@@ -172,7 +166,6 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     );
   };
 
-  // Full-screen mode for the manual form (import side)
   if (selectedMethod === 'manual' && selectedAction === 'issuance') {
     return (
       <>

@@ -28,19 +28,15 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 
   const handleMethodSelect = (method: string) => {
     if (!selectedProcess) return;
-    // Manual for review process: open full screen via parent callback
     if (selectedProcess === "review" && method === "manual" && onManualReviewFullScreen) {
       onManualReviewFullScreen();
       return;
     }
-    // Manual for amendment consent: open full screen via parent callback
     if (selectedProcess === "amendConsent" && method === "manual" && onAmendmentResponseFullScreen) {
       onAmendmentResponseFullScreen();
       return;
     }
-    // Manual for transfer: trigger full screen via parent callback
     if (selectedProcess === "transfer" && method === "manual" && onRequestTransferFullScreen) {
-      onClose(); // Close Dialog
       onRequestTransferFullScreen();
       return;
     }
@@ -70,7 +66,6 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-      {/* Modal Title */}
       <DialogHeader className="mb-6">
         <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
           Export Letter of Credit
