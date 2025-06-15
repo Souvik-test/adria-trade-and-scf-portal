@@ -1,8 +1,9 @@
 
 import React, { useState } from "react";
-import AmendmentResponseHeader from "./AmendmentResponseHeader";
-import AmendmentResponseActionPane from "./AmendmentResponseActionPane";
+import AmendmentResponseDetailsAccordion from "./AmendmentResponseDetailsAccordion";
+import AmendmentSidebarResponsePanel from "./AmendmentSidebarResponsePanel";
 import AmendmentChangesSummaryModal from "./AmendmentChangesSummaryModal";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const MOCK_AMEND_DATA = {
@@ -15,7 +16,32 @@ const MOCK_AMEND_DATA = {
     { field: "Expiry Date", previous: "15/04/2024", updated: "30/04/2024" },
     { field: "Credit Amount", previous: "USD 250,000.00", updated: "USD 270,000.00" },
     { field: "Tolerance", previous: "+/- 10%", updated: "+/- 5%" }
-  ]
+  ],
+  parties: [
+    { role: "Applicant", name: "Acme Importers LLC", address: "100 Wall St, New York, USA" },
+    { role: "Beneficiary", name: "Sunrise Textiles Ltd.", address: "22 Mahatma Gandhi Rd, Mumbai, India" },
+    { role: "Advising Bank", name: "State Bank of India", address: "SBIN000123, Mumbai" },
+    { role: "Issuing Bank", name: "Citibank NA", address: "CITIUS33XXX, New York" }
+  ],
+  lcAmount: {
+    creditAmount: "USD 270,000.00",
+    tolerance: "+/- 5%",
+    availableWith: "Any Bank in India",
+    availableBy: "Negotiation"
+  },
+  shipment: {
+    from: "Mumbai, India",
+    to: "New York, USA",
+    latestDate: "10/04/2024"
+  },
+  documents: [
+    "Signed Commercial Invoice (3 copies)",
+    "Packing List (3 copies)",
+    "Certificate of Origin",
+    "Bill of Lading"
+  ],
+  additionalConditions: "Shipment under this LC must not be made via sanctioned countries.",
+  specialInstructions: "Partial shipment allowed. Transshipment not allowed."
 };
 
 type ActionChoice = "accept" | "refuse" | null;
@@ -27,6 +53,8 @@ interface AmendmentResponseFormProps {
 const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
   onClose
 }) => {
+  // State for the editable lcReference, action, comments, and modal
+  const [lcReference, setLcReference] = useState(MOCK_AMEND_DATA.lcReference);
   const [action, setAction] = useState<ActionChoice>(null);
   const [comments, setComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -45,7 +73,6 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
       return;
     }
     setSubmitting(true);
-    // Simulate backend
     setTimeout(() => {
       setSubmitting(false);
       toast({
@@ -59,43 +86,63 @@ const AmendmentResponseForm: React.FC<AmendmentResponseFormProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex flex-col animate-fade-in">
-      <div className="max-w-4xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
-        {/* Header */}
-        <AmendmentResponseHeader
-          lcReference={MOCK_AMEND_DATA.lcReference}
-          issueDate={MOCK_AMEND_DATA.issueDate}
-          expiryDate={MOCK_AMEND_DATA.expiryDate}
-          amendmentNumber={MOCK_AMEND_DATA.amendmentNumber}
-          amendmentDate={MOCK_AMEND_DATA.amendmentDate}
-          onViewChanges={() => setShowChanges(true)}
-          onBack={onClose}
-        />
-        {/* Content: center the action pane */}
-        <div className="flex-1 flex justify-center items-center mt-4">
-          <div className="w-full max-w-md">
-            <AmendmentResponseActionPane
-              action={action}
-              setAction={setAction}
-              comments={comments}
-              setComments={setComments}
-              handleSubmit={handleSubmit}
-              submitting={submitting}
-              commentsMandatory={action === "refuse"}
-              commentsError={errorMsg}
-            />
-          </div>
+      {/* Top Bar & Header */}
+      <div className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-0 md:px-10 py-4 flex flex-col md:flex-row items-center justify-between gap-2 sticky top-0 z-20 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <span role="img" aria-label="amendment">📝</span> Record Amendment Response
+          </span>
         </div>
-        {showChanges && (
-          <AmendmentChangesSummaryModal
-            open={showChanges}
-            onClose={() => setShowChanges(false)}
-            changes={MOCK_AMEND_DATA.changes}
-          />
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="secondary" className="text-xs px-3 py-1 h-8 rounded" disabled>Draft MT 707</Button>
+          <Button variant="outline" className="text-xs px-3 py-1 h-8 rounded" disabled>Email</Button>
+          <Button variant="ghost" className="text-xs px-3 py-1 h-8 rounded" onClick={onClose}>Close</Button>
+        </div>
       </div>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col md:flex-row justify-center gap-5 pb-10 md:pb-6 px-2 md:px-10 py-5 max-w-[1600px] mx-auto">
+        {/* LEFT: Accordions/details */}
+        <div className="flex-1 max-w-2xl">
+          <AmendmentResponseDetailsAccordion
+            lcReference={lcReference}
+            onLcReferenceChange={setLcReference}
+            amendmentNumber={MOCK_AMEND_DATA.amendmentNumber}
+            amendmentDate={MOCK_AMEND_DATA.amendmentDate}
+            changes={MOCK_AMEND_DATA.changes}
+            parties={MOCK_AMEND_DATA.parties}
+            lcAmount={MOCK_AMEND_DATA.lcAmount}
+            shipment={MOCK_AMEND_DATA.shipment}
+            documents={MOCK_AMEND_DATA.documents}
+            additionalConditions={MOCK_AMEND_DATA.additionalConditions}
+            specialInstructions={MOCK_AMEND_DATA.specialInstructions}
+          />
+        </div>
+        {/* RIGHT: Sticky panel actions */}
+        <div className="w-full md:max-w-xs mt-10 md:mt-0">
+          <AmendmentSidebarResponsePanel
+            action={action}
+            setAction={setAction}
+            comments={comments}
+            setComments={setComments}
+            submitting={submitting}
+            handleSubmit={handleSubmit}
+            commentsMandatory={action === "refuse"}
+            commentsError={errorMsg}
+            changesCount={MOCK_AMEND_DATA.changes.length}
+            onViewChanges={() => setShowChanges(true)}
+          />
+        </div>
+      </div>
+      {/* Modal: show change summary */}
+      {showChanges && (
+        <AmendmentChangesSummaryModal
+          open={showChanges}
+          onClose={() => setShowChanges(false)}
+          changes={MOCK_AMEND_DATA.changes}
+        />
+      )}
     </div>
   );
 };
 
 export default AmendmentResponseForm;
-
