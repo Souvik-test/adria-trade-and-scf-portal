@@ -96,6 +96,14 @@ const LCInformationPaneV2 = ({ form }: { form: any }) => (
           onChange={e => form.updateField({ currentBeneficiary: e.target.value })}
         />
       </div>
+      <div>
+        <Label className="font-medium">Advising Bank</Label>
+        <Input
+          value={form.form.advisingBank || ""}
+          onChange={e => form.updateField({ advisingBank: e.target.value })}
+          placeholder="Advising bank"
+        />
+      </div>
     </div>
   </div>
 );
