@@ -1,7 +1,8 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { saveExportLCReview } from "@/services/exportLCReviewService";
 
 // Import new panes
 import PartyInfoPane from "./PartyInfoPane";
@@ -89,39 +90,13 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
   const [comments, setComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // expand/collapse panes
   const togglePane = (pane: string) => {
     setExpanded((prev) =>
       prev.includes(pane) ? prev.filter((p) => p !== pane) : [...prev, pane]
     );
-  };
-
-  // Handle submission (validation)
-  const handleSubmit = () => {
-    setErrorMsg(null);
-    // Validation: require comments if refusing
-    if (action === "refuse" && !comments.trim()) {
-      setErrorMsg("Comments are required when refusing the LC.");
-      return;
-    }
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      onClose();
-    }, 1000);
-  };
-  const handleSaveDraft = () => {
-    if (onSaveDraft) onSaveDraft();
-  };
-  const handleDiscard = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to discard all changes? This action cannot be undone."
-      )
-    ) {
-      onClose();
-    }
   };
 
   // Pane open/close icons
@@ -132,6 +107,60 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
       ▼
     </span>
   );
+
+  // Handle submission (validation + save)
+  const handleSubmit = async () => {
+    setErrorMsg(null);
+
+    // Validation: require comments if refusing
+    if (action === "refuse" && !comments.trim()) {
+      setErrorMsg("Comments are required when refusing the LC.");
+      return;
+    }
+    if (!action) {
+      setErrorMsg("Please select an action.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await saveExportLCReview({
+        action,
+        comments,
+        lcData: initialLcData,
+      });
+
+      toast({
+        title: "Success",
+        description: "Your Export LC review has been submitted and recorded.",
+        variant: "success",
+      });
+      setSubmitting(false);
+      onClose();
+    } catch (error: any) {
+      setSubmitting(false);
+      setErrorMsg(error.message ?? "Submission failed. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to submit Export LC review.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveDraft = () => {
+    if (onSaveDraft) onSaveDraft();
+  };
+
+  const handleDiscard = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to discard all changes? This action cannot be undone."
+      )
+    ) {
+      onClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex">

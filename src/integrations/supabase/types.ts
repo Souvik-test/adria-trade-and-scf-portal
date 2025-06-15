@@ -48,6 +48,66 @@ export type Database = {
         }
         Relationships: []
       }
+      export_lc_reviews: {
+        Row: {
+          action: string
+          additional_conditions: string | null
+          amount: number | null
+          comments: string | null
+          currency: string | null
+          documents: Json | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          lc_amount: Json | null
+          lc_reference: string
+          parties: Json | null
+          shipment: Json | null
+          special_instructions: string | null
+          status: string
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          additional_conditions?: string | null
+          amount?: number | null
+          comments?: string | null
+          currency?: string | null
+          documents?: Json | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          lc_amount?: Json | null
+          lc_reference: string
+          parties?: Json | null
+          shipment?: Json | null
+          special_instructions?: string | null
+          status?: string
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          additional_conditions?: string | null
+          amount?: number | null
+          comments?: string | null
+          currency?: string | null
+          documents?: Json | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          lc_amount?: Json | null
+          lc_reference?: string
+          parties?: Json | null
+          shipment?: Json | null
+          special_instructions?: string | null
+          status?: string
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       import_lc_requests: {
         Row: {
           additional_amount: number | null
