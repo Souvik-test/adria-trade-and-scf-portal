@@ -12,6 +12,10 @@ import DocumentsRequiredPane from "./DocumentsRequiredPane";
 import AdditionalConditionsPane from "./AdditionalConditionsPane";
 import ActionPane from "./ActionPane";
 
+import ReviewPreAdvicedLCHeader from "./ReviewPreAdvicedLCHeader";
+import ReviewPreAdvicedLCContent from "./ReviewPreAdvicedLCContent";
+import ReviewPreAdvicedLCActionsBar from "./ReviewPreAdvicedLCActionsBar";
+
 interface ReviewPreAdvicedLCFormProps {
   onBack: () => void;
   onClose: () => void;
@@ -166,82 +170,29 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 w-full h-full overflow-y-auto flex">
       <div className="max-w-6xl w-full mx-auto p-0 md:p-8 flex flex-col min-h-screen">
         {/* Form Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-6 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-semibold text-gray-900 dark:text-white">
-                <span role="img" aria-label="doc">📄</span> Pre-Advised Letter of Credit
-              </span>
-              <span className="ml-3 px-3 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800">
-                Pending Review
-              </span>
-            </div>
-            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-              Review and respond to LC pre-advice
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0 flex flex-col md:flex-row md:items-end gap-2">
-            <div className="flex items-end gap-1">
-              <div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">LC Reference</div>
-                <div className="font-medium tracking-wide">{initialLcData.lcReference}</div>
-              </div>
-            </div>
-            <div className="flex gap-4 ml-0 md:ml-8">
-              <div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Issue Date</div>
-                <div className="font-medium">{initialLcData.issueDate}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Expiry Date</div>
-                <div className="font-medium">{initialLcData.expiryDate}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Amount</div>
-                <div className="font-bold text-green-600 dark:text-green-300">
-                  {initialLcData.currency} {initialLcData.amount.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReviewPreAdvicedLCHeader
+          lcReference={initialLcData.lcReference}
+          issueDate={initialLcData.issueDate}
+          expiryDate={initialLcData.expiryDate}
+          amount={initialLcData.amount}
+          currency={initialLcData.currency}
+          onBack={onBack}
+        />
 
         {/* Main body - left: details; right: action */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 mt-2">
           <div className="flex-1 mt-2">
-            <div className="space-y-4">
-              <PartyInfoPane
-                expanded={expanded.includes("parties")}
-                togglePane={() => togglePane("parties")}
-                parties={initialLcData.parties}
-                PaneChevron={PaneChevron}
-              />
-              <LCAmtPane
-                expanded={expanded.includes("amount")}
-                togglePane={() => togglePane("amount")}
-                lcAmount={initialLcData.lcAmount}
-                PaneChevron={PaneChevron}
-              />
-              <ShipmentPane
-                expanded={expanded.includes("shipment")}
-                togglePane={() => togglePane("shipment")}
-                shipment={initialLcData.shipment}
-                PaneChevron={PaneChevron}
-              />
-              <DocumentsRequiredPane
-                expanded={expanded.includes("documents")}
-                togglePane={() => togglePane("documents")}
-                documents={initialLcData.documents}
-                PaneChevron={PaneChevron}
-              />
-              <AdditionalConditionsPane
-                expanded={expanded.includes("additional")}
-                togglePane={() => togglePane("additional")}
-                additionalConditions={initialLcData.additionalConditions}
-                specialInstructions={initialLcData.specialInstructions}
-                PaneChevron={PaneChevron}
-              />
-            </div>
+            <ReviewPreAdvicedLCContent
+              expanded={expanded}
+              togglePane={togglePane}
+              parties={initialLcData.parties}
+              lcAmount={initialLcData.lcAmount}
+              shipment={initialLcData.shipment}
+              documents={initialLcData.documents}
+              additionalConditions={initialLcData.additionalConditions}
+              specialInstructions={initialLcData.specialInstructions}
+              PaneChevron={PaneChevron}
+            />
           </div>
           {/* Right-side Action Pane (wide screens) */}
           <div className="mt-4 md:mt-2 md:ml-6 md:w-[360px]">
@@ -261,25 +212,10 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
         </div>
 
         {/* Bottom Sticky Action Bar (for navigation/buttons) */}
-        <div className="sticky bottom-0 z-10 mt-6 px-0 md:px-6 py-5 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center justify-end gap-4">
-          <div className="flex gap-3">
-            <Button
-              onClick={handleDiscard}
-              variant="outline"
-              className="border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-            >
-              Discard
-            </Button>
-            <Button
-              onClick={handleSaveDraft}
-              variant="outline"
-              className="border-amber-300 dark:border-amber-600 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-            >
-              Save as Draft
-            </Button>
-            {/* Submit and Go Back buttons removed */}
-          </div>
-        </div>
+        <ReviewPreAdvicedLCActionsBar
+          handleDiscard={handleDiscard}
+          handleSaveDraft={handleSaveDraft}
+        />
       </div>
     </div>
   );
@@ -287,5 +223,4 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
 
 export default ReviewPreAdvicedLCForm;
 
-// NOTE: This file is now getting long (266+ lines).
-// Please consider asking me to refactor it into smaller components for easier maintenance!
+// The Form has now been split into smaller focused files for maintainability!
