@@ -25,16 +25,19 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
     setSelectedMethod(method);
   };
 
-  // Review Pre-adviced LC, Manual: show full-screen form
+  // Render the Review Pre-adviced LC full-screen form outside of the modal content
   if (selectedProcess === "review" && selectedMethod === "manual") {
+    // Fullscreen: let this escape the Dialog/Modal parent
     return (
-      <ReviewPreAdvicedLCForm
-        onBack={() => setSelectedMethod(null)}
-        onClose={onClose}
-        onSaveDraft={() => {
-          // simulate save draft
-        }}
-      />
+      <div className="fixed inset-0 z-50">
+        <ReviewPreAdvicedLCForm
+          onBack={() => setSelectedMethod(null)}
+          onClose={onClose}
+          onSaveDraft={() => {
+            // simulate save draft
+          }}
+        />
+      </div>
     );
   }
 
