@@ -133,7 +133,7 @@ const ReviewPreAdvicedLCForm: React.FC<ReviewPreAdvicedLCFormProps> = ({
       toast({
         title: "Success",
         description: "Your Export LC review has been submitted and recorded.",
-        variant: "success",
+        variant: "default",
       });
       setSubmitting(false);
       onClose();
