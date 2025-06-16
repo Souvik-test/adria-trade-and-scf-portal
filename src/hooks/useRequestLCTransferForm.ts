@@ -1,103 +1,107 @@
 
-import { useState } from "react";
-import { LCTransferFormStep, transferStepOrder, LCTransferFormData } from "@/types/exportLCTransfer";
+import { useState } from 'react';
+import { LCTransferFormData, LCTransferFormStep, transferStepOrder, NewBeneficiary } from '@/types/exportLCTransfer';
 
-const INITIAL_FORM: LCTransferFormData = {
-  lcReference: "",
-  issuingBank: "",
-  applicant: "",
-  currency: "",
-  amount: "",
-  expiryDate: "",
-  currentBeneficiary: "",
-  transferType: "Full",
-  transferAmount: "",
-  transferConditions: "",
-  newBeneficiary: {
-    name: "",
-    address: "",
-    country: "",
-    bankName: "",
-    bankAddress: "",
-    swiftCode: "",
-    accountNumber: "",
-  },
-  requiredDocuments: [],
-  supportingDocuments: [],
-  requiredDocumentsChecked: {},
-};
+export const useRequestLCTransferForm = (onClose: () => void) => {
+  const [step, setStep] = useState<LCTransferFormStep>('lc-and-transfer');
+  const [form, setForm] = useState<LCTransferFormData>({
+    lcReference: '',
+    issuingBank: '',
+    issuanceDate: '',
+    applicant: '',
+    currency: 'USD',
+    amount: '',
+    expiryDate: '',
+    currentBeneficiary: '',
+    transferType: 'Full',
+    transferConditions: '',
+    newBeneficiaries: [{
+      name: '',
+      address: '',
+      country: '',
+      bankName: '',
+      bankAddress: '',
+      swiftCode: '',
+      accountNumber: '',
+      transferAmount: ''
+    }],
+    requiredDocuments: [],
+    supportingDocuments: [],
+    requiredDocumentsChecked: {}
+  });
 
-export function useRequestLCTransferForm(onClose: () => void) {
-  const [form, setForm] = useState<LCTransferFormData>(INITIAL_FORM);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const stepIdx = transferStepOrder.indexOf(step);
 
-  const step = transferStepOrder[stepIdx];
+  const updateField = (updates: Partial<LCTransferFormData>) => {
+    setForm(prev => ({ ...prev, ...updates }));
+  };
 
-  // Validation for transfer amount
-  const validateTransferAmount = () => {
-    if (form.transferType === "Partial") {
-      const lcAmount = Number(form.amount) || 0;
-      const transferAmount = Number(form.transferAmount) || 0;
-      return transferAmount > 0 && transferAmount <= lcAmount;
+  const updateNewBeneficiary = (index: number, updates: Partial<NewBeneficiary>) => {
+    setForm(prev => ({
+      ...prev,
+      newBeneficiaries: prev.newBeneficiaries.map((beneficiary, i) => 
+        i === index ? { ...beneficiary, ...updates } : beneficiary
+      )
+    }));
+  };
+
+  const addNewBeneficiary = () => {
+    setForm(prev => ({
+      ...prev,
+      newBeneficiaries: [...prev.newBeneficiaries, {
+        name: '',
+        address: '',
+        country: '',
+        bankName: '',
+        bankAddress: '',
+        swiftCode: '',
+        accountNumber: '',
+        transferAmount: ''
+      }]
+    }));
+  };
+
+  const removeNewBeneficiary = (index: number) => {
+    if (form.newBeneficiaries.length > 1) {
+      setForm(prev => ({
+        ...prev,
+        newBeneficiaries: prev.newBeneficiaries.filter((_, i) => i !== index)
+      }));
     }
-    return true;
   };
 
-  const goNext = () => {
-    // Validate current step before proceeding
-    if (step === "lc-and-transfer" && !validateTransferAmount()) {
-      return; // Don't proceed if validation fails
+  const nextStep = () => {
+    const currentIdx = transferStepOrder.indexOf(step);
+    if (currentIdx < transferStepOrder.length - 1) {
+      setStep(transferStepOrder[currentIdx + 1]);
     }
-    if (stepIdx < transferStepOrder.length - 1) setStepIdx(i => i + 1);
-  };
-  
-  const goBack = () => {
-    if (stepIdx > 0) setStepIdx(i => i - 1);
-    else onClose();
-  };
-  
-  const goToStep = (key: LCTransferFormStep) => {
-    setStepIdx(transferStepOrder.indexOf(key));
-  };
-  
-  const updateField = (patch: Partial<LCTransferFormData>) => {
-    setForm(curr => ({ ...curr, ...patch }));
   };
 
-  // For nested fields
-  const updateNewBeneficiary = (patch: Partial<LCTransferFormData["newBeneficiary"]>) => {
-    setForm(curr => ({ ...curr, newBeneficiary: { ...curr.newBeneficiary, ...patch } }));
+  const prevStep = () => {
+    const currentIdx = transferStepOrder.indexOf(step);
+    if (currentIdx > 0) {
+      setStep(transferStepOrder[currentIdx - 1]);
+    }
   };
 
-  // Save as Draft, Submit, Discard logic
-  const saveDraft = () => {
-    alert("Save as draft not yet implemented.");
-  };
-  
-  const submitForm = () => {
-    // Final validation before submission
-    if (!validateTransferAmount()) {
-      alert("Please fix validation errors before submitting.");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Transfer Submitted! (Not yet implemented)");
-      onClose();
-    }, 1000);
-  };
-  
-  const discard = () => {
-    if (confirm("Are you sure you want to discard this request?")) {
-      onClose();
-    }
+  const handleSubmit = () => {
+    console.log('Submitting LC Transfer Request:', form);
+    onClose();
   };
 
   return {
-    form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary,
-    saveDraft, submitForm, discard, isSubmitting, validateTransferAmount
+    form,
+    step,
+    stepIdx,
+    updateField,
+    updateNewBeneficiary,
+    addNewBeneficiary,
+    removeNewBeneficiary,
+    nextStep,
+    prevStep,
+    handleSubmit,
+    canGoNext: stepIdx < transferStepOrder.length - 1,
+    canGoPrev: stepIdx > 0,
+    isLastStep: stepIdx === transferStepOrder.length - 1
   };
-}
+};

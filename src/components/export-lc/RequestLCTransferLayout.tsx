@@ -1,16 +1,18 @@
 
 import React from "react";
-import { File, PersonStanding } from "lucide-react";
+import { File, PersonStanding, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const stepIcons = [
   File,
   PersonStanding,
+  FileText,
 ];
 
 const stepLabels = [
   "LC Information & Transfer Details",
-  "New Beneficiary & Documents"
+  "New Beneficiaries",
+  "Required Documents"
 ];
 
 interface Props {

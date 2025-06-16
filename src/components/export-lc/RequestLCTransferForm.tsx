@@ -58,27 +58,34 @@ const SummaryBar = ({ form }: any) => (
         <span className="text-foreground text-sm font-medium break-all">
           {form.form.transferType || <span className="text-muted-foreground">-</span>}
         </span>
-        <span className="text-muted-foreground text-sm">Amount:</span>
-        <span className="text-foreground text-sm font-medium break-all">
-          {form.form.transferAmount
-            ? `${form.form.currency || ""} ${form.form.transferAmount}`
-            : <span className="text-muted-foreground">-</span>}
-        </span>
       </div>
     </section>
     <section>
       <h4 className="font-bold mb-3 text-corporate-blue dark:text-corporate-blue">
-        New Beneficiary
+        New Beneficiaries
       </h4>
-      <div className="grid grid-cols-[130px_1fr] gap-x-2 gap-y-2">
-        <span className="text-muted-foreground text-sm">Name:</span>
-        <span className="text-foreground text-sm font-medium break-all">
-          {form.form.newBeneficiary?.name || <span className="text-muted-foreground">-</span>}
-        </span>
-        <span className="text-muted-foreground text-sm">Country:</span>
-        <span className="text-foreground text-sm font-medium break-all">
-          {form.form.newBeneficiary?.country || <span className="text-muted-foreground">-</span>}
-        </span>
+      <div className="space-y-3">
+        {form.form.newBeneficiaries?.map((beneficiary: any, index: number) => (
+          <div key={index} className="border border-border rounded p-2">
+            <div className="text-xs font-medium text-foreground mb-1">Beneficiary {index + 1}</div>
+            <div className="grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-xs">
+              <span className="text-muted-foreground">Name:</span>
+              <span className="text-foreground font-medium break-all">
+                {beneficiary.name || <span className="text-muted-foreground">-</span>}
+              </span>
+              <span className="text-muted-foreground">Amount:</span>
+              <span className="text-foreground font-medium break-all">
+                {beneficiary.transferAmount
+                  ? `${form.form.currency || ""} ${beneficiary.transferAmount}`
+                  : <span className="text-muted-foreground">-</span>}
+              </span>
+              <span className="text-muted-foreground">Country:</span>
+              <span className="text-foreground font-medium break-all">
+                {beneficiary.country || <span className="text-muted-foreground">-</span>}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   </aside>
@@ -93,7 +100,7 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
   const [requestId, setRequestId] = React.useState("TRF-2025-00123");
   const [agree, setAgree] = React.useState(false);
 
-  const isFinalStep = form.step === "beneficiary-docs";
+  const isFinalStep = form.step === "documents";
   const canSubmit = !isFinalStep || agree;
 
   return (

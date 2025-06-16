@@ -2,11 +2,13 @@
 import React from "react";
 import { LCTransferFormStep } from "@/types/exportLCTransfer";
 import LCAndTransferPane from "./steps/LCAndTransferPane";
-import NewBeneficiaryAndDocumentsPane from "./steps/NewBeneficiaryAndDocumentsPane";
+import NewBeneficiariesPane from "./steps/NewBeneficiariesPane";
+import DocumentsRequiredPane from "./steps/DocumentsRequiredPane";
 
 const paneMap: Record<LCTransferFormStep, React.ComponentType<{ form: any }>> = {
   "lc-and-transfer": LCAndTransferPane,
-  "beneficiary-docs": NewBeneficiaryAndDocumentsPane,
+  "beneficiary": NewBeneficiariesPane,
+  "documents": DocumentsRequiredPane,
 };
 
 const RequestLCTransferPaneRenderer = ({ form }: { form: any }) => {
