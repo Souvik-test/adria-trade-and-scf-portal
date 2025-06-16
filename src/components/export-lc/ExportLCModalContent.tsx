@@ -1,15 +1,18 @@
+
 import React, { useState } from "react";
 import ExportLCProcessSection from "./ExportLCProcessSection";
 import ExportLCMethodSection from "./ExportLCMethodSection";
 import RequestLCTransferForm from "./RequestLCTransferForm";
+import RequestLCAssignmentForm from "./RequestLCAssignmentForm";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface ExportLCModalContentProps {
   onClose: () => void;
   onManualReviewFullScreen?: () => void;
-  onAmendmentResponseFullScreen?: () => void; // for amendment response full screen
-  onRequestTransferFullScreen?: () => void; // NEW for transfer request
+  onAmendmentResponseFullScreen?: () => void;
+  onRequestTransferFullScreen?: () => void;
+  onRequestAssignmentFullScreen?: () => void; // NEW for assignment request
 }
 
 const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
@@ -17,6 +20,7 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
   onManualReviewFullScreen,
   onAmendmentResponseFullScreen,
   onRequestTransferFullScreen,
+  onRequestAssignmentFullScreen,
 }) => {
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -38,6 +42,10 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
     }
     if (selectedProcess === "transfer" && method === "manual" && onRequestTransferFullScreen) {
       onRequestTransferFullScreen();
+      return;
+    }
+    if (selectedProcess === "assignment" && method === "manual" && onRequestAssignmentFullScreen) {
+      onRequestAssignmentFullScreen();
       return;
     }
     setSelectedMethod(method);
