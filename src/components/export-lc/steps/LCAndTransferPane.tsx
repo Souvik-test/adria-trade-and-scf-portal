@@ -8,10 +8,10 @@ import { TransferableLC } from "@/services/transferableLCService";
 
 const LCAndTransferPane = ({ form }: { form: any }) => {
   // Compute values for transfer logic as before
-  const lcAmount = (form.form.amount !== '' && !isNaN(Number(form.form.amount))) ? Number(form.form.amount) : '';
+  const lcAmount = (form.form.amount !== '' && !isNaN(Number(form.form.amount))) ? Number(form.form.amount) : 0;
   const isFull = form.form.transferType === "Full";
 
-  // Validation for transfer amount
+  // Validation for transfer amount - fix the type comparison
   const transferAmount = Number(form.form.transferAmount) || 0;
   const isTransferAmountValid = !form.form.transferType || form.form.transferType === "Full" || 
     (form.form.transferType === "Partial" && transferAmount <= lcAmount);
@@ -164,7 +164,7 @@ const LCAndTransferPane = ({ form }: { form: any }) => {
               className={!isTransferAmountValid ? "border-red-500" : ""}
             />
             <div className="text-xs text-muted-foreground mt-1">
-              {typeof lcAmount === "number" && !isNaN(lcAmount)
+              {lcAmount > 0
                 ? <>LC Amount: <span className="font-semibold text-corporate-blue">{form.form.currency || "..." } {lcAmount.toLocaleString()}</span></>
                 : null}
             </div>
