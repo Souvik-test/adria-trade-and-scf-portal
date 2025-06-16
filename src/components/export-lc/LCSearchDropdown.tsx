@@ -26,7 +26,9 @@ const LCSearchDropdown: React.FC<LCSearchDropdownProps> = ({
   const loadLCs = async (search?: string) => {
     setLoading(true);
     try {
+      console.log('Loading LCs with search term:', search);
       const data = await fetchTransferableLCs(search);
+      console.log('Loaded LCs:', data);
       setLCs(data);
     } catch (error) {
       console.error('Error fetching transferable LCs:', error);
@@ -38,13 +40,15 @@ const LCSearchDropdown: React.FC<LCSearchDropdownProps> = ({
 
   useEffect(() => {
     if (open) {
+      console.log('Dropdown opened, loading all LCs');
       loadLCs();
     }
   }, [open]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchTerm && open) {
+      if (open) {
+        console.log('Search term changed to:', searchTerm);
         loadLCs(searchTerm);
       }
     }, 300);
@@ -53,6 +57,7 @@ const LCSearchDropdown: React.FC<LCSearchDropdownProps> = ({
   }, [searchTerm, open]);
 
   const handleSelect = (lc: TransferableLC) => {
+    console.log('Selected LC:', lc);
     onSelect(lc);
     setOpen(false);
   };
@@ -81,7 +86,9 @@ const LCSearchDropdown: React.FC<LCSearchDropdownProps> = ({
             {loading ? (
               <CommandEmpty>Loading...</CommandEmpty>
             ) : lcs.length === 0 ? (
-              <CommandEmpty>No transferable LCs found.</CommandEmpty>
+              <CommandEmpty>
+                {searchTerm ? `No transferable LCs found matching "${searchTerm}"` : 'No transferable LCs found.'}
+              </CommandEmpty>
             ) : (
               <CommandGroup>
                 {lcs.map((lc) => (

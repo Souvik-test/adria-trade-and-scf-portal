@@ -19,6 +19,8 @@ export const fetchTransferableLCs = async (searchTerm?: string): Promise<Transfe
     throw new Error('User not authenticated');
   }
 
+  console.log('Searching for transferable LCs with term:', searchTerm);
+
   // Set the user context for RLS
   const { error: configError } = await supabase
     .from('custom_users')
@@ -37,14 +39,18 @@ export const fetchTransferableLCs = async (searchTerm?: string): Promise<Transfe
     .order('corporate_reference', { ascending: true });
 
   if (searchTerm) {
-    query = query.ilike('corporate_reference', `%${searchTerm}%`);
+    // Use case-insensitive search and broader matching
+    query = query.or(`corporate_reference.ilike.%${searchTerm}%,corporate_reference.ilike.%${searchTerm.toLowerCase()}%,corporate_reference.ilike.%${searchTerm.toUpperCase()}%`);
   }
 
+  console.log('Executing query with is_transferable=true');
   const { data, error } = await query;
 
   if (error) {
+    console.error('Query error:', error);
     throw error;
   }
 
+  console.log('Found transferable LCs:', data?.length || 0, data);
   return data || [];
 };
