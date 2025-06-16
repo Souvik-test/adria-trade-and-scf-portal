@@ -34,16 +34,33 @@ export function useRequestLCTransferForm(onClose: () => void) {
 
   const step = transferStepOrder[stepIdx];
 
+  // Validation for transfer amount
+  const validateTransferAmount = () => {
+    if (form.transferType === "Partial") {
+      const lcAmount = Number(form.amount) || 0;
+      const transferAmount = Number(form.transferAmount) || 0;
+      return transferAmount > 0 && transferAmount <= lcAmount;
+    }
+    return true;
+  };
+
   const goNext = () => {
+    // Validate current step before proceeding
+    if (step === "lc-and-transfer" && !validateTransferAmount()) {
+      return; // Don't proceed if validation fails
+    }
     if (stepIdx < transferStepOrder.length - 1) setStepIdx(i => i + 1);
   };
+  
   const goBack = () => {
     if (stepIdx > 0) setStepIdx(i => i - 1);
     else onClose();
   };
+  
   const goToStep = (key: LCTransferFormStep) => {
     setStepIdx(transferStepOrder.indexOf(key));
   };
+  
   const updateField = (patch: Partial<LCTransferFormData>) => {
     setForm(curr => ({ ...curr, ...patch }));
   };
@@ -57,7 +74,14 @@ export function useRequestLCTransferForm(onClose: () => void) {
   const saveDraft = () => {
     alert("Save as draft not yet implemented.");
   };
+  
   const submitForm = () => {
+    // Final validation before submission
+    if (!validateTransferAmount()) {
+      alert("Please fix validation errors before submitting.");
+      return;
+    }
+    
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
@@ -65,6 +89,7 @@ export function useRequestLCTransferForm(onClose: () => void) {
       onClose();
     }, 1000);
   };
+  
   const discard = () => {
     if (confirm("Are you sure you want to discard this request?")) {
       onClose();
@@ -73,6 +98,6 @@ export function useRequestLCTransferForm(onClose: () => void) {
 
   return {
     form, step, stepIdx, goNext, goBack, goToStep, updateField, updateNewBeneficiary,
-    saveDraft, submitForm, discard, isSubmitting
+    saveDraft, submitForm, discard, isSubmitting, validateTransferAmount
   };
 }

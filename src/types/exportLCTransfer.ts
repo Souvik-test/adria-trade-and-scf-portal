@@ -24,6 +24,7 @@ export interface LCTransferFormData {
   // Step 1: Basic LC Info
   lcReference: string;
   issuingBank: string;
+  issuanceDate?: string; // Added this field
   applicant: string;
   currency: string;
   amount: number | '';

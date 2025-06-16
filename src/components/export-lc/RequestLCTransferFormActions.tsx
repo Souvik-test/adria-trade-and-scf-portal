@@ -13,13 +13,17 @@ interface Props {
   submitForm: () => void;
   isSubmitting: boolean;
   canSubmit?: boolean;
+  validateTransferAmount?: () => boolean;
 }
 
 const RequestLCTransferFormActions: React.FC<Props> = ({
-  step, stepIdx, goBack, goNext, saveDraft, discard, submitForm, isSubmitting, canSubmit
+  step, stepIdx, goBack, goNext, saveDraft, discard, submitForm, isSubmitting, canSubmit, validateTransferAmount
 }) => {
   const showGoBack = stepIdx > 0;
   const isFinal = step === "beneficiary-docs";
+  
+  // Check if current step is valid before allowing next
+  const canProceedNext = step !== "lc-and-transfer" || (validateTransferAmount ? validateTransferAmount() : true);
 
   return (
     <div className="flex flex-wrap gap-2 border-t border-border bg-card p-4 md:p-6 justify-between items-center transition-colors shadow-sm">
@@ -66,7 +70,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
             variant="default"
             className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white dark:bg-corporate-blue dark:hover:bg-corporate-blue/80"
             onClick={goNext}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canProceedNext}
           >
             Next
           </Button>
