@@ -57,14 +57,12 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 
       {showRequestTransferForm && (
         <RequestLCTransferForm
-          isOpen={showRequestTransferForm}
           onClose={() => setShowRequestTransferForm(false)}
         />
       )}
       
       {showAssignmentForm && (
         <RequestLCAssignmentForm
-          isOpen={showAssignmentForm}
           onClose={() => setShowAssignmentForm(false)}
         />
       )}
