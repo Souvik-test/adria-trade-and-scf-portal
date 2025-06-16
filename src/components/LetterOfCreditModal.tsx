@@ -1,6 +1,6 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import ImportLCModalContent from "./import-lc/ImportLCModalContent";
 import ExportLCModalContent from "./export-lc/ExportLCModalContent";
 import RequestLCTransferForm from "./export-lc/RequestLCTransferForm";
 import RequestLCAssignmentForm from "./export-lc/RequestLCAssignmentForm";
@@ -38,7 +38,10 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       <Dialog open={isOpen && !showRequestTransferForm && !showAssignmentForm} onOpenChange={onClose}>
         <DialogContent className="w-full max-w-6xl h-full max-h-[90vh] p-0 overflow-hidden bg-white dark:bg-gray-900">
           {type === "import" ? (
-            <ImportLCModalContent onClose={onClose} />
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Import LC - Coming Soon</h2>
+              <p className="text-gray-600">Import LC functionality will be available soon.</p>
+            </div>
           ) : null}
           {type === "export" && (
             <ExportLCModalContent
