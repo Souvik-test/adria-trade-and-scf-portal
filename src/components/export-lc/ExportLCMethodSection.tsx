@@ -1,4 +1,3 @@
-
 import React from "react";
 import { FileText, Upload, MessageSquare } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -48,9 +47,9 @@ const ExportLCMethodSection: React.FC<ExportLCMethodSectionProps> = ({
         let isEnabled = !!selectedProcess;
         let isComingSoon = !!card.comingSoon;
 
-        // Fix: "Manual" is enabled for 'review', 'amendConsent', 'transfer', and 'assignment'
+        // Fix: "Manual" is enabled for 'review', 'amendConsent', and 'transfer'
         if (card.id === "manual") {
-          isComingSoon = !(selectedProcess === "review" || selectedProcess === "amendConsent" || selectedProcess === "transfer" || selectedProcess === "assignment");
+          isComingSoon = !(selectedProcess === "review" || selectedProcess === "amendConsent" || selectedProcess === "transfer");
         }
 
         return (
