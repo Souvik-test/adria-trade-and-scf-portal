@@ -99,9 +99,27 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
   const form = useRequestLCTransferForm(onClose);
   const [requestId, setRequestId] = React.useState("TRF-2025-00123");
   const [agree, setAgree] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const isFinalStep = form.step === "documents";
   const canSubmit = !isFinalStep || agree;
+
+  const handleSaveDraft = () => {
+    console.log('Saving draft:', form.form);
+  };
+
+  const handleDiscard = () => {
+    onClose();
+  };
+
+  const handleSubmitForm = async () => {
+    setIsSubmitting(true);
+    try {
+      await form.handleSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex w-full h-full min-h-screen overflow-auto transition-colors">
@@ -127,7 +145,17 @@ const RequestLCTransferForm: React.FC<Props> = ({ onClose }) => {
               </div>
             )}
             <div className="w-full max-w-5xl mx-auto mt-6 px-2 z-10 relative">
-              <RequestLCTransferFormActions {...form} canSubmit={canSubmit} />
+              <RequestLCTransferFormActions 
+                step={form.step}
+                stepIdx={form.stepIdx}
+                goBack={form.prevStep}
+                goNext={form.nextStep}
+                saveDraft={handleSaveDraft}
+                discard={handleDiscard}
+                submitForm={handleSubmitForm}
+                isSubmitting={isSubmitting}
+                canSubmit={canSubmit}
+              />
             </div>
           </RequestLCTransferLayout>
         </div>

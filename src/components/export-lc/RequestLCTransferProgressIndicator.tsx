@@ -1,9 +1,11 @@
+
 import React from "react";
 import { LCTransferFormStep, transferStepOrder } from "@/types/exportLCTransfer";
 
 const stepLabels: Record<LCTransferFormStep, string> = {
   "lc-and-transfer": "LC Information & Transfer Details",
-  "beneficiary-docs": "New Beneficiary & Documents",
+  "beneficiary": "New Beneficiaries",
+  "documents": "Required Documents",
 };
 
 interface Props {

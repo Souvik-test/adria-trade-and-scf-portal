@@ -20,7 +20,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
   step, stepIdx, goBack, goNext, saveDraft, discard, submitForm, isSubmitting, canSubmit, validateTransferAmount
 }) => {
   const showGoBack = stepIdx > 0;
-  const isFinal = step === "beneficiary-docs";
+  const isFinal = step === "documents";
   
   // Check if current step is valid before allowing next
   const canProceedNext = step !== "lc-and-transfer" || (validateTransferAmount ? validateTransferAmount() : true);
