@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import RequestAssignmentProgressIndicator from './RequestAssignmentProgressIndicator';
 import RequestAssignmentPaneRenderer from './RequestAssignmentPaneRenderer';
 import RequestAssignmentFormActions from './RequestAssignmentFormActions';
@@ -26,11 +25,11 @@ const RequestAssignmentLayout: React.FC<RequestAssignmentLayoutProps> = (props) 
   return (
     <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+        <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
             Request Assignment - Article 39 UCP 600
-          </DialogTitle>
-        </DialogHeader>
+          </h1>
+        </div>
       </div>
 
       <div className="px-6 py-6">
