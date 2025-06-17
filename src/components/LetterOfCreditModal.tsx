@@ -7,6 +7,7 @@ import ExportLCModalContent from "./export-lc/ExportLCModalContent";
 import ReviewPreAdvicedLCForm from "./export-lc/ReviewPreAdvicedLCForm";
 import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
 import RequestLCTransferForm from "./export-lc/RequestLCTransferForm";
+import RequestAssignmentForm from "./export-lc/RequestAssignmentForm";
 
 interface LetterOfCreditModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const [reviewManualFullScreen, setReviewManualFullScreen] = useState(false);
   const [amendmentResponseFullScreen, setAmendmentResponseFullScreen] = useState(false);
   const [transferFullScreen, setTransferFullScreen] = useState(false);
+  const [assignmentFullScreen, setAssignmentFullScreen] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -64,6 +66,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     // Do not call onClose() unless user wants to fully exit.
   };
 
+  const handleAssignmentFullScreen = () => {
+    setAssignmentFullScreen(true);
+  };
+  const handleAssignmentFullScreenClose = () => {
+    setAssignmentFullScreen(false);
+    // Do not call onClose() unless user wants to fully exit.
+  };
+
   if (type === "export") {
     if (reviewManualFullScreen) {
       return (
@@ -100,6 +110,16 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       );
     }
 
+    if (assignmentFullScreen) {
+      return (
+        <div className="fixed inset-0 z-50 bg-background">
+          <RequestAssignmentForm
+            onClose={handleAssignmentFullScreenClose}
+          />
+        </div>
+      );
+    }
+
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
@@ -115,6 +135,9 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
               onAmendmentResponseFullScreen={handleAmendmentResponseFullScreen}
               onRequestTransferFullScreen={() => {
                 setTransferFullScreen(true);
+              }}
+              onRequestAssignmentFullScreen={() => {
+                setAssignmentFullScreen(true);
               }}
             />
           </div>
