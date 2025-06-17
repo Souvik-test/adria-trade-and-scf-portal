@@ -450,6 +450,83 @@ export type Database = {
         }
         Relationships: []
       }
+      lc_transfer_requests: {
+        Row: {
+          amount: number | null
+          applicant: string | null
+          created_at: string | null
+          currency: string | null
+          current_beneficiary: string | null
+          expiry_date: string | null
+          id: string
+          issuance_date: string | null
+          issuing_bank: string | null
+          lc_reference: string
+          new_beneficiaries: Json | null
+          request_reference: string
+          required_documents: string[] | null
+          required_documents_checked: Json | null
+          status: string | null
+          supporting_documents: Json | null
+          transfer_conditions: string | null
+          transfer_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          applicant?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_beneficiary?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuance_date?: string | null
+          issuing_bank?: string | null
+          lc_reference: string
+          new_beneficiaries?: Json | null
+          request_reference: string
+          required_documents?: string[] | null
+          required_documents_checked?: Json | null
+          status?: string | null
+          supporting_documents?: Json | null
+          transfer_conditions?: string | null
+          transfer_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          applicant?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_beneficiary?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuance_date?: string | null
+          issuing_bank?: string | null
+          lc_reference?: string
+          new_beneficiaries?: Json | null
+          request_reference?: string
+          required_documents?: string[] | null
+          required_documents_checked?: Json | null
+          status?: string | null
+          supporting_documents?: Json | null
+          transfer_conditions?: string | null
+          transfer_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -794,6 +871,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_lc_transfer_ref: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_transaction_ref: {
         Args: { product_type: string }
         Returns: string

@@ -1,8 +1,11 @@
 
 import { useState } from 'react';
 import { LCTransferFormData, LCTransferFormStep, transferStepOrder, NewBeneficiary } from '@/types/exportLCTransfer';
+import { saveLCTransferRequest } from '@/services/lcTransferService';
+import { useToast } from '@/hooks/use-toast';
 
 export const useRequestLCTransferForm = (onClose: () => void) => {
+  const { toast } = useToast();
   const [step, setStep] = useState<LCTransferFormStep>('lc-and-transfer');
   const [form, setForm] = useState<LCTransferFormData>({
     lcReference: '',
@@ -84,9 +87,26 @@ export const useRequestLCTransferForm = (onClose: () => void) => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Submitting LC Transfer Request:', form);
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      const result = await saveLCTransferRequest(form);
+      console.log('LC Transfer Request submitted:', result);
+      
+      toast({
+        title: "Success",
+        description: `LC Transfer request submitted successfully. Reference: ${result.request_reference}`,
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error submitting LC Transfer request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit LC Transfer request. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   return {

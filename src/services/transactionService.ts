@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
 import { getProductAndProcessType } from './processTypeMapping';
