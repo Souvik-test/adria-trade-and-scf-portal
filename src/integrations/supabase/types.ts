@@ -9,6 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assignment_requests: {
+        Row: {
+          amount: number | null
+          applicant: string | null
+          assignee_account_number: string | null
+          assignee_address: string | null
+          assignee_bank_address: string | null
+          assignee_bank_name: string | null
+          assignee_country: string | null
+          assignee_name: string | null
+          assignee_swift_code: string | null
+          assignment_amount: number | null
+          assignment_conditions: string | null
+          assignment_percentage: number | null
+          assignment_purpose: string | null
+          assignment_type: string | null
+          created_at: string | null
+          currency: string | null
+          current_beneficiary: string | null
+          expiry_date: string | null
+          id: string
+          issuance_date: string | null
+          issuing_bank: string | null
+          lc_reference: string
+          request_reference: string
+          required_documents: string[] | null
+          required_documents_checked: Json | null
+          status: string | null
+          supporting_documents: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          applicant?: string | null
+          assignee_account_number?: string | null
+          assignee_address?: string | null
+          assignee_bank_address?: string | null
+          assignee_bank_name?: string | null
+          assignee_country?: string | null
+          assignee_name?: string | null
+          assignee_swift_code?: string | null
+          assignment_amount?: number | null
+          assignment_conditions?: string | null
+          assignment_percentage?: number | null
+          assignment_purpose?: string | null
+          assignment_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_beneficiary?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuance_date?: string | null
+          issuing_bank?: string | null
+          lc_reference: string
+          request_reference: string
+          required_documents?: string[] | null
+          required_documents_checked?: Json | null
+          status?: string | null
+          supporting_documents?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          applicant?: string | null
+          assignee_account_number?: string | null
+          assignee_address?: string | null
+          assignee_bank_address?: string | null
+          assignee_bank_name?: string | null
+          assignee_country?: string | null
+          assignee_name?: string | null
+          assignee_swift_code?: string | null
+          assignment_amount?: number | null
+          assignment_conditions?: string | null
+          assignment_percentage?: number | null
+          assignment_purpose?: string | null
+          assignment_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          current_beneficiary?: string | null
+          expiry_date?: string | null
+          id?: string
+          issuance_date?: string | null
+          issuing_bank?: string | null
+          lc_reference?: string
+          request_reference?: string
+          required_documents?: string[] | null
+          required_documents_checked?: Json | null
+          status?: string | null
+          supporting_documents?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_users: {
         Row: {
           corporate_id: string | null
@@ -871,6 +967,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_assignment_ref: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_lc_transfer_ref: {
         Args: Record<PropertyKey, never>
         Returns: string

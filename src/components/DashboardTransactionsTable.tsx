@@ -78,12 +78,13 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fix: Support correct filtering for new product types including LC Transfer
+  // Updated filtering to include Assignment Request
   const filteredTransactions = transactions.filter((transaction) => {
     if (transactionFilter === "all") return true;
     if (transactionFilter === "import-lc") return transaction.product_type === "Import LC";
     if (transactionFilter === "export-lc") return transaction.product_type === "Export LC";
     if (transactionFilter === "lc-transfer") return transaction.product_type === "Export LC" && transaction.process_type === "LC Transfer";
+    if (transactionFilter === "assignment-request") return transaction.product_type === "Export LC" && transaction.process_type === "Assignment Request";
     if (transactionFilter === "po") return transaction.product_type === "PO";
     if (transactionFilter === "pi") return transaction.product_type === "PI";
     if (transactionFilter === "invoice") return transaction.product_type === "Invoice";
@@ -133,6 +134,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                 <SelectItem value="import-lc">Import Letter of Credit</SelectItem>
                 <SelectItem value="export-lc">Export Letter of Credit</SelectItem>
                 <SelectItem value="lc-transfer">LC Transfer</SelectItem>
+                <SelectItem value="assignment-request">Assignment Request</SelectItem>
                 <SelectItem value="po">Purchase Order (PO)</SelectItem>
                 <SelectItem value="pi">Proforma Invoice (PI)</SelectItem>
                 <SelectItem value="invoice">Invoice</SelectItem>
@@ -193,7 +195,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   ) : (
                     <tr>
                       <td colSpan={9} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                        No transactions found. Create your first PO, PI, Invoice, Import LC, or LC Transfer to see them here.
+                        No transactions found. Create your first PO, PI, Invoice, Import LC, LC Transfer, or Assignment Request to see them here.
                       </td>
                     </tr>
                   )}

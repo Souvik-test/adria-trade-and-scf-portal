@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { AssignmentFormData, AssignmentFormStep, assignmentStepOrder } from '@/types/exportLCAssignment';
 import { useToast } from '@/hooks/use-toast';
+import { saveAssignmentRequest } from '@/services/assignmentService';
 
 export const useRequestAssignmentForm = (onClose: () => void) => {
   const { toast } = useToast();
@@ -15,7 +16,7 @@ export const useRequestAssignmentForm = (onClose: () => void) => {
     amount: '',
     expiryDate: '',
     currentBeneficiary: '',
-    assignmentType: 'Proceeds',
+    assignmentType: 'Assignment of Proceeds',
     assignmentAmount: '',
     assignmentPercentage: '',
     assignee: {
@@ -65,9 +66,11 @@ export const useRequestAssignmentForm = (onClose: () => void) => {
     try {
       console.log('Assignment Request submitted:', form);
       
+      const assignment = await saveAssignmentRequest(form);
+      
       toast({
         title: "Success",
-        description: "Assignment request submitted successfully.",
+        description: `Assignment request submitted successfully. Reference: ${assignment.request_reference}`,
       });
       
       onClose();
