@@ -1,42 +1,115 @@
 
-import React from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AssignmentFormData } from '@/types/exportLCAssignment';
 
-const LCInformationPane = ({ form }: { form: any }) => (
-  <div className="bg-card border rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
-    <h2 className="text-lg font-semibold mb-6">LC Information</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <Label className="mb-1 block">LC Reference</Label>
-        <Input value={form.form.lcReference} onChange={e => form.updateField({ lcReference: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Issuing Bank</Label>
-        <Input value={form.form.issuingBank} onChange={e => form.updateField({ issuingBank: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Applicant</Label>
-        <Input value={form.form.applicant} onChange={e => form.updateField({ applicant: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Current Beneficiary</Label>
-        <Input value={form.form.currentBeneficiary} onChange={e => form.updateField({ currentBeneficiary: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Currency</Label>
-        <Input value={form.form.currency} onChange={e => form.updateField({ currency: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Amount</Label>
-        <Input type="number" value={form.form.amount} onChange={e => form.updateField({ amount: e.target.value })} />
-      </div>
-      <div>
-        <Label className="mb-1 block">Expiry Date</Label>
-        <Input type="date" value={form.form.expiryDate} onChange={e => form.updateField({ expiryDate: e.target.value })} />
-      </div>
+interface LCInformationPaneProps {
+  form: AssignmentFormData;
+  updateField: (updates: Partial<AssignmentFormData>) => void;
+}
+
+const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField }) => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+            Letter of Credit Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="lcReference">LC Reference Number *</Label>
+            <Input
+              id="lcReference"
+              value={form.lcReference}
+              onChange={(e) => updateField({ lcReference: e.target.value })}
+              placeholder="Enter LC reference number"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="issuingBank">Issuing Bank *</Label>
+            <Input
+              id="issuingBank"
+              value={form.issuingBank}
+              onChange={(e) => updateField({ issuingBank: e.target.value })}
+              placeholder="Enter issuing bank name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="issuanceDate">Issuance Date *</Label>
+            <Input
+              id="issuanceDate"
+              type="date"
+              value={form.issuanceDate}
+              onChange={(e) => updateField({ issuanceDate: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expiryDate">Expiry Date *</Label>
+            <Input
+              id="expiryDate"
+              type="date"
+              value={form.expiryDate}
+              onChange={(e) => updateField({ expiryDate: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="applicant">Applicant *</Label>
+            <Input
+              id="applicant"
+              value={form.applicant}
+              onChange={(e) => updateField({ applicant: e.target.value })}
+              placeholder="Enter applicant name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="currentBeneficiary">Current Beneficiary *</Label>
+            <Input
+              id="currentBeneficiary"
+              value={form.currentBeneficiary}
+              onChange={(e) => updateField({ currentBeneficiary: e.target.value })}
+              placeholder="Enter current beneficiary name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="currency">Currency *</Label>
+            <Select value={form.currency} onValueChange={(value) => updateField({ currency: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="GBP">GBP</SelectItem>
+                <SelectItem value="JPY">JPY</SelectItem>
+                <SelectItem value="AED">AED</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="amount">LC Amount *</Label>
+            <Input
+              id="amount"
+              value={form.amount}
+              onChange={(e) => updateField({ amount: e.target.value })}
+              placeholder="Enter LC amount"
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  </div>
-);
+  );
+};
 
 export default LCInformationPane;
