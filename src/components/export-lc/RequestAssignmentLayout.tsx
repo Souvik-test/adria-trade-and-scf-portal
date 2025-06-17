@@ -23,7 +23,7 @@ interface RequestAssignmentLayoutProps {
 
 const RequestAssignmentLayout: React.FC<RequestAssignmentLayoutProps> = (props) => {
   return (
-    <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
+    <div className="flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col space-y-1.5 text-center sm:text-left">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -39,11 +39,11 @@ const RequestAssignmentLayout: React.FC<RequestAssignmentLayoutProps> = (props) 
         />
       </div>
 
-      <div className="flex-1 px-6 pb-6">
+      <div className="flex-1 px-6 pb-6 overflow-y-auto">
         <RequestAssignmentPaneRenderer {...props} />
       </div>
 
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 sticky bottom-0">
         <RequestAssignmentFormActions {...props} />
       </div>
     </div>

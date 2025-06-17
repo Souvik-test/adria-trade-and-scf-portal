@@ -21,7 +21,7 @@ export interface AssignmentFormData {
   currentBeneficiary: string;
   
   // Assignment Details
-  assignmentType: 'Proceeds' | 'Rights';
+  assignmentType: 'Proceeds'; // Fixed to Proceeds only
   assignmentAmount: string;
   assignmentPercentage: string;
   assignee: AssigneeDetails;

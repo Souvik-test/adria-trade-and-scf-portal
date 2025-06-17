@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AssignmentFormData } from '@/types/exportLCAssignment';
 
@@ -13,6 +12,17 @@ interface AssignmentDetailsPaneProps {
 }
 
 const AssignmentDetailsPane: React.FC<AssignmentDetailsPaneProps> = ({ form, updateField }) => {
+  const lcAmount = parseFloat(form.amount) || 0;
+  const assignmentAmount = parseFloat(form.assignmentAmount) || 0;
+  const isAmountValid = assignmentAmount <= lcAmount;
+
+  const handleAssignmentAmountChange = (value: string) => {
+    const numValue = parseFloat(value) || 0;
+    if (numValue <= lcAmount) {
+      updateField({ assignmentAmount: value });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -25,37 +35,43 @@ const AssignmentDetailsPane: React.FC<AssignmentDetailsPaneProps> = ({ form, upd
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="assignmentType">Assignment Type *</Label>
-              <Select 
-                value={form.assignmentType} 
-                onValueChange={(value: 'Proceeds' | 'Rights') => updateField({ assignmentType: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select assignment type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Proceeds">Assignment of Proceeds</SelectItem>
-                  <SelectItem value="Rights">Assignment of Rights</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md border">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Assignment of Proceeds
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="assignmentAmount">Assignment Amount</Label>
+              <Label htmlFor="assignmentAmount">
+                Assignment Amount (Max: {form.currency} {form.amount})
+              </Label>
               <Input
                 id="assignmentAmount"
+                type="number"
                 value={form.assignmentAmount}
-                onChange={(e) => updateField({ assignmentAmount: e.target.value })}
+                onChange={(e) => handleAssignmentAmountChange(e.target.value)}
                 placeholder="Enter assignment amount"
+                max={lcAmount}
+                className={!isAmountValid ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {!isAmountValid && assignmentAmount > 0 && (
+                <p className="text-sm text-red-600">
+                  Assignment amount cannot exceed LC amount of {form.currency} {form.amount}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="assignmentPercentage">Assignment Percentage (%)</Label>
               <Input
                 id="assignmentPercentage"
+                type="number"
                 value={form.assignmentPercentage}
                 onChange={(e) => updateField({ assignmentPercentage: e.target.value })}
                 placeholder="Enter percentage (e.g., 50)"
+                max="100"
+                min="0"
               />
             </div>
 
