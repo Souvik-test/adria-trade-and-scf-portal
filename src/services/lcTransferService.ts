@@ -31,6 +31,18 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
       type: file.type
     }));
 
+    // Convert new beneficiaries to JSON-compatible format
+    const newBeneficiariesJson = formData.newBeneficiaries.map(beneficiary => ({
+      name: beneficiary.name || '',
+      address: beneficiary.address || '',
+      country: beneficiary.country || '',
+      bankName: beneficiary.bankName || '',
+      bankAddress: beneficiary.bankAddress || '',
+      swiftCode: beneficiary.swiftCode || '',
+      accountNumber: beneficiary.accountNumber || '',
+      transferAmount: beneficiary.transferAmount || ''
+    }));
+
     // Insert LC Transfer request
     const { data: request, error: requestError } = await supabase
       .from('lc_transfer_requests')
@@ -46,10 +58,10 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
         current_beneficiary: formData.currentBeneficiary,
         transfer_type: formData.transferType,
         transfer_conditions: formData.transferConditions,
-        new_beneficiaries: formData.newBeneficiaries,
+        new_beneficiaries: newBeneficiariesJson as any,
         required_documents: formData.requiredDocuments,
-        supporting_documents: supportingDocuments,
-        required_documents_checked: formData.requiredDocumentsChecked,
+        supporting_documents: supportingDocuments as any,
+        required_documents_checked: formData.requiredDocumentsChecked as any,
         request_reference: requestReference,
         status: 'submitted'
       })
