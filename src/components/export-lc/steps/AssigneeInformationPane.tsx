@@ -14,94 +14,96 @@ interface AssigneeInformationPaneProps {
 
 const AssigneeInformationPane: React.FC<AssigneeInformationPaneProps> = ({ form, updateAssignee }) => {
   return (
-    <ScrollArea className="h-full">
-      <div className="space-y-6 p-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-              Assignee Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="h-full flex flex-col">
+      <ScrollArea className="flex-1">
+        <div className="space-y-6 p-1 pb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">
+                Assignee Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="assigneeName">Assignee Name *</Label>
+                  <Input
+                    id="assigneeName"
+                    value={form.assignee.name}
+                    onChange={(e) => updateAssignee({ name: e.target.value })}
+                    placeholder="Enter assignee name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="assigneeCountry">Country *</Label>
+                  <Input
+                    id="assigneeCountry"
+                    value={form.assignee.country}
+                    onChange={(e) => updateAssignee({ country: e.target.value })}
+                    placeholder="Enter country"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="assigneeName">Assignee Name *</Label>
-                <Input
-                  id="assigneeName"
-                  value={form.assignee.name}
-                  onChange={(e) => updateAssignee({ name: e.target.value })}
-                  placeholder="Enter assignee name"
+                <Label htmlFor="assigneeAddress">Address *</Label>
+                <Textarea
+                  id="assigneeAddress"
+                  value={form.assignee.address}
+                  onChange={(e) => updateAssignee({ address: e.target.value })}
+                  placeholder="Enter complete address"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="assigneeBankName">Bank Name *</Label>
+                  <Input
+                    id="assigneeBankName"
+                    value={form.assignee.bankName}
+                    onChange={(e) => updateAssignee({ bankName: e.target.value })}
+                    placeholder="Enter bank name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="assigneeSwiftCode">SWIFT Code *</Label>
+                  <Input
+                    id="assigneeSwiftCode"
+                    value={form.assignee.swiftCode}
+                    onChange={(e) => updateAssignee({ swiftCode: e.target.value })}
+                    placeholder="Enter SWIFT code"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assigneeBankAddress">Bank Address *</Label>
+                <Textarea
+                  id="assigneeBankAddress"
+                  value={form.assignee.bankAddress}
+                  onChange={(e) => updateAssignee({ bankAddress: e.target.value })}
+                  placeholder="Enter bank address"
+                  rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assigneeCountry">Country *</Label>
+                <Label htmlFor="assigneeAccountNumber">Account Number *</Label>
                 <Input
-                  id="assigneeCountry"
-                  value={form.assignee.country}
-                  onChange={(e) => updateAssignee({ country: e.target.value })}
-                  placeholder="Enter country"
+                  id="assigneeAccountNumber"
+                  value={form.assignee.accountNumber}
+                  onChange={(e) => updateAssignee({ accountNumber: e.target.value })}
+                  placeholder="Enter account number"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assigneeAddress">Address *</Label>
-              <Textarea
-                id="assigneeAddress"
-                value={form.assignee.address}
-                onChange={(e) => updateAssignee({ address: e.target.value })}
-                placeholder="Enter complete address"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="assigneeBankName">Bank Name *</Label>
-                <Input
-                  id="assigneeBankName"
-                  value={form.assignee.bankName}
-                  onChange={(e) => updateAssignee({ bankName: e.target.value })}
-                  placeholder="Enter bank name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assigneeSwiftCode">SWIFT Code *</Label>
-                <Input
-                  id="assigneeSwiftCode"
-                  value={form.assignee.swiftCode}
-                  onChange={(e) => updateAssignee({ swiftCode: e.target.value })}
-                  placeholder="Enter SWIFT code"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assigneeBankAddress">Bank Address *</Label>
-              <Textarea
-                id="assigneeBankAddress"
-                value={form.assignee.bankAddress}
-                onChange={(e) => updateAssignee({ bankAddress: e.target.value })}
-                placeholder="Enter bank address"
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assigneeAccountNumber">Account Number *</Label>
-              <Input
-                id="assigneeAccountNumber"
-                value={form.assignee.accountNumber}
-                onChange={(e) => updateAssignee({ accountNumber: e.target.value })}
-                placeholder="Enter account number"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 

@@ -23,8 +23,8 @@ interface RequestAssignmentLayoutProps {
 
 const RequestAssignmentLayout: React.FC<RequestAssignmentLayoutProps> = (props) => {
   return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-900 min-h-screen">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-900 h-screen">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex flex-col space-y-1.5 text-center sm:text-left">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
             Request Assignment - Article 39 UCP 600
@@ -32,18 +32,18 @@ const RequestAssignmentLayout: React.FC<RequestAssignmentLayoutProps> = (props) 
         </div>
       </div>
 
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 flex-shrink-0">
         <RequestAssignmentProgressIndicator
           currentStep={props.stepIdx}
           totalSteps={5}
         />
       </div>
 
-      <div className="flex-1 px-6 pb-6 overflow-y-auto">
+      <div className="flex-1 px-6 overflow-hidden min-h-0">
         <RequestAssignmentPaneRenderer {...props} />
       </div>
 
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 sticky bottom-0">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0">
         <RequestAssignmentFormActions {...props} />
       </div>
     </div>
