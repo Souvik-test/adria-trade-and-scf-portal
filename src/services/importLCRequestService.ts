@@ -18,10 +18,17 @@ export const fetchSubmittedImportLCRequests = async (searchTerm?: string): Promi
   try {
     console.log('Fetching Import LC requests with search term:', searchTerm);
     
-    // Build the query without user restrictions to show all submitted LCs
+    // Ensure user is authenticated
+    const user = customAuth.getSession()?.user;
+    if (!user) {
+      console.error('User not authenticated');
+      return [];
+    }
+
+    // Build the query to fetch submitted LCs (now accessible due to updated RLS policy)
     let query = supabase
       .from('import_lc_requests')
-      .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount')
+      .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount, issuing_bank')
       .eq('status', 'submitted')
       .order('created_at', { ascending: false });
 

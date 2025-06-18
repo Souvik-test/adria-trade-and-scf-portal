@@ -30,6 +30,11 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
       const data = await fetchSubmittedImportLCRequests(search);
       console.log('Loaded Import LC requests count:', data.length);
       console.log('Sample data:', data.slice(0, 3));
+      
+      if (data.length === 0) {
+        console.warn('No submitted Import LC requests found. Check if there are any submitted LCs in the database.');
+      }
+      
       setLCRequests(data);
     } catch (error) {
       console.error('Error fetching Import LC requests:', error);
@@ -88,7 +93,7 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
               <CommandEmpty>Loading...</CommandEmpty>
             ) : lcRequests.length === 0 ? (
               <CommandEmpty>
-                {searchTerm ? `No Import LC requests found matching "${searchTerm}"` : 'No submitted Import LC requests found.'}
+                {searchTerm ? `No Import LC requests found matching "${searchTerm}"` : 'No submitted Import LC requests found. Please ensure there are submitted LCs in the system.'}
               </CommandEmpty>
             ) : (
               <CommandGroup>
