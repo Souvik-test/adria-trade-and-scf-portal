@@ -15,37 +15,32 @@ export interface ImportLCRequest {
 }
 
 export const fetchSubmittedImportLCRequests = async (searchTerm?: string): Promise<ImportLCRequest[]> => {
-  const user = customAuth.getSession()?.user;
-  if (!user) {
-    throw new Error('User not authenticated');
+  try {
+    console.log('Fetching Import LC requests with search term:', searchTerm);
+    
+    // Build the query without user restrictions to show all submitted LCs
+    let query = supabase
+      .from('import_lc_requests')
+      .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount')
+      .eq('status', 'submitted')
+      .order('created_at', { ascending: false });
+
+    // Apply search filter if provided
+    if (searchTerm && searchTerm.trim()) {
+      query = query.ilike('corporate_reference', `%${searchTerm}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching Import LC requests:', error);
+      throw error;
+    }
+
+    console.log('Fetched Import LC requests:', data);
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch Import LC requests:', error);
+    return [];
   }
-
-  // Set the user context for RLS using a direct query
-  const { error: configError } = await supabase
-    .from('custom_users')
-    .select('id')
-    .eq('user_id', user.user_id)
-    .limit(1);
-
-  if (configError) {
-    console.error('User context error:', configError);
-  }
-
-  let query = supabase
-    .from('import_lc_requests')
-    .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount')
-    .eq('status', 'submitted')
-    .order('created_at', { ascending: false });
-
-  if (searchTerm && searchTerm.trim()) {
-    query = query.ilike('corporate_reference', `%${searchTerm}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw error;
-  }
-
-  return data || [];
 };

@@ -28,7 +28,8 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
     try {
       console.log('Loading Import LC requests with search term:', search);
       const data = await fetchSubmittedImportLCRequests(search);
-      console.log('Loaded Import LC requests:', data);
+      console.log('Loaded Import LC requests count:', data.length);
+      console.log('Sample data:', data.slice(0, 3));
       setLCRequests(data);
     } catch (error) {
       console.error('Error fetching Import LC requests:', error);
