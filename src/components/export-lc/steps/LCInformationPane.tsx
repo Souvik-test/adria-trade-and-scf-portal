@@ -24,9 +24,7 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
       applicant: lc.applicant_name || '',
       currentBeneficiary: lc.beneficiary_name || '',
       currency: lc.currency || 'USD',
-      amount: lc.lc_amount ? lc.lc_amount.toString() : '',
-      // Only update issuing bank if data exists
-      ...(lc.issuing_bank && { issuingBank: lc.issuing_bank })
+      amount: lc.lc_amount ? lc.lc_amount.toString() : ''
     });
   };
 

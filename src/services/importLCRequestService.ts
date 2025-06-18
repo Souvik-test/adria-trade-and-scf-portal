@@ -11,7 +11,6 @@ export interface ImportLCRequest {
   beneficiary_name: string | null;
   currency: string | null;
   lc_amount: number | null;
-  issuing_bank?: string | null;
 }
 
 export const fetchSubmittedImportLCRequests = async (searchTerm?: string): Promise<ImportLCRequest[]> => {
@@ -28,7 +27,7 @@ export const fetchSubmittedImportLCRequests = async (searchTerm?: string): Promi
     // Build the query to fetch submitted LCs (now accessible due to updated RLS policy)
     let query = supabase
       .from('import_lc_requests')
-      .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount, issuing_bank')
+      .select('id, corporate_reference, issue_date, expiry_date, applicant_name, beneficiary_name, currency, lc_amount')
       .eq('status', 'submitted')
       .order('created_at', { ascending: false });
 
