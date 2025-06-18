@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AssignmentFormData } from '@/types/exportLCAssignment';
+import ImportLCSearchDropdown from '../ImportLCSearchDropdown';
+import { ImportLCRequest } from '@/services/importLCRequestService';
 
 interface LCInformationPaneProps {
   form: AssignmentFormData;
@@ -12,6 +14,22 @@ interface LCInformationPaneProps {
 }
 
 const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField }) => {
+  const handleLCSelection = (lc: ImportLCRequest) => {
+    console.log('Auto-populating form with LC data:', lc);
+    
+    updateField({
+      lcReference: lc.corporate_reference,
+      issuanceDate: lc.issue_date || '',
+      expiryDate: lc.expiry_date || '',
+      applicant: lc.applicant_name || '',
+      currentBeneficiary: lc.beneficiary_name || '',
+      currency: lc.currency || 'USD',
+      amount: lc.lc_amount ? lc.lc_amount.toString() : '',
+      // Only update issuing bank if data exists
+      ...(lc.issuing_bank && { issuingBank: lc.issuing_bank })
+    });
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -23,16 +41,15 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="lcReference">LC Reference Number *</Label>
-            <Input
-              id="lcReference"
+            <ImportLCSearchDropdown
               value={form.lcReference}
-              onChange={(e) => updateField({ lcReference: e.target.value })}
-              placeholder="Enter LC reference number"
+              onSelect={handleLCSelection}
+              placeholder="Search and select LC reference"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="issuingBank">Issuing Bank *</Label>
+            <Label htmlFor="issuingBank">Issuing Bank</Label>
             <Input
               id="issuingBank"
               value={form.issuingBank}
