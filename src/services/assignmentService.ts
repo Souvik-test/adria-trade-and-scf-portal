@@ -4,8 +4,20 @@ import { getCurrentUserAsync } from './database';
 import { AssignmentFormData } from '@/types/exportLCAssignment';
 
 export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  // Get current authenticated user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('User not authenticated');
+
+  // Get the user profile from custom_users table
+  const { data: userProfile, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !userProfile) {
+    throw new Error('User profile not found');
+  }
 
   try {
     console.log('Saving assignment request with data:', formData);
@@ -22,19 +34,19 @@ export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
 
     // Prepare the insert data
     const insertData = {
-      user_id: user.id,
+      user_id: userProfile.id,
       request_reference: assignmentRef,
       lc_reference: formData.lcReference || '',
       issuing_bank: formData.issuingBank || '',
       issuance_date: formData.issuanceDate || null,
       applicant: formData.applicant || '',
       currency: formData.currency || 'USD',
-      amount: formData.amount ? parseFloat(formData.amount) : null,
+      amount: formData.amount ? parseFloat(formData.amount.toString()) : null,
       expiry_date: formData.expiryDate || null,
       current_beneficiary: formData.currentBeneficiary || '',
       assignment_type: formData.assignmentType || 'Assignment of Proceeds',
-      assignment_amount: formData.assignmentAmount ? parseFloat(formData.assignmentAmount) : null,
-      assignment_percentage: formData.assignmentPercentage ? parseFloat(formData.assignmentPercentage) : null,
+      assignment_amount: formData.assignmentAmount ? parseFloat(formData.assignmentAmount.toString()) : null,
+      assignment_percentage: formData.assignmentPercentage ? parseFloat(formData.assignmentPercentage.toString()) : null,
       assignment_conditions: formData.assignmentConditions || '',
       assignment_purpose: formData.assignmentPurpose || '',
       assignee_name: formData.assignee?.name || '',

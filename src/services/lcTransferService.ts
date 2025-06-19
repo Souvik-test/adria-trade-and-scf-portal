@@ -4,8 +4,20 @@ import { getCurrentUserAsync } from './database';
 import { LCTransferFormData } from '@/types/exportLCTransfer';
 
 export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  // Get current authenticated user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('User not authenticated');
+
+  // Get the user profile from user_profiles table
+  const { data: userProfile, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !userProfile) {
+    throw new Error('User profile not found');
+  }
 
   try {
     console.log('Saving LC transfer request with data:', formData);
@@ -35,18 +47,18 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
       bankAddress: beneficiary.bankAddress || '',
       swiftCode: beneficiary.swiftCode || '',
       accountNumber: beneficiary.accountNumber || '',
-      transferAmount: beneficiary.transferAmount || ''
+      transferAmount: beneficiary.transferAmount ? parseFloat(beneficiary.transferAmount.toString()) : 0
     })) || [];
 
     // Prepare the insert data
     const insertData = {
-      user_id: user.id,
+      user_id: userProfile.id,
       lc_reference: formData.lcReference || '',
       issuing_bank: formData.issuingBank || '',
       issuance_date: formData.issuanceDate || null,
       applicant: formData.applicant || '',
       currency: formData.currency || 'USD',
-      amount: formData.amount ? Number(formData.amount) : null,
+      amount: formData.amount ? parseFloat(formData.amount.toString()) : null,
       expiry_date: formData.expiryDate || null,
       current_beneficiary: formData.currentBeneficiary || '',
       transfer_type: formData.transferType || 'Full',
@@ -82,14 +94,26 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
 };
 
 export const fetchLCTransferRequests = async () => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  // Get current authenticated user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('User not authenticated');
+
+  // Get the user profile from user_profiles table
+  const { data: userProfile, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !userProfile) {
+    throw new Error('User profile not found');
+  }
 
   try {
     const { data, error } = await supabase
       .from('lc_transfer_requests')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userProfile.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
