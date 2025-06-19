@@ -27,6 +27,7 @@ export interface ImportLCFormData {
   expiryDate: string;
   placeOfExpiry: string;
   confirmation: string;
+  issuingBank?: string;
 
   // Party Information (updated structure)
   parties: PartyDetail[];

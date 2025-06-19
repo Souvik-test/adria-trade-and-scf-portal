@@ -53,6 +53,8 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               value={form.issuingBank}
               onChange={(e) => updateField({ issuingBank: e.target.value })}
               placeholder="Enter issuing bank name"
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
 
@@ -63,6 +65,8 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               type="date"
               value={form.issuanceDate}
               onChange={(e) => updateField({ issuanceDate: e.target.value })}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
 
@@ -73,6 +77,8 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               type="date"
               value={form.expiryDate}
               onChange={(e) => updateField({ expiryDate: e.target.value })}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
 
@@ -83,6 +89,8 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               value={form.applicant}
               onChange={(e) => updateField({ applicant: e.target.value })}
               placeholder="Enter applicant name"
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
 
@@ -93,13 +101,15 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               value={form.currentBeneficiary}
               onChange={(e) => updateField({ currentBeneficiary: e.target.value })}
               placeholder="Enter current beneficiary name"
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="currency">Currency *</Label>
-            <Select value={form.currency} onValueChange={(value) => updateField({ currency: value })}>
-              <SelectTrigger>
+            <Select value={form.currency} onValueChange={(value) => updateField({ currency: value })} disabled>
+              <SelectTrigger className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
@@ -119,6 +129,8 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
               value={form.amount}
               onChange={(e) => updateField({ amount: e.target.value })}
               placeholder="Enter LC amount"
+              readOnly
+              className="bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
             />
           </div>
         </CardContent>

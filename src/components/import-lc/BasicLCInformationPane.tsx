@@ -102,6 +102,15 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
             </div>
 
             <div>
+              <SwiftTagLabel tag=":52A:" label="Issuing Bank" />
+              <Input
+                value={formData.issuingBank || ''}
+                onChange={(e) => updateField('issuingBank', e.target.value)}
+                placeholder="Enter issuing bank name"
+              />
+            </div>
+
+            <div>
               <SwiftTagLabel tag=":31D:" label="Expiry Date" required />
               <Input
                 type="date"
@@ -110,7 +119,7 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <SwiftTagLabel tag=":31D:" label="Place of Expiry" required />
               <Input
                 value={formData.placeOfExpiry}
