@@ -19,6 +19,7 @@ const LCInformationPane: React.FC<LCInformationPaneProps> = ({ form, updateField
     
     updateField({
       lcReference: lc.corporate_reference,
+      issuingBank: lc.issuing_bank || '',
       issuanceDate: lc.issue_date || '',
       expiryDate: lc.expiry_date || '',
       applicant: lc.applicant_name || '',

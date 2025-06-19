@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -113,14 +114,14 @@ serve(async (req) => {
       const transactionInsertData = {
         user_id: dbUserId,
         transaction_ref: formData.corporate_reference || "",
-        product_type: "Import LC", // CHANGED: Was "LC", now matches requirement
+        product_type: "Import LC",
+        process_type: "Request Issuance", // Consistently set process_type for Import LC
         status: "Submitted",
         customer_name: formData.applicant_name || "",
         amount: Number(formData.lc_amount ?? 0),
         currency: formData.currency || "USD",
         created_by: userFullName,
         initiating_channel: "Portal"
-        // Add additional needed fields as mapped in the transactions table if needed
       };
 
       const txnResp = await fetch(

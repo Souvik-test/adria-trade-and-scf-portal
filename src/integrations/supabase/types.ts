@@ -288,6 +288,7 @@ export type Database = {
           id: string
           is_transferable: boolean | null
           issue_date: string | null
+          issuing_bank: string | null
           latest_shipment_date: string | null
           lc_amount: number | null
           lc_type: string | null
@@ -329,6 +330,7 @@ export type Database = {
           id?: string
           is_transferable?: boolean | null
           issue_date?: string | null
+          issuing_bank?: string | null
           latest_shipment_date?: string | null
           lc_amount?: number | null
           lc_type?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           id?: string
           is_transferable?: boolean | null
           issue_date?: string | null
+          issuing_bank?: string | null
           latest_shipment_date?: string | null
           lc_amount?: number | null
           lc_type?: string | null

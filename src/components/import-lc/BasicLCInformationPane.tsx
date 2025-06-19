@@ -41,8 +41,7 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="IRREVOCABLE">Irrevocable</SelectItem>
-                  <SelectItem value="TRANSFERABLE">Transferable</SelectItem>
-                  <SelectItem value="STANDBY">Stand-by</SelectItem>
+                  <SelectItem value="IRREVOCABLE TRANSFERABLE">Irrevocable Transferable</SelectItem>
                 </SelectContent>
               </Select>
             </div>

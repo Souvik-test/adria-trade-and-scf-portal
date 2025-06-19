@@ -14,6 +14,7 @@ export const buildInsertData = (user: User, formData: ImportLCFormData, status: 
     issue_date: formData.issueDate || null,
     expiry_date: formData.expiryDate || null,
     place_of_expiry: formData.placeOfExpiry || null,
+    issuing_bank: formData.issuingBank || null,
     applicant_name: formData.applicantName || null,
     applicant_address: formData.applicantAddress || null,
     applicant_account_number: formData.applicantAccountNumber || null,
