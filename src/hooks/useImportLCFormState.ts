@@ -34,6 +34,7 @@ const useImportLCFormState = () => {
     availableBy: '',
     partialShipmentsAllowed: false,
     transshipmentAllowed: false,
+    isTransferable: false,
     descriptionOfGoods: '',
     portOfLoading: '',
     portOfDischarge: '',
@@ -49,7 +50,7 @@ const useImportLCFormState = () => {
   const updateField = useCallback((field: keyof ImportLCFormData, value: string | number | boolean | File[] | PartyDetail[] | DocumentRequirement[]) => {
     setFormData(prev => {
       // Handle boolean fields explicitly to ensure type safety
-      if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed') {
+      if (field === 'partialShipmentsAllowed' || field === 'transshipmentAllowed' || field === 'isTransferable') {
         // Ensure we always get a proper boolean value
         const boolValue = typeof value === 'boolean' ? value : Boolean(value);
         return {
@@ -96,6 +97,7 @@ const useImportLCFormState = () => {
       availableBy: '',
       partialShipmentsAllowed: false,
       transshipmentAllowed: false,
+      isTransferable: false,
       descriptionOfGoods: '',
       portOfLoading: '',
       portOfDischarge: '',

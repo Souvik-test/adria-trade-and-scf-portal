@@ -52,6 +52,7 @@ export interface ImportLCFormData {
   availableBy: string;
   partialShipmentsAllowed: boolean;
   transshipmentAllowed: boolean;
+  isTransferable: boolean;
 
   // Shipment Details
   descriptionOfGoods: string;

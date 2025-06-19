@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -104,6 +105,27 @@ const LCAmountTermsPane: React.FC<LCAmountTermsPaneProps> = ({
                   step="0.01"
                 />
               </div>
+            </div>
+
+            {/* --- FIELD: Transferable --- */}
+            <div>
+              <SwiftTagLabel
+                tag=":40B:"
+                label="Transferable"
+                required={false}
+              />
+              <Select 
+                value={formData.isTransferable ? 'yes' : 'no'} 
+                onValueChange={(value) => updateField('isTransferable', value === 'yes')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select transferable option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* --- FIELD: Available With --- */}
