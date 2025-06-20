@@ -1,23 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentUserAsync } from './database';
 import { AssignmentFormData } from '@/types/exportLCAssignment';
 
 export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
   // Get current authenticated user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('User not authenticated');
-
-  // Get the user profile from custom_users table
-  const { data: userProfile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !userProfile) {
-    throw new Error('User profile not found');
-  }
 
   try {
     console.log('Saving assignment request with data:', formData);
@@ -32,9 +20,9 @@ export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
     }
     const assignmentRef = refData;
 
-    // Prepare the insert data
+    // Prepare the insert data - using user.id directly since it matches user_profiles.id
     const insertData = {
-      user_id: userProfile.id,
+      user_id: user.id, // This now correctly references user_profiles.id
       request_reference: assignmentRef,
       lc_reference: formData.lcReference || '',
       issuing_bank: formData.issuingBank || '',

@@ -1,23 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentUserAsync } from './database';
 import { LCTransferFormData } from '@/types/exportLCTransfer';
 
 export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
   // Get current authenticated user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('User not authenticated');
-
-  // Get the user profile from user_profiles table
-  const { data: userProfile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !userProfile) {
-    throw new Error('User profile not found');
-  }
 
   try {
     console.log('Saving LC transfer request with data:', formData);
@@ -50,9 +38,9 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
       transferAmount: beneficiary.transferAmount ? parseFloat(beneficiary.transferAmount.toString()) : 0
     })) || [];
 
-    // Prepare the insert data
+    // Prepare the insert data - using user.id directly since it matches user_profiles.id
     const insertData = {
-      user_id: userProfile.id,
+      user_id: user.id, // This now correctly references user_profiles.id
       lc_reference: formData.lcReference || '',
       issuing_bank: formData.issuingBank || '',
       issuance_date: formData.issuanceDate || null,
@@ -98,22 +86,11 @@ export const fetchLCTransferRequests = async () => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('User not authenticated');
 
-  // Get the user profile from user_profiles table
-  const { data: userProfile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !userProfile) {
-    throw new Error('User profile not found');
-  }
-
   try {
     const { data, error } = await supabase
       .from('lc_transfer_requests')
       .select('*')
-      .eq('user_id', userProfile.id)
+      .eq('user_id', user.id) // Using user.id directly
       .order('created_at', { ascending: false });
 
     if (error) throw error;

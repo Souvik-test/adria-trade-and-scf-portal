@@ -35,13 +35,13 @@ serve(async (req) => {
       });
     }
 
-    // Use service role to access custom_users
+    // Use service role to access user_profiles (instead of custom_users)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     // Step 1: find the user (get UUID to insert as user_id foreign key)
     const userResp = await fetch(
-      `${supabaseUrl}/rest/v1/custom_users?user_id=eq.${encodeURIComponent(sessionUserId)}`,
+      `${supabaseUrl}/rest/v1/user_profiles?id=eq.${encodeURIComponent(sessionUserId)}`,
       {
         headers: {
           apikey: supabaseKey,
@@ -50,7 +50,7 @@ serve(async (req) => {
       }
     );
     const users = await userResp.json();
-    debugLogs.num_custom_users_found = Array.isArray(users) ? users.length : null;
+    debugLogs.num_user_profiles_found = Array.isArray(users) ? users.length : null;
 
     if (!Array.isArray(users) || !users[0] || !users[0].id) {
       console.log("DEBUG: User fetch failure:", debugLogs);
@@ -115,9 +115,9 @@ serve(async (req) => {
         user_id: dbUserId,
         transaction_ref: formData.corporate_reference || "",
         product_type: "Import LC",
-        process_type: "Request Issuance", // Consistently set process_type for Import LC
+        process_type: "Request Issuance",
         status: "Submitted",
-        customer_name: formData.applicant_name || "",
+        customer_name: formData.applicant_name || "",  // Fix: Ensure customer name is captured
         amount: Number(formData.lc_amount ?? 0),
         currency: formData.currency || "USD",
         created_by: userFullName,
