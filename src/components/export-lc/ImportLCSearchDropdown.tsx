@@ -1,60 +1,70 @@
 
 import React, { useState, useEffect } from 'react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchSubmittedImportLCRequests, ImportLCRequest } from '@/services/importLCRequestService';
 
 interface ImportLCSearchDropdownProps {
-  value?: string;
-  onValueChange: (value: string, lcData?: ImportLCRequest) => void;
+  value: string;
+  onSelect: (lc: ImportLCRequest) => void;
   placeholder?: string;
 }
 
 const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
   value,
-  onValueChange,
-  placeholder = "Search LCs..."
+  onSelect,
+  placeholder = "Search LC Reference..."
 }) => {
   const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
-  const [lcRequests, setLcRequests] = useState<ImportLCRequest[]>([]);
+  const [lcRequests, setLCRequests] = useState<ImportLCRequest[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const loadLCRequests = async (search?: string) => {
+    setLoading(true);
+    try {
+      console.log('Loading Import LC requests with search term:', search);
+      const data = await fetchSubmittedImportLCRequests(search);
+      console.log('Loaded Import LC requests count:', data.length);
+      console.log('Sample data:', data.slice(0, 3));
+      
+      if (data.length === 0) {
+        console.warn('No submitted Import LC requests found. Check if there are any submitted LCs in the database.');
+      }
+      
+      setLCRequests(data);
+    } catch (error) {
+      console.error('Error fetching Import LC requests:', error);
+      setLCRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadLCs = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchSubmittedImportLCRequests(searchValue);
-        console.log('Loaded Import LCs:', data);
-        setLcRequests(data);
-      } catch (error) {
-        console.error('Error loading Import LCs:', error);
-      } finally {
-        setLoading(false);
+    if (open) {
+      console.log('Dropdown opened, loading all Import LC requests');
+      loadLCRequests();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (open) {
+        console.log('Search term changed to:', searchTerm);
+        loadLCRequests(searchTerm);
       }
-    };
+    }, 300);
 
-    loadLCs();
-  }, [searchValue]);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, open]);
 
-  const handleSelect = (lcReference: string) => {
-    const selectedLC = lcRequests.find(lc => lc.corporate_reference === lcReference);
-    console.log('Selected LC:', selectedLC);
-    onValueChange(lcReference, selectedLC);
+  const handleSelect = (lc: ImportLCRequest) => {
+    console.log('Selected Import LC:', lc);
+    onSelect(lc);
     setOpen(false);
   };
 
@@ -67,43 +77,48 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value ? lcRequests.find(lc => lc.corporate_reference === value)?.corporate_reference : placeholder}
+          {value || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
         <Command>
-          <CommandInput 
-            placeholder="Search LCs..." 
-            value={searchValue}
-            onValueChange={setSearchValue}
+          <CommandInput
+            placeholder="Search LC Reference..."
+            value={searchTerm}
+            onValueChange={setSearchTerm}
           />
           <CommandList>
-            <CommandEmpty>
-              {loading ? "Loading..." : "No LCs found."}
-            </CommandEmpty>
-            <CommandGroup>
-              {lcRequests.map((lc) => (
-                <CommandItem
-                  key={lc.id}
-                  value={lc.corporate_reference}
-                  onSelect={() => handleSelect(lc.corporate_reference)}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === lc.corporate_reference ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <div className="flex flex-col">
-                    <span className="font-medium">{lc.corporate_reference}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {lc.applicant_name} • {lc.currency} {lc.lc_amount?.toLocaleString()}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {loading ? (
+              <CommandEmpty>Loading...</CommandEmpty>
+            ) : lcRequests.length === 0 ? (
+              <CommandEmpty>
+                {searchTerm ? `No Import LC requests found matching "${searchTerm}"` : 'No submitted Import LC requests found. Please ensure there are submitted LCs in the system.'}
+              </CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {lcRequests.map((lc) => (
+                  <CommandItem
+                    key={lc.id}
+                    onSelect={() => handleSelect(lc)}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === lc.corporate_reference ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{lc.corporate_reference}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {lc.applicant_name} • {lc.currency} {lc.lc_amount?.toLocaleString()}
+                      </span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

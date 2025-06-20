@@ -5,14 +5,10 @@ import { LCTransferFormData } from '@/types/exportLCTransfer';
 export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
   // Get current authenticated user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    console.error('User authentication error:', userError);
-    throw new Error('User not authenticated');
-  }
+  if (userError || !user) throw new Error('User not authenticated');
 
   try {
     console.log('Saving LC transfer request with data:', formData);
-    console.log('Authenticated user:', user.id);
     
     // Generate reference number
     const { data: refData, error: refError } = await supabase.rpc('generate_lc_transfer_ref');
@@ -22,7 +18,6 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
     }
     
     const requestReference = refData as string;
-    console.log('Generated LC transfer reference:', requestReference);
 
     // Prepare supporting documents data
     const supportingDocuments = formData.supportingDocuments?.map(file => ({
@@ -75,12 +70,6 @@ export const saveLCTransferRequest = async (formData: LCTransferFormData) => {
 
     if (requestError) {
       console.error('Error inserting LC transfer request:', requestError);
-      console.error('Transfer error details:', {
-        code: requestError.code,
-        message: requestError.message,
-        details: requestError.details,
-        hint: requestError.hint
-      });
       throw requestError;
     }
 

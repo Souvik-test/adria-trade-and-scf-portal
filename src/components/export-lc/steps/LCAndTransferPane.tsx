@@ -1,175 +1,210 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import TransferableLCSearchDropdown from '../TransferableLCSearchDropdown';
-import { ImportLCRequest } from '@/services/importLCRequestService';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import LCSearchDropdown from "../LCSearchDropdown";
+import { TransferableLC } from "@/services/transferableLCService";
 
-interface LCAndTransferPaneProps {
-  form: any;
-}
+const LCAndTransferPane = ({ form }: { form: any }) => {
+  // Compute values for transfer logic as before
+  const lcAmount = (form.form.amount !== '' && !isNaN(Number(form.form.amount))) ? Number(form.form.amount) : 0;
+  const isFull = form.form.transferType === "Full";
 
-const LCAndTransferPane: React.FC<LCAndTransferPaneProps> = ({ form }) => {
-  const handleLCSelection = (lcReference: string, lcData?: ImportLCRequest) => {
-    console.log('LC selected in LCAndTransferPane:', lcReference, lcData);
-    
-    if (lcData) {
-      form.updateField({
-        lcReference,
-        issuingBank: lcData.issuing_bank || '',
-        issuanceDate: lcData.issue_date || '',
-        applicant: lcData.applicant_name || '',
-        currency: lcData.currency || 'USD',
-        amount: lcData.lc_amount?.toString() || '',
-        expiryDate: lcData.expiry_date || '',
-        currentBeneficiary: lcData.beneficiary_name || '' // Map beneficiary_name to currentBeneficiary
-      });
-      console.log('Form updated with LC data:', {
-        lcReference,
-        issuingBank: lcData.issuing_bank,
-        applicant: lcData.applicant_name,
-        currentBeneficiary: lcData.beneficiary_name
-      });
-    } else {
-      form.updateField({ lcReference });
-    }
+  // Validation for transfer amount - fix the type comparison
+  const transferAmount = Number(form.form.transferAmount) || 0;
+  const isTransferAmountValid = !form.form.transferType || form.form.transferType === "Full" || 
+    (form.form.transferType === "Partial" && transferAmount <= lcAmount);
+
+  const handleLCSelect = (lc: TransferableLC) => {
+    form.updateField({
+      lcReference: lc.corporate_reference,
+      issuanceDate: lc.issue_date || '',
+      applicant: lc.applicant_name || '',
+      currentBeneficiary: lc.beneficiary_name || '',
+      currency: lc.currency || '',
+      amount: lc.lc_amount || '',
+      expiryDate: lc.expiry_date || '',
+      // Reset transfer amount when LC changes
+      transferAmount: form.form.transferType === "Full" ? lc.lc_amount || '' : ''
+    });
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="space-y-8">
-        {/* LC Information Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>LC Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="lcReference">LC Reference *</Label>
-                <TransferableLCSearchDropdown
-                  value={form.form.lcReference}
-                  onValueChange={handleLCSelection}
-                  placeholder="Search transferable LCs..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="issuingBank">Issuing Bank</Label>
-                <Input
-                  id="issuingBank"
-                  value={form.form.issuingBank || ''}
-                  onChange={(e) => form.updateField({ issuingBank: e.target.value })}
-                  placeholder="Enter issuing bank"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="issuanceDate">Issuance Date</Label>
-                <Input
-                  id="issuanceDate"
-                  type="date"
-                  value={form.form.issuanceDate || ''}
-                  onChange={(e) => form.updateField({ issuanceDate: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="applicant">Applicant</Label>
-                <Input
-                  id="applicant"
-                  value={form.form.applicant || ''}
-                  onChange={(e) => form.updateField({ applicant: e.target.value })}
-                  placeholder="Enter applicant name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Select value={form.form.currency || 'USD'} onValueChange={(value) => form.updateField({ currency: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
-                    <SelectItem value="JPY">JPY</SelectItem>
-                    <SelectItem value="AED">AED</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={form.form.amount || ''}
-                  onChange={(e) => form.updateField({ amount: e.target.value })}
-                  placeholder="Enter LC amount"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expiryDate">Expiry Date</Label>
-                <Input
-                  id="expiryDate"
-                  type="date"
-                  value={form.form.expiryDate || ''}
-                  onChange={(e) => form.updateField({ expiryDate: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currentBeneficiary">Current Beneficiary</Label>
-                <Input
-                  id="currentBeneficiary"
-                  value={form.form.currentBeneficiary || ''}
-                  onChange={(e) => form.updateField({ currentBeneficiary: e.target.value })}
-                  placeholder="Enter current beneficiary"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Transfer Details Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Transfer Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="transferType">Transfer Type</Label>
-                <Select value={form.form.transferType || 'Full'} onValueChange={(value) => form.updateField({ transferType: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Full">Full Transfer</SelectItem>
-                    <SelectItem value="Partial">Partial Transfer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="transferConditions">Transfer Conditions</Label>
-              <Textarea
-                id="transferConditions"
-                value={form.form.transferConditions || ''}
-                onChange={(e) => form.updateField({ transferConditions: e.target.value })}
-                placeholder="Enter any specific conditions for the transfer"
-                rows={4}
+    <div className="w-full bg-card border border-border rounded-2xl shadow-md p-8 max-w-none transition-colors">
+      {/* LC Information Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-corporate-blue mb-4">LC Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">LC Number</Label>
+            <LCSearchDropdown
+              value={form.form.lcReference}
+              onSelect={handleLCSelect}
+              placeholder="Search and select LC Number..."
+            />
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Issuance Date</Label>
+            <Input
+              type="date"
+              value={form.form.issuanceDate || ""}
+              onChange={e => form.updateField({ issuanceDate: e.target.value })}
+              placeholder="LC Issuance Date"
+              readOnly
+              className="bg-muted"
+            />
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Applicant</Label>
+            <Input
+              value={form.form.applicant}
+              onChange={e => form.updateField({ applicant: e.target.value })}
+              readOnly
+              className="bg-muted"
+            />
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Current Beneficiary</Label>
+            <Input
+              value={form.form.currentBeneficiary}
+              onChange={e => form.updateField({ currentBeneficiary: e.target.value })}
+              readOnly
+              className="bg-muted"
+            />
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Currency</Label>
+            <select className="block w-full border border-border rounded-md px-3 py-2 mt-1 bg-muted text-foreground cursor-not-allowed"
+              value={form.form.currency}
+              onChange={e => form.updateField({ currency: e.target.value })}
+              disabled>
+              <option value="">Select Currency</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">LC Amount</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+              <Input
+                type="number"
+                className="pl-8 bg-muted cursor-not-allowed"
+                placeholder="Amount"
+                value={form.form.amount}
+                onChange={e => form.updateField({ amount: e.target.value })}
+                readOnly
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Expiry Date</Label>
+            <Input
+              type="date"
+              value={form.form.expiryDate}
+              onChange={e => form.updateField({ expiryDate: e.target.value })}
+              readOnly
+              className="bg-muted"
+            />
+          </div>
+        </div>
+      </div>
+      {/* Transfer Details Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-corporate-blue mb-4">Transfer Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Transfer Type</Label>
+            <RadioGroup
+              className="flex items-center gap-6 mt-1"
+              value={form.form.transferType}
+              onValueChange={val => {
+                if (val === "Full") {
+                  form.updateField({
+                    transferType: "Full",
+                    transferAmount: lcAmount,
+                  });
+                } else {
+                  form.updateField({
+                    transferType: "Partial",
+                  });
+                }
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="Full" id="transfer-type-full" />
+                <label htmlFor="transfer-type-full" className="text-sm text-foreground cursor-pointer">Full Transfer</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="Partial" id="transfer-type-partial" />
+                <label htmlFor="transfer-type-partial" className="text-sm text-foreground cursor-pointer">Partial Transfer</label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Transfer Amount</Label>
+            <Input
+              type="number"
+              value={
+                isFull
+                  ? lcAmount
+                  : form.form.transferAmount
+              }
+              min={0}
+              max={lcAmount || undefined}
+              disabled={isFull}
+              onChange={e => {
+                // Only allow change if Partial
+                if (!isFull) {
+                  form.updateField({ transferAmount: e.target.value });
+                }
+              }}
+              placeholder="Enter amount"
+              className={!isTransferAmountValid ? "border-red-500" : ""}
+            />
+            <div className="text-xs text-muted-foreground mt-1">
+              {lcAmount > 0
+                ? <>LC Amount: <span className="font-semibold text-corporate-blue">{form.form.currency || "..." } {lcAmount.toLocaleString()}</span></>
+                : null}
+            </div>
+            {!isTransferAmountValid && form.form.transferType === "Partial" && (
+              <div className="text-xs text-red-500 mt-1">
+                Transfer amount cannot exceed LC amount
+              </div>
+            )}
+          </div>
+          <div>
+            <Label className="font-medium mb-1 block text-foreground">Is Transferable?</Label>
+            <select
+              className="block w-full border border-border rounded-md px-3 py-2 mt-1 bg-muted text-foreground cursor-not-allowed"
+              value="Yes"
+              disabled
+            >
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <div className="col-span-full md:col-span-3">
+            <Label className="font-medium mb-1 block text-foreground">Transfer Conditions</Label>
+            <div className="bg-corporate-blue/10 border border-corporate-blue rounded-lg p-4 text-sm text-corporate-blue min-h-[104px] transition-colors">
+              <ul className="list-disc ml-5">
+                <li>
+                  Transfer is subject to terms and conditions of the original LC
+                </li>
+                <li>
+                  Transferring bank fees will be charged as per tariff
+                </li>
+                <li>
+                  Original LC expiry date remains unchanged
+                </li>
+                <li>
+                  Transfer is irrevocable once confirmed
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

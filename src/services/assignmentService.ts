@@ -5,14 +5,10 @@ import { AssignmentFormData } from '@/types/exportLCAssignment';
 export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
   // Get current authenticated user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    console.error('User authentication error:', userError);
-    throw new Error('User not authenticated');
-  }
+  if (userError || !user) throw new Error('User not authenticated');
 
   try {
     console.log('Saving assignment request with data:', formData);
-    console.log('Authenticated user:', user.id);
     
     // Generate assignment reference
     const { data: refData, error: refError } = await supabase
@@ -23,7 +19,6 @@ export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
       throw refError;
     }
     const assignmentRef = refData;
-    console.log('Generated assignment reference:', assignmentRef);
 
     // Prepare the insert data - using user.id directly since it matches user_profiles.id
     const insertData = {
@@ -70,12 +65,6 @@ export const saveAssignmentRequest = async (formData: AssignmentFormData) => {
 
     if (assignmentError) {
       console.error('Error inserting assignment request:', assignmentError);
-      console.error('Assignment error details:', {
-        code: assignmentError.code,
-        message: assignmentError.message,
-        details: assignmentError.details,
-        hint: assignmentError.hint
-      });
       throw assignmentError;
     }
 
