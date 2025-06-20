@@ -16,18 +16,18 @@ import {
 } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchSubmittedImportLCRequests, ImportLCRequest } from '@/services/importLCRequestService';
+import { fetchTransferableImportLCs, ImportLCRequest } from '@/services/importLCRequestService';
 
-interface ImportLCSearchDropdownProps {
+interface TransferableLCSearchDropdownProps {
   value?: string;
   onValueChange: (value: string, lcData?: ImportLCRequest) => void;
   placeholder?: string;
 }
 
-const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
+const TransferableLCSearchDropdown: React.FC<TransferableLCSearchDropdownProps> = ({
   value,
   onValueChange,
-  placeholder = "Search LCs..."
+  placeholder = "Search transferable LCs..."
 }) => {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -38,11 +38,11 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
     const loadLCs = async () => {
       setLoading(true);
       try {
-        const data = await fetchSubmittedImportLCRequests(searchValue);
-        console.log('Loaded Import LCs:', data);
+        const data = await fetchTransferableImportLCs(searchValue);
+        console.log('Loaded transferable LCs:', data);
         setLcRequests(data);
       } catch (error) {
-        console.error('Error loading Import LCs:', error);
+        console.error('Error loading transferable LCs:', error);
       } finally {
         setLoading(false);
       }
@@ -53,7 +53,7 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
 
   const handleSelect = (lcReference: string) => {
     const selectedLC = lcRequests.find(lc => lc.corporate_reference === lcReference);
-    console.log('Selected LC:', selectedLC);
+    console.log('Selected transferable LC:', selectedLC);
     onValueChange(lcReference, selectedLC);
     setOpen(false);
   };
@@ -74,13 +74,13 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
       <PopoverContent className="w-full p-0">
         <Command>
           <CommandInput 
-            placeholder="Search LCs..." 
+            placeholder="Search transferable LCs..." 
             value={searchValue}
             onValueChange={setSearchValue}
           />
           <CommandList>
             <CommandEmpty>
-              {loading ? "Loading..." : "No LCs found."}
+              {loading ? "Loading..." : "No transferable LCs found."}
             </CommandEmpty>
             <CommandGroup>
               {lcRequests.map((lc) => (
@@ -111,4 +111,4 @@ const ImportLCSearchDropdown: React.FC<ImportLCSearchDropdownProps> = ({
   );
 };
 
-export default ImportLCSearchDropdown;
+export default TransferableLCSearchDropdown;
