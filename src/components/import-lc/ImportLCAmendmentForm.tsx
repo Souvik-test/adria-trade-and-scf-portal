@@ -25,6 +25,7 @@ const ImportLCAmendmentForm: React.FC<ImportLCAmendmentFormProps> = ({ onBack, o
     currentStep,
     changes,
     updateField,
+    populateFromLC,
     goToStep,
     nextStep,
     previousStep,
@@ -123,6 +124,7 @@ const ImportLCAmendmentForm: React.FC<ImportLCAmendmentFormProps> = ({ onBack, o
               originalData={originalData}
               changes={changes}
               updateField={updateField}
+              populateFromLC={populateFromLC}
             />
           </ScrollArea>
         </div>
