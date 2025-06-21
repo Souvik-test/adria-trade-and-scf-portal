@@ -57,22 +57,22 @@ ${Object.keys(changes).length > 0 ? `:78:AMENDMENT TO DOCUMENTARY CREDIT\nAMENDM
   };
 
   return (
-    <div className="w-80 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-l border-amber-200 dark:border-amber-700 flex flex-col">
-      <div className="p-4 border-b border-amber-200 dark:border-amber-700 bg-amber-600 dark:bg-amber-800">
+    <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+      <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
           <Eye className="h-5 w-5" />
           MT 707 Preview
         </h3>
-        <p className="text-amber-100 text-sm mt-1">Amendment preview</p>
+        <p className="text-corporate-teal-100 text-sm mt-1">Amendment preview</p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-amber-200 dark:border-amber-700">
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-corporate-teal-200 dark:border-corporate-teal-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">
+            <CardTitle className="text-sm font-medium text-corporate-teal-700 dark:text-corporate-teal-300">
               SWIFT MT 707 Amendment
             </CardTitle>
-            <div className="text-xs text-amber-600 dark:text-amber-400">
+            <div className="text-xs text-corporate-teal-600 dark:text-corporate-teal-400">
               {Object.keys(changes).length} field{Object.keys(changes).length !== 1 ? 's' : ''} changed
             </div>
           </CardHeader>
@@ -84,12 +84,12 @@ ${Object.keys(changes).length > 0 ? `:78:AMENDMENT TO DOCUMENTARY CREDIT\nAMENDM
         </Card>
       </ScrollArea>
 
-      <div className="p-4 border-t border-amber-200 dark:border-amber-700 bg-white/50 dark:bg-gray-800/50 space-y-2">
+      <div className="p-4 border-t border-corporate-teal-200 dark:border-corporate-teal-700 bg-white/50 dark:bg-gray-800/50 space-y-2">
         <Dialog open={isFullPreviewOpen} onOpenChange={setIsFullPreviewOpen}>
           <DialogTrigger asChild>
             <Button 
               variant="outline" 
-              className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/20"
+              className="w-full border-corporate-teal-300 text-corporate-teal-700 hover:bg-corporate-teal-50 dark:border-corporate-teal-600 dark:text-corporate-teal-300 dark:hover:bg-corporate-teal-900/20"
             >
               <Maximize2 className="h-4 w-4 mr-2" />
               View Full Preview
@@ -97,14 +97,14 @@ ${Object.keys(changes).length > 0 ? `:78:AMENDMENT TO DOCUMENTARY CREDIT\nAMENDM
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle className="text-amber-700 dark:text-amber-300">
+              <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
                 MT 707 - Documentary Credit Amendment
               </DialogTitle>
             </DialogHeader>
             <div className="flex justify-end mb-4">
               <Button 
                 onClick={downloadMT707}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download MT 707
@@ -120,7 +120,7 @@ ${Object.keys(changes).length > 0 ? `:78:AMENDMENT TO DOCUMENTARY CREDIT\nAMENDM
 
         <Button 
           onClick={downloadMT707}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+          className="w-full bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
         >
           <Download className="h-4 w-4 mr-2" />
           Download Draft
