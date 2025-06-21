@@ -23,8 +23,8 @@ const ImportLCAmendmentAmountPane: React.FC<ImportLCAmendmentAmountPaneProps> = 
   // Calculate increase/decrease amount
   const calculateAmountChange = () => {
     if (!changes.lcAmount) return null;
-    const originalAmount = originalData.lcAmount || 0;
-    const currentAmount = formData.lcAmount || 0;
+    const originalAmount = Number(originalData.lcAmount) || 0;
+    const currentAmount = Number(formData.lcAmount) || 0;
     const difference = currentAmount - originalAmount;
     
     if (difference === 0) return null;

@@ -63,7 +63,7 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
         <Button
           onClick={onSaveDraft}
           variant="outline"
-          className="border-amber-300 dark:border-amber-600 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+          className="border-corporate-teal-300 dark:border-corporate-teal-600 text-corporate-teal-600 dark:text-corporate-teal-400 hover:bg-corporate-teal-50 dark:hover:bg-corporate-teal-900/20"
         >
           Save as Draft
         </Button>
@@ -72,14 +72,14 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
           <Button
             onClick={onSubmit}
             disabled={changesCount === 0}
-            className="bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed px-8"
+            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed px-8"
           >
             Submit Amendment
           </Button>
         ) : (
           <Button
             onClick={onNext}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white px-8"
           >
             Next
           </Button>

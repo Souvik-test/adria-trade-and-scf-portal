@@ -50,15 +50,19 @@ const useImportLCAmendmentForm = () => {
   const [originalData, setOriginalData] = useState<ImportLCFormData>(EMPTY_FORM_DATA);
   const [formData, setFormData] = useState<ImportLCFormData>(EMPTY_FORM_DATA);
   const [currentStep, setCurrentStep] = useState<ImportLCFormStep>('basic');
+  const [isLCSelected, setIsLCSelected] = useState(false);
 
   // Calculate changes between original and current data
   const changes = useMemo(() => {
+    if (!isLCSelected) return {};
+    
     const changeMap: Record<string, { original: any; current: any }> = {};
     
     Object.keys(formData).forEach((key) => {
       const originalValue = originalData[key as keyof ImportLCFormData];
       const currentValue = formData[key as keyof ImportLCFormData];
       
+      // Only show as changed if values are actually different
       if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
         changeMap[key] = {
           original: originalValue,
@@ -68,22 +72,57 @@ const useImportLCAmendmentForm = () => {
     });
     
     return changeMap;
-  }, [formData, originalData]);
+  }, [formData, originalData, isLCSelected]);
 
   const updateField = useCallback((field: keyof ImportLCFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-    
-    // Set original data when LC is first selected (corporate reference)
-    if (field === 'corporateReference' && value && !originalData.corporateReference) {
-      setOriginalData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  }, [originalData.corporateReference]);
+  }, []);
+
+  // Function to populate data when LC is selected
+  const populateFromLC = useCallback((lcData: any) => {
+    const populatedData = {
+      ...EMPTY_FORM_DATA,
+      corporateReference: lcData.corporate_reference || '',
+      applicantName: lcData.applicant_name || '',
+      beneficiaryName: lcData.beneficiary_name || '',
+      lcAmount: lcData.lc_amount || 0,
+      currency: lcData.currency || '',
+      issueDate: lcData.issue_date || '',
+      expiryDate: lcData.expiry_date || '',
+      issuingBank: lcData.issuing_bank || '',
+      formOfDocumentaryCredit: lcData.form_of_documentary_credit || '',
+      applicableRules: lcData.applicable_rules || '',
+      lcType: lcData.lc_type || '',
+      placeOfExpiry: lcData.place_of_expiry || '',
+      applicantAddress: lcData.applicant_address || '',
+      applicantAccountNumber: lcData.applicant_account_number || '',
+      beneficiaryAddress: lcData.beneficiary_address || '',
+      beneficiaryBankName: lcData.beneficiary_bank_name || '',
+      beneficiaryBankAddress: lcData.beneficiary_bank_address || '',
+      beneficiaryBankSwiftCode: lcData.beneficiary_bank_swift_code || '',
+      advisingBankSwiftCode: lcData.advising_bank_swift_code || '',
+      tolerance: lcData.tolerance || '',
+      availableWith: lcData.available_with || '',
+      availableBy: lcData.available_by || '',
+      partialShipmentsAllowed: lcData.partial_shipments_allowed || false,
+      transshipmentAllowed: lcData.transshipment_allowed || false,
+      isTransferable: lcData.is_transferable || false,
+      descriptionOfGoods: lcData.description_of_goods || '',
+      portOfLoading: lcData.port_of_loading || '',
+      portOfDischarge: lcData.port_of_discharge || '',
+      latestShipmentDate: lcData.latest_shipment_date || '',
+      presentationPeriod: lcData.presentation_period || '',
+      requiredDocuments: lcData.required_documents || [],
+      additionalConditions: lcData.additional_conditions || ''
+    };
+
+    setOriginalData(populatedData);
+    setFormData(populatedData);
+    setIsLCSelected(true);
+  }, []);
 
   const goToStep = useCallback((step: ImportLCFormStep) => {
     setCurrentStep(step);
@@ -106,7 +145,6 @@ const useImportLCAmendmentForm = () => {
   }, [currentStep]);
 
   const validateCurrentStep = useCallback(() => {
-    // Basic validation - in real app, implement proper validation per step
     return Object.keys(changes).length > 0;
   }, [changes]);
 
@@ -127,7 +165,6 @@ const useImportLCAmendmentForm = () => {
 
   const saveDraft = useCallback(async () => {
     console.log('Saving amendment draft...', { changes, formData });
-    // Implementation for saving draft
     return Promise.resolve();
   }, [changes, formData]);
 
@@ -135,6 +172,7 @@ const useImportLCAmendmentForm = () => {
     setFormData(EMPTY_FORM_DATA);
     setOriginalData(EMPTY_FORM_DATA);
     setCurrentStep('basic');
+    setIsLCSelected(false);
   }, []);
 
   return {
@@ -142,7 +180,9 @@ const useImportLCAmendmentForm = () => {
     originalData,
     currentStep,
     changes,
+    isLCSelected,
     updateField,
+    populateFromLC,
     goToStep,
     nextStep,
     previousStep,
