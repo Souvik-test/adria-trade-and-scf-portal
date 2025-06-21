@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImportLCSearchDropdown from '../export-lc/ImportLCSearchDropdown';
-import ImportLCSupportingDocumentUpload from './ImportLCSupportingDocumentUpload';
+import ImportLCCancellationSupportingDocumentUpload from './ImportLCCancellationSupportingDocumentUpload';
 import SwiftTagLabel from './SwiftTagLabel';
 import { Plus, FilePlus } from 'lucide-react';
 
@@ -240,7 +240,7 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {SUPPORTING_DOC_LABELS.map((doc) => (
-                        <ImportLCSupportingDocumentUpload
+                        <ImportLCCancellationSupportingDocumentUpload
                           key={doc.key}
                           docKey={doc.key}
                           label={doc.label}
@@ -251,7 +251,7 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
                       ))}
                       {/* Custom Uploads */}
                       {customDocUploads.map((c) => (
-                        <ImportLCSupportingDocumentUpload
+                        <ImportLCCancellationSupportingDocumentUpload
                           key={c.key}
                           docKey={c.key}
                           label={c.label}
@@ -341,6 +341,77 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
       </div>
     </div>
   );
+
+  const handleSubmit = async () => {
+    try {
+      if (!formData.lcReference) {
+        toast({
+          title: "Error",
+          description: "Please select an LC Reference",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!formData.cancellationReason.trim()) {
+        toast({
+          title: "Error",
+          description: "Please provide a cancellation reason",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsSubmitting(true);
+      console.log('Submitting LC cancellation request:', formData);
+      
+      // TODO: Implement actual cancellation submission logic
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      
+      toast({
+        title: "Success",
+        description: "LC cancellation request submitted successfully",
+      });
+      onClose();
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit cancellation request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      console.log('Saving cancellation draft...', formData);
+      toast({
+        title: "Success",
+        description: "Draft saved successfully",
+      });
+    } catch (error) {
+      console.error('Save draft error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save draft",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDiscard = () => {
+    if (window.confirm('Are you sure you want to discard all changes? This action cannot be undone.')) {
+      setFormData({
+        lcReference: '',
+        cancellationReason: '',
+        supportingDocuments: []
+      });
+      onClose();
+    }
+  };
 };
 
 export default ImportLCCancellationForm;
