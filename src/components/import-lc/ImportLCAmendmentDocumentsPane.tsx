@@ -103,7 +103,7 @@ const ImportLCAmendmentDocumentsPane: React.FC<ImportLCAmendmentDocumentsPanePro
               placeholder="Enter presentation period details"
               rows={2}
             />
-          </Am endmentFieldWrapper>
+          </AmendmentFieldWrapper>
         </CardContent>
       </Card>
     </div>
