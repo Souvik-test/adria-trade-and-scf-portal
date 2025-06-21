@@ -36,8 +36,8 @@ const AmendmentChangesSummaryModal: React.FC<AmendmentChangesSummaryModalProps> 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl font-semibold text-amber-700 dark:text-amber-300">
             Amendment Changes Summary
           </DialogTitle>
@@ -46,7 +46,7 @@ const AmendmentChangesSummaryModal: React.FC<AmendmentChangesSummaryModalProps> 
           </p>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="flex-1 pr-4">
           <div className="space-y-4">
             {Object.keys(changes).length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -84,7 +84,7 @@ const AmendmentChangesSummaryModal: React.FC<AmendmentChangesSummaryModalProps> 
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>

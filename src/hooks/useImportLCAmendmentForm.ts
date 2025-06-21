@@ -3,52 +3,52 @@ import { useState, useCallback, useMemo } from 'react';
 import { ImportLCFormData, ImportLCFormStep } from '@/types/importLC';
 import { saveImportLCAmendment } from '@/services/importLCAmendmentService';
 
-// Mock original LC data - in real app, this would come from API
-const MOCK_ORIGINAL_LC: ImportLCFormData = {
-  popiNumber: 'PO-2024-001',
-  popiType: 'PO',
-  formOfDocumentaryCredit: 'IRREVOCABLE',
-  corporateReference: 'LC-2024-IMP-001',
-  applicableRules: 'UCP Latest Version',
-  lcType: 'At Sight',
-  issueDate: '2024-01-15',
-  expiryDate: '2024-04-15',
-  placeOfExpiry: 'Mumbai, India',
-  confirmation: 'Without',
-  issuingBank: 'HDFC Bank Ltd',
+// Empty initial form data - will be populated when LC is selected
+const EMPTY_FORM_DATA: ImportLCFormData = {
+  popiNumber: '',
+  popiType: '',
+  formOfDocumentaryCredit: '',
+  corporateReference: '',
+  applicableRules: '',
+  lcType: '',
+  issueDate: '',
+  expiryDate: '',
+  placeOfExpiry: '',
+  confirmation: '',
+  issuingBank: '',
   parties: [],
-  applicantName: 'ABC Importers Ltd',
-  applicantAddress: '123 Business Street, Mumbai, India',
-  applicantAccountNumber: '50200012345678',
-  beneficiaryName: 'XYZ Exporters Inc',
-  beneficiaryAddress: '456 Export Avenue, New York, USA',
-  beneficiaryBankName: 'Citibank N.A.',
-  beneficiaryBankAddress: '789 Wall Street, New York, USA',
-  beneficiaryBankSwiftCode: 'CITIUS33',
-  advisingBankSwiftCode: 'HDFCINBB',
-  lcAmount: 250000,
-  currency: 'USD',
-  tolerance: '+/- 10%',
+  applicantName: '',
+  applicantAddress: '',
+  applicantAccountNumber: '',
+  beneficiaryName: '',
+  beneficiaryAddress: '',
+  beneficiaryBankName: '',
+  beneficiaryBankAddress: '',
+  beneficiaryBankSwiftCode: '',
+  advisingBankSwiftCode: '',
+  lcAmount: 0,
+  currency: '',
+  tolerance: '',
   additionalAmount: 0,
-  availableWith: 'Any Bank',
-  availableBy: 'Negotiation',
-  partialShipmentsAllowed: true,
+  availableWith: '',
+  availableBy: '',
+  partialShipmentsAllowed: false,
   transshipmentAllowed: false,
   isTransferable: false,
-  descriptionOfGoods: 'Cotton Textiles as per Proforma Invoice',
-  portOfLoading: 'New York',
-  portOfDischarge: 'JNPT Mumbai',
-  latestShipmentDate: '2024-03-30',
-  presentationPeriod: '21 days after shipment date',
+  descriptionOfGoods: '',
+  portOfLoading: '',
+  portOfDischarge: '',
+  latestShipmentDate: '',
+  presentationPeriod: '',
   documentRequirements: [],
-  requiredDocuments: ['Commercial Invoice', 'Packing List', 'Bill of Lading'],
-  additionalConditions: 'Insurance to be covered by beneficiary',
+  requiredDocuments: [],
+  additionalConditions: '',
   supportingDocuments: []
 };
 
 const useImportLCAmendmentForm = () => {
-  const [originalData] = useState<ImportLCFormData>(MOCK_ORIGINAL_LC);
-  const [formData, setFormData] = useState<ImportLCFormData>({ ...MOCK_ORIGINAL_LC });
+  const [originalData, setOriginalData] = useState<ImportLCFormData>(EMPTY_FORM_DATA);
+  const [formData, setFormData] = useState<ImportLCFormData>(EMPTY_FORM_DATA);
   const [currentStep, setCurrentStep] = useState<ImportLCFormStep>('basic');
 
   // Calculate changes between original and current data
@@ -75,7 +75,15 @@ const useImportLCAmendmentForm = () => {
       ...prev,
       [field]: value
     }));
-  }, []);
+    
+    // Set original data when LC is first selected (corporate reference)
+    if (field === 'corporateReference' && value && !originalData.corporateReference) {
+      setOriginalData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  }, [originalData.corporateReference]);
 
   const goToStep = useCallback((step: ImportLCFormStep) => {
     setCurrentStep(step);
@@ -124,9 +132,10 @@ const useImportLCAmendmentForm = () => {
   }, [changes, formData]);
 
   const resetForm = useCallback(() => {
-    setFormData({ ...originalData });
+    setFormData(EMPTY_FORM_DATA);
+    setOriginalData(EMPTY_FORM_DATA);
     setCurrentStep('basic');
-  }, [originalData]);
+  }, []);
 
   return {
     formData,
