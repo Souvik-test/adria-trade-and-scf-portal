@@ -13,6 +13,7 @@ interface ImportLCAmendmentPanesProps {
   originalData: ImportLCFormData;
   changes: Record<string, { original: any; current: any }>;
   updateField: (field: keyof ImportLCFormData, value: any) => void;
+  populateFromLC: (lcData: any) => void;
 }
 
 const ImportLCAmendmentPanes: React.FC<ImportLCAmendmentPanesProps> = ({
@@ -20,7 +21,8 @@ const ImportLCAmendmentPanes: React.FC<ImportLCAmendmentPanesProps> = ({
   formData,
   originalData,
   changes,
-  updateField
+  updateField,
+  populateFromLC
 }) => {
   const commonProps = {
     formData,
@@ -31,7 +33,7 @@ const ImportLCAmendmentPanes: React.FC<ImportLCAmendmentPanesProps> = ({
 
   switch (currentStep) {
     case 'basic':
-      return <ImportLCAmendmentBasicPane {...commonProps} />;
+      return <ImportLCAmendmentBasicPane {...commonProps} populateFromLC={populateFromLC} />;
     case 'parties':
       return <ImportLCAmendmentPartyPane {...commonProps} />;
     case 'amount':
