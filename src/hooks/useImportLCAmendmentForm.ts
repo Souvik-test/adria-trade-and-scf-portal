@@ -81,29 +81,29 @@ const useImportLCAmendmentForm = () => {
     }));
   }, []);
 
-  // Function to populate data when LC is selected
+  // Function to populate data when LC is selected - Updated with correct field mapping
   const populateFromLC = useCallback((lcData: any) => {
     const populatedData = {
       ...EMPTY_FORM_DATA,
       corporateReference: lcData.corporate_reference || '',
-      applicantName: lcData.applicant_name || '',
-      beneficiaryName: lcData.beneficiary_name || '',
-      lcAmount: lcData.lc_amount || 0,
-      currency: lcData.currency || '',
-      issueDate: lcData.issue_date || '',
-      expiryDate: lcData.expiry_date || '',
-      issuingBank: lcData.issuing_bank || '',
       formOfDocumentaryCredit: lcData.form_of_documentary_credit || '',
       applicableRules: lcData.applicable_rules || '',
       lcType: lcData.lc_type || '',
       placeOfExpiry: lcData.place_of_expiry || '',
+      issueDate: lcData.issue_date || '',
+      expiryDate: lcData.expiry_date || '',
+      issuingBank: lcData.issuing_bank || '',
+      applicantName: lcData.applicant_name || '',
       applicantAddress: lcData.applicant_address || '',
       applicantAccountNumber: lcData.applicant_account_number || '',
+      beneficiaryName: lcData.beneficiary_name || '',
       beneficiaryAddress: lcData.beneficiary_address || '',
       beneficiaryBankName: lcData.beneficiary_bank_name || '',
       beneficiaryBankAddress: lcData.beneficiary_bank_address || '',
       beneficiaryBankSwiftCode: lcData.beneficiary_bank_swift_code || '',
       advisingBankSwiftCode: lcData.advising_bank_swift_code || '',
+      lcAmount: lcData.lc_amount || 0,
+      currency: lcData.currency || '',
       tolerance: lcData.tolerance || '',
       availableWith: lcData.available_with || '',
       availableBy: lcData.available_by || '',

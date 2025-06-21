@@ -26,7 +26,42 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
 }) => {
   const handleLCSelect = (lc: any) => {
     console.log('Selected LC for amendment:', lc);
-    populateFromLC(lc);
+    // Map all the required fields from the selected LC
+    const mappedData = {
+      corporate_reference: lc.corporate_reference || '',
+      form_of_documentary_credit: lc.form_of_documentary_credit || '',
+      applicable_rules: lc.applicable_rules || '',
+      lc_type: lc.lc_type || '',
+      place_of_expiry: lc.place_of_expiry || '',
+      issue_date: lc.issue_date || '',
+      expiry_date: lc.expiry_date || '',
+      issuing_bank: lc.issuing_bank || '',
+      applicant_name: lc.applicant_name || '',
+      beneficiary_name: lc.beneficiary_name || '',
+      lc_amount: lc.lc_amount || 0,
+      currency: lc.currency || '',
+      applicant_address: lc.applicant_address || '',
+      applicant_account_number: lc.applicant_account_number || '',
+      beneficiary_address: lc.beneficiary_address || '',
+      beneficiary_bank_name: lc.beneficiary_bank_name || '',
+      beneficiary_bank_address: lc.beneficiary_bank_address || '',
+      beneficiary_bank_swift_code: lc.beneficiary_bank_swift_code || '',
+      advising_bank_swift_code: lc.advising_bank_swift_code || '',
+      tolerance: lc.tolerance || '',
+      available_with: lc.available_with || '',
+      available_by: lc.available_by || '',
+      partial_shipments_allowed: lc.partial_shipments_allowed || false,
+      transshipment_allowed: lc.transshipment_allowed || false,
+      is_transferable: lc.is_transferable || false,
+      description_of_goods: lc.description_of_goods || '',
+      port_of_loading: lc.port_of_loading || '',
+      port_of_discharge: lc.port_of_discharge || '',
+      latest_shipment_date: lc.latest_shipment_date || '',
+      presentation_period: lc.presentation_period || '',
+      required_documents: lc.required_documents || [],
+      additional_conditions: lc.additional_conditions || ''
+    };
+    populateFromLC(mappedData);
   };
 
   // Generate amendment number (in real app, this would come from API based on selected LC)
