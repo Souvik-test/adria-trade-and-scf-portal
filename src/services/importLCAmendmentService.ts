@@ -19,9 +19,9 @@ export const saveImportLCAmendment = async (amendmentData: AmendmentData) => {
       throw new Error('User not authenticated');
     }
 
-    // Generate amendment reference
+    // Generate amendment reference using existing function
     const { data: refData, error: refError } = await supabase
-      .rpc('generate_amendment_ref');
+      .rpc('generate_transaction_ref', { product_type: 'Amendment' });
     
     if (refError) {
       console.error('Error generating amendment reference:', refError);
@@ -42,8 +42,7 @@ export const saveImportLCAmendment = async (amendmentData: AmendmentData) => {
 
     console.log('Insert data prepared:', insertData);
 
-    // Save amendment request to a new table (would need to be created)
-    // For now, we'll save to import_lc_requests with amended status
+    // Save amendment request to import_lc_requests with amended status
     const { data: amendment, error: amendmentError } = await supabase
       .from('import_lc_requests')
       .insert({

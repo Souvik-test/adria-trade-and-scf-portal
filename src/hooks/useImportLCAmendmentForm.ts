@@ -15,7 +15,7 @@ const MOCK_ORIGINAL_LC: ImportLCFormData = {
   expiryDate: '2024-04-15',
   placeOfExpiry: 'Mumbai, India',
   confirmation: 'Without',
-  issuing_bank: 'HDFC Bank Ltd',
+  issuingBank: 'HDFC Bank Ltd',
   parties: [],
   applicantName: 'ABC Importers Ltd',
   applicantAddress: '123 Business Street, Mumbai, India',
