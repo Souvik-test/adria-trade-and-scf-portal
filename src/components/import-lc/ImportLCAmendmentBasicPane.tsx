@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ImportLCFormData } from '@/types/importLC';
 import AmendmentFieldWrapper from './AmendmentFieldWrapper';
 import ImportLCSearchDropdown from '../export-lc/ImportLCSearchDropdown';
+import SwiftTagLabel from './SwiftTagLabel';
 
 interface ImportLCAmendmentBasicPaneProps {
   formData: ImportLCFormData;
@@ -33,6 +34,9 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
     updateField('issuingBank', lc.issuing_bank);
   };
 
+  // Generate amendment number (in real app, this would come from API)
+  const amendmentNumber = '01';
+
   return (
     <div className="space-y-6">
       <Card>
@@ -49,6 +53,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.formOfDocumentaryCredit}
               originalValue={originalData.formOfDocumentaryCredit}
             >
+              <SwiftTagLabel tag=":40A:" label="Form of Documentary Credit" required />
               <Select 
                 value={formData.formOfDocumentaryCredit} 
                 onValueChange={(value) => updateField('formOfDocumentaryCredit', value)}
@@ -64,11 +69,9 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
             </AmendmentFieldWrapper>
 
             <div>
-              <Label htmlFor="corporateReference" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Corporate Reference (Search)
-              </Label>
+              <SwiftTagLabel tag=":20:" label="Corporate Reference (Search)" required />
               <ImportLCSearchDropdown
-                value={formData.corporateReference}
+                value=""
                 onSelect={handleLCSelect}
                 placeholder="Search and select LC Reference..."
               />
@@ -80,12 +83,23 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               )}
             </div>
 
+            <div>
+              <SwiftTagLabel tag=":26E:" label="Amendment Number" />
+              <Input
+                value={amendmentNumber}
+                readOnly
+                className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                placeholder="Auto-generated"
+              />
+            </div>
+
             <AmendmentFieldWrapper
               fieldName="applicableRules"
               label="Applicable Rules"
               hasChanged={!!changes.applicableRules}
               originalValue={originalData.applicableRules}
             >
+              <SwiftTagLabel tag=":40E:" label="Applicable Rules" required />
               <Select 
                 value={formData.applicableRules} 
                 onValueChange={(value) => updateField('applicableRules', value)}
@@ -108,6 +122,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.lcType}
               originalValue={originalData.lcType}
             >
+              <SwiftTagLabel tag=":40A:" label="LC Type" />
               <Select 
                 value={formData.lcType} 
                 onValueChange={(value) => updateField('lcType', value)}
@@ -130,6 +145,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.issueDate}
               originalValue={originalData.issueDate}
             >
+              <SwiftTagLabel tag=":31C:" label="Issue Date" />
               <Input
                 type="date"
                 value={formData.issueDate}
@@ -143,6 +159,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.expiryDate}
               originalValue={originalData.expiryDate}
             >
+              <SwiftTagLabel tag=":31D:" label="Expiry Date" required />
               <Input
                 type="date"
                 value={formData.expiryDate}
@@ -156,6 +173,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.placeOfExpiry}
               originalValue={originalData.placeOfExpiry}
             >
+              <SwiftTagLabel tag=":31D:" label="Place of Expiry" required />
               <Input
                 value={formData.placeOfExpiry}
                 onChange={(e) => updateField('placeOfExpiry', e.target.value)}
@@ -169,6 +187,7 @@ const ImportLCAmendmentBasicPane: React.FC<ImportLCAmendmentBasicPaneProps> = ({
               hasChanged={!!changes.issuingBank}
               originalValue={originalData.issuingBank}
             >
+              <SwiftTagLabel tag=":52A:" label="Issuing Bank" />
               <Input
                 value={formData.issuingBank || ''}
                 onChange={(e) => updateField('issuingBank', e.target.value)}
