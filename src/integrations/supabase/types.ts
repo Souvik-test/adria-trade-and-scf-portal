@@ -203,6 +203,145 @@ export type Database = {
         }
         Relationships: []
       }
+      export_lc_bill_documents: {
+        Row: {
+          document_name: string
+          document_type: string
+          export_lc_bill_id: string
+          file_path: string | null
+          file_size: number | null
+          id: string
+          uploaded_at: string
+        }
+        Insert: {
+          document_name: string
+          document_type: string
+          export_lc_bill_id: string
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          uploaded_at?: string
+        }
+        Update: {
+          document_name?: string
+          document_type?: string
+          export_lc_bill_id?: string
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_lc_bill_documents_export_lc_bill_id_fkey"
+            columns: ["export_lc_bill_id"]
+            isOneToOne: false
+            referencedRelation: "export_lc_bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      export_lc_bill_line_items: {
+        Row: {
+          created_at: string
+          description: string
+          export_lc_bill_id: string
+          id: string
+          line_total: number
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          export_lc_bill_id: string
+          id?: string
+          line_total: number
+          quantity?: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          export_lc_bill_id?: string
+          id?: string
+          line_total?: number
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_lc_bill_line_items_export_lc_bill_id_fkey"
+            columns: ["export_lc_bill_id"]
+            isOneToOne: false
+            referencedRelation: "export_lc_bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      export_lc_bills: {
+        Row: {
+          applicant_name: string | null
+          bill_amount: number | null
+          bill_currency: string | null
+          bill_date: string | null
+          bill_reference: string
+          corporate_reference: string | null
+          created_at: string
+          id: string
+          issuing_bank: string | null
+          lc_amount: number | null
+          lc_currency: string | null
+          lc_expiry_date: string | null
+          lc_expiry_place: string | null
+          lc_reference: string
+          status: string | null
+          submission_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applicant_name?: string | null
+          bill_amount?: number | null
+          bill_currency?: string | null
+          bill_date?: string | null
+          bill_reference: string
+          corporate_reference?: string | null
+          created_at?: string
+          id?: string
+          issuing_bank?: string | null
+          lc_amount?: number | null
+          lc_currency?: string | null
+          lc_expiry_date?: string | null
+          lc_expiry_place?: string | null
+          lc_reference: string
+          status?: string | null
+          submission_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applicant_name?: string | null
+          bill_amount?: number | null
+          bill_currency?: string | null
+          bill_date?: string | null
+          bill_reference?: string
+          corporate_reference?: string | null
+          created_at?: string
+          id?: string
+          issuing_bank?: string | null
+          lc_amount?: number | null
+          lc_currency?: string | null
+          lc_expiry_date?: string | null
+          lc_expiry_place?: string | null
+          lc_reference?: string
+          status?: string | null
+          submission_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       export_lc_reviews: {
         Row: {
           action: string
@@ -979,6 +1118,10 @@ export type Database = {
     }
     Functions: {
       generate_assignment_ref: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_export_bill_ref: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

@@ -1,100 +1,185 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Building2, CreditCard, MapPin, Calendar, DollarSign, User, Landmark } from 'lucide-react';
+import LCSearchDropdown from './LCSearchDropdown';
+
+interface ImportLC {
+  id: string;
+  corporate_reference: string;
+  lc_amount: number | null;
+  currency: string | null;
+  expiry_date: string | null;
+  place_of_expiry: string | null;
+  applicant_name: string | null;
+  issuing_bank: string | null;
+  status: string | null;
+}
 
 interface LcApplicantDetailsPaneProps {
-  lcReference: string;
-  setLcReference: (value: string) => void;
-  corporateReference: string;
-  lcCurrency: string;
-  setLcCurrency: (value: string) => void;
-  applicantName: string;
-  setApplicantName: (value: string) => void;
-  onLcSearch: () => void;
+  formData: any;
+  updateFormData: (updates: any) => void;
 }
 
 const LcApplicantDetailsPane: React.FC<LcApplicantDetailsPaneProps> = ({
-  lcReference,
-  setLcReference,
-  corporateReference,
-  lcCurrency,
-  setLcCurrency,
-  applicantName,
-  setApplicantName,
-  onLcSearch
+  formData,
+  updateFormData
 }) => {
+  const handleLCSelect = (lcReference: string, lcData: ImportLC) => {
+    console.log('Selected LC:', lcReference, lcData);
+    
+    // Auto-populate fields based on selected LC
+    updateFormData({
+      lcReference,
+      corporateReference: lcData.corporate_reference,
+      lcCurrency: lcData.currency || 'USD',
+      lcAmount: lcData.lc_amount || 0,
+      lcExpiryPlace: lcData.place_of_expiry || '',
+      lcExpiryDate: lcData.expiry_date || '',
+      applicantName: lcData.applicant_name || '',
+      issuingBank: lcData.issuing_bank || ''
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   return (
-    <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
-      <Card className="border border-gray-200 dark:border-gray-600 h-full">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
-            LC & Applicant Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Reference Number</Label>
-              <div className="relative mt-1">
-                <Input 
-                  value={lcReference}
-                  onChange={(e) => setLcReference(e.target.value)}
-                  placeholder="Enter LC Reference"
-                  className="pr-10"
-                />
-                <button 
-                  onClick={onLcSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 rounded p-1 transition-colors"
-                >
-                  <Search className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                </button>
-              </div>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Corporate Reference Number</Label>
-              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={corporateReference} />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Currency</Label>
-              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" value={lcCurrency} />
-            </div>
+    <Card className="border border-gray-200 dark:border-gray-600 shadow">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-corporate-blue" />
+          LC & Applicant Details
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* LC Reference - Searchable */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              LC Reference Number <span className="text-red-500">*</span>
+            </Label>
+            <LCSearchDropdown
+              value={formData.lcReference || ''}
+              onSelect={handleLCSelect}
+              placeholder="Search and select LC Reference..."
+            />
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Amount</Label>
-              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Place</Label>
-              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">LC Expiry Date</Label>
-              <Input type="date" readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-            </div>
+
+          {/* Corporate Reference - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Corporate Reference Number
+            </Label>
+            <Input
+              value={formData.corporateReference || ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Applicant Name</Label>
-              <Input 
-                readOnly
-                value={applicantName}
-                className="mt-1 bg-gray-100 dark:bg-gray-700" 
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Issuing Bank</Label>
-              <Input readOnly className="mt-1 bg-gray-100 dark:bg-gray-700" />
-            </div>
+
+          {/* LC Currency - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              LC Currency
+            </Label>
+            <Input
+              value={formData.lcCurrency || ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
           </div>
-        </CardContent>
-      </Card>
-    </ScrollArea>
+
+          {/* LC Amount - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              LC Amount
+            </Label>
+            <Input
+              value={formData.lcAmount ? formData.lcAmount.toLocaleString() : ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
+          </div>
+
+          {/* LC Expiry Place - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              LC Expiry Place
+            </Label>
+            <Input
+              value={formData.lcExpiryPlace || ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
+          </div>
+
+          {/* LC Expiry Date - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              LC Expiry Date
+            </Label>
+            <Input
+              value={formData.lcExpiryDate ? formatDate(formData.lcExpiryDate) : ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
+          </div>
+
+          {/* Applicant Name - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Applicant Name
+            </Label>
+            <Input
+              value={formData.applicantName || ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
+          </div>
+
+          {/* Issuing Bank - Auto-populated */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Landmark className="h-4 w-4" />
+              Issuing Bank
+            </Label>
+            <Input
+              value={formData.issuingBank || ''}
+              readOnly
+              className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+              placeholder="Auto-populated from LC"
+            />
+          </div>
+        </div>
+
+        {/* Information Note */}
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            <strong>Note:</strong> Select an LC Reference to auto-populate the Corporate Reference, LC Currency, 
+            LC Amount, LC Expiry Place, LC Expiry Date, Applicant Name, and Issuing Bank fields.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
