@@ -35,12 +35,12 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     if (updates.lcAmount !== undefined) {
       processedUpdates.lcAmount = typeof updates.lcAmount === 'string' 
         ? (parseFloat(updates.lcAmount) || 0) 
-        : updates.lcAmount;
+        : (typeof updates.lcAmount === 'number' ? updates.lcAmount : 0);
     }
     if (updates.billAmount !== undefined) {
       processedUpdates.billAmount = typeof updates.billAmount === 'string' 
         ? (parseFloat(updates.billAmount) || 0) 
-        : updates.billAmount;
+        : (typeof updates.billAmount === 'number' ? updates.billAmount : 0);
     }
     
     updateFormData(processedUpdates);
