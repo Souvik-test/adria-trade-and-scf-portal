@@ -32,11 +32,15 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     const processedUpdates = { ...updates };
     
     // Convert string numbers to actual numbers for numeric fields
-    if (updates.lcAmount && typeof updates.lcAmount === 'string') {
-      processedUpdates.lcAmount = parseFloat(updates.lcAmount) || 0;
+    if (updates.lcAmount !== undefined) {
+      processedUpdates.lcAmount = typeof updates.lcAmount === 'string' 
+        ? (parseFloat(updates.lcAmount) || 0) 
+        : updates.lcAmount;
     }
-    if (updates.billAmount && typeof updates.billAmount === 'string') {
-      processedUpdates.billAmount = parseFloat(updates.billAmount) || 0;
+    if (updates.billAmount !== undefined) {
+      processedUpdates.billAmount = typeof updates.billAmount === 'string' 
+        ? (parseFloat(updates.billAmount) || 0) 
+        : updates.billAmount;
     }
     
     updateFormData(processedUpdates);
