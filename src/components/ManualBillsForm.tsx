@@ -27,7 +27,19 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 
   const handleUpdateFormData = useCallback((updates: any) => {
     console.log('Updating form data:', updates);
-    updateFormData(updates);
+    
+    // Handle numeric conversions properly
+    const processedUpdates = { ...updates };
+    
+    // Convert string numbers to actual numbers for numeric fields
+    if (updates.lcAmount && typeof updates.lcAmount === 'string') {
+      processedUpdates.lcAmount = parseFloat(updates.lcAmount) || 0;
+    }
+    if (updates.billAmount && typeof updates.billAmount === 'string') {
+      processedUpdates.billAmount = parseFloat(updates.billAmount) || 0;
+    }
+    
+    updateFormData(processedUpdates);
   }, [updateFormData]);
 
   return (
