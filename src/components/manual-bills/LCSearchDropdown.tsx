@@ -116,7 +116,6 @@ const LCSearchDropdown: React.FC<LCSearchDropdownProps> = ({
           <CommandInput 
             placeholder="Search LC Reference..." 
             className="h-9"
-            icon={<Search className="h-4 w-4" />}
           />
           <CommandList>
             <CommandEmpty>

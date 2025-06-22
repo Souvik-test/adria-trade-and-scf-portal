@@ -1,101 +1,73 @@
 
 import React from 'react';
-
-interface UploadedDocument {
-  id: string;
-  name: string;
-  reference: string;
-  date: string;
-  type: string;
-  file: File;
-}
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { ManualBillsFormPane } from '@/hooks/useManualBillsForm';
 
 interface FormActionsProps {
-  selectedDocuments: string[];
-  setSelectedDocuments: (docs: string[]) => void;
-  customDocumentName: string;
-  setCustomDocumentName: (name: string) => void;
-  documentTypes: string[];
-  setDocumentTypes: (types: string[]) => void;
-  uploadedDocuments: UploadedDocument[];
-  setUploadedDocuments: (docs: UploadedDocument[]) => void;
-  showDocumentDetails: boolean;
-  setShowDocumentDetails: (show: boolean) => void;
-  pendingFile: File | null;
-  setPendingFile: (file: File | null) => void;
+  currentPane: ManualBillsFormPane;
+  isFirstPane: boolean;
+  isLastPane: boolean;
+  isSubmitting: boolean;
+  onNext: () => void;
+  onPrevious: () => void;
+  onSubmit: () => void;
+  onCancel: () => void;
 }
 
-export const useFormActions = ({
-  selectedDocuments,
-  setSelectedDocuments,
-  customDocumentName,
-  setCustomDocumentName,
-  documentTypes,
-  setDocumentTypes,
-  uploadedDocuments,
-  setUploadedDocuments,
-  showDocumentDetails,
-  setShowDocumentDetails,
-  pendingFile,
-  setPendingFile
-}: FormActionsProps) => {
-  const handleDocumentSelect = (docType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDocuments([...selectedDocuments, docType]);
-    } else {
-      setSelectedDocuments(selectedDocuments.filter(doc => doc !== docType));
-    }
-  };
-
-  const handleAddCustomDocumentType = () => {
-    if (customDocumentName.trim() && !documentTypes.includes(customDocumentName.trim())) {
-      const newDocType = customDocumentName.trim();
-      setDocumentTypes([...documentTypes, newDocType]);
-      setSelectedDocuments([...selectedDocuments, newDocType]);
-      setCustomDocumentName('');
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && selectedDocuments.length > 0) {
-      setPendingFile(file);
-      setShowDocumentDetails(true);
-    }
-    event.target.value = '';
-  };
-
-  const handleDocumentUpload = (details: { type: string; id: string; date: string }) => {
-    if (pendingFile) {
-      const newDocument: UploadedDocument = {
-        id: Date.now().toString(),
-        name: pendingFile.name,
-        reference: details.id,
-        date: details.date,
-        type: details.type,
-        file: pendingFile
-      };
-      setUploadedDocuments([...uploadedDocuments, newDocument]);
-      setShowDocumentDetails(false);
-      setPendingFile(null);
-    }
-  };
-
-  const handleDocumentUploadCancel = () => {
-    setShowDocumentDetails(false);
-    setPendingFile(null);
-  };
-
-  const handleDocumentDelete = (id: string) => {
-    setUploadedDocuments(uploadedDocuments.filter(doc => doc.id !== id));
-  };
-
-  return {
-    handleDocumentSelect,
-    handleAddCustomDocumentType,
-    handleFileSelect,
-    handleDocumentUpload,
-    handleDocumentUploadCancel,
-    handleDocumentDelete
-  };
+const FormActions: React.FC<FormActionsProps> = ({
+  currentPane,
+  isFirstPane,
+  isLastPane,
+  isSubmitting,
+  onNext,
+  onPrevious,
+  onSubmit,
+  onCancel
+}) => {
+  return (
+    <div className="border-t border-gray-200 dark:border-gray-700 p-6">
+      <div className="flex justify-between">
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          {!isFirstPane && (
+            <Button
+              variant="outline"
+              onClick={onPrevious}
+              disabled={isSubmitting}
+            >
+              Previous
+            </Button>
+          )}
+        </div>
+        
+        <div className="flex gap-3">
+          {!isLastPane ? (
+            <Button
+              onClick={onNext}
+              disabled={isSubmitting}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              onClick={onSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
+
+export default FormActions;

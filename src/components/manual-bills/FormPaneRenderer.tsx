@@ -1,131 +1,87 @@
-
 import React from 'react';
 import SubmissionDetailsPane from './SubmissionDetailsPane';
 import LcApplicantDetailsPane from './LcApplicantDetailsPane';
 import DrawingDetailsPane from './DrawingDetailsPane';
 import ShipmentTransportationPane from './ShipmentTransportationPane';
 import DocumentSubmissionPane from './DocumentSubmissionPane';
-
-interface UploadedDocument {
-  id: string;
-  name: string;
-  reference: string;
-  date: string;
-  type: string;
-  file: File;
-}
+import { ManualBillsFormPane } from '@/hooks/useManualBillsForm';
 
 interface FormPaneRendererProps {
-  currentPane: number;
-  submissionType: string;
-  setSubmissionType: (value: string) => void;
-  submissionDate: string;
-  setSubmissionDate: (value: string) => void;
-  submissionReference: string;
-  setSubmissionReference: (value: string) => void;
-  lcReference: string;
-  setLcReference: (value: string) => void;
-  corporateReference: string;
-  lcCurrency: string;
-  setLcCurrency: (value: string) => void;
-  applicantName: string;
-  setApplicantName: (value: string) => void;
-  drawingCurrency: string;
-  setDrawingCurrency: (value: string) => void;
-  drawingAmount: string;
-  setDrawingAmount: (value: string) => void;
-  drawingDate: string;
-  setDrawingDate: (value: string) => void;
-  tenorType: string;
-  setTenorType: (value: string) => void;
-  tenorDays: string;
-  setTenorDays: (value: string) => void;
-  billDueDate: string;
-  setBillDueDate: (value: string) => void;
-  shipmentDetails: string;
-  setShipmentDetails: (value: string) => void;
-  billOfLadingNo: string;
-  setBillOfLadingNo: (value: string) => void;
-  documentTypes: string[];
-  selectedDocuments: string[];
-  customDocumentName: string;
-  setCustomDocumentName: (value: string) => void;
-  uploadedDocuments: UploadedDocument[];
-  onLcSearch: () => void;
-  onDocumentSelect: (docType: string, checked: boolean) => void;
-  onAddCustomDocumentType: () => void;
-  onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onDocumentDelete: (id: string) => void;
+  currentPane: ManualBillsFormPane;
+  formData: any;
+  updateFormData: (updates: any) => void;
 }
 
-const FormPaneRenderer: React.FC<FormPaneRendererProps> = (props) => {
-  switch (props.currentPane) {
-    case 0:
-      return (
-        <SubmissionDetailsPane
-          submissionType={props.submissionType}
-          setSubmissionType={props.setSubmissionType}
-          submissionDate={props.submissionDate}
-          setSubmissionDate={props.setSubmissionDate}
-          submissionReference={props.submissionReference}
-          setSubmissionReference={props.setSubmissionReference}
-        />
-      );
-    case 1:
+const FormPaneRenderer: React.FC<FormPaneRendererProps> = ({
+  currentPane,
+  formData,
+  updateFormData
+}) => {
+  switch (currentPane) {
+    case 'lc-applicant-details':
       return (
         <LcApplicantDetailsPane
-          lcReference={props.lcReference}
-          setLcReference={props.setLcReference}
-          corporateReference={props.corporateReference}
-          lcCurrency={props.lcCurrency}
-          setLcCurrency={props.setLcCurrency}
-          applicantName={props.applicantName}
-          setApplicantName={props.setApplicantName}
-          onLcSearch={props.onLcSearch}
+          formData={formData}
+          updateFormData={updateFormData}
         />
       );
-    case 2:
+    case 'drawing-details':
       return (
         <DrawingDetailsPane
-          drawingCurrency={props.drawingCurrency}
-          setDrawingCurrency={props.setDrawingCurrency}
-          drawingAmount={props.drawingAmount}
-          setDrawingAmount={props.setDrawingAmount}
-          drawingDate={props.drawingDate}
-          setDrawingDate={props.setDrawingDate}
-          tenorType={props.tenorType}
-          setTenorType={props.setTenorType}
-          tenorDays={props.tenorDays}
-          setTenorDays={props.setTenorDays}
-          billDueDate={props.billDueDate}
-          setBillDueDate={props.setBillDueDate}
+          drawingCurrency={formData.billCurrency || ''}
+          setDrawingCurrency={(value: string) => updateFormData({ billCurrency: value })}
+          drawingAmount={formData.billAmount?.toString() || ''}
+          setDrawingAmount={(value: string) => updateFormData({ billAmount: parseFloat(value) || 0 })}
+          drawingDate={formData.billDate || ''}
+          setDrawingDate={(value: string) => updateFormData({ billDate: value })}
+          tenorType={formData.tenor || ''}
+          setTenorType={(value: string) => updateFormData({ tenor: value })}
+          tenorDays={''}
+          setTenorDays={() => {}}
+          billDueDate={''}
+          setBillDueDate={() => {}}
         />
       );
-    case 3:
+    case 'shipment-transportation':
       return (
         <ShipmentTransportationPane
-          shipmentDetails={props.shipmentDetails}
-          setShipmentDetails={props.setShipmentDetails}
-          billOfLadingNo={props.billOfLadingNo}
-          setBillOfLadingNo={props.setBillOfLadingNo}
+          shipmentDetails={formData.shipmentDate || ''}
+          setShipmentDetails={(value: string) => updateFormData({ shipmentDate: value })}
+          billOfLadingNo={formData.vesselName || ''}
+          setBillOfLadingNo={(value: string) => updateFormData({ vesselName: value })}
         />
       );
-    case 4:
+    case 'submission-details':
+      return (
+        <SubmissionDetailsPane
+          submissionType={'manual'}
+          setSubmissionType={() => {}}
+          submissionDate={formData.presentationDate || ''}
+          setSubmissionDate={(value: string) => updateFormData({ presentationDate: value })}
+          submissionReference={formData.presentingBank || ''}
+          setSubmissionReference={(value: string) => updateFormData({ presentingBank: value })}
+        />
+      );
+    case 'document-submission':
       return (
         <DocumentSubmissionPane
-          documentTypes={props.documentTypes}
-          selectedDocuments={props.selectedDocuments}
-          customDocumentName={props.customDocumentName}
-          setCustomDocumentName={props.setCustomDocumentName}
-          uploadedDocuments={props.uploadedDocuments}
-          onDocumentSelect={props.onDocumentSelect}
-          onAddCustomDocumentType={props.onAddCustomDocumentType}
-          onFileSelect={props.onFileSelect}
-          onDocumentDelete={props.onDocumentDelete}
+          documentTypes={[]}
+          selectedDocuments={[]}
+          customDocumentName={''}
+          setCustomDocumentName={() => {}}
+          uploadedDocuments={formData.documents || []}
+          onDocumentSelect={() => {}}
+          onAddCustomDocumentType={() => {}}
+          onFileSelect={() => {}}
+          onDocumentDelete={() => {}}
         />
       );
     default:
-      return null;
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Pane "{currentPane}" is not yet implemented</p>
+        </div>
+      );
   }
 };
 

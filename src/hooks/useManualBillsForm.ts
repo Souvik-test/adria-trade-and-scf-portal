@@ -84,10 +84,17 @@ export const useManualBillsForm = () => {
     try {
       console.log('Submitting Export LC Bill:', formData);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('export_lc_bills')
         .insert({
-          lc_reference: formData.lcReference,
+          user_id: user.id,
+          lc_reference: formData.lcReference || '',
           corporate_reference: formData.corporateReference,
           lc_currency: formData.lcCurrency,
           lc_amount: formData.lcAmount,
