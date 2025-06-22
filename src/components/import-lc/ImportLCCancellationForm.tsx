@@ -296,21 +296,10 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
           </ScrollArea>
         </div>
 
-        {/* Actions */}
+        {/* Actions - No Go Back button since this is the first and only pane */}
         <div className="flex-shrink-0 px-6 pb-6">
-          <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
-            {/* Left side - Go Back button */}
-            <div className="flex gap-3">
-              <Button
-                onClick={onBack}
-                variant="outline"
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                Go Back
-              </Button>
-            </div>
-
-            {/* Right side - Actions */}
+          <div className="flex justify-end items-center pt-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
+            {/* Right side - Actions only */}
             <div className="flex gap-3 items-center">
               <Button
                 onClick={handleDiscard}

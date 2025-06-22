@@ -35,15 +35,17 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
 
   return (
     <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
-      {/* Left side - Go Back button */}
+      {/* Left side - Only show Go Back button if not on first step */}
       <div className="flex gap-3">
-        <Button
-          onClick={isFirstStep ? onBack : onPrevious}
-          variant="outline"
-          className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-          Go Back
-        </Button>
+        {!isFirstStep && (
+          <Button
+            onClick={onPrevious}
+            variant="outline"
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Go Back
+          </Button>
+        )}
       </div>
 
       {/* Right side - Actions */}
