@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { ArrowLeft, FileText, Search, DollarSign, Upload, MessageSquare, CheckCi
 import ManualBillsForm from './ManualBillsForm';
 import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 import RequestFinanceForm from './RequestFinanceForm';
+import ImportLCBillAcceptRefuseForm from './import-lc/ImportLCBillAcceptRefuseForm';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -20,6 +22,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [showManualBillsForm, setShowManualBillsForm] = useState(false);
   const [showResolveDiscrepanciesForm, setShowResolveDiscrepanciesForm] = useState(false);
   const [showRequestFinanceForm, setShowRequestFinanceForm] = useState(false);
+  const [showAcceptRefuseForm, setShowAcceptRefuseForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -38,8 +41,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           setShowRequestFinanceForm(true);
           break;
         case 'accept-refuse':
-          // For now, we'll show the manual bills form - this can be changed to a specific form later
-          setShowManualBillsForm(true);
+          setShowAcceptRefuseForm(true);
           break;
         case 'process-bill-settlement':
           // For now, we'll show the manual bills form - this can be changed to a specific form later
@@ -53,6 +55,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     setShowRequestFinanceForm(false);
     setShowResolveDiscrepanciesForm(false);
     setShowManualBillsForm(false);
+    setShowAcceptRefuseForm(false);
     setSelectedAction(null);
   };
 
@@ -78,6 +81,15 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   if (showRequestFinanceForm) {
     return (
       <RequestFinanceForm
+        onClose={onClose}
+        onBack={handleBackToBills}
+      />
+    );
+  }
+
+  if (showAcceptRefuseForm) {
+    return (
+      <ImportLCBillAcceptRefuseForm
         onClose={onClose}
         onBack={handleBackToBills}
       />
