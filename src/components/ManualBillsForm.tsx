@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
@@ -33,14 +32,16 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     
     // Convert string numbers to actual numbers for numeric fields
     if (updates.lcAmount !== undefined) {
-      processedUpdates.lcAmount = typeof updates.lcAmount === 'string' 
-        ? (parseFloat(updates.lcAmount) || 0) 
-        : (typeof updates.lcAmount === 'number' ? updates.lcAmount : 0);
+      const lcAmountValue = typeof updates.lcAmount === 'string' 
+        ? parseFloat(updates.lcAmount) 
+        : updates.lcAmount;
+      processedUpdates.lcAmount = isNaN(lcAmountValue) ? 0 : lcAmountValue;
     }
     if (updates.billAmount !== undefined) {
-      processedUpdates.billAmount = typeof updates.billAmount === 'string' 
-        ? (parseFloat(updates.billAmount) || 0) 
-        : (typeof updates.billAmount === 'number' ? updates.billAmount : 0);
+      const billAmountValue = typeof updates.billAmount === 'string' 
+        ? parseFloat(updates.billAmount) 
+        : updates.billAmount;
+      processedUpdates.billAmount = isNaN(billAmountValue) ? 0 : billAmountValue;
     }
     
     updateFormData(processedUpdates);
