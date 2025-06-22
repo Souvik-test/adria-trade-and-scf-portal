@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
@@ -24,6 +25,14 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     submitForm,
     isSubmitting
   } = useManualBillsForm();
+
+  const paneHeaders = [
+    'LC & Applicant Details',
+    'Drawing Details',
+    'Shipment & Transportation',
+    'Submission Details',
+    'Document Submission'
+  ];
 
   const handleUpdateFormData = useCallback((updates: any) => {
     console.log('Updating form data:', updates);
@@ -57,6 +66,11 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     updateFormData(processedUpdates);
   }, [updateFormData]);
 
+  const getCurrentPaneIndex = () => {
+    const paneOrder = ['lc-applicant-details', 'drawing-details', 'shipment-transportation', 'submission-details', 'document-submission'];
+    return paneOrder.indexOf(currentPane);
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
@@ -77,7 +91,10 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
         </DialogHeader>
         
         <div className="flex-1 overflow-hidden flex flex-col">
-          <FormProgressIndicator currentPane={currentPane} />
+          <FormProgressIndicator 
+            currentPane={getCurrentPaneIndex()} 
+            paneHeaders={paneHeaders}
+          />
           
           <div className="flex-1 overflow-auto p-6">
             <FormPaneRenderer 
@@ -104,3 +121,4 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 };
 
 export default ManualBillsForm;
+
