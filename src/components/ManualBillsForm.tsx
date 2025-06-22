@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
@@ -36,16 +35,21 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
       if (typeof updates.lcAmount === 'string') {
         const numValue = parseFloat(updates.lcAmount);
         processedUpdates.lcAmount = isNaN(numValue) ? 0 : numValue;
+      } else if (typeof updates.lcAmount === 'number') {
+        processedUpdates.lcAmount = updates.lcAmount;
       } else {
-        processedUpdates.lcAmount = typeof updates.lcAmount === 'number' ? updates.lcAmount : 0;
+        processedUpdates.lcAmount = 0;
       }
     }
+    
     if (updates.billAmount !== undefined) {
       if (typeof updates.billAmount === 'string') {
         const numValue = parseFloat(updates.billAmount);
         processedUpdates.billAmount = isNaN(numValue) ? 0 : numValue;
+      } else if (typeof updates.billAmount === 'number') {
+        processedUpdates.billAmount = updates.billAmount;
       } else {
-        processedUpdates.billAmount = typeof updates.billAmount === 'number' ? updates.billAmount : 0;
+        processedUpdates.billAmount = 0;
       }
     }
     
