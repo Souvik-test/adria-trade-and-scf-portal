@@ -4,6 +4,7 @@ import ImportLCActionSection from './import-lc/ImportLCActionSection';
 import ImportLCMethodSection from './import-lc/ImportLCMethodSection';
 import ImportLCForm from './import-lc/ImportLCForm';
 import ImportLCAmendmentForm from './import-lc/ImportLCAmendmentForm';
+import ImportLCCancellationForm from './import-lc/ImportLCCancellationForm';
 import ExportLCModalContent from "./export-lc/ExportLCModalContent";
 import ReviewPreAdvicedLCForm from "./export-lc/ReviewPreAdvicedLCForm";
 import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
@@ -166,6 +167,15 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       );
     }
 
+    if (selectedMethod === 'manual' && selectedAction === 'cancellation') {
+      return (
+        <ImportLCCancellationForm
+          onBack={handleBack}
+          onClose={onClose}
+        />
+      );
+    }
+
     if (selectedMethod) {
       return (
         <div className="text-center py-8">
@@ -200,7 +210,8 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   };
 
   if ((selectedMethod === 'manual' && selectedAction === 'issuance') || 
-      (selectedMethod === 'manual' && selectedAction === 'amendment')) {
+      (selectedMethod === 'manual' && selectedAction === 'amendment') ||
+      (selectedMethod === 'manual' && selectedAction === 'cancellation')) {
     return (
       <>
         {isOpen && (
