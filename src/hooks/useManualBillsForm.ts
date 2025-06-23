@@ -98,9 +98,10 @@ export const useManualBillsForm = () => {
         throw new Error('User not authenticated');
       }
 
-      // Prepare data for insertion - let the database trigger generate the reference
+      // Prepare data for insertion - provide empty bill_reference that the trigger will replace
       const insertData = {
         user_id: user.id,
+        bill_reference: '', // Empty string that will be replaced by the database trigger
         lc_reference: formData.lcReference || '',
         corporate_reference: formData.corporateReference || '',
         lc_currency: formData.lcCurrency || 'USD',
