@@ -88,22 +88,19 @@ export const useManualBillsForm = () => {
       console.log('Submitting Export LC Bill:', formData);
 
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        throw new Error('Authentication error');
+      }
+      
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      // Generate bill reference using database function
-      const { data: refData, error: refError } = await supabase.rpc('generate_export_bill_ref');
-      if (refError) {
-        console.error('Error generating bill reference:', refError);
-        throw new Error('Failed to generate bill reference');
-      }
-
-      // Prepare data for insertion with all required fields
+      // Prepare data for insertion - let the database trigger generate the reference
       const insertData = {
         user_id: user.id,
-        bill_reference: refData, // Generated reference
         lc_reference: formData.lcReference || '',
         corporate_reference: formData.corporateReference || '',
         lc_currency: formData.lcCurrency || 'USD',
@@ -119,13 +116,20 @@ export const useManualBillsForm = () => {
         status: 'submitted'
       };
 
+      console.log('Insert data:', insertData);
+
       const { data, error } = await supabase
         .from('export_lc_bills')
         .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Successfully inserted:', data);
 
       toast({
         title: "Success",
@@ -140,7 +144,7 @@ export const useManualBillsForm = () => {
       console.error('Error submitting Export LC Bill:', error);
       toast({
         title: "Error",
-        description: "Failed to submit Export LC Bill. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit Export LC Bill. Please try again.",
         variant: "destructive",
       });
     } finally {
