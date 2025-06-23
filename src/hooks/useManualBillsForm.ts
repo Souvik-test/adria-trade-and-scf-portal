@@ -104,7 +104,7 @@ export const useManualBillsForm = () => {
       // Prepare data for insertion
       const insertData = {
         user_id: user.id,
-        bill_reference: billReference, // Use submission reference as bill reference
+        bill_reference: billReference,
         lc_reference: formData.lcReference || '',
         corporate_reference: formData.corporateReference || '',
         lc_currency: formData.lcCurrency || 'USD',
@@ -134,6 +134,28 @@ export const useManualBillsForm = () => {
       }
 
       console.log('Successfully inserted:', data);
+
+      // Create transaction record for the dashboard
+      const transactionData = {
+        user_id: user.id,
+        transaction_ref: data.bill_reference,
+        product_type: 'EXPORT LC BILLS',
+        process_type: 'PRESENT BILL',
+        status: data.status,
+        customer_name: data.applicant_name,
+        amount: data.bill_amount,
+        currency: data.bill_currency,
+        created_by: user.email || 'Unknown',
+        initiating_channel: 'Portal'
+      };
+
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert(transactionData);
+
+      if (transactionError) {
+        console.error('Transaction creation error:', transactionError);
+      }
 
       toast({
         title: "Success",

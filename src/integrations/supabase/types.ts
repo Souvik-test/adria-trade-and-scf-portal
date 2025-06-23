@@ -1007,6 +1007,66 @@ export type Database = {
         }
         Relationships: []
       }
+      resolve_discrepancies: {
+        Row: {
+          applicant_name: string | null
+          bill_reference: string
+          corporate_reference: string | null
+          created_at: string
+          discrepancy_description: string | null
+          discrepancy_notification_date: string | null
+          discrepancy_type: string | null
+          document_reupload_required: string | null
+          document_type: string | null
+          id: string
+          issuing_bank: string | null
+          lc_reference: string | null
+          resolution_remarks: string | null
+          resolution_status: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applicant_name?: string | null
+          bill_reference: string
+          corporate_reference?: string | null
+          created_at?: string
+          discrepancy_description?: string | null
+          discrepancy_notification_date?: string | null
+          discrepancy_type?: string | null
+          document_reupload_required?: string | null
+          document_type?: string | null
+          id?: string
+          issuing_bank?: string | null
+          lc_reference?: string | null
+          resolution_remarks?: string | null
+          resolution_status?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applicant_name?: string | null
+          bill_reference?: string
+          corporate_reference?: string | null
+          created_at?: string
+          discrepancy_description?: string | null
+          discrepancy_notification_date?: string | null
+          discrepancy_type?: string | null
+          document_reupload_required?: string | null
+          document_type?: string | null
+          id?: string
+          issuing_bank?: string | null
+          lc_reference?: string | null
+          resolution_remarks?: string | null
+          resolution_status?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number | null

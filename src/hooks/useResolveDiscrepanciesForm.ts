@@ -1,5 +1,7 @@
 
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UploadedDocument {
   id: string;
@@ -37,8 +39,22 @@ export const useResolveDiscrepanciesForm = () => {
   const [resolutionRemarks, setResolutionRemarks] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [lcReference, setLcReference] = useState('');
+  
+  // General Details state
   const [billReference, setBillReference] = useState('');
+  const [lcReference, setLcReference] = useState('');
+  const [corporateReference, setCorporateReference] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [issuingBank, setIssuingBank] = useState('');
+  const [discrepancyNotificationDate, setDiscrepancyNotificationDate] = useState('');
+  
+  // Discrepancy Details state
+  const [discrepancyType, setDiscrepancyType] = useState('');
+  const [documentType, setDocumentType] = useState('');
+  const [discrepancyDescription, setDiscrepancyDescription] = useState('');
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const defaultDocumentTypes = [
     'Commercial Invoice',
@@ -54,6 +70,10 @@ export const useResolveDiscrepanciesForm = () => {
   const validateForm = () => {
     const errors: string[] = [];
 
+    if (!billReference.trim()) {
+      errors.push('Bill Reference Number is required');
+    }
+
     if (resolutionStatus === 'resolved' && !resolutionRemarks.trim()) {
       errors.push('Resolution remarks are required when status is resolved');
     }
@@ -64,6 +84,93 @@ export const useResolveDiscrepanciesForm = () => {
 
     setValidationErrors(errors);
     return errors.length === 0;
+  };
+
+  const submitForm = async () => {
+    if (!validateForm()) {
+      return false;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        throw new Error('Authentication error');
+      }
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Prepare data for insertion
+      const insertData = {
+        user_id: user.id,
+        bill_reference: billReference,
+        lc_reference: lcReference,
+        corporate_reference: corporateReference,
+        applicant_name: applicantName,
+        issuing_bank: issuingBank,
+        discrepancy_notification_date: discrepancyNotificationDate || null,
+        discrepancy_type: discrepancyType,
+        document_type: documentType,
+        discrepancy_description: discrepancyDescription,
+        resolution_status: resolutionStatus,
+        document_reupload_required: documentReuploadRequired,
+        resolution_remarks: resolutionRemarks,
+        status: 'submitted'
+      };
+
+      console.log('Submitting resolve discrepancies data:', insertData);
+
+      const { data, error } = await supabase
+        .from('resolve_discrepancies')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Successfully inserted resolve discrepancies:', data);
+
+      toast({
+        title: "Success",
+        description: `Discrepancy resolution submitted successfully for Bill Reference: ${billReference}`,
+      });
+
+      // Reset form
+      setBillReference('');
+      setLcReference('');
+      setCorporateReference('');
+      setApplicantName('');
+      setIssuingBank('');
+      setDiscrepancyNotificationDate('');
+      setDiscrepancyType('');
+      setDocumentType('');
+      setDiscrepancyDescription('');
+      setResolutionStatus('');
+      setDocumentReuploadRequired('');
+      setResolutionRemarks('');
+      setSelectedDocuments([]);
+      setUploadedDocuments([]);
+      setCurrentPane(0);
+
+      return true;
+    } catch (error) {
+      console.error('Error submitting resolve discrepancies:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit discrepancy resolution. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
@@ -80,9 +187,17 @@ export const useResolveDiscrepanciesForm = () => {
     resolutionRemarks,
     selectedDocuments,
     validationErrors,
-    lcReference,
     billReference,
+    lcReference,
+    corporateReference,
+    applicantName,
+    issuingBank,
+    discrepancyNotificationDate,
+    discrepancyType,
+    documentType,
+    discrepancyDescription,
     documentTypes,
+    isSubmitting,
     
     // Setters
     setCurrentPane,
@@ -96,11 +211,19 @@ export const useResolveDiscrepanciesForm = () => {
     setDocumentReuploadRequired,
     setResolutionRemarks,
     setSelectedDocuments,
-    setLcReference,
     setBillReference,
+    setLcReference,
+    setCorporateReference,
+    setApplicantName,
+    setIssuingBank,
+    setDiscrepancyNotificationDate,
+    setDiscrepancyType,
+    setDocumentType,
+    setDiscrepancyDescription,
     setDocumentTypes,
     
     // Functions
-    validateForm
+    validateForm,
+    submitForm
   };
 };

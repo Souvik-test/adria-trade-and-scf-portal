@@ -43,9 +43,17 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
     resolutionRemarks,
     selectedDocuments,
     validationErrors,
-    lcReference,
     billReference,
+    lcReference,
+    corporateReference,
+    applicantName,
+    issuingBank,
+    discrepancyNotificationDate,
+    discrepancyType,
+    documentType,
+    discrepancyDescription,
     documentTypes,
+    isSubmitting,
     setCurrentPane,
     setIsExpanded,
     setCustomDocumentName,
@@ -57,10 +65,18 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
     setDocumentReuploadRequired,
     setResolutionRemarks,
     setSelectedDocuments,
-    setLcReference,
     setBillReference,
+    setLcReference,
+    setCorporateReference,
+    setApplicantName,
+    setIssuingBank,
+    setDiscrepancyNotificationDate,
+    setDiscrepancyType,
+    setDocumentType,
+    setDiscrepancyDescription,
     setDocumentTypes,
-    validateForm
+    validateForm,
+    submitForm
   } = useResolveDiscrepanciesForm();
 
   // Initialize isExpanded with isFullScreen prop
@@ -157,9 +173,10 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
     setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      console.log('Form submitted successfully');
+  const handleSubmit = async () => {
+    const success = await submitForm();
+    if (success) {
+      onClose();
     }
   };
 
@@ -188,12 +205,19 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
       case 0:
         return (
           <GeneralDetailsPane
-            lcReference={lcReference}
-            setLcReference={setLcReference}
             billReference={billReference}
             setBillReference={setBillReference}
-            onLcSearch={handleLcSearch}
-            onBillSearch={handleBillSearch}
+            lcReference={lcReference}
+            setLcReference={setLcReference}
+            corporateReference={corporateReference}
+            setCorporateReference={setCorporateReference}
+            applicantName={applicantName}
+            setApplicantName={setApplicantName}
+            issuingBank={issuingBank}
+            setIssuingBank={setIssuingBank}
+            discrepancyNotificationDate={discrepancyNotificationDate}
+            setDiscrepancyNotificationDate={setDiscrepancyNotificationDate}
+            onBillSearch={() => console.log('Bill search clicked')}
           />
         );
       case 1:
@@ -281,9 +305,10 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
             {baseButtons}
             <Button 
               onClick={handleSubmit}
-              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              disabled={isSubmitting}
+              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
             >
-              Submit
+              {isSubmitting ? 'Submitting...' : 'Submit'}
             </Button>
           </div>
         </div>
