@@ -93,9 +93,17 @@ export const useManualBillsForm = () => {
         throw new Error('User not authenticated');
       }
 
-      // Prepare data for insertion
+      // Generate bill reference using database function
+      const { data: refData, error: refError } = await supabase.rpc('generate_export_bill_ref');
+      if (refError) {
+        console.error('Error generating bill reference:', refError);
+        throw new Error('Failed to generate bill reference');
+      }
+
+      // Prepare data for insertion with all required fields
       const insertData = {
         user_id: user.id,
+        bill_reference: refData, // Generated reference
         lc_reference: formData.lcReference || '',
         corporate_reference: formData.corporateReference || '',
         lc_currency: formData.lcCurrency || 'USD',
