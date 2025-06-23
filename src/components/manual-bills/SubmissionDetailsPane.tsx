@@ -60,12 +60,16 @@ const SubmissionDetailsPane: React.FC<SubmissionDetailsPaneProps> = ({
               </div>
             </div>
             <div>
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Reference</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Bill Reference Number
+                <span className="text-red-500 ml-1">*</span>
+              </Label>
               <Input 
-                placeholder="Enter submission reference" 
+                placeholder="Enter bill reference number" 
                 className="mt-1" 
                 value={submissionReference}
                 onChange={(e) => setSubmissionReference(e.target.value)}
+                required
               />
             </div>
           </div>
