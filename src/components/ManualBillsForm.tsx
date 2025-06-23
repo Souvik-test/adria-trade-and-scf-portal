@@ -1,11 +1,10 @@
 
-
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
 import FormPaneRenderer from './manual-bills/FormPaneRenderer';
 import FormProgressIndicator from './manual-bills/FormProgressIndicator';
-import FormActions from './manual-bills/FormActions';
+import ActionButtons from './manual-bills/ActionButtons';
 import { useManualBillsForm } from '@/hooks/useManualBillsForm';
 
 interface ManualBillsFormProps {
@@ -27,10 +26,10 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
   } = useManualBillsForm();
 
   const paneHeaders = [
+    'Submission Details',
     'LC & Applicant Details',
     'Drawing Details',
     'Shipment & Transportation',
-    'Submission Details',
     'Document Submission'
   ];
 
@@ -42,33 +41,42 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
     
     // Convert string numbers to actual numbers for numeric fields
     if ('lcAmount' in updates) {
-      if (typeof updates.lcAmount === 'string') {
-        const numValue = parseFloat(updates.lcAmount);
-        processedUpdates.lcAmount = isNaN(numValue) ? 0 : numValue;
-      } else if (typeof updates.lcAmount === 'number') {
-        processedUpdates.lcAmount = updates.lcAmount;
-      } else {
-        processedUpdates.lcAmount = 0;
-      }
+      const numValue = parseFloat(updates.lcAmount);
+      processedUpdates.lcAmount = isNaN(numValue) ? 0 : numValue;
     }
     
     if ('billAmount' in updates) {
-      if (typeof updates.billAmount === 'string') {
-        const numValue = parseFloat(updates.billAmount);
-        processedUpdates.billAmount = isNaN(numValue) ? 0 : numValue;
-      } else if (typeof updates.billAmount === 'number') {
-        processedUpdates.billAmount = updates.billAmount;
-      } else {
-        processedUpdates.billAmount = 0;
-      }
+      const numValue = parseFloat(updates.billAmount);
+      processedUpdates.billAmount = isNaN(numValue) ? 0 : numValue;
     }
     
     updateFormData(processedUpdates);
   }, [updateFormData]);
 
   const getCurrentPaneIndex = () => {
-    const paneOrder = ['lc-applicant-details', 'drawing-details', 'shipment-transportation', 'submission-details', 'document-submission'];
+    const paneOrder = ['submission-details', 'lc-applicant-details', 'drawing-details', 'shipment-transportation', 'document-submission'];
     return paneOrder.indexOf(currentPane);
+  };
+
+  const handleGoBack = () => {
+    previousPane();
+  };
+
+  const handleDiscard = () => {
+    onClose();
+  };
+
+  const handleSaveAsDraft = () => {
+    console.log('Saving as draft:', formData);
+    // TODO: Implement save as draft functionality
+  };
+
+  const handleNext = () => {
+    nextPane();
+  };
+
+  const handleSubmit = () => {
+    submitForm();
   };
 
   return (
@@ -104,16 +112,17 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
             />
           </div>
 
-          <FormActions
-            currentPane={currentPane}
-            isFirstPane={isFirstPane}
-            isLastPane={isLastPane}
-            isSubmitting={isSubmitting}
-            onNext={nextPane}
-            onPrevious={previousPane}
-            onSubmit={submitForm}
-            onCancel={onClose}
-          />
+          <div className="border-t border-gray-200 dark:border-gray-700 p-6">
+            <ActionButtons
+              currentPane={getCurrentPaneIndex()}
+              onGoBack={handleGoBack}
+              onDiscard={handleDiscard}
+              onSaveAsDraft={handleSaveAsDraft}
+              onNext={handleNext}
+              onSubmit={handleSubmit}
+              formType="manual-bills"
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -121,4 +130,3 @@ const ManualBillsForm: React.FC<ManualBillsFormProps> = ({ onClose, onBack }) =>
 };
 
 export default ManualBillsForm;
-

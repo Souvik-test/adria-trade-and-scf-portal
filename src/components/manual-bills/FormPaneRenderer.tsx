@@ -1,3 +1,4 @@
+
 import React from 'react';
 import SubmissionDetailsPane from './SubmissionDetailsPane';
 import LcApplicantDetailsPane from './LcApplicantDetailsPane';
@@ -18,6 +19,17 @@ const FormPaneRenderer: React.FC<FormPaneRendererProps> = ({
   updateFormData
 }) => {
   switch (currentPane) {
+    case 'submission-details':
+      return (
+        <SubmissionDetailsPane
+          submissionType={'manual'}
+          setSubmissionType={() => {}}
+          submissionDate={formData.presentationDate || ''}
+          setSubmissionDate={(value: string) => updateFormData({ presentationDate: value })}
+          submissionReference={formData.presentingBank || ''}
+          setSubmissionReference={(value: string) => updateFormData({ presentingBank: value })}
+        />
+      );
     case 'lc-applicant-details':
       return (
         <LcApplicantDetailsPane
@@ -51,29 +63,48 @@ const FormPaneRenderer: React.FC<FormPaneRendererProps> = ({
           setBillOfLadingNo={(value: string) => updateFormData({ vesselName: value })}
         />
       );
-    case 'submission-details':
-      return (
-        <SubmissionDetailsPane
-          submissionType={'manual'}
-          setSubmissionType={() => {}}
-          submissionDate={formData.presentationDate || ''}
-          setSubmissionDate={(value: string) => updateFormData({ presentationDate: value })}
-          submissionReference={formData.presentingBank || ''}
-          setSubmissionReference={(value: string) => updateFormData({ presentingBank: value })}
-        />
-      );
     case 'document-submission':
       return (
         <DocumentSubmissionPane
-          documentTypes={[]}
-          selectedDocuments={[]}
-          customDocumentName={''}
-          setCustomDocumentName={() => {}}
+          documentTypes={['Invoice', 'Packing List', 'Bill of Lading', 'Insurance Certificate', 'Certificate of Origin', "Beneficiary's Certificate"]}
+          selectedDocuments={formData.selectedDocuments || []}
+          customDocumentName={formData.customDocumentName || ''}
+          setCustomDocumentName={(value: string) => updateFormData({ customDocumentName: value })}
           uploadedDocuments={formData.documents || []}
-          onDocumentSelect={() => {}}
-          onAddCustomDocumentType={() => {}}
-          onFileSelect={() => {}}
-          onDocumentDelete={() => {}}
+          onDocumentSelect={(docType: string, checked: boolean) => {
+            const currentDocs = formData.selectedDocuments || [];
+            const updatedDocs = checked 
+              ? [...currentDocs, docType]
+              : currentDocs.filter((doc: string) => doc !== docType);
+            updateFormData({ selectedDocuments: updatedDocs });
+          }}
+          onAddCustomDocumentType={() => {
+            if (formData.customDocumentName?.trim()) {
+              const currentDocs = formData.selectedDocuments || [];
+              updateFormData({ 
+                selectedDocuments: [...currentDocs, formData.customDocumentName.trim()],
+                customDocumentName: ''
+              });
+            }
+          }}
+          onFileSelect={(event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = Array.from(event.target.files || []);
+            const newDocuments = files.map(file => ({
+              id: Date.now().toString() + Math.random(),
+              name: file.name,
+              reference: '',
+              date: new Date().toISOString().split('T')[0],
+              type: file.type,
+              file: file
+            }));
+            updateFormData({ 
+              documents: [...(formData.documents || []), ...newDocuments]
+            });
+          }}
+          onDocumentDelete={(id: string) => {
+            const updatedDocs = (formData.documents || []).filter((doc: any) => doc.id !== id);
+            updateFormData({ documents: updatedDocs });
+          }}
         />
       );
     default:
