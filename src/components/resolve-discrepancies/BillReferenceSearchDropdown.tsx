@@ -29,11 +29,16 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   const [bills, setBills] = useState<ExportLCBill[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSearchTerm(value);
   }, [value]);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,20 +52,40 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   }, []);
 
   useEffect(() => {
-    if (searchTerm.length >= 1) {
+    if (searchTerm.length >= 1 && isAuthenticated) {
       searchBills(searchTerm);
     } else {
       setBills([]);
       setIsOpen(false);
     }
-  }, [searchTerm]);
+  }, [searchTerm, isAuthenticated]);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Auth error:', error);
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(!!user);
+        console.log('User authenticated:', !!user);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+    }
+  };
 
   const searchBills = async (term: string) => {
-    if (!term.trim()) return;
+    if (!term.trim() || !isAuthenticated) {
+      console.log('Cannot search - term empty or not authenticated');
+      return;
+    }
     
     setIsLoading(true);
     try {
       console.log('Searching for bills with term:', term);
+      console.log('User authenticated:', isAuthenticated);
       
       const { data, error } = await supabase
         .from('export_lc_bills')
@@ -102,8 +127,10 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   };
 
   const handleInputFocus = () => {
-    if (searchTerm.length >= 1) {
+    if (searchTerm.length >= 1 && isAuthenticated) {
       searchBills(searchTerm);
+    } else if (!isAuthenticated) {
+      console.log('User not authenticated, cannot search');
     }
   };
 
@@ -114,8 +141,9 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          placeholder={placeholder}
+          placeholder={isAuthenticated ? placeholder : "Please log in to search bills"}
           className="pr-10"
+          disabled={!isAuthenticated}
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
           {isLoading && (
@@ -126,7 +154,15 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
         </div>
       </div>
 
-      {isOpen && bills.length > 0 && (
+      {!isAuthenticated && (
+        <div className="absolute z-50 w-full mt-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md shadow-lg">
+          <div className="px-4 py-3 text-sm text-yellow-700 dark:text-yellow-200">
+            Please log in to search for bill references
+          </div>
+        </div>
+      )}
+
+      {isAuthenticated && isOpen && bills.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
           {bills.map((bill) => (
             <div
@@ -148,7 +184,7 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
         </div>
       )}
 
-      {isOpen && searchTerm.length >= 1 && bills.length === 0 && !isLoading && (
+      {isAuthenticated && isOpen && searchTerm.length >= 1 && bills.length === 0 && !isLoading && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
           <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
             No bills found matching "{searchTerm}"
