@@ -32,6 +32,10 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setSearchTerm(value);
+  }, [value]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -43,16 +47,21 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   }, []);
 
   useEffect(() => {
-    if (searchTerm.length >= 2) {
+    if (searchTerm.length >= 1) {
       searchBills(searchTerm);
     } else {
       setBills([]);
+      setIsOpen(false);
     }
   }, [searchTerm]);
 
   const searchBills = async (term: string) => {
+    if (!term.trim()) return;
+    
     setIsLoading(true);
     try {
+      console.log('Searching for bills with term:', term);
+      
       const { data, error } = await supabase
         .from('export_lc_bills')
         .select('id, bill_reference, lc_reference, corporate_reference, applicant_name, issuing_bank, status')
@@ -64,8 +73,9 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
         console.error('Error searching bills:', error);
         setBills([]);
       } else {
+        console.log('Found bills:', data);
         setBills(data || []);
-        setIsOpen(true);
+        setIsOpen(data && data.length > 0);
       }
     } catch (error) {
       console.error('Error searching bills:', error);
@@ -76,13 +86,25 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
   };
 
   const handleSelect = (bill: ExportLCBill) => {
+    console.log('Selected bill:', bill);
     setSearchTerm(bill.bill_reference);
     setIsOpen(false);
     onSelect(bill.bill_reference, bill);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const newValue = e.target.value;
+    setSearchTerm(newValue);
+    if (newValue.trim() === '') {
+      setBills([]);
+      setIsOpen(false);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (searchTerm.length >= 1) {
+      searchBills(searchTerm);
+    }
   };
 
   return (
@@ -91,6 +113,7 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
         <Input
           value={searchTerm}
           onChange={handleInputChange}
+          onFocus={handleInputFocus}
           placeholder={placeholder}
           className="pr-10"
         />
@@ -115,17 +138,17 @@ const BillReferenceSearchDropdown: React.FC<BillReferenceSearchDropdownProps> = 
                 {bill.bill_reference}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                LC: {bill.lc_reference} | Corp: {bill.corporate_reference}
+                LC: {bill.lc_reference || 'N/A'} | Corp: {bill.corporate_reference || 'N/A'}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {bill.applicant_name} | {bill.issuing_bank}
+                {bill.applicant_name || 'N/A'} | {bill.issuing_bank || 'N/A'}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {isOpen && searchTerm.length >= 2 && bills.length === 0 && !isLoading && (
+      {isOpen && searchTerm.length >= 1 && bills.length === 0 && !isLoading && (
         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
           <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
             No bills found matching "{searchTerm}"

@@ -74,20 +74,15 @@ export const useResolveDiscrepanciesForm = () => {
       errors.push('Bill Reference Number is required');
     }
 
-    if (resolutionStatus === 'resolved' && !resolutionRemarks.trim()) {
-      errors.push('Resolution remarks are required when status is resolved');
-    }
-
-    if (documentReuploadRequired === 'yes' && uploadedDocuments.length === 0) {
-      errors.push('At least one document must be uploaded when document re-upload is required');
-    }
-
     setValidationErrors(errors);
     return errors.length === 0;
   };
 
   const submitForm = async () => {
+    console.log('Starting form submission...');
+    
     if (!validateForm()) {
+      console.log('Form validation failed');
       return false;
     }
 
@@ -104,21 +99,23 @@ export const useResolveDiscrepanciesForm = () => {
         throw new Error('User not authenticated');
       }
 
+      console.log('User authenticated:', user.id);
+
       // Prepare data for insertion
       const insertData = {
         user_id: user.id,
-        bill_reference: billReference,
-        lc_reference: lcReference,
-        corporate_reference: corporateReference,
-        applicant_name: applicantName,
-        issuing_bank: issuingBank,
+        bill_reference: billReference.trim(),
+        lc_reference: lcReference?.trim() || null,
+        corporate_reference: corporateReference?.trim() || null,
+        applicant_name: applicantName?.trim() || null,
+        issuing_bank: issuingBank?.trim() || null,
         discrepancy_notification_date: discrepancyNotificationDate || null,
-        discrepancy_type: discrepancyType,
-        document_type: documentType,
-        discrepancy_description: discrepancyDescription,
-        resolution_status: resolutionStatus,
-        document_reupload_required: documentReuploadRequired,
-        resolution_remarks: resolutionRemarks,
+        discrepancy_type: discrepancyType?.trim() || null,
+        document_type: documentType?.trim() || null,
+        discrepancy_description: discrepancyDescription?.trim() || null,
+        resolution_status: resolutionStatus?.trim() || null,
+        document_reupload_required: documentReuploadRequired?.trim() || null,
+        resolution_remarks: resolutionRemarks?.trim() || null,
         status: 'submitted'
       };
 
@@ -132,10 +129,33 @@ export const useResolveDiscrepanciesForm = () => {
 
       if (error) {
         console.error('Database error:', error);
-        throw error;
+        throw new Error(`Database error: ${error.message}`);
       }
 
       console.log('Successfully inserted resolve discrepancies:', data);
+
+      // Create transaction record for the dashboard
+      const transactionData = {
+        user_id: user.id,
+        transaction_ref: billReference,
+        product_type: 'RESOLVE DISCREPANCIES',
+        process_type: 'DISCREPANCY RESOLUTION',
+        status: 'submitted',
+        customer_name: applicantName || null,
+        amount: null,
+        currency: 'USD',
+        created_by: user.email || 'Unknown',
+        initiating_channel: 'Portal'
+      };
+
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert(transactionData);
+
+      if (transactionError) {
+        console.error('Transaction creation error:', transactionError);
+        // Don't fail the main submission for transaction error
+      }
 
       toast({
         title: "Success",
@@ -158,6 +178,7 @@ export const useResolveDiscrepanciesForm = () => {
       setSelectedDocuments([]);
       setUploadedDocuments([]);
       setCurrentPane(0);
+      setValidationErrors([]);
 
       return true;
     } catch (error) {
