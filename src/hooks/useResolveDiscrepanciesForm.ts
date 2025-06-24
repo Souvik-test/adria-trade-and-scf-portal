@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getProductAndProcessType } from '@/services/processTypeMapping';
 
 interface UploadedDocument {
   id: string;
@@ -134,12 +134,18 @@ export const useResolveDiscrepanciesForm = () => {
 
       console.log('Successfully inserted resolve discrepancies:', data);
 
+      // Get product and process type using the mapping
+      const { product_type, process_type } = getProductAndProcessType({
+        actionType: 'resolve-discrepancies',
+        productType: 'EXPORT LC BILLS'
+      });
+
       // Create transaction record for the dashboard
       const transactionData = {
         user_id: user.id,
         transaction_ref: billReference,
-        product_type: 'RESOLVE DISCREPANCIES',
-        process_type: 'DISCREPANCY RESOLUTION',
+        product_type,
+        process_type,
         status: 'submitted',
         customer_name: applicantName || null,
         amount: null,
@@ -147,6 +153,8 @@ export const useResolveDiscrepanciesForm = () => {
         created_by: user.email || 'Unknown',
         initiating_channel: 'Portal'
       };
+
+      console.log('Creating transaction with data:', transactionData);
 
       const { error: transactionError } = await supabase
         .from('transactions')

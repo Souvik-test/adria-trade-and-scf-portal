@@ -1,3 +1,4 @@
+
 export const getProductAndProcessType = (params: {
   actionType?: string;
   productType?: string;
@@ -65,6 +66,16 @@ export const getProductAndProcessType = (params: {
         return { product_type: "Export LC", process_type: "Assignment Request" };
       default:
         return { product_type: "Export LC", process_type: "Review" };
+    }
+  }
+
+  // Export LC Bills mappings
+  if (productType === "EXPORT LC BILLS" || productType === "Export LC Bills") {
+    switch (actionType) {
+      case "resolve-discrepancies":
+        return { product_type: "EXPORT LC BILLS", process_type: "RESOLVE DISCREPANCIES" };
+      default:
+        return { product_type: "EXPORT LC BILLS", process_type: "RESOLVE DISCREPANCIES" };
     }
   }
 

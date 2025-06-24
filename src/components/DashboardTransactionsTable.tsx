@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -78,12 +77,13 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Updated filtering to include Export LC Bills
+  // Updated filtering to include Resolve Discrepancies
   const filteredTransactions = transactions.filter((transaction) => {
     if (transactionFilter === "all") return true;
     if (transactionFilter === "import-lc") return transaction.product_type === "Import LC";
     if (transactionFilter === "export-lc") return transaction.product_type === "Export LC";
     if (transactionFilter === "export-lc-bills") return transaction.product_type === "EXPORT LC BILLS";
+    if (transactionFilter === "resolve-discrepancies") return transaction.product_type === "EXPORT LC BILLS" && transaction.process_type === "RESOLVE DISCREPANCIES";
     if (transactionFilter === "lc-transfer") return transaction.product_type === "Export LC" && transaction.process_type === "LC Transfer";
     if (transactionFilter === "assignment-request") return transaction.product_type === "Export LC" && transaction.process_type === "Assignment Request";
     if (transactionFilter === "po") return transaction.product_type === "PO";
@@ -135,6 +135,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                 <SelectItem value="import-lc">Import Letter of Credit</SelectItem>
                 <SelectItem value="export-lc">Export Letter of Credit</SelectItem>
                 <SelectItem value="export-lc-bills">Export LC Bills</SelectItem>
+                <SelectItem value="resolve-discrepancies">Resolve Discrepancies</SelectItem>
                 <SelectItem value="lc-transfer">LC Transfer</SelectItem>
                 <SelectItem value="assignment-request">Assignment Request</SelectItem>
                 <SelectItem value="po">Purchase Order (PO)</SelectItem>
