@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -163,6 +164,23 @@ export const useResolveDiscrepanciesForm = () => {
       if (transactionError) {
         console.error('Transaction creation error:', transactionError);
         // Don't fail the main submission for transaction error
+      }
+
+      // Create notification
+      const notificationData = {
+        user_id: user.id,
+        transaction_ref: billReference,
+        transaction_type: 'EXPORT LC BILLS',
+        message: `Discrepancy resolution for Bill ${billReference} has been submitted successfully.`,
+        is_read: false
+      };
+
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notificationData);
+
+      if (notificationError) {
+        console.error('Notification creation error:', notificationError);
       }
 
       toast({

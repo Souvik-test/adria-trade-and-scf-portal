@@ -15,6 +15,7 @@ interface UploadedDocument {
 export const useRequestFinanceForm = () => {
   const { toast } = useToast();
   const [currentPane, setCurrentPane] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Bill Details
   const [billReference, setBillReference] = useState('');
@@ -96,14 +97,10 @@ export const useRequestFinanceForm = () => {
         setLcReference(bill.lc_reference || '');
         setBillCurrency(bill.bill_currency || 'USD');
         setBillAmount(bill.bill_amount?.toString() || '');
+        setBillDueDate(bill.bill_due_date || '');
         
-        // Calculate bill due date (assuming 30 days from bill date for now)
-        if (bill.bill_date) {
-          const billDate = new Date(bill.bill_date);
-          const dueDate = new Date(billDate);
-          dueDate.setDate(dueDate.getDate() + 30);
-          setBillDueDate(dueDate.toISOString().split('T')[0]);
-        }
+        // Set finance currency to match bill currency
+        setFinanceCurrency(bill.bill_currency || 'USD');
 
         toast({
           title: "Success",
@@ -121,6 +118,7 @@ export const useRequestFinanceForm = () => {
         setBillCurrency('');
         setBillAmount('');
         setBillDueDate('');
+        setFinanceCurrency('');
       }
     } catch (error) {
       console.error('Bill search error:', error);
@@ -135,6 +133,7 @@ export const useRequestFinanceForm = () => {
       setBillCurrency('');
       setBillAmount('');
       setBillDueDate('');
+      setFinanceCurrency('');
     } finally {
       setIsSearching(false);
     }
@@ -190,6 +189,101 @@ export const useRequestFinanceForm = () => {
       setTotalRepaymentAmount('');
     }
   }, [financeAmountRequested, interestAmount, financeCurrency]);
+
+  // Submit form function
+  const submitForm = async () => {
+    setIsSubmitting(true);
+    try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        throw new Error('Authentication error');
+      }
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Generate unique finance request reference
+      const financeRequestRef = `FIN-${Date.now()}`;
+
+      // Create transaction record
+      const transactionData = {
+        user_id: user.id,
+        transaction_ref: financeRequestRef,
+        product_type: 'FINANCE REQUEST',
+        process_type: 'REQUEST FINANCE',
+        status: 'submitted',
+        customer_name: null,
+        amount: parseFloat(financeAmountRequested) || 0,
+        currency: financeCurrency || 'USD',
+        created_by: user.email || 'Unknown',
+        initiating_channel: 'Portal'
+      };
+
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert(transactionData);
+
+      if (transactionError) {
+        console.error('Transaction creation error:', transactionError);
+        throw transactionError;
+      }
+
+      // Create notification
+      const notificationData = {
+        user_id: user.id,
+        transaction_ref: financeRequestRef,
+        transaction_type: 'FINANCE REQUEST',
+        message: `Finance request ${financeRequestRef} for ${financeCurrency} ${financeAmountRequested} has been submitted successfully.`,
+        is_read: false
+      };
+
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notificationData);
+
+      if (notificationError) {
+        console.error('Notification creation error:', notificationError);
+      }
+
+      toast({
+        title: "Success",
+        description: `Finance request submitted successfully. Reference: ${financeRequestRef}`,
+      });
+
+      // Reset form
+      setBillReference('');
+      setLcReference('');
+      setBillCurrency('');
+      setBillAmount('');
+      setBillDueDate('');
+      setFinanceRequestType('');
+      setFinanceProductType('');
+      setFinanceCurrency('');
+      setFinanceAmountRequested('');
+      setFinanceTenureDays('');
+      setFinanceDueDate('');
+      setInterestRate('');
+      setPurposeOfFinance('');
+      setSelectedDocuments([]);
+      setUploadedDocuments([]);
+      setCurrentPane(0);
+
+      return true;
+    } catch (error) {
+      console.error('Error submitting finance request:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit finance request. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return {
     currentPane,
@@ -249,6 +343,8 @@ export const useRequestFinanceForm = () => {
     showDocumentDetails,
     setShowDocumentDetails,
     pendingFile,
-    setPendingFile
+    setPendingFile,
+    submitForm,
+    isSubmitting
   };
 };

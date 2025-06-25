@@ -100,10 +100,10 @@ export const useManualBillsForm = () => {
         throw new Error('User not authenticated');
       }
 
-      // Use Submission Reference as Bill Reference
+      // Generate unique bill reference if not provided
       const billReference = formData.presentingBank || `BILL-${Date.now()}`;
 
-      // Prepare data for insertion
+      // Prepare data for insertion with proper null handling
       const insertData = {
         user_id: user.id,
         bill_reference: billReference,
@@ -160,6 +160,23 @@ export const useManualBillsForm = () => {
 
       if (transactionError) {
         console.error('Transaction creation error:', transactionError);
+      }
+
+      // Create notification
+      const notificationData = {
+        user_id: user.id,
+        transaction_ref: data.bill_reference,
+        transaction_type: 'EXPORT LC BILLS',
+        message: `Export LC Bill ${data.bill_reference} has been submitted successfully for processing.`,
+        is_read: false
+      };
+
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notificationData);
+
+      if (notificationError) {
+        console.error('Notification creation error:', notificationError);
       }
 
       toast({
