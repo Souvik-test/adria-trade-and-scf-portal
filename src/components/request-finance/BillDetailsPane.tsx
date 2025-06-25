@@ -12,6 +12,7 @@ interface BillDetailsPaneProps {
   billReference: string;
   setBillReference: (value: string) => void;
   lcReference: string;
+  setLcReference: (value: string) => void;
   billCurrency: string;
   setBillCurrency: (value: string) => void;
   billAmount: string;
@@ -19,19 +20,22 @@ interface BillDetailsPaneProps {
   billDueDate: string;
   setBillDueDate: (value: string) => void;
   onBillSearch: () => void;
+  isSearching?: boolean;
 }
 
 const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
   billReference,
   setBillReference,
   lcReference,
+  setLcReference,
   billCurrency,
   setBillCurrency,
   billAmount,
   setBillAmount,
   billDueDate,
   setBillDueDate,
-  onBillSearch
+  onBillSearch,
+  isSearching = false
 }) => {
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
@@ -57,9 +61,14 @@ const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
                 />
                 <Button 
                   onClick={onBillSearch}
-                  className="px-4 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+                  disabled={!billReference.trim() || isSearching}
+                  className="px-4 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
                 >
-                  <Search className="w-4 h-4" />
+                  {isSearching ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
               <p className="text-xs text-gray-500">Either LC or Bill Reference is mandatory to select</p>
@@ -71,9 +80,10 @@ const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
               </Label>
               <Input
                 value={lcReference}
-                readOnly
+                onChange={(e) => setLcReference(e.target.value)}
                 className="bg-gray-100 dark:bg-gray-700"
                 maxLength={16}
+                readOnly
               />
               <p className="text-xs text-gray-500">LC no. will be auto-populated</p>
             </div>
@@ -109,6 +119,8 @@ const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
                 onChange={(e) => setBillAmount(e.target.value)}
                 placeholder="0.00"
                 maxLength={15}
+                readOnly
+                className="bg-gray-100 dark:bg-gray-700"
               />
               <p className="text-xs text-gray-500">Amount will be auto-populated based on Bill ref</p>
             </div>
@@ -121,6 +133,8 @@ const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
                 type="date"
                 value={billDueDate}
                 onChange={(e) => setBillDueDate(e.target.value)}
+                readOnly
+                className="bg-gray-100 dark:bg-gray-700"
               />
               <p className="text-xs text-gray-500">Date will be auto-populated based on Bill ref</p>
             </div>

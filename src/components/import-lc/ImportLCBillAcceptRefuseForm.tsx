@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Download, 
   Eye, 
@@ -32,6 +33,7 @@ interface BillData {
   billReceivedDate: string;
   billDueDate: string;
   paymentTerms: string;
+  lcType: string;
   lcReference: string;
   beneficiaryName: string;
   applicantName: string;
@@ -68,70 +70,6 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock data - replace with actual API call
-  const mockBillData: BillData = {
-    billReference: 'BILL-2024-000123',
-    billAmount: 125000,
-    currency: 'USD',
-    billReceivedDate: '2024-01-15',
-    billDueDate: '2024-02-14',
-    paymentTerms: 'At sight',
-    lcReference: 'LC-2024-000089',
-    beneficiaryName: 'ABC Trading Company Ltd.',
-    applicantName: 'XYZ Imports Pvt. Ltd.',
-    issuingBank: 'Standard Bank International',
-    documents: [
-      {
-        id: '1',
-        name: 'Commercial Invoice.pdf',
-        type: 'PDF',
-        size: '2.4 MB',
-        uploadedDate: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'Bill of Lading.pdf',
-        type: 'PDF',
-        size: '1.8 MB',
-        uploadedDate: '2024-01-15'
-      },
-      {
-        id: '3',
-        name: 'Packing List.pdf',
-        type: 'PDF',
-        size: '1.2 MB',
-        uploadedDate: '2024-01-15'
-      },
-      {
-        id: '4',
-        name: 'Certificate of Origin.pdf',
-        type: 'PDF',
-        size: '0.8 MB',
-        uploadedDate: '2024-01-15'
-      }
-    ],
-    discrepancies: [
-      {
-        id: '1',
-        type: 'Document Discrepancy',
-        description: 'Invoice amount exceeds LC amount by USD 5,000',
-        severity: 'High'
-      },
-      {
-        id: '2',
-        type: 'Date Discrepancy',
-        description: 'Bill of Lading date is later than LC expiry date',
-        severity: 'Medium'
-      },
-      {
-        id: '3',
-        type: 'Description Discrepancy',
-        description: 'Minor difference in goods description between invoice and LC',
-        severity: 'Low'
-      }
-    ]
-  };
-
   const handleSearch = async () => {
     if (!formData.billReference.trim()) {
       toast({
@@ -144,18 +82,104 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
 
     setIsSearching(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Searching for bill:', formData.billReference);
       
-      setFormData(prev => ({
-        ...prev,
-        billData: mockBillData
-      }));
-      
-      toast({
-        title: "Success",
-        description: "Bill details retrieved successfully",
-      });
+      const { data: bills, error } = await supabase
+        .from('export_lc_bills')
+        .select('*')
+        .eq('bill_reference', formData.billReference.trim())
+        .in('status', ['submitted', 'presented']);
+
+      if (error) {
+        console.error('Bill search error:', error);
+        throw error;
+      }
+
+      if (bills && bills.length > 0) {
+        const bill = bills[0];
+        console.log('Found bill:', bill);
+        
+        // Calculate bill due date (assuming 30 days from bill date for now)
+        let billDueDate = '';
+        if (bill.bill_date) {
+          const billDate = new Date(bill.bill_date);
+          const dueDate = new Date(billDate);
+          dueDate.setDate(dueDate.getDate() + 30);
+          billDueDate = dueDate.toISOString().split('T')[0];
+        }
+
+        const mockBillData: BillData = {
+          billReference: bill.bill_reference,
+          billAmount: bill.bill_amount || 0,
+          currency: bill.bill_currency || 'USD',
+          billReceivedDate: bill.bill_date || new Date().toISOString().split('T')[0],
+          billDueDate: billDueDate,
+          paymentTerms: 'At sight',
+          lcType: 'Documentary Credit',
+          lcReference: bill.lc_reference || '',
+          beneficiaryName: 'ABC Trading Company Ltd.',
+          applicantName: bill.applicant_name || 'XYZ Imports Pvt. Ltd.',
+          issuingBank: bill.issuing_bank || 'Standard Bank International',
+          documents: [
+            {
+              id: '1',
+              name: 'Commercial Invoice.pdf',
+              type: 'PDF',
+              size: '2.4 MB',
+              uploadedDate: bill.bill_date || new Date().toISOString().split('T')[0]
+            },
+            {
+              id: '2',
+              name: 'Bill of Lading.pdf',
+              type: 'PDF',
+              size: '1.8 MB',
+              uploadedDate: bill.bill_date || new Date().toISOString().split('T')[0]
+            },
+            {
+              id: '3',
+              name: 'Packing List.pdf',
+              type: 'PDF',
+              size: '1.2 MB',
+              uploadedDate: bill.bill_date || new Date().toISOString().split('T')[0]
+            }
+          ],
+          discrepancies: [
+            {
+              id: '1',
+              type: 'Document Discrepancy',
+              description: 'Invoice amount exceeds LC amount by USD 5,000',
+              severity: 'High'
+            },
+            {
+              id: '2',
+              type: 'Date Discrepancy',
+              description: 'Bill of Lading date is later than LC expiry date',
+              severity: 'Medium'
+            }
+          ]
+        };
+        
+        setFormData(prev => ({
+          ...prev,
+          billData: mockBillData
+        }));
+        
+        toast({
+          title: "Success",
+          description: "Bill details retrieved and auto-populated successfully",
+        });
+      } else {
+        toast({
+          title: "Not Found",
+          description: "No presented or submitted bill found with this reference number",
+          variant: "destructive",
+        });
+        
+        setFormData(prev => ({
+          ...prev,
+          billData: undefined
+        }));
+      }
     } catch (error) {
       console.error('Search error:', error);
       toast({
@@ -163,6 +187,11 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
         description: "Failed to retrieve bill details",
         variant: "destructive",
       });
+      
+      setFormData(prev => ({
+        ...prev,
+        billData: undefined
+      }));
     } finally {
       setIsSearching(false);
     }
@@ -346,6 +375,10 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
                         <div>
                           <div className="text-sm text-gray-600 dark:text-gray-400">Payment Terms</div>
                           <div className="font-semibold">{formData.billData.paymentTerms}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">LC Type</div>
+                          <div className="font-semibold">{formData.billData.lcType}</div>
                         </div>
                         <div>
                           <div className="text-sm text-gray-600 dark:text-gray-400">LC Reference</div>

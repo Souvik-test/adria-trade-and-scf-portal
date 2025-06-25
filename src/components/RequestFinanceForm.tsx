@@ -63,10 +63,6 @@ const RequestFinanceForm: React.FC<RequestFinanceFormProps> = ({ onClose, onBack
     console.log('Form submitted');
   };
 
-  const handleBillSearch = () => {
-    console.log('Searching Bill Reference:', formState.billReference);
-  };
-
   return (
     <>
       <Dialog open={true} onOpenChange={onClose}>
@@ -99,12 +95,14 @@ const RequestFinanceForm: React.FC<RequestFinanceFormProps> = ({ onClose, onBack
                 billReference={formState.billReference}
                 setBillReference={formState.setBillReference}
                 lcReference={formState.lcReference}
+                setLcReference={formState.setLcReference}
                 billCurrency={formState.billCurrency}
                 setBillCurrency={formState.setBillCurrency}
                 billAmount={formState.billAmount}
                 setBillAmount={formState.setBillAmount}
                 billDueDate={formState.billDueDate}
                 setBillDueDate={formState.setBillDueDate}
+                isSearching={formState.isSearching}
                 financeRequestType={formState.financeRequestType}
                 setFinanceRequestType={formState.setFinanceRequestType}
                 financeProductType={formState.financeProductType}
@@ -137,7 +135,7 @@ const RequestFinanceForm: React.FC<RequestFinanceFormProps> = ({ onClose, onBack
                 customDocumentName={formState.customDocumentName}
                 setCustomDocumentName={formState.setCustomDocumentName}
                 uploadedDocuments={formState.uploadedDocuments}
-                onBillSearch={handleBillSearch}
+                onBillSearch={formState.handleBillSearch}
                 onDocumentSelect={formActions.handleDocumentSelect}
                 onAddCustomDocumentType={formActions.handleAddCustomDocumentType}
                 onFileSelect={formActions.handleFileSelect}

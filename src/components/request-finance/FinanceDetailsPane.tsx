@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +27,6 @@ interface FinanceDetailsPaneProps {
   interestAmount: string;
   purposeOfFinance: string;
   setPurposeOfFinance: (value: string) => void;
-  // New props for bill data
   billCurrency?: string;
   billAmount?: string;
 }
@@ -57,19 +55,21 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
   billCurrency,
   billAmount
 }) => {
-  // Default Finance Currency to Bill Currency
+  // Auto-default Finance Currency to Bill Currency when Bill Currency is available
   useEffect(() => {
-    if (billCurrency && !financeCurrency) {
+    if (billCurrency && billCurrency !== financeCurrency) {
+      console.log('Auto-setting finance currency to bill currency:', billCurrency);
       setFinanceCurrency(billCurrency);
     }
   }, [billCurrency, financeCurrency, setFinanceCurrency]);
 
-  // Default Finance Amount Requested to Bill Amount when Finance Request Type is Full
+  // Auto-default Finance Amount to Bill Amount when Finance Request Type is Full
   useEffect(() => {
-    if (financeRequestType === 'full' && billAmount) {
+    if (financeRequestType === 'full' && billAmount && billAmount !== financeAmountRequested) {
+      console.log('Auto-setting finance amount to bill amount for full finance request:', billAmount);
       setFinanceAmountRequested(billAmount);
     }
-  }, [financeRequestType, billAmount, setFinanceAmountRequested]);
+  }, [financeRequestType, billAmount, financeAmountRequested, setFinanceAmountRequested]);
 
   // Calculate finance due date when request date and tenure change
   useEffect(() => {
@@ -80,19 +80,6 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
       setFinanceDueDate(dueDate.toISOString().split('T')[0]);
     }
   }, [financeRequestDate, financeTenureDays, setFinanceDueDate]);
-
-  // Set interest currency to match finance currency
-  useEffect(() => {
-    if (financeCurrency && interestCurrency !== financeCurrency) {
-      // Update interest currency to match finance currency
-      const event = new Event('change', { bubbles: true });
-      const input = document.querySelector('[data-testid="interest-currency"]') as HTMLInputElement;
-      if (input) {
-        input.value = financeCurrency;
-        input.dispatchEvent(event);
-      }
-    }
-  }, [financeCurrency, interestCurrency]);
 
   // Calculate interest amount with corrected formula: [(P*R*T)/(100*365)]
   const calculateInterestAmount = () => {

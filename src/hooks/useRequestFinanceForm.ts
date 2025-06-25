@@ -1,5 +1,7 @@
 
 import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UploadedDocument {
   id: string;
@@ -11,6 +13,7 @@ interface UploadedDocument {
 }
 
 export const useRequestFinanceForm = () => {
+  const { toast } = useToast();
   const [currentPane, setCurrentPane] = useState(0);
   
   // Bill Details
@@ -19,6 +22,7 @@ export const useRequestFinanceForm = () => {
   const [billCurrency, setBillCurrency] = useState('');
   const [billAmount, setBillAmount] = useState('');
   const [billDueDate, setBillDueDate] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   
   // Finance Details
   const [financeRequestType, setFinanceRequestType] = useState('');
@@ -57,6 +61,84 @@ export const useRequestFinanceForm = () => {
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [showDocumentDetails, setShowDocumentDetails] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  // Bill search functionality
+  const handleBillSearch = async () => {
+    if (!billReference.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a Bill Reference to search",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      console.log('Searching for bill:', billReference);
+      
+      const { data: bills, error } = await supabase
+        .from('export_lc_bills')
+        .select('*')
+        .eq('bill_reference', billReference.trim())
+        .eq('status', 'submitted');
+
+      if (error) {
+        console.error('Bill search error:', error);
+        throw error;
+      }
+
+      if (bills && bills.length > 0) {
+        const bill = bills[0];
+        console.log('Found bill:', bill);
+        
+        // Auto-populate bill details
+        setLcReference(bill.lc_reference || '');
+        setBillCurrency(bill.bill_currency || 'USD');
+        setBillAmount(bill.bill_amount?.toString() || '');
+        
+        // Calculate bill due date (assuming 30 days from bill date for now)
+        if (bill.bill_date) {
+          const billDate = new Date(bill.bill_date);
+          const dueDate = new Date(billDate);
+          dueDate.setDate(dueDate.getDate() + 30);
+          setBillDueDate(dueDate.toISOString().split('T')[0]);
+        }
+
+        toast({
+          title: "Success",
+          description: "Bill details retrieved and auto-populated successfully",
+        });
+      } else {
+        toast({
+          title: "Not Found",
+          description: "No submitted bill found with this reference number",
+          variant: "destructive",
+        });
+        
+        // Clear auto-populated fields
+        setLcReference('');
+        setBillCurrency('');
+        setBillAmount('');
+        setBillDueDate('');
+      }
+    } catch (error) {
+      console.error('Bill search error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to search for bill. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Clear auto-populated fields on error
+      setLcReference('');
+      setBillCurrency('');
+      setBillAmount('');
+      setBillDueDate('');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Calculate interest currency (should match finance currency)
   useEffect(() => {
@@ -122,6 +204,8 @@ export const useRequestFinanceForm = () => {
     setBillAmount,
     billDueDate,
     setBillDueDate,
+    isSearching,
+    handleBillSearch,
     financeRequestType,
     setFinanceRequestType,
     financeProductType,
