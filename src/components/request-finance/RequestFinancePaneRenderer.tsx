@@ -19,12 +19,14 @@ interface RequestFinancePaneRendererProps {
   billReference: string;
   setBillReference: (value: string) => void;
   lcReference: string;
+  setLcReference: (value: string) => void;
   billCurrency: string;
   setBillCurrency: (value: string) => void;
   billAmount: string;
   setBillAmount: (value: string) => void;
   billDueDate: string;
   setBillDueDate: (value: string) => void;
+  isSearching?: boolean;
   financeRequestType: string;
   setFinanceRequestType: (value: string) => void;
   financeProductType: string;
@@ -72,6 +74,7 @@ const RequestFinancePaneRenderer: React.FC<RequestFinancePaneRendererProps> = (p
           billReference={props.billReference}
           setBillReference={props.setBillReference}
           lcReference={props.lcReference}
+          setLcReference={props.setLcReference}
           billCurrency={props.billCurrency}
           setBillCurrency={props.setBillCurrency}
           billAmount={props.billAmount}
@@ -79,6 +82,7 @@ const RequestFinancePaneRenderer: React.FC<RequestFinancePaneRendererProps> = (p
           billDueDate={props.billDueDate}
           setBillDueDate={props.setBillDueDate}
           onBillSearch={props.onBillSearch}
+          isSearching={props.isSearching}
         />
       );
     case 1:
