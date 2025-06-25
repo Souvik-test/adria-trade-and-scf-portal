@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,7 +96,8 @@ export const useRequestFinanceForm = () => {
         setLcReference(bill.lc_reference || '');
         setBillCurrency(bill.bill_currency || 'USD');
         setBillAmount(bill.bill_amount?.toString() || '');
-        setBillDueDate(bill.bill_due_date || '');
+        // Note: bill_due_date doesn't exist in the schema, so we'll leave it empty for manual entry
+        setBillDueDate('');
         
         // Set finance currency to match bill currency
         setFinanceCurrency(bill.bill_currency || 'USD');
