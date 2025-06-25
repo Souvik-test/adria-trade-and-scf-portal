@@ -48,10 +48,12 @@ const FormPaneRenderer: React.FC<FormPaneRendererProps> = ({
           setDrawingDate={(value: string) => updateFormData({ billDate: value })}
           tenorType={formData.tenor || ''}
           setTenorType={(value: string) => updateFormData({ tenor: value })}
-          tenorDays={''}
-          setTenorDays={() => {}}
-          billDueDate={''}
-          setBillDueDate={() => {}}
+          tenorDays={formData.tenorDays || ''}
+          setTenorDays={(value: string) => updateFormData({ tenorDays: value })}
+          billDueDate={formData.billDueDate || ''}
+          setBillDueDate={(value: string) => updateFormData({ billDueDate: value })}
+          lcCurrency={formData.lcCurrency}
+          lcAmount={formData.lcAmount}
         />
       );
     case 'shipment-transportation':

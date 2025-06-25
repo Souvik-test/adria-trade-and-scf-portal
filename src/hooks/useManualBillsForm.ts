@@ -31,6 +31,8 @@ interface ManualBillsFormData {
   billCurrency?: string;
   billDate?: string;
   tenor?: string;
+  tenorDays?: string;
+  billDueDate?: string;
   
   // Shipment & Transportation
   portOfLoading?: string;
@@ -116,6 +118,9 @@ export const useManualBillsForm = () => {
         bill_amount: formData.billAmount || 0,
         bill_currency: formData.billCurrency || 'USD',
         bill_date: formData.billDate || null,
+        bill_due_date: formData.billDueDate || null,
+        tenor: formData.tenor || '',
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : null,
         submission_type: 'manual',
         status: 'submitted'
       };
