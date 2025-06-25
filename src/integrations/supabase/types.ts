@@ -285,6 +285,7 @@ export type Database = {
           bill_amount: number | null
           bill_currency: string | null
           bill_date: string | null
+          bill_due_date: string | null
           bill_reference: string
           corporate_reference: string | null
           created_at: string
@@ -297,6 +298,8 @@ export type Database = {
           lc_reference: string
           status: string | null
           submission_type: string | null
+          tenor: string | null
+          tenor_days: number | null
           updated_at: string
           user_id: string
         }
@@ -305,6 +308,7 @@ export type Database = {
           bill_amount?: number | null
           bill_currency?: string | null
           bill_date?: string | null
+          bill_due_date?: string | null
           bill_reference: string
           corporate_reference?: string | null
           created_at?: string
@@ -317,6 +321,8 @@ export type Database = {
           lc_reference: string
           status?: string | null
           submission_type?: string | null
+          tenor?: string | null
+          tenor_days?: number | null
           updated_at?: string
           user_id: string
         }
@@ -325,6 +331,7 @@ export type Database = {
           bill_amount?: number | null
           bill_currency?: string | null
           bill_date?: string | null
+          bill_due_date?: string | null
           bill_reference?: string
           corporate_reference?: string | null
           created_at?: string
@@ -337,6 +344,8 @@ export type Database = {
           lc_reference?: string
           status?: string | null
           submission_type?: string | null
+          tenor?: string | null
+          tenor_days?: number | null
           updated_at?: string
           user_id?: string
         }

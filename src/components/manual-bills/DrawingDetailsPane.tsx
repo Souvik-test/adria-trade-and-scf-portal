@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -96,7 +95,7 @@ const DrawingDetailsPane: React.FC<DrawingDetailsPaneProps> = ({
   };
 
   const handleBillDueDateSelect = (date: Date | undefined) => {
-    if (date && tenorType === 'sight') {
+    if (date) {
       setBillDueDate(format(date, 'yyyy-MM-dd'));
     }
   };
@@ -197,43 +196,33 @@ const DrawingDetailsPane: React.FC<DrawingDetailsPaneProps> = ({
             )}
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bill Due Date</Label>
-              {tenorType === 'sight' ? (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "mt-1 w-full justify-start text-left font-normal",
-                        !billDueDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {billDueDate ? format(new Date(billDueDate), "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={billDueDate ? new Date(billDueDate) : undefined}
-                      onSelect={handleBillDueDateSelect}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              ) : (
-                <Input 
-                  type="date"
-                  value={billDueDate}
-                  onChange={(e) => setBillDueDate(e.target.value)}
-                  className="mt-1 bg-gray-100 dark:bg-gray-700" 
-                  readOnly={tenorType === 'usance'}
-                />
-              )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "mt-1 w-full justify-start text-left font-normal",
+                      !billDueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {billDueDate ? format(new Date(billDueDate), "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={billDueDate ? new Date(billDueDate) : undefined}
+                    onSelect={handleBillDueDateSelect}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-gray-500 mt-1">
                 {tenorType === 'sight' 
-                  ? 'Selectable for Sight bills' 
-                  : 'Auto-calculated for Usance bills'
+                  ? 'Auto-calculated based on drawing date + 5 days' 
+                  : 'Auto-calculated based on drawing date + tenor days'
                 }
               </p>
             </div>
