@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onOptionClick
 }) => {
   return (
-    <div className="relative h-48 perspective-1000">
+    <div className="relative h-56 perspective-1000 group">
       <div 
         className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
           isFlipped ? 'rotate-y-180' : ''
@@ -39,13 +39,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
         onMouseLeave={hasFlip ? onMouseLeave : undefined}
       >
         {/* Front of card */}
-        <Card className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-lg transition-shadow">
-          <CardContent className="p-6 flex flex-col items-center justify-center h-full">
-            <Icon className="w-12 h-12 text-corporate-blue mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2 text-center">
+        <Card className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-0 professional-shadow hover:professional-shadow-lg group-hover:scale-105">
+          <CardContent className="p-6 flex flex-col items-center justify-center h-full bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-card/80 rounded-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Icon className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-3 text-center tracking-tight">
               {title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            <p className="text-sm text-muted-foreground text-center leading-relaxed">
               {description}
             </p>
           </CardContent>

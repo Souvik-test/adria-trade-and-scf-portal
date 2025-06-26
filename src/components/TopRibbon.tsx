@@ -55,21 +55,29 @@ const TopRibbon = () => {
 
   return (
     <>
-      <div className="bg-card border-b border-border px-6 py-3 shadow-sm">
+      <div className="bg-white dark:bg-professional-navy border-b border-border px-6 py-4 professional-shadow">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-foreground">
-              TextCorp Ltd - Trade Finance Portal
-            </h1>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 professional-gradient rounded-md flex items-center justify-center">
+                <span className="text-white font-bold text-sm">TC</span>
+              </div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">
+                TextCorp Ltd
+              </h1>
+              <span className="text-muted-foreground text-sm font-medium px-3 py-1 bg-muted rounded-full">
+                Trade Finance Portal
+              </span>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={handleThemeToggle}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-all duration-200"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -82,12 +90,12 @@ const TopRibbon = () => {
               variant="ghost" 
               size="icon"
               onClick={handleNotificationsToggle}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 relative"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 relative rounded-full transition-all duration-200"
               title="Notifications"
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-white rounded-full text-xs flex items-center justify-center font-bold shadow-md">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -99,22 +107,24 @@ const TopRibbon = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-all duration-200"
                   title={`User: ${user?.user_id || 'Guest'}`}
                 >
                   <User className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card border-border">
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+              <DropdownMenuContent align="end" className="bg-card border-border shadow-lg w-64">
+                <DropdownMenuItem className="flex items-center gap-3 p-3">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
                   <div className="flex flex-col">
                     <span className="font-semibold text-foreground">{user?.full_name || 'User'}</span>
                     <span className="text-xs text-muted-foreground">{user?.user_id || 'Guest'}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="flex items-center gap-2 text-red-400 focus:text-red-300 hover:bg-red-500/10"
+                  className="flex items-center gap-2 text-destructive focus:text-destructive hover:bg-destructive/10 transition-colors"
                   onClick={handleSignOut}
                 >
                   <LogOut className="h-4 w-4" />

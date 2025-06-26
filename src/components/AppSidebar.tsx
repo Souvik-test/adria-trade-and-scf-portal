@@ -12,9 +12,14 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, LayoutDashboard } from 'lucide-react';
 
 const menuItems = [
+  {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    id: 'dashboard'
+  },
   {
     title: 'Product Suite',
     icon: Package,
@@ -53,34 +58,38 @@ export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 transition-all duration-300 bg-white dark:bg-gray-900"
+      className="border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg"
       collapsible="icon"
     >
       <SidebarContent>
         <SidebarGroup>
-          <div className="flex items-center justify-between p-2">
-            <SidebarTrigger className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 dark:text-teal-400 dark:hover:text-teal-300 dark:hover:bg-teal-800" />
+          <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+            <SidebarTrigger className="text-sidebar-primary hover:text-sidebar-primary/80 hover:bg-sidebar-accent/50 rounded-md transition-all duration-200" />
             {!isCollapsed && (
-              <SidebarGroupLabel className="text-teal-600 dark:text-teal-400 font-semibold ml-2">
-                Main Menu
+              <SidebarGroupLabel className="text-sidebar-foreground font-semibold text-sm tracking-wide ml-2">
+                Main Navigation
               </SidebarGroupLabel>
             )}
           </div>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="px-3 py-4">
+            <SidebarMenu className="space-y-2">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     tooltip={isCollapsed ? item.title : undefined}
-                    className={`cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-800 transition-colors ${
+                    className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
                       activeMenu === item.id 
-                        ? 'bg-teal-100 dark:bg-teal-700 text-teal-700 dark:text-teal-300' 
-                        : 'text-gray-600 dark:text-gray-400'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
+                        : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
                     }`}
                     onClick={() => onMenuClick(item.id)}
                   >
-                    <item.icon className="w-5 h-5" />
-                    {!isCollapsed && <span>{item.title}</span>}
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <span className="font-medium text-sm tracking-wide">
+                        {item.title}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
