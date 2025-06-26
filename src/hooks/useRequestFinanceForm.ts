@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+export type RequestFinanceFormPane = 0 | 1 | 2 | 3;
+
 interface UploadedDocument {
   id: string;
   name: string;
