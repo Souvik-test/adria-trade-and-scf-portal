@@ -1,3 +1,4 @@
+
 import { Moon, Sun, Bell, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -54,10 +55,10 @@ const TopRibbon = () => {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
+      <div className="bg-card border-b border-border px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            <h1 className="text-xl font-semibold text-foreground">
               TextCorp Ltd - Trade Finance Portal
             </h1>
           </div>
@@ -68,7 +69,7 @@ const TopRibbon = () => {
               variant="ghost"
               size="icon"
               onClick={handleThemeToggle}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -81,7 +82,7 @@ const TopRibbon = () => {
               variant="ghost" 
               size="icon"
               onClick={handleNotificationsToggle}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 relative"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent relative"
               title="Notifications"
             >
               <Bell className="h-4 w-4" />
@@ -98,7 +99,7 @@ const TopRibbon = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent"
                   title={`User: ${user?.user_id || 'Guest'}`}
                 >
                   <User className="h-4 w-4" />
@@ -108,12 +109,12 @@ const TopRibbon = () => {
                 <DropdownMenuItem className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <div className="flex flex-col">
-                    <span className="font-medium">{user?.full_name || 'User'}</span>
-                    <span className="text-xs text-gray-500">{user?.user_id || 'Guest'}</span>
+                    <span className="font-medium text-foreground">{user?.full_name || 'User'}</span>
+                    <span className="text-xs text-muted-foreground">{user?.user_id || 'Guest'}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                  className="flex items-center gap-2 text-red-400 focus:text-red-300"
                   onClick={handleSignOut}
                 >
                   <LogOut className="h-4 w-4" />

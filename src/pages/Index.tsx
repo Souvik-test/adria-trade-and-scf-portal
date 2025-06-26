@@ -37,29 +37,29 @@ const Index = () => {
       case 'inquiry':
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Inquiry Function</h2>
-            <p className="text-gray-600 dark:text-gray-400">Inquiry functionality coming soon...</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Inquiry Function</h2>
+            <p className="text-muted-foreground">Inquiry functionality coming soon...</p>
           </div>
         );
       case 'correspondence':
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Secured Correspondence</h2>
-            <p className="text-gray-600 dark:text-gray-400">Secured correspondence module coming soon...</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Secured Correspondence</h2>
+            <p className="text-muted-foreground">Secured correspondence module coming soon...</p>
           </div>
         );
       case 'configuration':
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Configuration</h2>
-            <p className="text-gray-600 dark:text-gray-400">Configuration settings coming soon...</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Configuration</h2>
+            <p className="text-muted-foreground">Configuration settings coming soon...</p>
           </div>
         );
       case 'administration':
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Administration</h2>
-            <p className="text-gray-600 dark:text-gray-400">Administration panel coming soon...</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Administration</h2>
+            <p className="text-muted-foreground">Administration panel coming soon...</p>
           </div>
         );
       default:
@@ -69,12 +69,12 @@ const Index = () => {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
           <TopRibbon />
           
-          <main className="flex-1 overflow-auto bg-white dark:bg-gray-800">
+          <main className="flex-1 overflow-auto bg-card">
             {renderMainContent()}
           </main>
           
