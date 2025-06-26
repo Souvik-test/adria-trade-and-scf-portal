@@ -31,7 +31,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         {showGoBack && (
           <Button
             variant="outline"
-            className="min-w-[110px] border-gray-400 text-gray-600 dark:text-gray-300 dark:border-gray-600 hover:bg-muted"
+            className="min-w-[110px] border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
             onClick={goBack}
             disabled={isSubmitting}
           >
@@ -50,7 +50,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         </Button>
         <Button
           variant="outline"
-          className="min-w-[130px] border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-yellow-900/20"
+          className="min-w-[130px] border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
           onClick={saveDraft}
           disabled={isSubmitting}
         >
@@ -59,7 +59,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         {isFinal ? (
           <Button
             variant="default"
-            className="min-w-[110px] bg-green-600 hover:bg-green-700 text-white dark:bg-green-700 dark:hover:bg-green-800"
+            className="min-w-[110px] bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
             onClick={submitForm}
             disabled={isSubmitting || !canSubmit}
           >
@@ -68,7 +68,7 @@ const RequestLCTransferFormActions: React.FC<Props> = ({
         ) : (
           <Button
             variant="default"
-            className="min-w-[110px] bg-corporate-blue hover:bg-corporate-blue/90 text-white dark:bg-corporate-blue dark:hover:bg-corporate-blue/80"
+            className="min-w-[110px] bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
             onClick={goNext}
             disabled={isSubmitting || !canProceedNext}
           >

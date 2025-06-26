@@ -26,13 +26,14 @@ const FormActions: React.FC<FormActionsProps> = ({
   onCancel
 }) => {
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 p-6">
+    <div className="border-t border-border p-6">
       <div className="flex justify-between">
         <div className="flex gap-3">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
           >
             Cancel
           </Button>
@@ -41,6 +42,7 @@ const FormActions: React.FC<FormActionsProps> = ({
               variant="outline"
               onClick={onPrevious}
               disabled={isSubmitting}
+              className="border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
             >
               Previous
             </Button>
@@ -52,6 +54,7 @@ const FormActions: React.FC<FormActionsProps> = ({
             <Button
               onClick={onNext}
               disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
             >
               Next
             </Button>
@@ -59,6 +62,7 @@ const FormActions: React.FC<FormActionsProps> = ({
             <Button
               onClick={onSubmit}
               disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit

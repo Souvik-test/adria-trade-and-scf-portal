@@ -34,14 +34,14 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
   const isLastStep = currentStepIndex === steps.length - 1;
 
   return (
-    <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
+    <div className="flex justify-between items-center pt-6 border-t border-border bg-card">
       {/* Left side - Only show Go Back button if not on first step */}
       <div className="flex gap-3">
         {!isFirstStep && (
           <Button
             onClick={onPrevious}
             variant="outline"
-            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
           >
             Go Back
           </Button>
@@ -50,14 +50,14 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
 
       {/* Right side - Actions */}
       <div className="flex gap-3 items-center">
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+        <span className="text-sm text-muted-foreground">
           {changesCount} change{changesCount !== 1 ? 's' : ''}
         </span>
         
         <Button
           onClick={onDiscard}
           variant="outline"
-          className="border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
         >
           Discard
         </Button>
@@ -65,7 +65,7 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
         <Button
           onClick={onSaveDraft}
           variant="outline"
-          className="border-corporate-teal-300 dark:border-corporate-teal-600 text-corporate-teal-600 dark:text-corporate-teal-400 hover:bg-corporate-teal-50 dark:hover:bg-corporate-teal-900/20"
+          className="border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
         >
           Save as Draft
         </Button>
@@ -74,14 +74,14 @@ const ImportLCAmendmentActions: React.FC<ImportLCAmendmentActionsProps> = ({
           <Button
             onClick={onSubmit}
             disabled={changesCount === 0}
-            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed px-8"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed px-8 shadow-lg"
           >
             Submit Amendment
           </Button>
         ) : (
           <Button
             onClick={onNext}
-            className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white px-8"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 shadow-lg"
           >
             Next
           </Button>
