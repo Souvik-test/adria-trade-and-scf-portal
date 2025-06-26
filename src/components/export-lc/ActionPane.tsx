@@ -1,23 +1,23 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { generateMT700 } from "./generateMT700";
-
-type ActionChoice = "accept" | "refuse" | null;
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CheckCircle, XCircle } from "lucide-react";
 
 interface ActionPaneProps {
-  action: ActionChoice;
-  setAction: (action: ActionChoice) => void;
+  action: "accept" | "refuse" | null;
+  setAction: (action: "accept" | "refuse" | null) => void;
   comments: string;
-  setComments: (v: string) => void;
+  setComments: (comments: string) => void;
   handleSubmit: () => void;
   onSaveDraft?: () => void;
   submitting: boolean;
-  commentsMandatory?: boolean;
-  commentsError?: string | null;
-  lcData?: any;
+  commentsMandatory: boolean;
+  commentsError: string | null;
+  lcData: any;
 }
 
 const ActionPane: React.FC<ActionPaneProps> = ({
@@ -28,101 +28,93 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   handleSubmit,
   onSaveDraft,
   submitting,
-  commentsMandatory = false,
-  commentsError = null,
+  commentsMandatory,
+  commentsError,
   lcData,
 }) => {
-  // Handle MT700 download
-  const handleDownload = () => {
-    if (!lcData) return;
-    const mt700Text = generateMT700(lcData);
-    const blob = new Blob([mt700Text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Draft-MT700-${lcData.lcReference || "Untitled"}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <div className="rounded-2xl border bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 px-6 py-6">
-      <div className="font-semibold text-lg text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-        <span role="img" aria-label="msg">💬</span> Action Required
-      </div>
-      <div className="mb-4">
-        <div className="text-xs font-medium text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 rounded p-2">
-          Review Status<br />
-          <span className="font-normal">Please review the LC details and select your response</span>
+    <Card className="border border-border shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-foreground">
+          Review Action
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Action Selection */}
+        <div className="space-y-4">
+          <Label className="text-sm font-medium text-foreground">
+            Select Action <span className="text-red-500">*</span>
+          </Label>
+          <RadioGroup
+            value={action || ""}
+            onValueChange={(value) => setAction(value as "accept" | "refuse")}
+            className="space-y-3"
+          >
+            <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+              <RadioGroupItem 
+                value="accept" 
+                id="accept"
+                className="border-green-500 text-green-600"
+              />
+              <Label 
+                htmlFor="accept" 
+                className="flex items-center gap-2 cursor-pointer text-sm font-medium"
+              >
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                Accept LC
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <RadioGroupItem 
+                value="refuse" 
+                id="refuse"
+                className="border-red-500 text-red-600"
+              />
+              <Label 
+                htmlFor="refuse" 
+                className="flex items-center gap-2 cursor-pointer text-sm font-medium"
+              >
+                <XCircle className="w-4 h-4 text-red-600" />
+                Refuse LC
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
-      </div>
-      <div className="mb-4">
-        <div className="font-medium text-gray-700 dark:text-gray-200 mb-2">Select Action:</div>
-        <RadioGroup
-          value={action || ""}
-          onValueChange={(v) => setAction(v as ActionChoice)}
-          className="flex flex-col gap-2"
-        >
-          <label className="flex items-center gap-2 cursor-pointer">
-            <RadioGroupItem value="accept" id="accept-radio" className="border-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600" />
-            <span className="text-green-700 dark:text-green-400 font-semibold">✔ Accept LC</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <RadioGroupItem value="refuse" id="refuse-radio" className="border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" />
-            <span className="text-red-600 dark:text-red-400 font-semibold">✖ Refuse LC</span>
-          </label>
-        </RadioGroup>
-      </div>
-      <div className="mb-4">
-        <div className="font-medium text-gray-700 dark:text-gray-200 mb-1">
-          Comments {commentsMandatory && <span className="text-red-500">*</span>}
+
+        {/* Comments Section */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-foreground">
+            Comments {commentsMandatory && <span className="text-red-500">*</span>}
+          </Label>
+          <Textarea
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            placeholder={
+              action === "refuse"
+                ? "Please provide reasons for refusing the LC..."
+                : "Add any additional comments or instructions..."
+            }
+            className="min-h-[100px] resize-none"
+          />
         </div>
-        <Textarea
-          className={`w-full border rounded p-2 min-h-[72px] bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white resize-y
-            ${commentsMandatory && !comments.trim() ? "border-red-500" : ""}
-          `}
-          value={comments}
-          onChange={(e) => setComments(e.target.value)}
-          placeholder="Add any comments or notes..."
-        />
-        {commentsMandatory && !comments.trim() && (
-          <div className="text-xs text-red-500 mt-1">Comments are required when refusing the LC.</div>
-        )}
+
+        {/* Error Message */}
         {commentsError && (
-          <div className="text-xs text-red-500 mt-1">{commentsError}</div>
+          <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
+            {commentsError}
+          </div>
         )}
-      </div>
-      <Button
-        className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white font-semibold py-2 mt-2 disabled:opacity-40"
-        disabled={
-          !action ||
-          submitting ||
-          (commentsMandatory && !comments.trim())
-        }
-        onClick={handleSubmit}
-      >
-        Select Action
-      </Button>
-      <div className="mt-6">
-        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Quick Actions</div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={handleDownload}
-          >
-            <span role="img" aria-label="download">⬇</span> Download Draft MT 700
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => { /* fake email */ }}
-          >
-            <span role="img" aria-label="mail">✉️</span> Email
-          </Button>
-        </div>
-      </div>
-    </div>
+
+        {/* Submit Button */}
+        <Button
+          onClick={handleSubmit}
+          disabled={submitting || !action}
+          className="w-full bg-professional-orange hover:bg-professional-orange-dark text-white font-semibold py-3 h-auto shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Submitting..." : `${action === "accept" ? "Accept" : action === "refuse" ? "Refuse" : "Submit"} LC Review`}
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 

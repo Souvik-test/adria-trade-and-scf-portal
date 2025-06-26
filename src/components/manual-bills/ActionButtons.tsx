@@ -29,9 +29,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 
   const maxPane = getMaxPane();
 
-  // Color schemes based on form type
+  // Professional Next/Submit button styling
   const getNextButtonClass = () => {
-    return "px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white";
+    return "bg-professional-orange hover:bg-professional-orange-dark text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 px-6 py-2";
+  };
+
+  const getSubmitButtonClass = () => {
+    return "bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 px-6 py-2";
   };
 
   switch (currentPane) {
@@ -42,14 +46,14 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             <Button 
               variant="outline" 
               onClick={onDiscard}
-              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
             >
               Discard
             </Button>
             <Button 
               variant="outline" 
               onClick={onSaveAsDraft}
-              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
             >
               Save as Draft
             </Button>
@@ -70,7 +74,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           <Button 
             variant="outline" 
             onClick={onGoBack}
-            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            className="px-6 py-2 text-sm font-medium border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
           >
             Go Back
           </Button>
@@ -78,14 +82,14 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             <Button 
               variant="outline" 
               onClick={onDiscard}
-              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
             >
               Discard
             </Button>
             <Button 
               variant="outline" 
               onClick={onSaveAsDraft}
-              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
             >
               Save as Draft
             </Button>
@@ -107,7 +111,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             <Button 
               variant="outline" 
               onClick={onGoBack}
-              className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+              className="px-6 py-2 text-sm font-medium border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
             >
               Go Back
             </Button>
@@ -115,20 +119,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               <Button 
                 variant="outline" 
                 onClick={onDiscard}
-                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+                className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
               >
                 Discard
               </Button>
               <Button 
                 variant="outline" 
                 onClick={onSaveAsDraft}
-                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+                className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
               >
                 Save as Draft
               </Button>
               <Button 
                 onClick={onSubmit}
-                className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+                className={getSubmitButtonClass()}
               >
                 Submit
               </Button>
@@ -142,7 +146,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           <Button 
             variant="outline" 
             onClick={onGoBack}
-            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            className="px-6 py-2 text-sm font-medium border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
           >
             Go Back
           </Button>
@@ -150,14 +154,14 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             <Button 
               variant="outline" 
               onClick={onDiscard}
-              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
             >
               Discard
             </Button>
             <Button 
               variant="outline" 
               onClick={onSaveAsDraft}
-              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
             >
               Save as Draft
             </Button>
@@ -177,7 +181,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           <Button 
             variant="outline" 
             onClick={onGoBack}
-            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+            className="px-6 py-2 text-sm font-medium border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
           >
             Go Back
           </Button>
@@ -185,20 +189,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             <Button 
               variant="outline" 
               onClick={onDiscard}
-              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+              className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
             >
               Discard
             </Button>
             <Button 
               variant="outline" 
               onClick={onSaveAsDraft}
-              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+              className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
             >
               Save as Draft
             </Button>
             <Button 
               onClick={onSubmit}
-              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              className={getSubmitButtonClass()}
             >
               Submit
             </Button>

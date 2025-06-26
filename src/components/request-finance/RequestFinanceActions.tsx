@@ -1,101 +1,84 @@
 
 import React from 'react';
-
-interface UploadedDocument {
-  id: string;
-  name: string;
-  reference: string;
-  date: string;
-  type: string;
-  file: File;
-}
+import { Button } from '@/components/ui/button';
+import { RequestFinanceFormPane } from '@/hooks/useRequestFinanceForm';
 
 interface RequestFinanceActionsProps {
-  selectedDocuments: string[];
-  setSelectedDocuments: (docs: string[]) => void;
-  customDocumentName: string;
-  setCustomDocumentName: (name: string) => void;
-  documentTypes: string[];
-  setDocumentTypes: (types: string[]) => void;
-  uploadedDocuments: UploadedDocument[];
-  setUploadedDocuments: (docs: UploadedDocument[]) => void;
-  showDocumentDetails: boolean;
-  setShowDocumentDetails: (show: boolean) => void;
-  pendingFile: File | null;
-  setPendingFile: (file: File | null) => void;
+  currentPane: RequestFinanceFormPane;
+  onDiscard: () => void;
+  onSaveAsDraft: () => void;
+  onGoBack: () => void;
+  onNext: () => void;
+  onSubmit: () => void;
+  canProceed: boolean;
+  isFirstPane: boolean;
+  isLastPane: boolean;
 }
 
-export const useRequestFinanceActions = ({
-  selectedDocuments,
-  setSelectedDocuments,
-  customDocumentName,
-  setCustomDocumentName,
-  documentTypes,
-  setDocumentTypes,
-  uploadedDocuments,
-  setUploadedDocuments,
-  showDocumentDetails,
-  setShowDocumentDetails,
-  pendingFile,
-  setPendingFile
-}: RequestFinanceActionsProps) => {
-  const handleDocumentSelect = (docType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDocuments([...selectedDocuments, docType]);
-    } else {
-      setSelectedDocuments(selectedDocuments.filter(doc => doc !== docType));
-    }
-  };
+const RequestFinanceActions: React.FC<RequestFinanceActionsProps> = ({
+  currentPane,
+  onDiscard,
+  onSaveAsDraft,
+  onGoBack,
+  onNext,
+  onSubmit,
+  canProceed,
+  isFirstPane,
+  isLastPane
+}) => {
+  return (
+    <div className="flex justify-between items-center pt-6 border-t border-border">
+      {/* Left aligned buttons */}
+      <div className="flex gap-3">
+        {!isFirstPane && (
+          <Button
+            onClick={onGoBack}
+            variant="outline"
+            className="border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+          >
+            Go Back
+          </Button>
+        )}
+      </div>
 
-  const handleAddCustomDocumentType = () => {
-    if (customDocumentName.trim() && !documentTypes.includes(customDocumentName.trim())) {
-      const newDocType = customDocumentName.trim();
-      setDocumentTypes([...documentTypes, newDocType]);
-      setSelectedDocuments([...selectedDocuments, newDocType]);
-      setCustomDocumentName('');
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && selectedDocuments.length > 0) {
-      setPendingFile(file);
-      setShowDocumentDetails(true);
-    }
-    event.target.value = '';
-  };
-
-  const handleDocumentUpload = (details: { type: string; id: string; date: string }) => {
-    if (pendingFile) {
-      const newDocument: UploadedDocument = {
-        id: Date.now().toString(),
-        name: pendingFile.name,
-        reference: details.id,
-        date: details.date,
-        type: details.type,
-        file: pendingFile
-      };
-      setUploadedDocuments([...uploadedDocuments, newDocument]);
-      setShowDocumentDetails(false);
-      setPendingFile(null);
-    }
-  };
-
-  const handleDocumentUploadCancel = () => {
-    setShowDocumentDetails(false);
-    setPendingFile(null);
-  };
-
-  const handleDocumentDelete = (id: string) => {
-    setUploadedDocuments(uploadedDocuments.filter(doc => doc.id !== id));
-  };
-
-  return {
-    handleDocumentSelect,
-    handleAddCustomDocumentType,
-    handleFileSelect,
-    handleDocumentUpload,
-    handleDocumentUploadCancel,
-    handleDocumentDelete
-  };
+      {/* Right aligned buttons */}
+      <div className="flex gap-3">
+        <Button
+          onClick={onDiscard}
+          variant="outline"
+          className="border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900/20"
+        >
+          Discard
+        </Button>
+        
+        <Button
+          onClick={onSaveAsDraft}
+          variant="outline"
+          className="border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
+        >
+          Save as Draft
+        </Button>
+        
+        {!isLastPane ? (
+          <Button
+            onClick={onNext}
+            disabled={!canProceed}
+            className="bg-professional-orange hover:bg-professional-orange-dark text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </Button>
+        ) : (
+          <Button
+            onClick={onSubmit}
+            disabled={!canProceed}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Submit Request
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 };
+
+export default RequestFinanceActions;
