@@ -55,10 +55,10 @@ const TopRibbon = () => {
 
   return (
     <>
-      <div className="bg-card border-b border-border px-6 py-3">
+      <div className="bg-card border-b border-border px-6 py-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="text-xl font-bold text-foreground">
               TextCorp Ltd - Trade Finance Portal
             </h1>
           </div>
@@ -69,7 +69,7 @@ const TopRibbon = () => {
               variant="ghost"
               size="icon"
               onClick={handleThemeToggle}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent/50"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -82,12 +82,12 @@ const TopRibbon = () => {
               variant="ghost" 
               size="icon"
               onClick={handleNotificationsToggle}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent relative"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 relative"
               title="Notifications"
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-medium">
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -99,22 +99,22 @@ const TopRibbon = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="text-muted-foreground hover:text-foreground hover:bg-accent"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   title={`User: ${user?.user_id || 'Guest'}`}
                 >
                   <User className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-card border-border">
                 <DropdownMenuItem className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <div className="flex flex-col">
-                    <span className="font-medium text-foreground">{user?.full_name || 'User'}</span>
+                    <span className="font-semibold text-foreground">{user?.full_name || 'User'}</span>
                     <span className="text-xs text-muted-foreground">{user?.user_id || 'Guest'}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="flex items-center gap-2 text-red-400 focus:text-red-300"
+                  className="flex items-center gap-2 text-red-400 focus:text-red-300 hover:bg-red-500/10"
                   onClick={handleSignOut}
                 >
                   <LogOut className="h-4 w-4" />

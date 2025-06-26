@@ -26,7 +26,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#6CC8C6',
+					DEFAULT: '#FF7F00',
 					foreground: '#ffffff'
 				},
 				secondary: {
@@ -64,33 +64,33 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				corporate: {
-					blue: '#6CC8C6',
-					dark: '#1a1a1a',
-					light: '#f8fafc',
-					sapphire: {
-						50: '#eff6ff',
-						100: '#dbeafe',
-						200: '#bfdbfe',
-						300: '#93c5fd',
-						400: '#60a5fa',
-						500: '#3b82f6',
-						600: '#2563eb',
-						700: '#1d4ed8',
-						800: '#1e40af',
-						900: '#1e3a8a',
-						950: '#172554'
+					orange: '#FF7F00',
+					dark: '#1a0a00',
+					light: '#fff7f0',
+					flame: {
+						50: '#fff7ed',
+						100: '#ffedd5',
+						200: '#fed7aa',
+						300: '#fdba74',
+						400: '#fb923c',
+						500: '#FF7F00',
+						600: '#ea580c',
+						700: '#c2410c',
+						800: '#9a3412',
+						900: '#7c2d12',
+						950: '#431407'
 					},
-					teal: {
-						50: '#f0fdfa',
-						100: '#ccfbf1',
-						200: '#99f6e4',
-						300: '#5eead4',
-						400: '#2dd4bf',
-						500: '#6CC8C6',
-						600: '#5bb3b1',
-						700: '#4a9a99',
-						800: '#398081',
-						900: '#286666'
+					amber: {
+						50: '#fffbeb',
+						100: '#fef3c7',
+						200: '#fde68a',
+						300: '#fcd34d',
+						400: '#fbbf24',
+						500: '#f59e0b',
+						600: '#FF7F00',
+						700: '#d97706',
+						800: '#b45309',
+						900: '#92400e'
 					}
 				}
 			},
@@ -134,12 +134,12 @@ export default {
 				},
 				'glow': {
 					'0%, 100%': {
-						boxShadow: '0 0 8px 2px #facc15, 0 0 0 transparent',
-						backgroundColor: '#fde047'
+						boxShadow: '0 0 8px 2px #FF7F00, 0 0 0 transparent',
+						backgroundColor: '#FF7F00'
 					},
 					'50%': {
-						boxShadow: '0 0 20px 6px #facc15, 0 0 0 transparent',
-						backgroundColor: '#ffe066'
+						boxShadow: '0 0 20px 6px #FF7F00, 0 0 0 transparent',
+						backgroundColor: '#FF9F33'
 					}
 				}
 			},
