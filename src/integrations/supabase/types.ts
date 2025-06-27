@@ -815,6 +815,146 @@ export type Database = {
         }
         Relationships: []
       }
+      outward_bg_requests: {
+        Row: {
+          applicable_rules: string | null
+          applicant_account_number: string | null
+          applicant_address: string | null
+          applicant_name: string | null
+          bank_operation_code: string | null
+          beneficiary_address: string | null
+          beneficiary_bank_address: string | null
+          beneficiary_bank_name: string | null
+          beneficiary_bank_swift_code: string | null
+          beneficiary_name: string | null
+          contract_reference: string | null
+          created_at: string
+          currency: string | null
+          date_of_expiry: string | null
+          date_of_issue: string | null
+          documents_required: string | null
+          form_of_guarantee: string | null
+          guarantee_amount: number | null
+          guarantee_details: string | null
+          guarantee_type: string | null
+          id: string
+          place_of_expiry: string | null
+          request_reference: string
+          senders_reference: string | null
+          special_instructions: string | null
+          status: string
+          supporting_documents: Json | null
+          terms_and_conditions: string | null
+          underlying_contract_details: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applicable_rules?: string | null
+          applicant_account_number?: string | null
+          applicant_address?: string | null
+          applicant_name?: string | null
+          bank_operation_code?: string | null
+          beneficiary_address?: string | null
+          beneficiary_bank_address?: string | null
+          beneficiary_bank_name?: string | null
+          beneficiary_bank_swift_code?: string | null
+          beneficiary_name?: string | null
+          contract_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          date_of_expiry?: string | null
+          date_of_issue?: string | null
+          documents_required?: string | null
+          form_of_guarantee?: string | null
+          guarantee_amount?: number | null
+          guarantee_details?: string | null
+          guarantee_type?: string | null
+          id?: string
+          place_of_expiry?: string | null
+          request_reference?: string
+          senders_reference?: string | null
+          special_instructions?: string | null
+          status?: string
+          supporting_documents?: Json | null
+          terms_and_conditions?: string | null
+          underlying_contract_details?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applicable_rules?: string | null
+          applicant_account_number?: string | null
+          applicant_address?: string | null
+          applicant_name?: string | null
+          bank_operation_code?: string | null
+          beneficiary_address?: string | null
+          beneficiary_bank_address?: string | null
+          beneficiary_bank_name?: string | null
+          beneficiary_bank_swift_code?: string | null
+          beneficiary_name?: string | null
+          contract_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          date_of_expiry?: string | null
+          date_of_issue?: string | null
+          documents_required?: string | null
+          form_of_guarantee?: string | null
+          guarantee_amount?: number | null
+          guarantee_details?: string | null
+          guarantee_type?: string | null
+          id?: string
+          place_of_expiry?: string | null
+          request_reference?: string
+          senders_reference?: string | null
+          special_instructions?: string | null
+          status?: string
+          supporting_documents?: Json | null
+          terms_and_conditions?: string | null
+          underlying_contract_details?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outward_bg_supporting_documents: {
+        Row: {
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          outward_bg_request_id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          outward_bg_request_id: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          outward_bg_request_id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outward_bg_supporting_documents_outward_bg_request_id_fkey"
+            columns: ["outward_bg_request_id"]
+            isOneToOne: false
+            referencedRelation: "outward_bg_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       popi_line_items: {
         Row: {
           created_at: string | null
