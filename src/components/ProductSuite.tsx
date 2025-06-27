@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
+import BankGuaranteeModal from './BankGuaranteeModal';
 import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
@@ -14,10 +16,12 @@ interface ProductSuiteProps {
 const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showLcModal, setShowLcModal] = useState(false);
+  const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
+  const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
   const products = [
@@ -33,7 +37,9 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       id: 'guarantee',
       title: 'Bank Guarantee/SBLC',
       icon: Shield,
-      description: 'Handle bank guarantees and standby letters of credit'
+      description: 'Handle bank guarantees and standby letters of credit',
+      hasFlip: true,
+      flipOptions: ['Outward Bank Guarantee/SBLC', 'Inward Bank Guarantee/SBLC']
     },
     {
       id: 'bills',
@@ -93,6 +99,16 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     }
   };
 
+  const handleGuaranteeClick = (option: string) => {
+    if (option === 'Outward Bank Guarantee/SBLC') {
+      setGuaranteeModalType('outward');
+      setShowGuaranteeModal(true);
+    } else if (option === 'Inward Bank Guarantee/SBLC') {
+      setGuaranteeModalType('inward');
+      setShowGuaranteeModal(true);
+    }
+  };
+
   const handleEEnablerClick = (option: string) => {
     console.log('e-Enabler option clicked:', option);
   };
@@ -119,6 +135,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       handleLcClick(option);
     } else if (productId === 'bills') {
       handleBillsClick(option);
+    } else if (productId === 'guarantee') {
+      handleGuaranteeClick(option);
     } else if (productId === 'e-enablers') {
       handleEEnablerClick(option);
     } else if (productId === 'underlying-docs') {
@@ -161,6 +179,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           isOpen={showLcModal}
           onClose={() => setShowLcModal(false)}
           type={lcModalType}
+        />
+      )}
+
+      {showGuaranteeModal && (
+        <BankGuaranteeModal 
+          isOpen={showGuaranteeModal}
+          onClose={() => setShowGuaranteeModal(false)}
+          type={guaranteeModalType}
         />
       )}
 
