@@ -14,21 +14,18 @@ const BankGuaranteeMethodSection: React.FC<BankGuaranteeMethodSectionProps> = ({
 }) => {
   const methodCards = [
     {
-      id: 'manual',
       title: 'Manual',
       description: 'Enter bank guarantee details manually through forms',
       icon: FileText,
-      comingSoon: true
+      comingSoon: false
     },
     {
-      id: 'upload',
       title: 'Upload',
       description: 'Upload guarantee documents and auto-extract data (coming soon)',
       icon: Upload,
       comingSoon: true
     },
     {
-      id: 'assistance',
       title: 'Contextual Assistance',
       description: 'Use AI-powered assistant (coming soon)',
       icon: MessageSquare,
@@ -42,15 +39,15 @@ const BankGuaranteeMethodSection: React.FC<BankGuaranteeMethodSectionProps> = ({
         Processing Methods
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {methodCards.map((card) => (
+        {methodCards.map((card, index) => (
           <MethodCard
-            key={card.id}
+            key={index}
             title={card.title}
             description={card.description}
             icon={card.icon}
             isEnabled={!!selectedAction}
             isComingSoon={card.comingSoon}
-            onClick={() => onMethodSelect(card.id)}
+            onClick={() => onMethodSelect(card.title.toLowerCase())}
           />
         ))}
       </div>
