@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X } from 'lucide-react';
@@ -71,6 +70,14 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         return;
       }
 
+      // Convert supporting documents to JSON-serializable format
+      const supportingDocsData = formData.supportingDocuments?.map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      })) || [];
+
       const requestData = {
         user_id: user.id,
         status: 'draft',
@@ -99,12 +106,12 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         contract_reference: formData.contractReference || '',
         underlying_contract_details: formData.underlyingContractDetails || '',
         special_instructions: formData.specialInstructions || '',
-        supporting_documents: formData.supportingDocuments || []
+        supporting_documents: supportingDocsData
       };
 
       const { error } = await supabase
         .from('outward_bg_requests')
-        .insert([requestData]);
+        .insert(requestData);
 
       if (error) throw error;
 
@@ -150,6 +157,14 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         return;
       }
 
+      // Convert supporting documents to JSON-serializable format
+      const supportingDocsData = formData.supportingDocuments?.map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      })) || [];
+
       const requestData = {
         user_id: user.id,
         status: 'submitted',
@@ -178,12 +193,12 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         contract_reference: formData.contractReference || '',
         underlying_contract_details: formData.underlyingContractDetails || '',
         special_instructions: formData.specialInstructions || '',
-        supporting_documents: formData.supportingDocuments || []
+        supporting_documents: supportingDocsData
       };
 
       const { error } = await supabase
         .from('outward_bg_requests')
-        .insert([requestData]);
+        .insert(requestData);
 
       if (error) throw error;
 
