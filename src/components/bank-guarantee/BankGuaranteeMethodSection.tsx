@@ -45,12 +45,11 @@ const BankGuaranteeMethodSection: React.FC<BankGuaranteeMethodSectionProps> = ({
         {methodCards.map((card) => (
           <MethodCard
             key={card.id}
-            id={card.id}
             title={card.title}
             description={card.description}
             icon={card.icon}
             isEnabled={!!selectedAction}
-            comingSoon={card.comingSoon}
+            isComingSoon={card.comingSoon}
             onClick={() => onMethodSelect(card.id)}
           />
         ))}
