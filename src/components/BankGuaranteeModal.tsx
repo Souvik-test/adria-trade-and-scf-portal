@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BankGuaranteeActionSection from './bank-guarantee/BankGuaranteeActionSection';
 import BankGuaranteeMethodSection from './bank-guarantee/BankGuaranteeMethodSection';
+import OutwardBankGuaranteeIssuanceForm from './bank-guarantee/OutwardBankGuaranteeIssuanceForm';
 
 interface BankGuaranteeModalProps {
   isOpen: boolean;
@@ -10,32 +11,54 @@ interface BankGuaranteeModalProps {
   type: 'outward' | 'inward';
 }
 
-type ActionType = 'issuance' | 'amendment' | 'cancellation' | null;
+type ActionType = 'issuance' | 'amendment' | 'cancellation' | 'consent' | 'demand' | null;
 
 const BankGuaranteeModal: React.FC<BankGuaranteeModalProps> = ({ isOpen, onClose, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showIssuanceForm, setShowIssuanceForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
-    setSelectedMethod(null); // Reset method when action changes
+    setSelectedMethod(null);
   };
 
   const handleMethodSelect = (method: string) => {
     if (!selectedAction) return;
+    
+    if (selectedAction === 'issuance' && method === 'manual' && type === 'outward') {
+      setShowIssuanceForm(true);
+      return;
+    }
+    
     setSelectedMethod(method);
     console.log('Selected action:', selectedAction, 'Method:', method);
   };
 
   const handleBack = () => {
-    if (selectedMethod) {
+    if (showIssuanceForm) {
+      setShowIssuanceForm(false);
+    } else if (selectedMethod) {
       setSelectedMethod(null);
     } else if (selectedAction) {
       setSelectedAction(null);
     }
   };
 
+  const handleCloseIssuanceForm = () => {
+    setShowIssuanceForm(false);
+  };
+
   const renderContent = () => {
+    if (showIssuanceForm) {
+      return (
+        <OutwardBankGuaranteeIssuanceForm 
+          onClose={handleCloseIssuanceForm}
+          onBack={handleBack}
+        />
+      );
+    }
+
     if (selectedMethod) {
       return (
         <div className="text-center py-8">
@@ -72,7 +95,7 @@ const BankGuaranteeModal: React.FC<BankGuaranteeModalProps> = ({ isOpen, onClose
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
+      <DialogContent className={`${showIssuanceForm ? 'max-w-[95vw] h-[95vh]' : 'max-w-6xl max-h-[90vh]'} w-full overflow-hidden p-0`}>
         <DialogHeader className="sr-only">
           <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             {type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC

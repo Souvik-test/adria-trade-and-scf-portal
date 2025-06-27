@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Plus, Edit, X } from 'lucide-react';
+import { Plus, Edit, X, FileCheck, AlertTriangle } from 'lucide-react';
 import ActionCard from '../popi-modal/ActionCard';
 
-type ActionType = 'issuance' | 'amendment' | 'cancellation' | null;
+type ActionType = 'issuance' | 'amendment' | 'cancellation' | 'consent' | 'demand' | null;
 
 interface BankGuaranteeActionSectionProps {
   selectedAction: ActionType;
@@ -16,29 +16,52 @@ const BankGuaranteeActionSection: React.FC<BankGuaranteeActionSectionProps> = ({
   onActionSelect,
   type
 }) => {
-  const actionCards = [
-    {
-      id: 'issuance',
-      title: 'Request Issuance',
-      description: `Request new ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC issuance`,
-      icon: Plus,
-      color: 'corporate-teal'
-    },
-    {
-      id: 'amendment',
-      title: 'Request Amendment',
-      description: `Modify existing ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC`,
-      icon: Edit,
-      color: 'amber'
-    },
-    {
-      id: 'cancellation',
-      title: 'Request Cancellation',
-      description: `Cancel existing ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC`,
-      icon: X,
-      color: 'red'
+  const getActionCards = () => {
+    if (type === 'inward') {
+      return [
+        {
+          id: 'consent',
+          title: 'Record Amendment Consent',
+          description: 'Record consent for amendment of Inward Bank Guarantee/SBLC',
+          icon: FileCheck,
+          color: 'corporate-teal'
+        },
+        {
+          id: 'demand',
+          title: 'Record Demand/Claim',
+          description: 'Record demand or claim against Inward Bank Guarantee/SBLC',
+          icon: AlertTriangle,
+          color: 'amber'
+        }
+      ];
     }
-  ];
+    
+    return [
+      {
+        id: 'issuance',
+        title: 'Request Issuance',
+        description: `Request new ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC issuance`,
+        icon: Plus,
+        color: 'corporate-teal'
+      },
+      {
+        id: 'amendment',
+        title: 'Request Amendment',
+        description: `Modify existing ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC`,
+        icon: Edit,
+        color: 'amber'
+      },
+      {
+        id: 'cancellation',
+        title: 'Request Cancellation',
+        description: `Cancel existing ${type === 'outward' ? 'Outward' : 'Inward'} Bank Guarantee/SBLC`,
+        icon: X,
+        color: 'red'
+      }
+    ];
+  };
+
+  const actionCards = getActionCards();
 
   return (
     <div>
