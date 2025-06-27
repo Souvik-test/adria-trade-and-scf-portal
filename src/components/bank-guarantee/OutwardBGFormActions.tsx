@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Send, Save, Trash2 } from 'lucide-react';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface OutwardBGFormActionsProps {
   currentPane: number;
@@ -11,7 +12,7 @@ interface OutwardBGFormActionsProps {
   onSaveAsDraft: () => void;
   onDiscard: () => void;
   onSubmit: () => void;
-  formData: any;
+  formData: OutwardBGFormData;
 }
 
 const OutwardBGFormActions: React.FC<OutwardBGFormActionsProps> = ({

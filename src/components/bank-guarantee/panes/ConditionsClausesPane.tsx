@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface ConditionsClausesPaneProps {
-  formData: any;
+  formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
 }
 

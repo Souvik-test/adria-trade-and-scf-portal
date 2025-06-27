@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface ReviewSubmitPaneProps {
-  formData: any;
+  formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
 }
 

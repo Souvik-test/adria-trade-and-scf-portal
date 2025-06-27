@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText, X } from 'lucide-react';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface SupportingDocumentsPaneProps {
-  formData: any;
+  formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
 }
 

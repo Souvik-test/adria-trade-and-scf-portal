@@ -8,6 +8,7 @@ import OutwardBGFormActions from './OutwardBGFormActions';
 import OutwardBGPaneRenderer from './OutwardBGPaneRenderer';
 import OutwardBGProgressIndicator from './OutwardBGProgressIndicator';
 import MT760SidebarPreview from './MT760SidebarPreview';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface OutwardBankGuaranteeIssuanceFormProps {
   onClose: () => void;
@@ -19,7 +20,7 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
   onBack 
 }) => {
   const [currentPane, setCurrentPane] = useState(0);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<OutwardBGFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -74,13 +75,13 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         user_id: user.id,
         status: 'draft',
         // Map form data to database fields
-        senders_reference: formData.sendersReference || '',
-        bank_operation_code: formData.bankOperationCode || '',
+        senders_reference: formData.sendersReference || formData.referenceNumber || '',
+        bank_operation_code: formData.bankOperationCode || formData.guaranteeType || '',
         date_of_issue: formData.dateOfIssue || null,
         date_of_expiry: formData.dateOfExpiry || null,
         place_of_expiry: formData.placeOfExpiry || '',
         currency: formData.currency || 'USD',
-        guarantee_amount: formData.guaranteeAmount || null,
+        guarantee_amount: formData.guaranteeAmount || (formData.amount ? parseFloat(formData.amount) : null),
         form_of_guarantee: formData.formOfGuarantee || '',
         applicable_rules: formData.applicableRules || 'URDG 758',
         applicant_name: formData.applicantName || '',
@@ -91,8 +92,8 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         beneficiary_bank_name: formData.beneficiaryBankName || '',
         beneficiary_bank_address: formData.beneficiaryBankAddress || '',
         beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode || '',
-        guarantee_details: formData.guaranteeDetails || '',
-        terms_and_conditions: formData.termsAndConditions || '',
+        guarantee_details: formData.guaranteeDetails || formData.guaranteeText || '',
+        terms_and_conditions: formData.termsAndConditions || formData.additionalConditions || '',
         documents_required: formData.documentsRequired || '',
         guarantee_type: formData.guaranteeType || '',
         contract_reference: formData.contractReference || '',
@@ -153,13 +154,13 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         user_id: user.id,
         status: 'submitted',
         // Map form data to database fields
-        senders_reference: formData.sendersReference || '',
-        bank_operation_code: formData.bankOperationCode || '',
+        senders_reference: formData.sendersReference || formData.referenceNumber || '',
+        bank_operation_code: formData.bankOperationCode || formData.guaranteeType || '',
         date_of_issue: formData.dateOfIssue || null,
         date_of_expiry: formData.dateOfExpiry || null,
         place_of_expiry: formData.placeOfExpiry || '',
         currency: formData.currency || 'USD',
-        guarantee_amount: formData.guaranteeAmount || null,
+        guarantee_amount: formData.guaranteeAmount || (formData.amount ? parseFloat(formData.amount) : null),
         form_of_guarantee: formData.formOfGuarantee || '',
         applicable_rules: formData.applicableRules || 'URDG 758',
         applicant_name: formData.applicantName || '',
@@ -170,8 +171,8 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         beneficiary_bank_name: formData.beneficiaryBankName || '',
         beneficiary_bank_address: formData.beneficiaryBankAddress || '',
         beneficiary_bank_swift_code: formData.beneficiaryBankSwiftCode || '',
-        guarantee_details: formData.guaranteeDetails || '',
-        terms_and_conditions: formData.termsAndConditions || '',
+        guarantee_details: formData.guaranteeDetails || formData.guaranteeText || '',
+        terms_and_conditions: formData.termsAndConditions || formData.additionalConditions || '',
         documents_required: formData.documentsRequired || '',
         guarantee_type: formData.guaranteeType || '',
         contract_reference: formData.contractReference || '',

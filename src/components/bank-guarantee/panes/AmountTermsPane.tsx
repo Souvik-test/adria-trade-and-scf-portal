@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface AmountTermsPaneProps {
-  formData: any;
+  formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
 }
 
@@ -24,7 +25,7 @@ const AmountTermsPane: React.FC<AmountTermsPaneProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="currency">Currency *</Label>
-              <Select onValueChange={(value) => onFieldChange('currency', value)}>
+              <Select value={formData.currency} onValueChange={(value) => onFieldChange('currency', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>

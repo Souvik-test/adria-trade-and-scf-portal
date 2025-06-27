@@ -7,10 +7,11 @@ import ConditionsClausesPane from './panes/ConditionsClausesPane';
 import DocumentsRequiredPane from './panes/DocumentsRequiredPane';
 import SupportingDocumentsPane from './panes/SupportingDocumentsPane';
 import ReviewSubmitPane from './panes/ReviewSubmitPane';
+import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface OutwardBGPaneRendererProps {
   currentPane: number;
-  formData: any;
+  formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
 }
 
