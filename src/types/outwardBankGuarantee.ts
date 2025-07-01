@@ -1,3 +1,4 @@
+
 export interface OutwardBGFormData {
   // MT 760 fields
   sendersReference?: string;
@@ -48,4 +49,12 @@ export interface OutwardBGFormData {
   guaranteeReferenceNo?: string;
   amendmentNumber?: string;
   increaseDecreaseAmount?: string;
+  
+  // Additional parties (for tracking changes in Party Details)
+  additionalParties?: Array<{
+    id: string;
+    name: string;
+    address: string;
+    role: string;
+  }>;
 }

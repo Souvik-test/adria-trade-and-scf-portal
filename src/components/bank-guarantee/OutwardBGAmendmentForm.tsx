@@ -1,13 +1,13 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import OutwardBGFormActions from './OutwardBGFormActions';
 import OutwardBGPaneRenderer from './OutwardBGPaneRenderer';
 import OutwardBGProgressIndicator from './OutwardBGProgressIndicator';
 import MT767SidebarPreview from './MT767SidebarPreview';
+import AmendmentChangesSummaryModal from './AmendmentChangesSummaryModal';
 import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
 interface OutwardBGAmendmentFormProps {
@@ -24,6 +24,7 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
   const [originalData, setOriginalData] = useState<OutwardBGFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isChangesSummaryOpen, setIsChangesSummaryOpen] = useState(false);
   const { toast } = useToast();
 
   const panes = [
@@ -35,6 +36,40 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
     'Supporting Documents',
     'Review & Submit'
   ];
+
+  const detectChanges = useMemo(() => {
+    const changes = [];
+    const fieldsToCheck = [
+      { key: 'guaranteeAmount', label: 'Guarantee Amount' },
+      { key: 'dateOfExpiry', label: 'Date of Expiry' },
+      { key: 'placeOfExpiry', label: 'Place of Expiry' },
+      { key: 'guaranteeText', label: 'Guarantee Text/Purpose' },
+      { key: 'applicantAddress', label: 'Applicant Address' },
+      { key: 'beneficiaryAddress', label: 'Beneficiary Address' },
+      { key: 'additionalConditions', label: 'Additional Conditions' },
+      { key: 'documentsRequired', label: 'Documents Required' },
+      { key: 'chargesDetails', label: 'Charges Details' },
+      { key: 'percentageCreditAmount', label: 'Percentage Credit Amount' },
+      { key: 'maximumCreditAmount', label: 'Maximum Credit Amount' },
+      { key: 'additionalAmounts', label: 'Additional Amounts' },
+      { key: 'currency', label: 'Currency' }
+    ];
+
+    fieldsToCheck.forEach(field => {
+      const oldValue = originalData[field.key as keyof OutwardBGFormData];
+      const newValue = formData[field.key as keyof OutwardBGFormData];
+      
+      if (oldValue !== newValue) {
+        changes.push({
+          field: field.label,
+          oldValue: String(oldValue || ''),
+          newValue: String(newValue || '')
+        });
+      }
+    });
+
+    return changes;
+  }, [formData, originalData]);
 
   const handleNext = () => {
     if (currentPane < panes.length - 1) {
@@ -135,14 +170,25 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsChangesSummaryOpen(true)}
+                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Changes ({detectChanges.length})
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -195,6 +241,13 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
           onToggleCollapse={handleSidebarToggle}
         />
       </div>
+
+      {/* Amendment Changes Summary Modal */}
+      <AmendmentChangesSummaryModal
+        open={isChangesSummaryOpen}
+        onClose={() => setIsChangesSummaryOpen(false)}
+        changes={detectChanges}
+      />
     </div>
   );
 };
