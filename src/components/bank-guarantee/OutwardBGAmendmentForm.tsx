@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X, Search } from 'lucide-react';
@@ -228,10 +227,10 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Header */}
+    <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex h-screen w-screen">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full min-w-0">
+        {/* Header - Fixed */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -264,8 +263,8 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
           </div>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="flex-shrink-0">
+        {/* Progress Indicator - Fixed */}
+        <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <OutwardBGProgressIndicator
             currentPane={currentPane}
             panes={panes}
@@ -274,7 +273,7 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
         </div>
 
         {/* Form Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="max-w-4xl mx-auto p-6">
             {currentPane === 0 ? renderSearchPane() : (
               <OutwardBGPaneRenderer
@@ -287,7 +286,7 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
         </div>
 
         {/* Form Actions - Fixed at bottom */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <OutwardBGFormActions
             currentPane={currentPane}
             totalPanes={panes.length}
@@ -302,7 +301,7 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
       </div>
 
       {/* MT 767 Preview Sidebar - Fixed width */}
-      <div className="flex-shrink-0">
+      <div className="w-96 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
         <MT767SidebarPreview 
           formData={formData} 
           originalData={originalData}

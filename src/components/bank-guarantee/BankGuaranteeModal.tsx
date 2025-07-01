@@ -54,6 +54,7 @@ const BankGuaranteeModal: React.FC<BankGuaranteeModalProps> = ({
     onClose();
   };
 
+  // Render forms in full-screen mode outside the dialog
   if (showForm && selectedAction === 'issuance') {
     return (
       <OutwardBankGuaranteeIssuanceForm

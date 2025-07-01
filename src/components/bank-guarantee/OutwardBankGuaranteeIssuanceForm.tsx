@@ -222,10 +222,10 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Header */}
+    <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex h-screen w-screen">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full min-w-0">
+        {/* Header - Fixed */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -258,8 +258,8 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
           </div>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="flex-shrink-0">
+        {/* Progress Indicator - Fixed */}
+        <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <OutwardBGProgressIndicator
             currentPane={currentPane}
             panes={panes}
@@ -268,7 +268,7 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         </div>
 
         {/* Form Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="max-w-4xl mx-auto p-6">
             <OutwardBGPaneRenderer
               currentPane={currentPane}
@@ -279,7 +279,7 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
         </div>
 
         {/* Form Actions - Fixed at bottom */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <OutwardBGFormActions
             currentPane={currentPane}
             totalPanes={panes.length}
@@ -294,7 +294,7 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
       </div>
 
       {/* MT 760 Preview Sidebar - Fixed width */}
-      <div className="flex-shrink-0">
+      <div className="w-96 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
         <MT760SidebarPreview formData={formData} />
       </div>
     </div>
