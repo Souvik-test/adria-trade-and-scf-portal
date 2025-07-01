@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
-import BankGuaranteeModal from './BankGuaranteeModal';
+import BankGuaranteeModal from './bank-guarantee/BankGuaranteeModal';
 import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
