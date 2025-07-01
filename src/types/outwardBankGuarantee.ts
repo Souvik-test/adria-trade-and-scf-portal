@@ -1,4 +1,3 @@
-
 export interface OutwardBGFormData {
   // MT 760 fields
   sendersReference?: string;
@@ -48,4 +47,5 @@ export interface OutwardBGFormData {
   // MT 767 Amendment specific fields
   guaranteeReferenceNo?: string;
   amendmentNumber?: string;
+  increaseDecreaseAmount?: string;
 }

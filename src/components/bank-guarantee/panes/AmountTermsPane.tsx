@@ -54,6 +54,20 @@ const AmountTermsPane: React.FC<AmountTermsPaneProps> = ({
             </div>
           </div>
 
+          {isAmendment && (
+            <div>
+              <Label htmlFor="increaseDecreaseAmount">Increase/Decrease Amount</Label>
+              <Input
+                id="increaseDecreaseAmount"
+                value={formData.increaseDecreaseAmount || ''}
+                onChange={(e) => onFieldChange('increaseDecreaseAmount', e.target.value)}
+                placeholder="Enter increase/decrease amount (e.g., +100,000 or -50,000)"
+                readOnly
+                className="bg-gray-100"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="percentageCreditAmount">Percentage Credit Amount (Tag 39A)</Label>
@@ -89,35 +103,6 @@ const AmountTermsPane: React.FC<AmountTermsPaneProps> = ({
               />
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="formOfGuarantee">Form of Guarantee</Label>
-              <Select value={formData.formOfGuarantee} onValueChange={(value) => onFieldChange('formOfGuarantee', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select form of guarantee" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DEMAND">On Demand</SelectItem>
-                  <SelectItem value="DOCUMENTARY">Documentary</SelectItem>
-                  <SelectItem value="COUNTER">Counter Guarantee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="applicableRules">Applicable Rules</Label>
-              <Select value={formData.applicableRules} onValueChange={(value) => onFieldChange('applicableRules', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select applicable rules" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="URDG 758">URDG 758</SelectItem>
-                  <SelectItem value="ISP98">ISP98</SelectItem>
-                  <SelectItem value="UCP600">UCP600</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

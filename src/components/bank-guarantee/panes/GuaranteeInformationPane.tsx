@@ -47,6 +47,8 @@ const GuaranteeInformationPane: React.FC<GuaranteeInformationPaneProps> = ({
                   value={formData.amendmentNumber || ''}
                   onChange={(e) => onFieldChange('amendmentNumber', e.target.value)}
                   placeholder="Enter amendment number"
+                  readOnly
+                  className="bg-gray-100"
                 />
               </div>
             </div>
@@ -62,14 +64,42 @@ const GuaranteeInformationPane: React.FC<GuaranteeInformationPaneProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="guaranteeAmount">Guarantee Amount (Tag 32B)</Label>
+                <Label htmlFor="placeOfExpiry">Place of Expiry</Label>
                 <Input
-                  id="guaranteeAmount"
-                  type="number"
-                  value={formData.guaranteeAmount || ''}
-                  onChange={(e) => onFieldChange('guaranteeAmount', parseFloat(e.target.value) || 0)}
-                  placeholder="Enter guarantee amount"
+                  id="placeOfExpiry"
+                  value={formData.placeOfExpiry || ''}
+                  onChange={(e) => onFieldChange('placeOfExpiry', e.target.value)}
+                  placeholder="Enter place of expiry"
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="formOfGuarantee">Form of Guarantee</Label>
+                <Select value={formData.formOfGuarantee} onValueChange={(value) => onFieldChange('formOfGuarantee', value)} disabled>
+                  <SelectTrigger className="bg-gray-100">
+                    <SelectValue placeholder="Select form of guarantee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DEMAND">On Demand</SelectItem>
+                    <SelectItem value="DOCUMENTARY">Documentary</SelectItem>
+                    <SelectItem value="COUNTER">Counter Guarantee</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="applicableRules">Applicable Rules</Label>
+                <Select value={formData.applicableRules} onValueChange={(value) => onFieldChange('applicableRules', value)} disabled>
+                  <SelectTrigger className="bg-gray-100">
+                    <SelectValue placeholder="Select applicable rules" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="URDG 758">URDG 758</SelectItem>
+                    <SelectItem value="ISP98">ISP98</SelectItem>
+                    <SelectItem value="UCP600">UCP600</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

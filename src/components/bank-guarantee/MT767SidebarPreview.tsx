@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Maximize2 } from 'lucide-react';
+import { Download, Eye, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 
@@ -19,6 +19,7 @@ const MT767SidebarPreview: React.FC<MT767SidebarPreviewProps> = ({
   guaranteeReference 
 }) => {
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const generateMT767Content = () => {
     const amendmentNumber = formData.amendmentNumber || '01';
@@ -108,77 +109,121 @@ ${getAmendmentChanges()}
     URL.revokeObjectURL(url);
   };
 
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
-    <div className="w-96 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+    <div className={`${isCollapsed ? 'w-12' : 'w-96'} transition-all duration-300 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col`}>
       <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Eye className="h-5 w-5" />
-          MT 767 Preview
-        </h3>
-        <p className="text-corporate-teal-100 text-sm mt-1">Amendment preview</p>
+        <div className="flex items-center justify-between">
+          <div className={`${isCollapsed ? 'hidden' : 'block'}`}>
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              MT 767 Preview
+            </h3>
+            <p className="text-corporate-teal-100 text-sm mt-1">Amendment preview</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleCollapse}
+            className="text-white hover:bg-corporate-teal-700 p-2"
+          >
+            {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-corporate-teal-200 dark:border-corporate-teal-700">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-corporate-teal-700 dark:text-corporate-teal-300">
-              SWIFT MT 767 Amendment
-            </CardTitle>
-            <div className="text-xs text-corporate-teal-600 dark:text-corporate-teal-400">
-              Reference: {formData.guaranteeReferenceNo || guaranteeReference || 'Not entered'}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words leading-relaxed">
-              {generateMT767Content()}
-            </pre>
-          </CardContent>
-        </Card>
-      </ScrollArea>
+      {!isCollapsed && (
+        <>
+          <ScrollArea className="flex-1 p-4">
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-corporate-teal-200 dark:border-corporate-teal-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-corporate-teal-700 dark:text-corporate-teal-300">
+                  SWIFT MT 767 Amendment
+                </CardTitle>
+                <div className="text-xs text-corporate-teal-600 dark:text-corporate-teal-400">
+                  Reference: {formData.guaranteeReferenceNo || guaranteeReference || 'Not entered'}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words leading-relaxed">
+                  {generateMT767Content()}
+                </pre>
+              </CardContent>
+            </Card>
+          </ScrollArea>
 
-      <div className="p-4 border-t border-corporate-teal-200 dark:border-corporate-teal-700 bg-white/50 dark:bg-gray-800/50 space-y-2">
-        <Dialog open={isFullPreviewOpen} onOpenChange={setIsFullPreviewOpen}>
-          <DialogTrigger asChild>
+          <div className="p-4 border-t border-corporate-teal-200 dark:border-corporate-teal-700 bg-white/50 dark:bg-gray-800/50 space-y-2">
+            <Dialog open={isFullPreviewOpen} onOpenChange={setIsFullPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-corporate-teal-300 text-corporate-teal-700 hover:bg-corporate-teal-50 dark:border-corporate-teal-600 dark:text-corporate-teal-300 dark:hover:bg-corporate-teal-900/20"
+                >
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                  View Full Preview
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
+                    MT 767 - Bank Guarantee Amendment
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-end mb-4">
+                  <Button 
+                    onClick={downloadMT767}
+                    className="bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download MT 767
+                  </Button>
+                </div>
+                <ScrollArea className="h-[60vh]">
+                  <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
+                    {generateMT767Content()}
+                  </pre>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
             <Button 
-              variant="outline" 
-              className="w-full border-corporate-teal-300 text-corporate-teal-700 hover:bg-corporate-teal-50 dark:border-corporate-teal-600 dark:text-corporate-teal-300 dark:hover:bg-corporate-teal-900/20"
+              onClick={downloadMT767}
+              className="w-full bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
+              disabled={!formData.guaranteeReferenceNo && !guaranteeReference}
             >
-              <Maximize2 className="h-4 w-4 mr-2" />
-              View Full Preview
+              <Download className="h-4 w-4 mr-2" />
+              Download Draft
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
-                MT 767 - Bank Guarantee Amendment
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex justify-end mb-4">
-              <Button 
-                onClick={downloadMT767}
-                className="bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download MT 767
-              </Button>
-            </div>
-            <ScrollArea className="h-[60vh]">
-              <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
-                {generateMT767Content()}
-              </pre>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </>
+      )}
 
-        <Button 
-          onClick={downloadMT767}
-          className="w-full bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
-          disabled={!formData.guaranteeReferenceNo && !guaranteeReference}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Download Draft
-        </Button>
-      </div>
+      {isCollapsed && (
+        <div className="flex flex-col items-center py-4 space-y-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsFullPreviewOpen(true)}
+            className="p-2 text-corporate-teal-600 hover:bg-corporate-teal-50"
+            title="View Full Preview"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={downloadMT767}
+            className="p-2 text-corporate-teal-600 hover:bg-corporate-teal-50"
+            title="Download Draft"
+            disabled={!formData.guaranteeReferenceNo && !guaranteeReference}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
