@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,12 +10,14 @@ interface MT767SidebarPreviewProps {
   formData: OutwardBGFormData;
   originalData: OutwardBGFormData;
   guaranteeReference: string;
+  onToggleCollapse?: (collapsed: boolean) => void;
 }
 
 const MT767SidebarPreview: React.FC<MT767SidebarPreviewProps> = ({ 
   formData, 
   originalData,
-  guaranteeReference 
+  guaranteeReference,
+  onToggleCollapse
 }) => {
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -110,12 +111,16 @@ ${getAmendmentChanges()}
   };
 
   const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    if (onToggleCollapse) {
+      onToggleCollapse(newCollapsedState);
+    }
   };
 
   if (isCollapsed) {
     return (
-      <div className="w-12 bg-gradient-to-br from-blue-50 to-indigo-50 border-l border-gray-200 flex flex-col items-center py-4 space-y-4">
+      <div className="w-12 h-full bg-gradient-to-br from-blue-50 to-indigo-50 border-l border-gray-200 flex flex-col items-center py-4 space-y-4">
         <Button
           variant="ghost"
           size="sm"
@@ -175,7 +180,7 @@ ${getAmendmentChanges()}
   }
 
   return (
-    <div className="w-96 bg-gradient-to-br from-blue-50 to-indigo-50 border-l border-gray-200 flex flex-col h-full">
+    <div className="w-96 h-full bg-gradient-to-br from-blue-50 to-indigo-50 border-l border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200 bg-blue-600">
         <div className="flex items-center justify-between">
           <div className="text-white">

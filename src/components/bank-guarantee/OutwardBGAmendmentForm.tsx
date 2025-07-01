@@ -23,6 +23,7 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
   const [formData, setFormData] = useState<OutwardBGFormData>({});
   const [originalData, setOriginalData] = useState<OutwardBGFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { toast } = useToast();
 
   const panes = [
@@ -97,10 +98,21 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
     }
   };
 
+  const handleSidebarToggle = (collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex h-screen w-screen">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0">
+      <div 
+        className={`flex flex-col h-full min-w-0 transition-all duration-300 ${
+          isSidebarCollapsed ? 'flex-1' : 'flex-1'
+        }`}
+        style={{
+          width: isSidebarCollapsed ? 'calc(100% - 48px)' : 'calc(100% - 384px)'
+        }}
+      >
         {/* Header - Fixed */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -171,11 +183,16 @@ const OutwardBGAmendmentForm: React.FC<OutwardBGAmendmentFormProps> = ({
       </div>
 
       {/* MT 767 Preview Sidebar - Fixed width */}
-      <div className="w-96 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
+      <div 
+        className={`flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transition-all duration-300 ${
+          isSidebarCollapsed ? 'w-12' : 'w-96'
+        }`}
+      >
         <MT767SidebarPreview 
           formData={formData} 
           originalData={originalData}
           guaranteeReference={formData.guaranteeReferenceNo || ''}
+          onToggleCollapse={handleSidebarToggle}
         />
       </div>
     </div>
