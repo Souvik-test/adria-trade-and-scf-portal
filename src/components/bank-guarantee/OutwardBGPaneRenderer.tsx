@@ -26,7 +26,7 @@ const OutwardBGPaneRenderer: React.FC<OutwardBGPaneRendererProps> = ({
     case 0:
       return <GuaranteeInformationPane formData={formData} onFieldChange={onFieldChange} isAmendment={isAmendment} />;
     case 1:
-      return <PartyDetailsPane formData={formData} onFieldChange={onFieldChange} />;
+      return <PartyDetailsPane formData={formData} onFieldChange={onFieldChange} isAmendment={isAmendment} />;
     case 2:
       return <AmountTermsPane formData={formData} onFieldChange={onFieldChange} isAmendment={isAmendment} />;
     case 3:
