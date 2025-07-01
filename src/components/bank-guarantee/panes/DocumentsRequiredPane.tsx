@@ -8,17 +8,21 @@ import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 interface DocumentsRequiredPaneProps {
   formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
+  isAmendment?: boolean;
 }
 
 const DocumentsRequiredPane: React.FC<DocumentsRequiredPaneProps> = ({
   formData,
-  onFieldChange
+  onFieldChange,
+  isAmendment = false
 }) => {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Documents Required (MT 760 Tag: 46A)</CardTitle>
+          <CardTitle>
+            {isAmendment ? 'Documents Required (MT 767 Tag: 46A)' : 'Documents Required (MT 760 Tag: 46A)'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>

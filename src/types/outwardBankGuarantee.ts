@@ -44,4 +44,8 @@ export interface OutwardBGFormData {
   additionalAmounts?: string;
   additionalConditions?: string;
   chargesDetails?: string;
+  
+  // MT 767 Amendment specific fields
+  guaranteeReferenceNo?: string;
+  amendmentNumber?: string;
 }

@@ -8,17 +8,21 @@ import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
 interface ConditionsClausesPaneProps {
   formData: OutwardBGFormData;
   onFieldChange: (field: string, value: any) => void;
+  isAmendment?: boolean;
 }
 
 const ConditionsClausesPane: React.FC<ConditionsClausesPaneProps> = ({
   formData,
-  onFieldChange
+  onFieldChange,
+  isAmendment = false
 }) => {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Terms and Conditions (MT 760 Tag: 47A)</CardTitle>
+          <CardTitle>
+            {isAmendment ? 'Terms and Conditions (MT 767 Tag: 47A)' : 'Terms and Conditions (MT 760 Tag: 47A)'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -36,7 +40,9 @@ const ConditionsClausesPane: React.FC<ConditionsClausesPaneProps> = ({
 
       <Card>
         <CardHeader>
-          <CardTitle>Charges Details (MT 760 Tag: 71D)</CardTitle>
+          <CardTitle>
+            {isAmendment ? 'Charges Details (MT 767 Tag: 71D)' : 'Charges Details (MT 760 Tag: 71D)'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>

@@ -21,23 +21,28 @@ const MT767SidebarPreview: React.FC<MT767SidebarPreviewProps> = ({
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
 
   const generateMT767Content = () => {
-    const amendmentNumber = '01'; // In real app, this would be generated
+    const amendmentNumber = formData.amendmentNumber || '01';
+    const refNumber = formData.guaranteeReferenceNo || guaranteeReference;
     
     return `{1:F01BANKSGSGXXXX0000000000}
 {2:I767RECIPSGSGXXXN}
-{3:{113:0001}{108:${guaranteeReference}-AMD${amendmentNumber}}}
+{3:{113:0001}{108:${refNumber}-AMD${amendmentNumber}}}
 {4:
-:20:${guaranteeReference}-AMD${amendmentNumber}
-:21:${guaranteeReference}
+:20:${refNumber}-AMD${amendmentNumber}
+:21:${refNumber}
 :23:AMENDMENT
 :30:${new Date().toISOString().slice(0, 10).replace(/-/g, '')}
 :26E:${amendmentNumber}
-${formData.guaranteeAmount !== originalData.guaranteeAmount ? `:32B:${formData.currency}${formData.guaranteeAmount || '0,00'}` : ''}
+${formData.guaranteeAmount !== originalData.guaranteeAmount ? `:32B:${formData.currency || 'USD'}${formData.guaranteeAmount || '0,00'}` : ''}
+${formData.percentageCreditAmount ? `:39A:${formData.percentageCreditAmount}` : ''}
+${formData.maximumCreditAmount ? `:39B:${formData.currency || 'USD'}${formData.maximumCreditAmount}` : ''}
+${formData.additionalAmounts ? `:39C:${formData.additionalAmounts}` : ''}
 ${formData.dateOfExpiry !== originalData.dateOfExpiry ? `:31D:${formData.dateOfExpiry || ''}${formData.placeOfExpiry || ''}` : ''}
 ${formData.beneficiaryName !== originalData.beneficiaryName ? `:59:${formData.beneficiaryName || ''}\n${formData.beneficiaryAddress || ''}` : ''}
-${formData.guaranteeDetails !== originalData.guaranteeDetails ? `:45A:${formData.guaranteeDetails || ''}` : ''}
-${formData.termsAndConditions !== originalData.termsAndConditions ? `:47A:${formData.termsAndConditions || ''}` : ''}
+${formData.guaranteeText !== originalData.guaranteeText ? `:45A:${formData.guaranteeText || ''}` : ''}
+${formData.additionalConditions !== originalData.additionalConditions ? `:47A:${formData.additionalConditions || ''}` : ''}
 ${formData.documentsRequired !== originalData.documentsRequired ? `:46A:${formData.documentsRequired || ''}` : ''}
+${formData.chargesDetails !== originalData.chargesDetails ? `:71D:${formData.chargesDetails || ''}` : ''}
 :78:AMENDMENT TO BANK GUARANTEE
 AMENDMENT DETAILS:
 ${getAmendmentChanges()}
@@ -59,12 +64,32 @@ ${getAmendmentChanges()}
       changes.push(`BENEFICIARY: CHANGED`);
     }
     
-    if (formData.guaranteeDetails !== originalData.guaranteeDetails) {
-      changes.push(`GUARANTEE DETAILS: AMENDED`);
+    if (formData.guaranteeText !== originalData.guaranteeText) {
+      changes.push(`GUARANTEE TEXT: AMENDED`);
     }
     
-    if (formData.termsAndConditions !== originalData.termsAndConditions) {
-      changes.push(`TERMS AND CONDITIONS: AMENDED`);
+    if (formData.additionalConditions !== originalData.additionalConditions) {
+      changes.push(`ADDITIONAL CONDITIONS: AMENDED`);
+    }
+
+    if (formData.documentsRequired !== originalData.documentsRequired) {
+      changes.push(`DOCUMENTS REQUIRED: AMENDED`);
+    }
+
+    if (formData.chargesDetails !== originalData.chargesDetails) {
+      changes.push(`CHARGES DETAILS: AMENDED`);
+    }
+
+    if (formData.percentageCreditAmount) {
+      changes.push(`PERCENTAGE CREDIT AMOUNT: ${formData.percentageCreditAmount}`);
+    }
+
+    if (formData.maximumCreditAmount) {
+      changes.push(`MAXIMUM CREDIT AMOUNT: ${formData.currency} ${formData.maximumCreditAmount}`);
+    }
+
+    if (formData.additionalAmounts) {
+      changes.push(`ADDITIONAL AMOUNTS: ${formData.additionalAmounts}`);
     }
     
     return changes.length > 0 ? changes.join('\n') : 'NO CHANGES DETECTED';
@@ -76,7 +101,7 @@ ${getAmendmentChanges()}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `MT767-${guaranteeReference}-AMD.txt`;
+    a.download = `MT767-${formData.guaranteeReferenceNo || guaranteeReference}-AMD.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -100,7 +125,7 @@ ${getAmendmentChanges()}
               SWIFT MT 767 Amendment
             </CardTitle>
             <div className="text-xs text-corporate-teal-600 dark:text-corporate-teal-400">
-              Reference: {guaranteeReference || 'Not selected'}
+              Reference: {formData.guaranteeReferenceNo || guaranteeReference || 'Not entered'}
             </div>
           </CardHeader>
           <CardContent>
@@ -148,7 +173,7 @@ ${getAmendmentChanges()}
         <Button 
           onClick={downloadMT767}
           className="w-full bg-corporate-teal-600 hover:bg-corporate-teal-700 text-white"
-          disabled={!guaranteeReference}
+          disabled={!formData.guaranteeReferenceNo && !guaranteeReference}
         >
           <Download className="h-4 w-4 mr-2" />
           Download Draft
