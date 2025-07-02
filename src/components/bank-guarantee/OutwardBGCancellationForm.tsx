@@ -19,6 +19,8 @@ interface GuaranteeSearchResult {
   request_reference: string;
   beneficiary_name: string;
   guarantee_amount: number;
+  utilized_amount: number;
+  available_amount: number;
   currency: string;
   date_of_issue: string;
   date_of_expiry: string;
@@ -46,6 +48,8 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
       request_reference: 'BG-2024-001234',
       beneficiary_name: 'ABC Construction Ltd.',
       guarantee_amount: 500000,
+      utilized_amount: 0,
+      available_amount: 500000,
       currency: 'USD',
       date_of_issue: '2024-01-15',
       date_of_expiry: '2024-12-31',
@@ -57,6 +61,8 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
       request_reference: 'BG-2024-005678',
       beneficiary_name: 'XYZ Trading Company',
       guarantee_amount: 250000,
+      utilized_amount: 50000,
+      available_amount: 200000,
       currency: 'EUR',
       date_of_issue: '2024-02-20',
       date_of_expiry: '2024-11-30',
@@ -68,6 +74,8 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
       request_reference: 'SBLC-2024-009876',
       beneficiary_name: 'Global Suppliers Inc.',
       guarantee_amount: 750000,
+      utilized_amount: 0,
+      available_amount: 750000,
       currency: 'USD',
       date_of_issue: '2024-03-10',
       date_of_expiry: '2025-03-10',
@@ -110,6 +118,16 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
   };
 
   const handleGuaranteeSelect = (guarantee: GuaranteeSearchResult) => {
+    // Check if guarantee is eligible for cancellation (utilized amount must be 0)
+    if (guarantee.utilized_amount > 0) {
+      toast({
+        title: "Cannot Cancel",
+        description: "Only unused guarantees (with zero utilized amount) can be cancelled.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSelectedGuarantee(guarantee);
     setSearchResults([]);
   };
@@ -216,7 +234,7 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
                 Outward Bank Guarantee/SBLC Cancellation
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Request cancellation of existing guarantee
+                Request cancellation of unused Guarantee/SBLC
               </p>
             </div>
           </div>
@@ -267,7 +285,9 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
                     {searchResults.map((guarantee) => (
                       <div
                         key={guarantee.id}
-                        className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                        className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                          guarantee.utilized_amount > 0 ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         onClick={() => handleGuaranteeSelect(guarantee)}
                       >
                         <div className="flex justify-between items-start">
@@ -279,6 +299,11 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               Amount: {guarantee.currency} {guarantee.guarantee_amount?.toLocaleString()}
                             </p>
+                            {guarantee.utilized_amount > 0 && (
+                              <p className="text-sm text-red-600 font-medium">
+                                Utilized: {guarantee.currency} {guarantee.utilized_amount?.toLocaleString()} (Cannot Cancel)
+                              </p>
+                            )}
                           </div>
                           <div className="text-right text-sm">
                             <p>Issued: {guarantee.date_of_issue}</p>
@@ -317,6 +342,18 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
                     <Label>Amount</Label>
                     <p className="font-medium">
                       {selectedGuarantee.currency} {selectedGuarantee.guarantee_amount?.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Utilized Guarantee/SBLC Amount</Label>
+                    <p className="font-medium">
+                      {selectedGuarantee.currency} {selectedGuarantee.utilized_amount?.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Available Guarantee/SBLC Amount</Label>
+                    <p className="font-medium">
+                      {selectedGuarantee.currency} {selectedGuarantee.available_amount?.toLocaleString()}
                     </p>
                   </div>
                   <div>
