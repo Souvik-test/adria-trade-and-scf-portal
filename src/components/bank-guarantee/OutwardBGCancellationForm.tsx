@@ -242,7 +242,7 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
             <CardContent className="space-y-4">
               <div className="flex space-x-2">
                 <div className="flex-1">
-                  <Label htmlFor="search">Guarantee Reference or Beneficiary Name</Label>
+                  <Label htmlFor="search">Guarantee/SBLC Reference</Label>
                   <Input
                     id="search"
                     value={searchTerm}
