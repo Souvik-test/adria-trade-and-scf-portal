@@ -39,6 +39,43 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // Sample guarantee data for testing
+  const sampleGuarantees: GuaranteeSearchResult[] = [
+    {
+      id: '1',
+      request_reference: 'BG-2024-001234',
+      beneficiary_name: 'ABC Construction Ltd.',
+      guarantee_amount: 500000,
+      currency: 'USD',
+      date_of_issue: '2024-01-15',
+      date_of_expiry: '2024-12-31',
+      status: 'issued',
+      guarantee_type: 'Performance Guarantee'
+    },
+    {
+      id: '2',
+      request_reference: 'BG-2024-005678',
+      beneficiary_name: 'XYZ Trading Company',
+      guarantee_amount: 250000,
+      currency: 'EUR',
+      date_of_issue: '2024-02-20',
+      date_of_expiry: '2024-11-30',
+      status: 'issued',
+      guarantee_type: 'Bid Bond'
+    },
+    {
+      id: '3',
+      request_reference: 'SBLC-2024-009876',
+      beneficiary_name: 'Global Suppliers Inc.',
+      guarantee_amount: 750000,
+      currency: 'USD',
+      date_of_issue: '2024-03-10',
+      date_of_expiry: '2025-03-10',
+      status: 'issued',
+      guarantee_type: 'Standby Letter of Credit'
+    }
+  ];
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       toast({
@@ -50,34 +87,26 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
     }
 
     setIsSearching(true);
-    try {
-      const { data, error } = await supabase
-        .from('outward_bg_requests')
-        .select('*')
-        .or(`request_reference.ilike.%${searchTerm}%,beneficiary_name.ilike.%${searchTerm}%`)
-        .eq('status', 'issued')
-        .order('created_at', { ascending: false });
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      // Filter sample guarantees based on search term
+      const filteredResults = sampleGuarantees.filter(guarantee =>
+        guarantee.request_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        guarantee.beneficiary_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
-      if (error) throw error;
-
-      setSearchResults(data || []);
+      setSearchResults(filteredResults);
       
-      if (!data || data.length === 0) {
+      if (filteredResults.length === 0) {
         toast({
           title: "No Results",
           description: "No unused guarantees found matching your search criteria.",
         });
       }
-    } catch (error) {
-      console.error('Error searching guarantees:', error);
-      toast({
-        title: "Search Error",
-        description: "Failed to search guarantees. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+      
       setIsSearching(false);
-    }
+    }, 1000);
   };
 
   const handleGuaranteeSelect = (guarantee: GuaranteeSearchResult) => {
@@ -218,7 +247,7 @@ const OutwardBGCancellationForm: React.FC<OutwardBGCancellationFormProps> = ({
                     id="search"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Enter guarantee reference or beneficiary name"
+                    placeholder="Enter guarantee reference or beneficiary name (try 'BG-2024' or 'ABC')"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
