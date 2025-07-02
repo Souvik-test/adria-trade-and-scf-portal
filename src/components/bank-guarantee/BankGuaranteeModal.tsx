@@ -5,6 +5,7 @@ import BankGuaranteeActionSection from './BankGuaranteeActionSection';
 import BankGuaranteeMethodSection from './BankGuaranteeMethodSection';
 import OutwardBankGuaranteeIssuanceForm from './OutwardBankGuaranteeIssuanceForm';
 import OutwardBGAmendmentForm from './OutwardBGAmendmentForm';
+import OutwardBGCancellationForm from './OutwardBGCancellationForm';
 
 interface BankGuaranteeModalProps {
   isOpen: boolean;
@@ -67,6 +68,15 @@ const BankGuaranteeModal: React.FC<BankGuaranteeModalProps> = ({
   if (showForm && selectedAction === 'amendment') {
     return (
       <OutwardBGAmendmentForm
+        onClose={handleCloseModal}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (showForm && selectedAction === 'cancellation') {
+    return (
+      <OutwardBGCancellationForm
         onClose={handleCloseModal}
         onBack={handleBack}
       />
