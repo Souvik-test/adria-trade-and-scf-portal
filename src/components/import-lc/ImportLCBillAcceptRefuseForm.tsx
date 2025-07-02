@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -298,9 +297,9 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
           <ScrollArea className="h-full">
             <div className="space-y-6">
               {/* Bill Search Section */}
-              <Card className="border border-corporate-blue-100 dark:border-corporate-blue-800 shadow">
+              <Card className="border border-gray-200 dark:border-gray-600 shadow">
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-corporate-blue-600 dark:text-corporate-blue-300">
+                  <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                     Search Bill Reference
                   </CardTitle>
                 </CardHeader>
@@ -321,7 +320,7 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
                       <Button
                         onClick={handleSearch}
                         disabled={isSearching || !formData.billReference.trim()}
-                        className="bg-corporate-blue hover:bg-corporate-blue/90 text-white px-6"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
                       >
                         {isSearching ? (
                           <>
@@ -554,7 +553,7 @@ const ImportLCBillAcceptRefuseForm: React.FC<ImportLCBillAcceptRefuseFormProps> 
               <Button
                 onClick={handleSubmit}
                 disabled={!formData.billData || !formData.decision || !formData.remarks.trim() || isSubmitting}
-                className="bg-corporate-blue hover:bg-corporate-blue/90 text-white disabled:opacity-50 disabled:cursor-not-allowed px-8"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed px-8"
               >
                 {isSubmitting ? 'Submitting...' : `Submit ${formData.decision ? (formData.decision === 'accept' ? 'Acceptance' : 'Refusal') : 'Decision'}`}
               </Button>
