@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,11 +37,18 @@ interface FormData {
   settlementAmount: number;
   settlementMethod: 'account-debit' | 'payment-financing' | '';
   // Account Debit fields
-  debitAccountNumber: string;
+  principalDebitAccountNumber: string;
+  chargesDebitAccountNumber: string;
   // Payment with Financing fields
   financingType: string;
+  financingTenorDays: string;
+  financeDueDate: string;
   financingAmount: number;
-  financingTenor: string;
+  // Repayment Option fields
+  repaymentPrincipalDebitAccount: string;
+  repaymentInterestDebitAccount: string;
+  repaymentChargesDebitAccount: string;
+  totalRepaymentAmount: number;
   billData?: BillData;
 }
 
@@ -52,13 +59,37 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
     paymentOption: '',
     settlementAmount: 0,
     settlementMethod: '',
-    debitAccountNumber: '',
+    principalDebitAccountNumber: '',
+    chargesDebitAccountNumber: '',
     financingType: '',
+    financingTenorDays: '',
+    financeDueDate: '',
     financingAmount: 0,
-    financingTenor: ''
+    repaymentPrincipalDebitAccount: '',
+    repaymentInterestDebitAccount: '',
+    repaymentChargesDebitAccount: '',
+    totalRepaymentAmount: 0
   });
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const calculateFinanceDueDate = (tenorDays: string) => {
+    if (!tenorDays || isNaN(Number(tenorDays))) return '';
+    
+    const today = new Date();
+    const dueDate = new Date(today);
+    dueDate.setDate(dueDate.getDate() + Number(tenorDays));
+    return dueDate.toISOString().split('T')[0];
+  };
+
+  const handleTenorChange = (value: string) => {
+    const financeDueDate = calculateFinanceDueDate(value);
+    setFormData(prev => ({
+      ...prev,
+      financingTenorDays: value,
+      financeDueDate: financeDueDate
+    }));
+  };
 
   const handleSearch = async () => {
     if (!formData.billReference.trim()) {
@@ -111,7 +142,9 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
         setFormData(prev => ({
           ...prev,
           billData: mockBillData,
-          settlementAmount: mockBillData.billAmount
+          settlementAmount: mockBillData.billAmount,
+          financingAmount: mockBillData.billAmount,
+          totalRepaymentAmount: mockBillData.billAmount * 1.05 // Assuming 5% additional for interest/charges
         }));
         
         toast({
@@ -161,7 +194,9 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
     const amount = parseFloat(value) || 0;
     setFormData(prev => ({
       ...prev,
-      settlementAmount: amount
+      settlementAmount: amount,
+      financingAmount: amount,
+      totalRepaymentAmount: amount * 1.05 // Update repayment amount accordingly
     }));
   };
 
@@ -202,22 +237,33 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
       return;
     }
 
-    if (formData.settlementMethod === 'account-debit' && !formData.debitAccountNumber.trim()) {
+    if (formData.settlementMethod === 'account-debit' && (!formData.principalDebitAccountNumber.trim() || !formData.chargesDebitAccountNumber.trim())) {
       toast({
         title: "Error",
-        description: "Please enter debit account number",
+        description: "Please enter both principal and charges debit account numbers",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.settlementMethod === 'payment-financing' && (!formData.financingType || !formData.financingTenor)) {
-      toast({
-        title: "Error",
-        description: "Please fill all financing details",
-        variant: "destructive",
-      });
-      return;
+    if (formData.settlementMethod === 'payment-financing') {
+      if (!formData.financingType || !formData.financingTenorDays) {
+        toast({
+          title: "Error",
+          description: "Please fill all financing details",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!formData.repaymentPrincipalDebitAccount.trim() || !formData.repaymentInterestDebitAccount.trim() || !formData.repaymentChargesDebitAccount.trim()) {
+        toast({
+          title: "Error",
+          description: "Please fill all repayment account details",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -306,6 +352,7 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
               {/* Bill Details Section */}
               {formData.billData && (
                 <>
+                  {/* Bill Details Card */}
                   <Card className="border border-gray-200 dark:border-gray-600 shadow">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-200">
@@ -415,7 +462,7 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="payment-financing" id="payment-financing" />
-                            <Label htmlFor="payment-financing">Payment with Financing</Label>
+                            <Label htmlFor="payment-financing">Pay with Financing</Label>
                           </div>
                         </RadioGroup>
                       </div>
@@ -430,15 +477,27 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <div>
-                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                Debit Account Number <span className="text-red-500">*</span>
-                              </Label>
-                              <Input
-                                value={formData.debitAccountNumber}
-                                onChange={(e) => setFormData(prev => ({ ...prev, debitAccountNumber: e.target.value }))}
-                                placeholder="Enter account number to debit..."
-                              />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Principal Debit Account Number <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  value={formData.principalDebitAccountNumber}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, principalDebitAccountNumber: e.target.value }))}
+                                  placeholder="Enter principal debit account number..."
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Charges Debit Account Number <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  value={formData.chargesDebitAccountNumber}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, chargesDebitAccountNumber: e.target.value }))}
+                                  placeholder="Enter charges debit account number..."
+                                />
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
@@ -457,45 +516,47 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                  Financing Type <span className="text-red-500">*</span>
+                                  Finance Type <span className="text-red-500">*</span>
                                 </Label>
-                                <RadioGroup 
-                                  value={formData.financingType} 
-                                  onValueChange={(value) => setFormData(prev => ({ ...prev, financingType: value }))}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="import-loan" id="import-loan" />
-                                    <Label htmlFor="import-loan">Import Loan</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="usance-payment" id="usance-payment" />
-                                    <Label htmlFor="usance-payment">Usance Payment</Label>
-                                  </div>
-                                </RadioGroup>
+                                <Select value={formData.financingType} onValueChange={(value) => setFormData(prev => ({ ...prev, financingType: value }))}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select finance type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="trust-receipt-loan">Trust Receipt Loan</SelectItem>
+                                    <SelectItem value="import-bill-financing">Import Bill Financing</SelectItem>
+                                    <SelectItem value="buyers-credit">Buyer's Credit</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                               <div>
                                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                  Financing Tenor <span className="text-red-500">*</span>
+                                  Financing Tenor (in Days) <span className="text-red-500">*</span>
                                 </Label>
-                                <RadioGroup 
-                                  value={formData.financingTenor} 
-                                  onValueChange={(value) => setFormData(prev => ({ ...prev, financingTenor: value }))}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="30-days" id="30-days" />
-                                    <Label htmlFor="30-days">30 Days</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="60-days" id="60-days" />
-                                    <Label htmlFor="60-days">60 Days</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="90-days" id="90-days" />
-                                    <Label htmlFor="90-days">90 Days</Label>
-                                  </div>
-                                </RadioGroup>
+                                <Input
+                                  type="number"
+                                  value={formData.financingTenorDays}
+                                  onChange={(e) => handleTenorChange(e.target.value)}
+                                  placeholder="Enter tenor in days"
+                                  min="1"
+                                />
                               </div>
                             </div>
+                            
+                            {formData.financeDueDate && (
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Finance Due Date
+                                </Label>
+                                <Input
+                                  type="date"
+                                  value={formData.financeDueDate}
+                                  readOnly
+                                  className="bg-gray-100 dark:bg-gray-600"
+                                />
+                              </div>
+                            )}
+                            
                             <div>
                               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                                 Financing Amount
@@ -511,6 +572,69 @@ const ImportLCBillSettlementForm: React.FC<ImportLCBillSettlementFormProps> = ({
                                   className="flex-1"
                                   min="0"
                                   max={formData.settlementAmount}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Repayment Option Section */}
+                      {formData.settlementMethod === 'payment-financing' && (
+                        <Card className="border border-green-200 dark:border-green-600 bg-green-50 dark:bg-green-900/20">
+                          <CardHeader>
+                            <CardTitle className="text-md font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
+                              <DollarSign className="h-4 w-4" />
+                              Repayment Option
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Principal Debit Account Number <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  value={formData.repaymentPrincipalDebitAccount}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, repaymentPrincipalDebitAccount: e.target.value }))}
+                                  placeholder="Enter principal account..."
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Interest Debit Account Number <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  value={formData.repaymentInterestDebitAccount}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, repaymentInterestDebitAccount: e.target.value }))}
+                                  placeholder="Enter interest account..."
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                  Charges Debit Account Number <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  value={formData.repaymentChargesDebitAccount}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, repaymentChargesDebitAccount: e.target.value }))}
+                                  placeholder="Enter charges account..."
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                Total Repayment Amount
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  {formData.billData.currency}
+                                </span>
+                                <Input
+                                  type="number"
+                                  value={formData.totalRepaymentAmount}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, totalRepaymentAmount: parseFloat(e.target.value) || 0 }))}
+                                  className="flex-1 bg-gray-100 dark:bg-gray-600"
+                                  readOnly
                                 />
                               </div>
                             </div>
