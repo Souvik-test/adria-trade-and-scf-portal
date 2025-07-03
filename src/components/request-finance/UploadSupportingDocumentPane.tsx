@@ -45,7 +45,7 @@ const UploadSupportingDocumentPane: React.FC<UploadSupportingDocumentPaneProps> 
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <Card className="border border-gray-200 dark:border-gray-600 h-full">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+          <CardTitle className="text-lg font-semibold text-primary dark:text-primary">
             Upload Supporting Document
           </CardTitle>
         </CardHeader>
@@ -81,7 +81,7 @@ const UploadSupportingDocumentPane: React.FC<UploadSupportingDocumentPaneProps> 
               />
               <Button 
                 onClick={onAddCustomDocumentType}
-                className="px-4 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+                className="px-4 bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={!customDocumentName.trim()}
               >
                 Add
@@ -100,7 +100,7 @@ const UploadSupportingDocumentPane: React.FC<UploadSupportingDocumentPaneProps> 
               />
               <Button
                 onClick={() => document.getElementById('file-upload')?.click()}
-                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white px-8 py-3"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3"
                 disabled={selectedDocuments.length === 0}
                 size="lg"
               >

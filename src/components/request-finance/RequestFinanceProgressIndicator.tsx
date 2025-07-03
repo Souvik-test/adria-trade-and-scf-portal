@@ -17,16 +17,16 @@ const RequestFinanceProgressIndicator: React.FC<RequestFinanceProgressIndicatorP
           <div key={index} className="flex items-center">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               index === currentPane 
-                ? 'bg-corporate-teal-500 text-white' 
+                ? 'bg-primary text-primary-foreground' 
                 : index < currentPane 
                   ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
+                  : 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-400'
             }`}>
               {index + 1}
             </div>
             {index < paneHeaders.length - 1 && (
               <div className={`w-8 h-0.5 mx-2 ${
-                index < currentPane ? 'bg-green-600' : 'bg-gray-200'
+                index < currentPane ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-600'
               }`} />
             )}
           </div>

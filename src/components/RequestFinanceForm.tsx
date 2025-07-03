@@ -234,7 +234,7 @@ const RequestFinanceForm: React.FC<RequestFinanceFormProps> = ({ onClose, onBack
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting}
-                    className="bg-corporate-teal-500 hover:bg-corporate-teal-600"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Request'}
                   </Button>
