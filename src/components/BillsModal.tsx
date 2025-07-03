@@ -8,6 +8,7 @@ import ManualBillsForm from './ManualBillsForm';
 import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 import RequestFinanceForm from './RequestFinanceForm';
 import ImportLCBillAcceptRefuseForm from './import-lc/ImportLCBillAcceptRefuseForm';
+import ImportLCBillSettlementForm from './import-lc/ImportLCBillSettlementForm';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -23,6 +24,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [showResolveDiscrepanciesForm, setShowResolveDiscrepanciesForm] = useState(false);
   const [showRequestFinanceForm, setShowRequestFinanceForm] = useState(false);
   const [showAcceptRefuseForm, setShowAcceptRefuseForm] = useState(false);
+  const [showSettlementForm, setShowSettlementForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -44,8 +46,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           setShowAcceptRefuseForm(true);
           break;
         case 'process-bill-settlement':
-          // For now, we'll show the manual bills form - this can be changed to a specific form later
-          setShowManualBillsForm(true);
+          setShowSettlementForm(true);
           break;
       }
     }
@@ -56,6 +57,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     setShowResolveDiscrepanciesForm(false);
     setShowManualBillsForm(false);
     setShowAcceptRefuseForm(false);
+    setShowSettlementForm(false);
     setSelectedAction(null);
   };
 
@@ -90,6 +92,15 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   if (showAcceptRefuseForm) {
     return (
       <ImportLCBillAcceptRefuseForm
+        onClose={onClose}
+        onBack={handleBackToBills}
+      />
+    );
+  }
+
+  if (showSettlementForm) {
+    return (
+      <ImportLCBillSettlementForm
         onClose={onClose}
         onBack={handleBackToBills}
       />
