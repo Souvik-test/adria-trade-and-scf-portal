@@ -320,7 +320,7 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
               <Button
                 onClick={handleSubmit}
                 disabled={!formData.lcReference || !formData.cancellationReason.trim() || isSubmitting}
-                className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed px-8"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed px-8"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Cancellation Request'}
               </Button>

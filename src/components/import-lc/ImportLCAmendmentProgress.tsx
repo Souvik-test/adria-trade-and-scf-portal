@@ -34,9 +34,9 @@ const ImportLCAmendmentProgress: React.FC<ImportLCAmendmentProgressProps> = ({
                 onClick={() => onStepClick(step.key)}
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                   index <= currentStepIndex
-                    ? 'bg-corporate-teal-500 text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                } hover:bg-corporate-teal-600 hover:text-white`}
+                } hover:bg-primary/90 hover:text-primary-foreground`}
               >
                 {index + 1}
               </button>
@@ -44,7 +44,7 @@ const ImportLCAmendmentProgress: React.FC<ImportLCAmendmentProgressProps> = ({
                 <div
                   className={`flex-1 h-1 mx-2 ${
                     index < currentStepIndex
-                      ? 'bg-corporate-teal-500'
+                      ? 'bg-primary'
                       : 'bg-gray-200 dark:bg-gray-600'
                   }`}
                 />
@@ -55,7 +55,7 @@ const ImportLCAmendmentProgress: React.FC<ImportLCAmendmentProgressProps> = ({
             <div className="mt-2 text-center">
               <div className={`text-sm font-medium ${
                 index <= currentStepIndex
-                  ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
+                  ? 'text-primary dark:text-primary'
                   : 'text-gray-500 dark:text-gray-400'
               }`}>
                 {step.label}
