@@ -9,8 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImportLCSearchDropdown from '../export-lc/ImportLCSearchDropdown';
 import ImportLCCancellationSupportingDocumentUpload from './ImportLCCancellationSupportingDocumentUpload';
-import SwiftTagLabel from './SwiftTagLabel';
-import { Plus, FilePlus } from 'lucide-react';
+import { Plus, FilePlus, AlertCircle } from 'lucide-react';
 
 interface ImportLCCancellationFormProps {
   onBack: () => void;
@@ -25,6 +24,7 @@ interface CancellationFormData {
     corporate_reference: string;
     beneficiary_name: string;
     lc_amount: number;
+    lc_available_amount?: number;
     currency: string;
     expiry_date: string;
     issuing_bank: string;
@@ -51,6 +51,10 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
 
   const handleLCSelect = (lc: any) => {
     console.log('Selected LC for cancellation:', lc);
+    
+    // Calculate available amount (assuming full amount is available if not specified)
+    const lcAvailableAmount = lc.lc_available_amount ?? lc.lc_amount;
+    
     setFormData(prev => ({
       ...prev,
       lcReference: lc.corporate_reference || '',
@@ -58,11 +62,21 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
         corporate_reference: lc.corporate_reference || '',
         beneficiary_name: lc.beneficiary_name || '',
         lc_amount: lc.lc_amount || 0,
+        lc_available_amount: lcAvailableAmount,
         currency: lc.currency || 'USD',
         expiry_date: lc.expiry_date || '',
         issuing_bank: lc.issuing_bank || ''
       }
     }));
+
+    // Check if cancellation is possible
+    if (lcAvailableAmount !== lc.lc_amount) {
+      toast({
+        title: "Cancellation Not Possible",
+        description: "LC can only be cancelled if the available amount equals the LC amount (i.e., LC is fully unused).",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateField = (field: keyof CancellationFormData, value: any) => {
@@ -81,12 +95,26 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
     }
   };
 
+  const isCancellationAllowed = () => {
+    if (!formData.lcDetails) return false;
+    return formData.lcDetails.lc_available_amount === formData.lcDetails.lc_amount;
+  };
+
   const handleSubmit = async () => {
     try {
       if (!formData.lcReference) {
         toast({
           title: "Error",
           description: "Please select an LC Reference",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!isCancellationAllowed()) {
+        toast({
+          title: "Error",
+          description: "LC can only be cancelled if the available amount equals the LC amount",
           variant: "destructive",
         });
         return;
@@ -178,7 +206,9 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
                 <CardContent className="space-y-6">
                   {/* LC Reference Search */}
                   <div>
-                    <SwiftTagLabel tag=":20:" label="Corporate Reference (Search)" required />
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                      LC Reference Number <span className="text-red-500">*</span>
+                    </Label>
                     <ImportLCSearchDropdown
                       value={formData.lcReference}
                       onSelect={handleLCSelect}
@@ -188,24 +218,65 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
 
                   {/* LC Details Display */}
                   {formData.lcDetails && (
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                      <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-3">Selected LC Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Beneficiary:</span>
-                          <div className="font-medium">{formData.lcDetails.beneficiary_name}</div>
+                    <div className="space-y-4">
+                      {/* Beneficiary Name */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                          Beneficiary Name
+                        </Label>
+                        <Input
+                          value={formData.lcDetails.beneficiary_name}
+                          readOnly
+                          className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* LC Amount */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                          LC Amount
+                        </Label>
+                        <Input
+                          value={`${formData.lcDetails.currency} ${formData.lcDetails.lc_amount?.toLocaleString()}`}
+                          readOnly
+                          className="bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* LC Available Amount */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                          LC Available Amount
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            value={`${formData.lcDetails.currency} ${formData.lcDetails.lc_available_amount?.toLocaleString()}`}
+                            readOnly
+                            className={`bg-gray-50 dark:bg-gray-800 cursor-not-allowed ${
+                              !isCancellationAllowed() ? 'border-red-300 dark:border-red-600' : ''
+                            }`}
+                          />
+                          {!isCancellationAllowed() && (
+                            <div className="flex items-center mt-2 text-red-600 dark:text-red-400 text-sm">
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              Cancellation not allowed - LC amount must equal available amount
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                          <div className="font-medium">{formData.lcDetails.currency} {formData.lcDetails.lc_amount?.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Expiry Date:</span>
-                          <div className="font-medium">{formData.lcDetails.expiry_date}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Issuing Bank:</span>
-                          <div className="font-medium">{formData.lcDetails.issuing_bank}</div>
+                      </div>
+
+                      {/* Additional LC Details */}
+                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-3">Additional LC Details</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Expiry Date:</span>
+                            <div className="font-medium">{formData.lcDetails.expiry_date}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Issuing Bank:</span>
+                            <div className="font-medium">{formData.lcDetails.issuing_bank}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -319,7 +390,7 @@ const ImportLCCancellationForm: React.FC<ImportLCCancellationFormProps> = ({ onB
 
               <Button
                 onClick={handleSubmit}
-                disabled={!formData.lcReference || !formData.cancellationReason.trim() || isSubmitting}
+                disabled={!formData.lcReference || !formData.cancellationReason.trim() || !isCancellationAllowed() || isSubmitting}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed px-8"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Cancellation Request'}
