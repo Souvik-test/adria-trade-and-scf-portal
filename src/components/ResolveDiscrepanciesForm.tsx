@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,6 @@ import { GeneralDetailsPane } from './resolve-discrepancies/GeneralDetailsPane';
 import { DiscrepancyDetailsPane } from './resolve-discrepancies/DiscrepancyDetailsPane';
 import { ResolutionDetailsPane } from './resolve-discrepancies/ResolutionDetailsPane';
 import { DocumentSubmissionPane } from './resolve-discrepancies/DocumentSubmissionPane';
-import ResolveDiscrepanciesFormActions from './resolve-discrepancies/ResolveDiscrepanciesFormActions';
 
 interface ResolveDiscrepanciesFormProps {
   onClose: () => void;
@@ -257,7 +255,87 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
     }
   };
 
-  const canProceed = validateForm();
+  const renderPaneButtons = () => {
+    const baseButtons = (
+      <>
+        <Button 
+          variant="outline" 
+          onClick={handleDiscard}
+          className="px-6 py-2 text-sm font-medium border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500"
+        >
+          Discard
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={handleSaveAsDraft}
+          className="px-6 py-2 text-sm font-medium border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500"
+        >
+          Save as Draft
+        </Button>
+      </>
+    );
+
+    if (currentPane === 0) {
+      return (
+        <div className="flex justify-end items-center">
+          <div className="flex gap-3">
+            {baseButtons}
+            <Button 
+              onClick={handleNext}
+              className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentPane === 3) {
+      return (
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={handleGoBack}
+            className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+          >
+            Go Back
+          </Button>
+          <div className="flex gap-3">
+            {baseButtons}
+            <Button 
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="px-6 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-between items-center">
+        <Button 
+          variant="outline" 
+          onClick={handleGoBack}
+          className="px-6 py-2 text-sm font-medium border-gray-400 text-gray-600 hover:bg-gray-50"
+        >
+          Go Back
+        </Button>
+        <div className="flex gap-3">
+          {baseButtons}
+          <Button 
+            onClick={handleNext}
+            className="px-6 py-2 text-sm font-medium bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -327,17 +405,9 @@ const ResolveDiscrepanciesForm: React.FC<ResolveDiscrepanciesFormProps> = ({
               </div>
             </ScrollArea>
 
-            <ResolveDiscrepanciesFormActions
-              currentPane={currentPane}
-              onDiscard={handleDiscard}
-              onSaveAsDraft={handleSaveAsDraft}
-              onGoBack={handleGoBack}
-              onNext={handleNext}
-              onSubmit={handleSubmit}
-              canProceed={canProceed}
-              isFirstPane={currentPane === 0}
-              isLastPane={currentPane === 3}
-            />
+            <div className="border-t border-gray-200 dark:border-gray-600 pt-6 mt-6">
+              {renderPaneButtons()}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
