@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Search, ArrowLeft, Calendar, Building, User, CreditCard } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, ArrowLeft, Calendar, Building, User, CreditCard, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,9 +35,9 @@ const MOCK_GUARANTEE_DATA = {
       amendmentDate: "2024-03-20",
       status: "Pending Consent",
       changes: [
-        { field: "Expiry Date", previous: "2024-12-15", updated: "2025-02-15" },
-        { field: "Guarantee Amount", previous: "USD 500,000.00", updated: "USD 600,000.00" },
-        { field: "Terms & Conditions", previous: "Original terms", updated: "Updated performance milestones" }
+        { field: "Expiry Date", previous: "2024-12-15", updated: "2025-02-15", id: "expiry_date" },
+        { field: "Guarantee Amount", previous: "USD 500,000.00", updated: "USD 600,000.00", id: "guarantee_amount" },
+        { field: "Terms & Conditions", previous: "Original terms", updated: "Updated performance milestones", id: "terms_conditions" }
       ]
     }
   ]
@@ -52,7 +53,31 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
   const [consentAction, setConsentAction] = useState<'accept' | 'refuse' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amendmentConsents, setAmendmentConsents] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+
+  // Calculate total changes and consented changes
+  const totalChanges = guaranteeData?.amendments?.reduce((total: number, amendment: any) => 
+    total + amendment.changes.length, 0
+  ) || 0;
+  
+  const consentedChanges = Object.values(amendmentConsents).filter(Boolean).length;
+  const allChangesConsented = totalChanges > 0 && consentedChanges === totalChanges;
+  const someChangesNotConsented = totalChanges > 0 && consentedChanges < totalChanges && consentedChanges > 0;
+
+  // Auto-update consent action based on individual consents
+  useEffect(() => {
+    if (totalChanges === 0) return;
+
+    if (allChangesConsented) {
+      setConsentAction('accept');
+      setRejectionReason(''); // Clear rejection reason when accepting
+    } else if (consentedChanges > 0) {
+      setConsentAction('refuse');
+    } else {
+      setConsentAction(null);
+    }
+  }, [amendmentConsents, totalChanges, allChangesConsented, consentedChanges]);
 
   const handleSearch = async () => {
     if (!guaranteeReference.trim()) {
@@ -69,6 +94,14 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
     setTimeout(() => {
       if (guaranteeReference === MOCK_GUARANTEE_DATA.guaranteeReference) {
         setGuaranteeData(MOCK_GUARANTEE_DATA);
+        // Initialize consent checkboxes
+        const initialConsents: Record<string, boolean> = {};
+        MOCK_GUARANTEE_DATA.amendments.forEach((amendment) => {
+          amendment.changes.forEach((change) => {
+            initialConsents[change.id] = false;
+          });
+        });
+        setAmendmentConsents(initialConsents);
       } else {
         toast({
           title: "Not Found",
@@ -76,16 +109,24 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
           variant: "destructive"
         });
         setGuaranteeData(null);
+        setAmendmentConsents({});
       }
       setIsSearching(false);
     }, 1000);
+  };
+
+  const handleAmendmentConsentChange = (changeId: string, consented: boolean) => {
+    setAmendmentConsents(prev => ({
+      ...prev,
+      [changeId]: consented
+    }));
   };
 
   const handleSubmit = async () => {
     if (!consentAction) {
       toast({
         title: "Error",
-        description: "Please select your consent action",
+        description: "Please provide consent for all amendment changes",
         variant: "destructive"
       });
       return;
@@ -94,7 +135,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
     if (consentAction === 'refuse' && !rejectionReason.trim()) {
       toast({
         title: "Error",
-        description: "Please provide a rejection reason",
+        description: "Please provide a rejection reason for refused amendments",
         variant: "destructive"
       });
       return;
@@ -259,9 +300,14 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Amendment Details</span>
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-                    Pending Consent
-                  </Badge>
+                  <div className="flex items-center gap-4">
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                      Pending Consent
+                    </Badge>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {consentedChanges}/{totalChanges} changes consented
+                    </div>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -293,10 +339,28 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
                       <div className="space-y-3">
                         {amendment.changes.map((change: any, changeIndex: number) => (
                           <div key={changeIndex} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {change.field}
-                              </Badge>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {change.field}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`consent-${change.id}`}
+                                  checked={amendmentConsents[change.id] || false}
+                                  onCheckedChange={(checked) => 
+                                    handleAmendmentConsentChange(change.id, checked as boolean)
+                                  }
+                                />
+                                <Label 
+                                  htmlFor={`consent-${change.id}`} 
+                                  className="text-xs font-medium cursor-pointer flex items-center gap-1"
+                                >
+                                  <CheckCircle className="w-3 h-3" />
+                                  Consent
+                                </Label>
+                              </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                               <div>
@@ -333,23 +397,55 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
               <CardContent className="space-y-6">
                 <div>
                   <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
-                    Amendment Consent
+                    Amendment Consent Status
                   </Label>
+                  
+                  {/* Consent Summary */}
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">
+                        Individual Consent Status: {consentedChanges}/{totalChanges} changes consented
+                      </span>
+                    </div>
+                    {allChangesConsented && (
+                      <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                        All changes have been consented - Amendment will be accepted
+                      </p>
+                    )}
+                    {someChangesNotConsented && (
+                      <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                        Some changes not consented - Amendment will be refused
+                      </p>
+                    )}
+                  </div>
+
                   <RadioGroup
                     value={consentAction || ''}
                     onValueChange={(value) => setConsentAction(value as 'accept' | 'refuse')}
                     className="flex gap-6"
+                    disabled
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="accept" id="accept" />
                       <Label htmlFor="accept" className="text-green-700 dark:text-green-300 font-medium">
                         Accept Amendment
+                        {allChangesConsented && (
+                          <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
+                            (Auto-selected)
+                          </span>
+                        )}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="refuse" id="refuse" />
                       <Label htmlFor="refuse" className="text-red-700 dark:text-red-300 font-medium">
                         Refuse Amendment
+                        {someChangesNotConsented && (
+                          <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
+                            (Auto-selected)
+                          </span>
+                        )}
                       </Label>
                     </div>
                   </RadioGroup>
@@ -397,7 +493,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
               
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !consentAction}
+                disabled={isSubmitting || !consentAction || (consentAction === 'refuse' && !rejectionReason.trim())}
                 className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Consent'}
