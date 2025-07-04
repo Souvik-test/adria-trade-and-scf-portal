@@ -62,10 +62,10 @@ const BillDetailsPane: React.FC<BillDetailsPaneProps> = ({
                 <Button 
                   onClick={onBillSearch}
                   disabled={!billReference.trim() || isSearching}
-                  className="px-4 bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white disabled:opacity-50"
+                  className="px-4 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
                 >
                   {isSearching ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                   ) : (
                     <Search className="w-4 h-4" />
                   )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
@@ -47,7 +46,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       icon: Banknote,
       description: 'Process trade bills and collections',
       hasFlip: true,
-      flipOptions: ['Import LC Bills', 'Export LC Bills']
+      flipOptions: ['Import LC Bills', 'Export LC Bills', 'Outward Documentary Collection Bills', 'Inward Documentary Collection Bills']
     },
     {
       id: 'shipping',
@@ -86,6 +85,12 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     } else if (option === 'Export LC Bills') {
       setBillsModalType('export');
       setShowBillsModal(true);
+    } else if (option === 'Outward Documentary Collection Bills') {
+      console.log('Outward Documentary Collection Bills clicked');
+      // TODO: Implement when ready
+    } else if (option === 'Inward Documentary Collection Bills') {
+      console.log('Inward Documentary Collection Bills clicked');
+      // TODO: Implement when ready
     }
   };
 
