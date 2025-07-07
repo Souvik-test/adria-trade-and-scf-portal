@@ -705,6 +705,66 @@ export type Database = {
         }
         Relationships: []
       }
+      inward_bg_amendment_consents: {
+        Row: {
+          amendment_number: string
+          applicant_name: string | null
+          beneficiary_name: string | null
+          consent_action: string
+          created_at: string
+          currency: string | null
+          expiry_date: string | null
+          guarantee_amount: string | null
+          guarantee_reference: string
+          id: string
+          individual_consents: Json
+          issue_date: string | null
+          issuing_bank: string | null
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amendment_number: string
+          applicant_name?: string | null
+          beneficiary_name?: string | null
+          consent_action: string
+          created_at?: string
+          currency?: string | null
+          expiry_date?: string | null
+          guarantee_amount?: string | null
+          guarantee_reference: string
+          id?: string
+          individual_consents?: Json
+          issue_date?: string | null
+          issuing_bank?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amendment_number?: string
+          applicant_name?: string | null
+          beneficiary_name?: string | null
+          consent_action?: string
+          created_at?: string
+          currency?: string | null
+          expiry_date?: string | null
+          guarantee_amount?: string | null
+          guarantee_reference?: string
+          id?: string
+          individual_consents?: Json
+          issue_date?: string | null
+          issuing_bank?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lc_transfer_requests: {
         Row: {
           amount: number | null

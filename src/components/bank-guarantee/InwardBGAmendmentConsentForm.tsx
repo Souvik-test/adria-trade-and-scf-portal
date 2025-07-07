@@ -1,17 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Search, ArrowLeft, Calendar, Building, User, CreditCard, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import InwardBGSearchSection from './inward-amendment-consent/InwardBGSearchSection';
+import GuaranteeDetailsCard from './inward-amendment-consent/GuaranteeDetailsCard';
+import AmendmentDetailsCard from './inward-amendment-consent/AmendmentDetailsCard';
+import ConsentSection from './inward-amendment-consent/ConsentSection';
+import { useInwardBGAmendmentConsent } from './inward-amendment-consent/useInwardBGAmendmentConsent';
 
 interface InwardBGAmendmentConsentFormProps {
   onClose: () => void;
@@ -54,7 +50,9 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amendmentConsents, setAmendmentConsents] = useState<Record<string, boolean>>({});
+  
   const { toast } = useToast();
+  const { submitAmendmentConsent } = useInwardBGAmendmentConsent();
 
   // Calculate total changes and consented changes
   const totalChanges = guaranteeData?.amendments?.reduce((total: number, amendment: any) => 
@@ -143,16 +141,29 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
     }
 
     setIsSubmitting(true);
-    // Simulate API submission
-    setTimeout(() => {
-      toast({
-        title: "Success",
-        description: `Amendment consent ${consentAction}ed successfully`,
-        variant: "default"
+    
+    try {
+      await submitAmendmentConsent({
+        guaranteeReference: guaranteeData.guaranteeReference,
+        amendmentNumber: guaranteeData.amendments[0].amendmentNumber,
+        consentAction,
+        individualConsents: amendmentConsents,
+        rejectionReason: consentAction === 'refuse' ? rejectionReason : undefined,
+        applicantName: guaranteeData.applicantName,
+        issuingBank: guaranteeData.issuingBank,
+        guaranteeAmount: guaranteeData.guaranteeAmount,
+        currency: 'USD',
+        issueDate: guaranteeData.issueDate,
+        expiryDate: guaranteeData.expiryDate,
+        beneficiaryName: guaranteeData.beneficiaryName,
       });
-      setIsSubmitting(false);
+      
       onClose();
-    }, 1500);
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDiscard = () => {
@@ -193,307 +204,40 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
         </div>
 
         {/* Search Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Search Guarantee/SBLC
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="guaranteeRef" className="text-sm font-medium">
-                  Guarantee/SBLC Reference Number
-                </Label>
-                <Input
-                  id="guaranteeRef"
-                  value={guaranteeReference}
-                  onChange={(e) => setGuaranteeReference(e.target.value)}
-                  placeholder="Enter guarantee/SBLC reference (e.g., IBG/2024/001234)"
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex items-end">
-                <Button 
-                  onClick={handleSearch}
-                  disabled={isSearching}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {isSearching ? 'Searching...' : 'Search'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <InwardBGSearchSection
+          guaranteeReference={guaranteeReference}
+          setGuaranteeReference={setGuaranteeReference}
+          onSearch={handleSearch}
+          isSearching={isSearching}
+        />
 
         {/* Guarantee Details */}
         {guaranteeData && (
           <div className="space-y-6">
             {/* Basic Guarantee Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Guarantee/SBLC Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Guarantee/SBLC Reference
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.guaranteeReference}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      Applicant
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.applicantName}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                      <Building className="w-4 h-4" />
-                      Issuing Bank
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.issuingBank}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Issue Date
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.issueDate}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Expiry Date
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.expiryDate}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Guarantee/SBLC Amount
-                    </Label>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {guaranteeData.guaranteeAmount}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <GuaranteeDetailsCard guaranteeData={guaranteeData} />
 
             {/* Amendment Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Amendment Details</span>
-                  <div className="flex items-center gap-4">
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-                      Pending Consent
-                    </Badge>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {consentedChanges}/{totalChanges} changes consented
-                    </div>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {guaranteeData.amendments.map((amendment: any, index: number) => (
-                  <div key={index} className="space-y-4">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                          Amendment Number
-                        </Label>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {amendment.amendmentNumber}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                          Amendment Date
-                        </Label>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {amendment.amendmentDate}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
-                        Changes Summary
-                      </Label>
-                      <div className="space-y-3">
-                        {amendment.changes.map((change: any, changeIndex: number) => (
-                          <div key={changeIndex} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {change.field}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`consent-${change.id}`}
-                                  checked={amendmentConsents[change.id] || false}
-                                  onCheckedChange={(checked) => 
-                                    handleAmendmentConsentChange(change.id, checked as boolean)
-                                  }
-                                />
-                                <Label 
-                                  htmlFor={`consent-${change.id}`} 
-                                  className="text-xs font-medium cursor-pointer flex items-center gap-1"
-                                >
-                                  <CheckCircle className="w-3 h-3" />
-                                  Consent
-                                </Label>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                  Previous Value
-                                </Label>
-                                <p className="text-gray-900 dark:text-white font-medium">
-                                  {change.previous}
-                                </p>
-                              </div>
-                              <div>
-                                <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                  Updated Value
-                                </Label>
-                                <p className="text-green-700 dark:text-green-300 font-medium">
-                                  {change.updated}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <AmendmentDetailsCard
+              guaranteeData={guaranteeData}
+              amendmentConsents={amendmentConsents}
+              onAmendmentConsentChange={handleAmendmentConsentChange}
+              totalChanges={totalChanges}
+              consentedChanges={consentedChanges}
+            />
 
             {/* Consent Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Record Your Consent</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
-                    Amendment Consent Status
-                  </Label>
-                  
-                  {/* Consent Summary */}
-                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">
-                        Individual Consent Status: {consentedChanges}/{totalChanges} changes consented
-                      </span>
-                    </div>
-                    {allChangesConsented && (
-                      <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                        All changes have been consented - Amendment will be accepted
-                      </p>
-                    )}
-                    {someChangesNotConsented && (
-                      <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-                        Some changes not consented - Amendment will be refused
-                      </p>
-                    )}
-                    {noChangesConsented && (
-                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                        No changes consented - Only refusal option available
-                      </p>
-                    )}
-                  </div>
-
-                  <RadioGroup
-                    value={consentAction || ''}
-                    onValueChange={(value) => setConsentAction(value as 'accept' | 'refuse')}
-                    className="flex gap-6"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="accept" 
-                        id="accept" 
-                        disabled={!allChangesConsented}
-                      />
-                      <Label 
-                        htmlFor="accept" 
-                        className={`font-medium ${
-                          allChangesConsented 
-                            ? "text-green-700 dark:text-green-300" 
-                            : "text-gray-400 dark:text-gray-600"
-                        }`}
-                      >
-                        Accept Amendment
-                        {allChangesConsented && (
-                          <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
-                            (Auto-selected)
-                          </span>
-                        )}
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="refuse" 
-                        id="refuse" 
-                        disabled={noChangesConsented && totalChanges > 0 ? false : allChangesConsented}
-                      />
-                      <Label 
-                        htmlFor="refuse" 
-                        className={`font-medium ${
-                          !allChangesConsented 
-                            ? "text-red-700 dark:text-red-300" 
-                            : "text-gray-400 dark:text-gray-600"
-                        }`}
-                      >
-                        Refuse Amendment
-                        {(someChangesNotConsented || noChangesConsented) && (
-                          <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
-                            {someChangesNotConsented ? "(Auto-selected)" : "(Available)"}
-                          </span>
-                        )}
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {consentAction === 'refuse' && (
-                  <div>
-                    <Label htmlFor="rejectionReason" className="text-sm font-medium text-gray-900 dark:text-white">
-                      Rejection Reason <span className="text-red-500">*</span>
-                    </Label>
-                    <Textarea
-                      id="rejectionReason"
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      placeholder="Please provide detailed reason for refusing the amendment..."
-                      className="mt-2 min-h-[100px]"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ConsentSection
+              consentAction={consentAction}
+              setConsentAction={setConsentAction}
+              rejectionReason={rejectionReason}
+              setRejectionReason={setRejectionReason}
+              totalChanges={totalChanges}
+              consentedChanges={consentedChanges}
+              allChangesConsented={allChangesConsented}
+              someChangesNotConsented={someChangesNotConsented}
+              noChangesConsented={noChangesConsented}
+            />
           </div>
         )}
 
