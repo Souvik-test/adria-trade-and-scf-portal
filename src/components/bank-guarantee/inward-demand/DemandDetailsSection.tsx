@@ -36,7 +36,7 @@ const DemandDetailsSection: React.FC<DemandDetailsSectionProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />
-          Demand Details (MT 765 SWIFT Message)
+          Demand Details
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -149,34 +149,33 @@ const DemandDetailsSection: React.FC<DemandDetailsSectionProps> = ({
           </div>
         )}
 
-        {/* Demand Reason */}
+        {/* Demand Statement */}
         <div>
-          <Label htmlFor="demandReason" className="text-sm font-medium">
-            Reason for Demand (Tag: 77C) *
+          <Label htmlFor="demandStatement" className="text-sm font-medium">
+            Demand Statement (Tag: 49A) *
           </Label>
-          <Textarea
-            id="demandReason"
-            value={demandData.demandReason}
-            onChange={(e) => onDemandDataChange('demandReason', e.target.value)}
-            placeholder="Provide detailed reason for the demand..."
-            rows={4}
-            className="mt-1"
-          />
-        </div>
-
-        {/* Claim Details */}
-        <div>
-          <Label htmlFor="claimDetails" className="text-sm font-medium">
-            Additional Claim Details (Tag: 77A)
-          </Label>
-          <Textarea
-            id="claimDetails"
-            value={demandData.claimDetails}
-            onChange={(e) => onDemandDataChange('claimDetails', e.target.value)}
-            placeholder="Additional details about the claim (optional)..."
-            rows={3}
-            className="mt-1"
-          />
+          <div className="space-y-3 mt-1">
+            <Select
+              value={demandData.demandStatementType}
+              onValueChange={(value) => onDemandDataChange('demandStatementType', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select demand statement type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="COMPLETE">Complete Demand</SelectItem>
+                <SelectItem value="INCOMPLETE">Incomplete Demand</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Textarea
+              id="demandStatement"
+              value={demandData.demandStatementNarration}
+              onChange={(e) => onDemandDataChange('demandStatementNarration', e.target.value)}
+              placeholder="Enter demand statement narration..."
+              rows={4}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

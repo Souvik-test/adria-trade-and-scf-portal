@@ -28,8 +28,8 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
     demandCurrency: '',
     requestExtension: false,
     extensionDate: '',
-    demandReason: '',
-    claimDetails: '',
+    demandStatementType: '',
+    demandStatementNarration: '',
     supportingDocuments: []
   });
 
@@ -73,6 +73,26 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
     }));
   };
 
+  const handleSaveAsDraft = () => {
+    // Validation for draft
+    if (!guaranteeData) {
+      toast({
+        title: "Error",
+        description: "Please search for a guarantee first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('Saving demand as draft:', demandData);
+    
+    toast({
+      title: "Success",
+      description: "Demand record has been saved as draft",
+      variant: "default"
+    });
+  };
+
   const handleSubmit = () => {
     // Validation
     if (!guaranteeData) {
@@ -84,7 +104,7 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
       return;
     }
 
-    if (!demandData.demandType || !demandData.demandAmount || !demandData.demandReason) {
+    if (!demandData.demandType || !demandData.demandAmount || !demandData.demandStatementType || !demandData.demandStatementNarration) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -189,7 +209,14 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
                 onClick={onClose}
                 className="px-8"
               >
-                Cancel
+                Discard
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSaveAsDraft}
+                className="px-8"
+              >
+                Save as Draft
               </Button>
               <Button
                 onClick={handleSubmit}
