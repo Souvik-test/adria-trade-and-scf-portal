@@ -7,6 +7,7 @@ import OutwardBankGuaranteeIssuanceForm from './OutwardBankGuaranteeIssuanceForm
 import OutwardBGAmendmentForm from './OutwardBGAmendmentForm';
 import OutwardBGCancellationForm from './OutwardBGCancellationForm';
 import InwardBGAmendmentConsentForm from './InwardBGAmendmentConsentForm';
+import InwardBGRecordDemandForm from './InwardBGRecordDemandForm';
 
 interface BankGuaranteeModalProps {
   isOpen: boolean;
@@ -87,6 +88,15 @@ const BankGuaranteeModal: React.FC<BankGuaranteeModalProps> = ({
   if (showForm && selectedAction === 'consent') {
     return (
       <InwardBGAmendmentConsentForm
+        onClose={handleCloseModal}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (showForm && selectedAction === 'demand') {
+    return (
+      <InwardBGRecordDemandForm
         onClose={handleCloseModal}
         onBack={handleBack}
       />
