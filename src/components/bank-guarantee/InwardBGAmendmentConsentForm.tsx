@@ -26,7 +26,7 @@ const MOCK_GUARANTEE_DATA = {
   issueDate: "2024-01-15",
   expiryDate: "2024-12-15",
   guaranteeAmount: "USD 500,000.00",
-  guaranteeType: "Performance Guarantee",
+  guaranteeType: "Performance Guarantee/SBLC",
   beneficiaryName: "XYZ Construction Co.",
   status: "Active",
   amendments: [
@@ -36,7 +36,7 @@ const MOCK_GUARANTEE_DATA = {
       status: "Pending Consent",
       changes: [
         { field: "Expiry Date", previous: "2024-12-15", updated: "2025-02-15", id: "expiry_date" },
-        { field: "Guarantee Amount", previous: "USD 500,000.00", updated: "USD 600,000.00", id: "guarantee_amount" },
+        { field: "Guarantee/SBLC Amount", previous: "USD 500,000.00", updated: "USD 600,000.00", id: "guarantee_amount" },
         { field: "Terms & Conditions", previous: "Original terms", updated: "Updated performance milestones", id: "terms_conditions" }
       ]
     }
@@ -64,6 +64,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
   const consentedChanges = Object.values(amendmentConsents).filter(Boolean).length;
   const allChangesConsented = totalChanges > 0 && consentedChanges === totalChanges;
   const someChangesNotConsented = totalChanges > 0 && consentedChanges < totalChanges && consentedChanges > 0;
+  const noChangesConsented = consentedChanges === 0;
 
   // Auto-update consent action based on individual consents
   useEffect(() => {
@@ -83,7 +84,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
     if (!guaranteeReference.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a Guarantee Reference Number",
+        description: "Please enter a Guarantee/SBLC Reference Number",
         variant: "destructive"
       });
       return;
@@ -105,7 +106,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
       } else {
         toast({
           title: "Not Found",
-          description: "No guarantee found with the provided reference number",
+          description: "No guarantee/SBLC found with the provided reference number",
           variant: "destructive"
         });
         setGuaranteeData(null);
@@ -182,7 +183,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
             </button>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Record Amendment Consent
+                Beneficiary's Response on Amendment
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Search and record consent for Inward Bank Guarantee/SBLC amendments
@@ -196,20 +197,20 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="w-5 h-5" />
-              Search Guarantee
+              Search Guarantee/SBLC
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
               <div className="flex-1">
                 <Label htmlFor="guaranteeRef" className="text-sm font-medium">
-                  Guarantee Reference Number
+                  Guarantee/SBLC Reference Number
                 </Label>
                 <Input
                   id="guaranteeRef"
                   value={guaranteeReference}
                   onChange={(e) => setGuaranteeReference(e.target.value)}
-                  placeholder="Enter guarantee reference (e.g., IBG/2024/001234)"
+                  placeholder="Enter guarantee/SBLC reference (e.g., IBG/2024/001234)"
                   className="mt-1"
                 />
               </div>
@@ -234,14 +235,14 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
-                  Guarantee Details
+                  Guarantee/SBLC Details
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Guarantee Reference
+                      Guarantee/SBLC Reference
                     </Label>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
                       {guaranteeData.guaranteeReference}
@@ -285,7 +286,7 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Guarantee Amount
+                      Guarantee/SBLC Amount
                     </Label>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
                       {guaranteeData.guaranteeAmount}
@@ -418,17 +419,32 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
                         Some changes not consented - Amendment will be refused
                       </p>
                     )}
+                    {noChangesConsented && (
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        No changes consented - Only refusal option available
+                      </p>
+                    )}
                   </div>
 
                   <RadioGroup
                     value={consentAction || ''}
                     onValueChange={(value) => setConsentAction(value as 'accept' | 'refuse')}
                     className="flex gap-6"
-                    disabled
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="accept" id="accept" />
-                      <Label htmlFor="accept" className="text-green-700 dark:text-green-300 font-medium">
+                      <RadioGroupItem 
+                        value="accept" 
+                        id="accept" 
+                        disabled={!allChangesConsented}
+                      />
+                      <Label 
+                        htmlFor="accept" 
+                        className={`font-medium ${
+                          allChangesConsented 
+                            ? "text-green-700 dark:text-green-300" 
+                            : "text-gray-400 dark:text-gray-600"
+                        }`}
+                      >
                         Accept Amendment
                         {allChangesConsented && (
                           <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
@@ -438,12 +454,23 @@ const InwardBGAmendmentConsentForm: React.FC<InwardBGAmendmentConsentFormProps> 
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="refuse" id="refuse" />
-                      <Label htmlFor="refuse" className="text-red-700 dark:text-red-300 font-medium">
+                      <RadioGroupItem 
+                        value="refuse" 
+                        id="refuse" 
+                        disabled={noChangesConsented && totalChanges > 0 ? false : allChangesConsented}
+                      />
+                      <Label 
+                        htmlFor="refuse" 
+                        className={`font-medium ${
+                          !allChangesConsented 
+                            ? "text-red-700 dark:text-red-300" 
+                            : "text-gray-400 dark:text-gray-600"
+                        }`}
+                      >
                         Refuse Amendment
-                        {someChangesNotConsented && (
+                        {(someChangesNotConsented || noChangesConsented) && (
                           <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">
-                            (Auto-selected)
+                            {someChangesNotConsented ? "(Auto-selected)" : "(Available)"}
                           </span>
                         )}
                       </Label>
