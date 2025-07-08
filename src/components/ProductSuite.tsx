@@ -7,6 +7,7 @@ import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
+import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -22,6 +23,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
+  const [isDocumentaryCollectionOpen, setIsDocumentaryCollectionOpen] = useState(false);
 
   const products = [
     {
@@ -149,26 +151,47 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     }
   };
 
+  const handleDocumentaryCollectionClick = () => {
+    setIsDocumentaryCollectionOpen(true);
+  };
+
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
       <ProductSuiteHeader onBack={onBack} />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              title={product.title}
+              icon={product.icon}
+              description={product.description}
+              hasFlip={product.hasFlip}
+              flipOptions={product.flipOptions}
+              isFlipped={flippedCard === product.id}
+              onMouseEnter={() => handleCardHover(product.id)}
+              onMouseLeave={handleCardLeave}
+              onOptionClick={handleOptionClick}
+            />
+          ))}
+
+          {/* Documentary Collection Card */}
           <ProductCard
-            key={product.id}
-            id={product.id}
-            title={product.title}
-            icon={product.icon}
-            description={product.description}
-            hasFlip={product.hasFlip}
-            flipOptions={product.flipOptions}
-            isFlipped={flippedCard === product.id}
-            onMouseEnter={() => handleCardHover(product.id)}
-            onMouseLeave={handleCardLeave}
-            onOptionClick={handleOptionClick}
+            title="Documentary Collection"
+            description="Outward and Inward Documentary Collection services with URC 522 compliance"
+            icon="FileText"
+            gradient="from-orange-400 to-red-500"
+            features={[
+              "Submit Collection Bills",
+              "Update Bill Status", 
+              "Request Discount/Finance",
+              "URC 522 Compliance"
+            ]}
+            onClick={handleDocumentaryCollectionClick}
           />
-        ))}
+        </div>
       </div>
 
       {showBillsModal && (
@@ -208,6 +231,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           onBack={() => setShowInvoiceModal(false)}
         />
       )}
+
+      <DocumentaryCollectionModal
+        open={isDocumentaryCollectionOpen}
+        onClose={() => setIsDocumentaryCollectionOpen(false)}
+      />
     </div>
   );
 };
