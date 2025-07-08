@@ -41,6 +41,20 @@ const DemandDetailsSection: React.FC<DemandDetailsSectionProps> = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Related Reference */}
+          <div>
+            <Label htmlFor="relatedReference" className="text-sm font-medium">
+              Related Reference (Tag: 21) *
+            </Label>
+            <Input
+              id="relatedReference"
+              value={demandData.relatedReference}
+              onChange={(e) => onDemandDataChange('relatedReference', e.target.value)}
+              placeholder="Enter related reference"
+              className="mt-1"
+            />
+          </div>
+
           {/* Demand Reference */}
           <div>
             <Label htmlFor="demandReference" className="text-sm font-medium">
@@ -152,7 +166,7 @@ const DemandDetailsSection: React.FC<DemandDetailsSectionProps> = ({
         {/* Demand Statement */}
         <div>
           <Label htmlFor="demandStatement" className="text-sm font-medium">
-            Demand Statement (Tag: 49A) *
+            Demand Statement (Tag: 49A)
           </Label>
           <div className="space-y-3 mt-1">
             <Select

@@ -22,6 +22,7 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
   const [guaranteeData, setGuaranteeData] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [demandData, setDemandData] = useState({
+    relatedReference: '',
     demandReference: '',
     demandType: '',
     demandAmount: '',
@@ -104,7 +105,7 @@ const InwardBGRecordDemandForm: React.FC<InwardBGRecordDemandFormProps> = ({
       return;
     }
 
-    if (!demandData.demandType || !demandData.demandAmount || !demandData.demandStatementType || !demandData.demandStatementNarration) {
+    if (!demandData.relatedReference || !demandData.demandType || !demandData.demandAmount) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
