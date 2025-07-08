@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
@@ -6,6 +5,7 @@ import LetterOfCreditModal from './LetterOfCreditModal';
 import BankGuaranteeModal from './bank-guarantee/BankGuaranteeModal';
 import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
+import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 
@@ -19,6 +19,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
   const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
@@ -87,9 +88,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       setBillsModalType('export');
       setShowBillsModal(true);
     } else if (option === 'Outward Documentary Collection Bills') {
-      console.log('Outward Documentary Collection Bills clicked');
-      // This will be handled in BillsModal
-      setShowBillsModal(true);
+      setShowDocumentaryCollectionModal(true);
     } else if (option === 'Inward Documentary Collection Bills') {
       console.log('Inward Documentary Collection Bills clicked');
       // TODO: Implement when ready
@@ -210,6 +209,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <InvoiceModal 
           onClose={() => setShowInvoiceModal(false)} 
           onBack={() => setShowInvoiceModal(false)}
+        />
+      )}
+
+      {showDocumentaryCollectionModal && (
+        <DocumentaryCollectionModal
+          open={showDocumentaryCollectionModal}
+          onClose={() => setShowDocumentaryCollectionModal(false)}
         />
       )}
     </div>

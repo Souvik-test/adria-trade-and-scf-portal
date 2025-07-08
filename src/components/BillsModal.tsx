@@ -9,7 +9,6 @@ import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 import RequestFinanceForm from './RequestFinanceForm';
 import ImportLCBillAcceptRefuseForm from './import-lc/ImportLCBillAcceptRefuseForm';
 import ImportLCBillSettlementForm from './import-lc/ImportLCBillSettlementForm';
-import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -17,7 +16,7 @@ interface BillsModalProps {
   type: 'import' | 'export';
 }
 
-type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | 'accept-refuse' | 'process-bill-settlement' | 'documentary-collection' | null;
+type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | 'accept-refuse' | 'process-bill-settlement' | null;
 
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -26,13 +25,9 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [showRequestFinanceForm, setShowRequestFinanceForm] = useState(false);
   const [showAcceptRefuseForm, setShowAcceptRefuseForm] = useState(false);
   const [showSettlementForm, setShowSettlementForm] = useState(false);
-  const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
-    if (action === 'documentary-collection') {
-      setShowDocumentaryCollectionModal(true);
-    }
   };
 
   const handleMethodSelect = (method: string) => {
@@ -63,7 +58,6 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     setShowManualBillsForm(false);
     setShowAcceptRefuseForm(false);
     setShowSettlementForm(false);
-    setShowDocumentaryCollectionModal(false);
     setSelectedAction(null);
   };
 
@@ -113,24 +107,10 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     );
   }
 
-  if (showDocumentaryCollectionModal) {
-    return (
-      <DocumentaryCollectionModal
-        open={showDocumentaryCollectionModal}
-        onClose={() => {
-          setShowDocumentaryCollectionModal(false);
-          setSelectedAction(null);
-        }}
-      />
-    );
-  }
-
   // Get action cards based on LC type
   const getActionCards = () => {
-    const baseActions = [];
-    
     if (type === 'import') {
-      baseActions.push(
+      return [
         {
           id: 'accept-refuse',
           title: 'Accept/Refuse',
@@ -145,9 +125,9 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           icon: CreditCard,
           color: 'amber'
         }
-      );
+      ];
     } else {
-      baseActions.push(
+      return [
         {
           id: 'present-bills',
           title: 'Present Bills',
@@ -169,19 +149,8 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           icon: DollarSign,
           color: 'green'
         }
-      );
+      ];
     }
-
-    // Add Documentary Collection option for both types
-    baseActions.push({
-      id: 'documentary-collection',
-      title: 'Documentary Collection',
-      description: 'Outward and Inward Documentary Collection Bills',
-      icon: FileText,
-      color: 'orange'
-    });
-
-    return baseActions;
   };
 
   const actionCards = getActionCards();
@@ -199,7 +168,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
                 <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
               <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                Bills Management
+                {type === 'import' ? 'Import LC Bills' : 'Export LC Bills'}
               </DialogTitle>
             </div>
           </div>
@@ -241,7 +210,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
               </div>
             </div>
 
-            {selectedAction && selectedAction !== 'documentary-collection' && (
+            {selectedAction && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
                   Processing Methods
