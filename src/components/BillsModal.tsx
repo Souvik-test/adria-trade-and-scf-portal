@@ -9,6 +9,7 @@ import ResolveDiscrepanciesForm from './ResolveDiscrepanciesForm';
 import RequestFinanceForm from './RequestFinanceForm';
 import ImportLCBillAcceptRefuseForm from './import-lc/ImportLCBillAcceptRefuseForm';
 import ImportLCBillSettlementForm from './import-lc/ImportLCBillSettlementForm';
+import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 
 interface BillsModalProps {
   onClose: () => void;
@@ -16,7 +17,7 @@ interface BillsModalProps {
   type: 'import' | 'export';
 }
 
-type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | 'accept-refuse' | 'process-bill-settlement' | null;
+type ActionType = 'present-bills' | 'resolve-discrepancies' | 'request-finance' | 'accept-refuse' | 'process-bill-settlement' | 'documentary-collection' | null;
 
 const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
@@ -25,9 +26,13 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
   const [showRequestFinanceForm, setShowRequestFinanceForm] = useState(false);
   const [showAcceptRefuseForm, setShowAcceptRefuseForm] = useState(false);
   const [showSettlementForm, setShowSettlementForm] = useState(false);
+  const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
+    if (action === 'documentary-collection') {
+      setShowDocumentaryCollectionModal(true);
+    }
   };
 
   const handleMethodSelect = (method: string) => {
@@ -58,6 +63,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     setShowManualBillsForm(false);
     setShowAcceptRefuseForm(false);
     setShowSettlementForm(false);
+    setShowDocumentaryCollectionModal(false);
     setSelectedAction(null);
   };
 
@@ -107,10 +113,24 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
     );
   }
 
+  if (showDocumentaryCollectionModal) {
+    return (
+      <DocumentaryCollectionModal
+        open={showDocumentaryCollectionModal}
+        onClose={() => {
+          setShowDocumentaryCollectionModal(false);
+          setSelectedAction(null);
+        }}
+      />
+    );
+  }
+
   // Get action cards based on LC type
   const getActionCards = () => {
+    const baseActions = [];
+    
     if (type === 'import') {
-      return [
+      baseActions.push(
         {
           id: 'accept-refuse',
           title: 'Accept/Refuse',
@@ -125,9 +145,9 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           icon: CreditCard,
           color: 'amber'
         }
-      ];
+      );
     } else {
-      return [
+      baseActions.push(
         {
           id: 'present-bills',
           title: 'Present Bills',
@@ -149,8 +169,19 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           icon: DollarSign,
           color: 'green'
         }
-      ];
+      );
     }
+
+    // Add Documentary Collection option for both types
+    baseActions.push({
+      id: 'documentary-collection',
+      title: 'Documentary Collection',
+      description: 'Outward and Inward Documentary Collection Bills',
+      icon: FileText,
+      color: 'orange'
+    });
+
+    return baseActions;
   };
 
   const actionCards = getActionCards();
@@ -168,7 +199,7 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
                 <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
               <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
-                {type === 'export' ? 'Export' : 'Import'} LC Bills
+                Bills Management
               </DialogTitle>
             </div>
           </div>
@@ -178,10 +209,10 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
           <div className="space-y-8">
             <div>
               <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-                Bills under {type === 'export' ? 'Export' : 'Import'} LC
+                Bills Processes
               </h2>
               
-              <div className={`grid grid-cols-1 ${type === 'export' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-8`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {actionCards.map((card) => (
                   <Card 
                     key={card.id}
@@ -210,101 +241,103 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
-                Processing Methods
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card 
-                  className={`border transition-colors ${
-                    selectedAction 
-                      ? 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 cursor-pointer'
-                      : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-                  }`}
-                  onClick={() => selectedAction && handleMethodSelect('manual')}
-                >
-                  <CardHeader className="text-center">
-                    <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+            {selectedAction && selectedAction !== 'documentary-collection' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
+                  Processing Methods
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card 
+                    className={`border transition-colors ${
                       selectedAction 
-                        ? 'bg-corporate-teal-100 dark:bg-corporate-teal-900'
-                        : 'bg-gray-100 dark:bg-gray-800'
-                    }`}>
-                      <FileText className={`w-8 h-8 ${
+                        ? 'border-gray-200 dark:border-gray-600 hover:border-corporate-teal-300 dark:hover:border-corporate-teal-400 cursor-pointer'
+                        : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => selectedAction && handleMethodSelect('manual')}
+                  >
+                    <CardHeader className="text-center">
+                      <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
                         selectedAction 
-                          ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
-                          : 'text-gray-400'
-                      }`} />
-                    </div>
-                    <CardTitle className={`text-lg font-semibold ${
-                      selectedAction 
-                        ? 'text-gray-800 dark:text-white'
-                        : 'text-gray-500 dark:text-gray-500'
-                    }`}>
-                      Manual
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <p className={`text-sm ${
-                      selectedAction 
-                        ? 'text-gray-600 dark:text-gray-400'
-                        : 'text-gray-500 dark:text-gray-500'
-                    }`}>
-                      {selectedAction 
-                        ? 'Enter details manually through forms'
-                        : 'Select an action above to enable methods'
-                      }
-                    </p>
-                  </CardContent>
-                </Card>
+                          ? 'bg-corporate-teal-100 dark:bg-corporate-teal-900'
+                          : 'bg-gray-100 dark:bg-gray-800'
+                      }`}>
+                        <FileText className={`w-8 h-8 ${
+                          selectedAction 
+                            ? 'text-corporate-teal-600 dark:text-corporate-teal-400'
+                            : 'text-gray-400'
+                        }`} />
+                      </div>
+                      <CardTitle className={`text-lg font-semibold ${
+                        selectedAction 
+                          ? 'text-gray-800 dark:text-white'
+                          : 'text-gray-500 dark:text-gray-500'
+                      }`}>
+                        Manual
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className={`text-sm ${
+                        selectedAction 
+                          ? 'text-gray-600 dark:text-gray-400'
+                          : 'text-gray-500 dark:text-gray-500'
+                      }`}>
+                        {selectedAction 
+                          ? 'Enter details manually through forms'
+                          : 'Select an action above to enable methods'
+                        }
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                <Card className={`border transition-colors ${
-                  selectedAction 
-                    ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
-                    : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-                }`}>
-                  <CardHeader className="text-center">
-                    <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                      <Upload className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-                      Upload
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <p className="text-gray-500 dark:text-gray-500 text-sm">
-                      {selectedAction 
-                        ? 'Upload documents and auto-extract data'
-                        : 'Select an action above to enable methods'
-                      }
-                    </p>
-                  </CardContent>
-                </Card>
+                  <Card className={`border transition-colors ${
+                    selectedAction 
+                      ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+                      : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                  }`}>
+                    <CardHeader className="text-center">
+                      <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                        <Upload className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
+                        Upload
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-gray-500 dark:text-gray-500 text-sm">
+                        {selectedAction 
+                          ? 'Upload documents and auto-extract data'
+                          : 'Select an action above to enable methods'
+                        }
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                <Card className={`border transition-colors ${
-                  selectedAction 
-                    ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
-                    : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
-                }`}>
-                  <CardHeader className="text-center">
-                    <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                      <MessageSquare className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-                      Contextual Assistance
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <p className="text-gray-500 dark:text-gray-500 text-sm">
-                      {selectedAction 
-                        ? 'Use AI-powered interactive assistant'
-                        : 'Select an action above to enable methods'
-                      }
-                    </p>
-                  </CardContent>
-                </Card>
+                  <Card className={`border transition-colors ${
+                    selectedAction 
+                      ? 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer opacity-50'
+                      : 'border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                  }`}>
+                    <CardHeader className="text-center">
+                      <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                        <MessageSquare className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
+                        Contextual Assistance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-gray-500 dark:text-gray-500 text-sm">
+                        {selectedAction 
+                          ? 'Use AI-powered interactive assistant'
+                          : 'Select an action above to enable methods'
+                        }
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </DialogContent>

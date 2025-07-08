@@ -8,7 +8,6 @@ import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
-import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -24,7 +23,6 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
-  const [isDocumentaryCollectionOpen, setIsDocumentaryCollectionOpen] = useState(false);
 
   const products = [
     {
@@ -90,7 +88,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       setShowBillsModal(true);
     } else if (option === 'Outward Documentary Collection Bills') {
       console.log('Outward Documentary Collection Bills clicked');
-      // TODO: Implement when ready
+      // This will be handled in BillsModal
+      setShowBillsModal(true);
     } else if (option === 'Inward Documentary Collection Bills') {
       console.log('Inward Documentary Collection Bills clicked');
       // TODO: Implement when ready
@@ -152,10 +151,6 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     }
   };
 
-  const handleDocumentaryCollectionClick = () => {
-    setIsDocumentaryCollectionOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
       <ProductSuiteHeader onBack={onBack} />
@@ -177,34 +172,6 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
               onOptionClick={handleOptionClick}
             />
           ))}
-
-          {/* Documentary Collection Card */}
-          <div className="relative h-56 perspective-1000 group">
-            <div className="relative w-full h-full transition-transform duration-700 transform-style-preserve-3d">
-              <div 
-                className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-0 professional-shadow hover:professional-shadow-lg group-hover:scale-105"
-                onClick={handleDocumentaryCollectionClick}
-              >
-                <div className="p-6 flex flex-col items-center justify-center h-full bg-gradient-to-br from-orange-400 to-red-500 rounded-lg text-white">
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                    <FileText className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3 text-center tracking-tight">
-                    Documentary Collection
-                  </h3>
-                  <p className="text-sm text-center leading-relaxed opacity-90">
-                    Outward and Inward Documentary Collection services with URC 522 compliance
-                  </p>
-                  <div className="mt-4 space-y-1 text-xs text-center opacity-80">
-                    <div>• Submit Collection Bills</div>
-                    <div>• Update Bill Status</div>
-                    <div>• Request Discount/Finance</div>
-                    <div>• URC 522 Compliance</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -245,11 +212,6 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           onBack={() => setShowInvoiceModal(false)}
         />
       )}
-
-      <DocumentaryCollectionModal
-        open={isDocumentaryCollectionOpen}
-        onClose={() => setIsDocumentaryCollectionOpen(false)}
-      />
     </div>
   );
 };
