@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
@@ -178,19 +179,32 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           ))}
 
           {/* Documentary Collection Card */}
-          <ProductCard
-            title="Documentary Collection"
-            description="Outward and Inward Documentary Collection services with URC 522 compliance"
-            icon="FileText"
-            gradient="from-orange-400 to-red-500"
-            features={[
-              "Submit Collection Bills",
-              "Update Bill Status", 
-              "Request Discount/Finance",
-              "URC 522 Compliance"
-            ]}
-            onClick={handleDocumentaryCollectionClick}
-          />
+          <div className="relative h-56 perspective-1000 group">
+            <div className="relative w-full h-full transition-transform duration-700 transform-style-preserve-3d">
+              <div 
+                className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-0 professional-shadow hover:professional-shadow-lg group-hover:scale-105"
+                onClick={handleDocumentaryCollectionClick}
+              >
+                <div className="p-6 flex flex-col items-center justify-center h-full bg-gradient-to-br from-orange-400 to-red-500 rounded-lg text-white">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-3 text-center tracking-tight">
+                    Documentary Collection
+                  </h3>
+                  <p className="text-sm text-center leading-relaxed opacity-90">
+                    Outward and Inward Documentary Collection services with URC 522 compliance
+                  </p>
+                  <div className="mt-4 space-y-1 text-xs text-center opacity-80">
+                    <div>• Submit Collection Bills</div>
+                    <div>• Update Bill Status</div>
+                    <div>• Request Discount/Finance</div>
+                    <div>• URC 522 Compliance</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
