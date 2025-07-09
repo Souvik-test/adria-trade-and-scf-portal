@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync } from './database';
 
 interface DocumentaryCollectionBill {
-  bill_reference?: string;
   drawer_name?: string;
   drawer_address?: string;
   drawee_payer_name?: string;
@@ -31,8 +30,8 @@ export const submitDocumentaryCollectionBill = async (billData: DocumentaryColle
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .insert({
-        ...billData,
-        user_id: user.id
+        user_id: user.id,
+        ...billData
       })
       .select()
       .single();
