@@ -1020,6 +1020,81 @@ export type Database = {
           },
         ]
       }
+      outward_documentary_collection_bills: {
+        Row: {
+          bill_amount: number | null
+          bill_currency: string | null
+          bill_reference: string
+          collecting_bank: string | null
+          collecting_bank_address: string | null
+          collecting_bank_swift_code: string | null
+          created_at: string
+          documents_against: string | null
+          drawee_payer_address: string | null
+          drawee_payer_name: string | null
+          drawer_address: string | null
+          drawer_name: string | null
+          id: string
+          interest_charges: string | null
+          presentation_instructions: string | null
+          protect_charges: string | null
+          special_instructions: string | null
+          status: string | null
+          supporting_documents: Json | null
+          tenor_days: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bill_amount?: number | null
+          bill_currency?: string | null
+          bill_reference: string
+          collecting_bank?: string | null
+          collecting_bank_address?: string | null
+          collecting_bank_swift_code?: string | null
+          created_at?: string
+          documents_against?: string | null
+          drawee_payer_address?: string | null
+          drawee_payer_name?: string | null
+          drawer_address?: string | null
+          drawer_name?: string | null
+          id?: string
+          interest_charges?: string | null
+          presentation_instructions?: string | null
+          protect_charges?: string | null
+          special_instructions?: string | null
+          status?: string | null
+          supporting_documents?: Json | null
+          tenor_days?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bill_amount?: number | null
+          bill_currency?: string | null
+          bill_reference?: string
+          collecting_bank?: string | null
+          collecting_bank_address?: string | null
+          collecting_bank_swift_code?: string | null
+          created_at?: string
+          documents_against?: string | null
+          drawee_payer_address?: string | null
+          drawee_payer_name?: string | null
+          drawer_address?: string | null
+          drawer_name?: string | null
+          id?: string
+          interest_charges?: string | null
+          presentation_instructions?: string | null
+          protect_charges?: string | null
+          special_instructions?: string | null
+          status?: string | null
+          supporting_documents?: Json | null
+          tenor_days?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       popi_line_items: {
         Row: {
           created_at: string | null
@@ -1392,6 +1467,10 @@ export type Database = {
     }
     Functions: {
       generate_assignment_ref: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_documentary_collection_bill_ref: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

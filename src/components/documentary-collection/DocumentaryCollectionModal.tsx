@@ -5,6 +5,7 @@ import DocumentaryCollectionModalHeader from './DocumentaryCollectionModalHeader
 import DocumentaryCollectionActionSection from './DocumentaryCollectionActionSection';
 import DocumentaryCollectionMethodSection from './DocumentaryCollectionMethodSection';
 import OutwardBillSubmissionForm from './OutwardBillSubmissionForm';
+import OutwardBillUpdateForm from './OutwardBillUpdateForm';
 
 type ActionType = 'submit' | 'update' | 'finance' | null;
 
@@ -18,37 +19,52 @@ const DocumentaryCollectionModal: React.FC<DocumentaryCollectionModalProps> = ({
   onClose
 }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
-    setShowForm(false);
+    setShowSubmitForm(false);
+    setShowUpdateForm(false);
   };
 
   const handleMethodSelect = (method: string) => {
     if (method === 'manual' && selectedAction === 'submit') {
-      setShowForm(true);
+      setShowSubmitForm(true);
+    } else if (method === 'manual' && selectedAction === 'update') {
+      setShowUpdateForm(true);
     }
     // Handle other method selections here
   };
 
   const handleBack = () => {
-    if (showForm) {
-      setShowForm(false);
+    if (showSubmitForm || showUpdateForm) {
+      setShowSubmitForm(false);
+      setShowUpdateForm(false);
     } else {
       setSelectedAction(null);
     }
   };
 
   const handleFormClose = () => {
-    setShowForm(false);
+    setShowSubmitForm(false);
+    setShowUpdateForm(false);
     setSelectedAction(null);
     onClose();
   };
 
-  if (showForm && selectedAction === 'submit') {
+  if (showSubmitForm && selectedAction === 'submit') {
     return (
       <OutwardBillSubmissionForm
+        onClose={handleFormClose}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (showUpdateForm && selectedAction === 'update') {
+    return (
+      <OutwardBillUpdateForm
         onClose={handleFormClose}
         onBack={handleBack}
       />

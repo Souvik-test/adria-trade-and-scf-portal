@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import DocumentUploadSection from './DocumentUploadSection';
+import { submitDocumentaryCollectionBill } from '@/services/documentaryCollectionService';
 
 interface OutwardBillSubmissionFormProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   onBack
 }) => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     billReference: '',
     drawerName: '',
@@ -32,7 +34,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
     billCurrency: 'USD',
     billAmount: '',
     tenorDays: '',
-    presentationInstructions: 'D/P', // Documents against Payment or D/A Documents against Acceptance
+    presentationInstructions: 'D/P',
     documentsAgainst: 'payment',
     specialInstructions: '',
     protectCharges: 'collect',
@@ -47,19 +49,52 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
     }));
   };
 
-  const handleSaveAsDraft = () => {
-    console.log('Saving bill as draft:', formData);
-    
-    toast({
-      title: "Success",
-      description: "Documentary collection bill has been saved as draft",
-      variant: "default"
-    });
+  const handleSaveAsDraft = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitDocumentaryCollectionBill({
+        bill_reference: formData.billReference || undefined,
+        drawer_name: formData.drawerName,
+        drawer_address: formData.drawerAddress,
+        drawee_payer_name: formData.draweePayerName,
+        drawee_payer_address: formData.draweePayerAddress,
+        collecting_bank: formData.collectingBank,
+        collecting_bank_address: formData.collectingBankAddress,
+        collecting_bank_swift_code: formData.collectingBankSwiftCode,
+        bill_currency: formData.billCurrency,
+        bill_amount: formData.billAmount ? parseFloat(formData.billAmount) : undefined,
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : undefined,
+        presentation_instructions: formData.presentationInstructions,
+        documents_against: formData.documentsAgainst,
+        special_instructions: formData.specialInstructions,
+        protect_charges: formData.protectCharges,
+        interest_charges: formData.interestCharges,
+        supporting_documents: formData.supportingDocuments,
+        status: 'draft'
+      });
+      
+      toast({
+        title: "Success",
+        description: "Documentary collection bill has been saved as draft",
+        variant: "default"
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save documentary collection bill as draft",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Basic validation
-    if (!formData.billReference || !formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
+    if (!formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -68,15 +103,46 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
       return;
     }
 
-    console.log('Submitting documentary collection bill:', formData);
-    
-    toast({
-      title: "Success",
-      description: "Documentary collection bill has been submitted successfully",
-      variant: "default"
-    });
-    
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await submitDocumentaryCollectionBill({
+        bill_reference: formData.billReference || undefined,
+        drawer_name: formData.drawerName,
+        drawer_address: formData.drawerAddress,
+        drawee_payer_name: formData.draweePayerName,
+        drawee_payer_address: formData.draweePayerAddress,
+        collecting_bank: formData.collectingBank,
+        collecting_bank_address: formData.collectingBankAddress,
+        collecting_bank_swift_code: formData.collectingBankSwiftCode,
+        bill_currency: formData.billCurrency,
+        bill_amount: parseFloat(formData.billAmount),
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : undefined,
+        presentation_instructions: formData.presentationInstructions,
+        documents_against: formData.documentsAgainst,
+        special_instructions: formData.specialInstructions,
+        protect_charges: formData.protectCharges,
+        interest_charges: formData.interestCharges,
+        supporting_documents: formData.supportingDocuments,
+        status: 'submitted'
+      });
+      
+      toast({
+        title: "Success",
+        description: "Documentary collection bill has been submitted successfully",
+        variant: "default"
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error submitting bill:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit documentary collection bill",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -91,6 +157,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
                 size="sm"
                 onClick={onBack}
                 className="flex items-center gap-2"
+                disabled={isSubmitting}
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -103,8 +170,9 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={onBack}
               className="text-gray-500 hover:text-gray-700"
+              disabled={isSubmitting}
             >
               <X className="w-5 h-5" />
             </Button>
@@ -122,13 +190,13 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="billReference" className="text-sm font-medium">
-                    Bill Reference *
+                    Bill Reference (Auto-generated if empty)
                   </Label>
                   <Input
                     id="billReference"
                     value={formData.billReference}
                     onChange={(e) => handleInputChange('billReference', e.target.value)}
-                    placeholder="Enter bill reference"
+                    placeholder="Leave empty for auto-generation"
                     className="mt-1"
                   />
                 </div>
@@ -260,7 +328,6 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
             </CardContent>
           </Card>
 
-          {/* Collecting Bank Information */}
           <Card>
             <CardHeader>
               <CardTitle>Collecting Bank Information</CardTitle>
@@ -310,7 +377,6 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
             </CardContent>
           </Card>
 
-          {/* Collection Instructions */}
           <Card>
             <CardHeader>
               <CardTitle>Collection Instructions</CardTitle>
@@ -382,6 +448,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               variant="outline"
               onClick={onClose}
               className="px-8"
+              disabled={isSubmitting}
             >
               Discard
             </Button>
@@ -389,14 +456,16 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               variant="outline"
               onClick={handleSaveAsDraft}
               className="px-8"
+              disabled={isSubmitting}
             >
-              Save as Draft
+              {isSubmitting ? 'Saving...' : 'Save as Draft'}
             </Button>
             <Button
               onClick={handleSubmit}
               className="px-8 bg-primary hover:bg-primary/90"
+              disabled={isSubmitting}
             >
-              Submit Bill
+              {isSubmitting ? 'Submitting...' : 'Submit Bill'}
             </Button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,7 +78,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Updated filtering to include Resolve Discrepancies
+  // Updated filtering to include Documentary Collection
   const filteredTransactions = transactions.filter((transaction) => {
     if (transactionFilter === "all") return true;
     if (transactionFilter === "import-lc") return transaction.product_type === "Import LC";
@@ -86,6 +87,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
     if (transactionFilter === "resolve-discrepancies") return transaction.product_type === "EXPORT LC BILLS" && transaction.process_type === "RESOLVE DISCREPANCIES";
     if (transactionFilter === "lc-transfer") return transaction.product_type === "Export LC" && transaction.process_type === "LC Transfer";
     if (transactionFilter === "assignment-request") return transaction.product_type === "Export LC" && transaction.process_type === "Assignment Request";
+    if (transactionFilter === "documentary-collection") return transaction.product_type === "Documentary Collection";
     if (transactionFilter === "po") return transaction.product_type === "PO";
     if (transactionFilter === "pi") return transaction.product_type === "PI";
     if (transactionFilter === "invoice") return transaction.product_type === "Invoice";
@@ -138,6 +140,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                 <SelectItem value="resolve-discrepancies">Resolve Discrepancies</SelectItem>
                 <SelectItem value="lc-transfer">LC Transfer</SelectItem>
                 <SelectItem value="assignment-request">Assignment Request</SelectItem>
+                <SelectItem value="documentary-collection">Documentary Collection</SelectItem>
                 <SelectItem value="po">Purchase Order (PO)</SelectItem>
                 <SelectItem value="pi">Proforma Invoice (PI)</SelectItem>
                 <SelectItem value="invoice">Invoice</SelectItem>
@@ -198,7 +201,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                   ) : (
                     <tr>
                       <td colSpan={9} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                        No transactions found. Create your first PO, PI, Invoice, Import LC, Export LC Bills, LC Transfer, or Assignment Request to see them here.
+                        No transactions found. Create your first PO, PI, Invoice, Import LC, Export LC Bills, Documentary Collection, LC Transfer, or Assignment Request to see them here.
                       </td>
                     </tr>
                   )}
