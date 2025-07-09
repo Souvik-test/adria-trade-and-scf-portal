@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync } from './database';
 
 interface DocumentaryCollectionBill {
+  bill_reference: string;
   drawer_name?: string;
   drawer_address?: string;
   drawee_payer_name?: string;

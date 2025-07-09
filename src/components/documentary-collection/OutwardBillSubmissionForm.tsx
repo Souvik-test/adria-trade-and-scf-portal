@@ -50,10 +50,19 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   };
 
   const handleSaveAsDraft = async () => {
+    if (!formData.billReference) {
+      toast({
+        title: "Error",
+        description: "Please enter a bill reference",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await submitDocumentaryCollectionBill({
-        bill_reference: formData.billReference || undefined,
+        bill_reference: formData.billReference,
         drawer_name: formData.drawerName,
         drawer_address: formData.drawerAddress,
         drawee_payer_name: formData.draweePayerName,
@@ -94,10 +103,10 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
 
   const handleSubmit = async () => {
     // Basic validation
-    if (!formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
+    if (!formData.billReference || !formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including bill reference",
         variant: "destructive"
       });
       return;
@@ -106,7 +115,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
     setIsSubmitting(true);
     try {
       await submitDocumentaryCollectionBill({
-        bill_reference: formData.billReference || undefined,
+        bill_reference: formData.billReference,
         drawer_name: formData.drawerName,
         drawer_address: formData.drawerAddress,
         drawee_payer_name: formData.draweePayerName,
@@ -190,14 +199,15 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="billReference" className="text-sm font-medium">
-                    Bill Reference (Auto-generated if empty)
+                    Bill Reference *
                   </Label>
                   <Input
                     id="billReference"
                     value={formData.billReference}
                     onChange={(e) => handleInputChange('billReference', e.target.value)}
-                    placeholder="Leave empty for auto-generation"
+                    placeholder="Enter bill reference"
                     className="mt-1"
+                    required
                   />
                 </div>
 
