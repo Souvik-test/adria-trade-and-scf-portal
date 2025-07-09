@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -87,7 +88,7 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
           specialInstructions: bill.special_instructions || '',
           protectCharges: bill.protect_charges || 'collect',
           interestCharges: bill.interest_charges || 'waive',
-          supportingDocuments: bill.supporting_documents || []
+          supportingDocuments: Array.isArray(bill.supporting_documents) ? bill.supporting_documents : []
         });
         setSelectedBillRef(billRef);
       }
