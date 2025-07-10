@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentUserAsync } from './database';
 
 interface DocumentaryCollectionBill {
   bill_reference: string;
@@ -24,8 +23,8 @@ interface DocumentaryCollectionBill {
 }
 
 export const submitDocumentaryCollectionBill = async (billData: DocumentaryCollectionBill) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('User not authenticated');
 
   try {
     const { data, error } = await supabase
@@ -46,8 +45,8 @@ export const submitDocumentaryCollectionBill = async (billData: DocumentaryColle
 };
 
 export const updateDocumentaryCollectionBill = async (billReference: string, billData: DocumentaryCollectionBill) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('User not authenticated');
 
   try {
     const { data, error } = await supabase
@@ -67,8 +66,8 @@ export const updateDocumentaryCollectionBill = async (billReference: string, bil
 };
 
 export const fetchDocumentaryCollectionBills = async () => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('User not authenticated');
 
   try {
     const { data, error } = await supabase
@@ -86,8 +85,8 @@ export const fetchDocumentaryCollectionBills = async () => {
 };
 
 export const fetchDocumentaryCollectionBillByRef = async (billReference: string) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('User not authenticated');
 
   try {
     const { data, error } = await supabase
