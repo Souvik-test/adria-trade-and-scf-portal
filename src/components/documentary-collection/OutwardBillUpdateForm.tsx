@@ -133,6 +133,7 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
     setIsSubmitting(true);
     try {
       await updateDocumentaryCollectionBill(selectedBillRef, {
+        bill_reference: formData.billReference,
         drawer_name: formData.drawerName,
         drawer_address: formData.drawerAddress,
         drawee_payer_name: formData.draweePayerName,
