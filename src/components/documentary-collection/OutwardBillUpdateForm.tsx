@@ -170,6 +170,58 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
     }
   };
 
+  const handleSaveAsDraft = async () => {
+    if (!selectedBillRef) {
+      toast({
+        title: "Error",
+        description: "Please select a bill reference first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updateDocumentaryCollectionBill(selectedBillRef, {
+        bill_reference: formData.billReference,
+        drawer_name: formData.drawerName,
+        drawer_address: formData.drawerAddress,
+        drawee_payer_name: formData.draweePayerName,
+        drawee_payer_address: formData.draweePayerAddress,
+        collecting_bank: formData.collectingBank,
+        collecting_bank_address: formData.collectingBankAddress,
+        collecting_bank_swift_code: formData.collectingBankSwiftCode,
+        bill_currency: formData.billCurrency,
+        bill_amount: formData.billAmount ? parseFloat(formData.billAmount) : undefined,
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : undefined,
+        presentation_instructions: formData.presentationInstructions,
+        documents_against: formData.documentsAgainst,
+        special_instructions: formData.specialInstructions,
+        protect_charges: formData.protectCharges,
+        interest_charges: formData.interestCharges,
+        supporting_documents: formData.supportingDocuments,
+        status: 'draft'
+      });
+      
+      toast({
+        title: "Success",
+        description: "Bill has been saved as draft",
+        variant: "default"
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save bill as draft",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const filteredBills = availableBills.filter(bill =>
     bill.bill_reference.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -335,6 +387,20 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
               </div>
 
               <div>
+                <Label htmlFor="drawerAddress" className="text-sm font-medium">
+                  Drawer Address
+                </Label>
+                <Textarea
+                  id="drawerAddress"
+                  value={formData.drawerAddress}
+                  onChange={(e) => handleInputChange('drawerAddress', e.target.value)}
+                  placeholder="Enter drawer address"
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="draweePayerName" className="text-sm font-medium">
                   Drawee/Payer Name *
                 </Label>
@@ -344,6 +410,20 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
                   onChange={(e) => handleInputChange('draweePayerName', e.target.value)}
                   placeholder="Enter drawee/payer name"
                   className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="draweePayerAddress" className="text-sm font-medium">
+                  Drawee/Payer Address
+                </Label>
+                <Textarea
+                  id="draweePayerAddress"
+                  value={formData.draweePayerAddress}
+                  onChange={(e) => handleInputChange('draweePayerAddress', e.target.value)}
+                  placeholder="Enter drawee/payer address"
+                  className="mt-1"
+                  rows={3}
                 />
               </div>
 
@@ -358,6 +438,20 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
                   onChange={(e) => handleInputChange('collectingBank', e.target.value)}
                   placeholder="Enter collecting bank name"
                   className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="collectingBankAddress" className="text-sm font-medium">
+                  Collecting Bank Address
+                </Label>
+                <Textarea
+                  id="collectingBankAddress"
+                  value={formData.collectingBankAddress}
+                  onChange={(e) => handleInputChange('collectingBankAddress', e.target.value)}
+                  placeholder="Enter collecting bank address"
+                  className="mt-1"
+                  rows={3}
                 />
               </div>
 
@@ -448,50 +542,8 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
               </div>
             </div>
 
-            {/* Address Fields - Full Width */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div>
-                <Label htmlFor="drawerAddress" className="text-sm font-medium">
-                  Drawer Address
-                </Label>
-                <Textarea
-                  id="drawerAddress"
-                  value={formData.drawerAddress}
-                  onChange={(e) => handleInputChange('drawerAddress', e.target.value)}
-                  placeholder="Enter drawer address"
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="draweePayerAddress" className="text-sm font-medium">
-                  Drawee/Payer Address
-                </Label>
-                <Textarea
-                  id="draweePayerAddress"
-                  value={formData.draweePayerAddress}
-                  onChange={(e) => handleInputChange('draweePayerAddress', e.target.value)}
-                  placeholder="Enter drawee/payer address"
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="collectingBankAddress" className="text-sm font-medium">
-                  Collecting Bank Address
-                </Label>
-                <Textarea
-                  id="collectingBankAddress"
-                  value={formData.collectingBankAddress}
-                  onChange={(e) => handleInputChange('collectingBankAddress', e.target.value)}
-                  placeholder="Enter collecting bank address"
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
+            {/* Special Instructions - Full Width */}
+            <div className="mt-6">
               <div>
                 <Label htmlFor="specialInstructions" className="text-sm font-medium">
                   Special Instructions
@@ -523,6 +575,14 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
               disabled={isSubmitting}
             >
               Cancel
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveAsDraft}
+              className="px-8"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save as Draft'}
             </Button>
             <Button
               onClick={handleUpdate}
