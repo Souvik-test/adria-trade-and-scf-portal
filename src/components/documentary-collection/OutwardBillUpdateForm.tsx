@@ -257,262 +257,226 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
           </Card>
 
           {selectedBillRef && !isLoading && (
-            <>
-              {/* Bill Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bill Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="billReference" className="text-sm font-medium">
-                        Bill Reference (Read-only)
-                      </Label>
-                      <Input
-                        id="billReference"
-                        value={formData.billReference}
-                        className="mt-1 bg-gray-50"
-                        readOnly
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="billCurrency" className="text-sm font-medium">
-                        Bill Currency *
-                      </Label>
-                      <Select
-                        value={formData.billCurrency}
-                        onValueChange={(value) => handleInputChange('billCurrency', value)}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD - US Dollar</SelectItem>
-                          <SelectItem value="EUR">EUR - Euro</SelectItem>
-                          <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                          <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
-                          <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="billAmount" className="text-sm font-medium">
-                        Bill Amount *
-                      </Label>
-                      <Input
-                        id="billAmount"
-                        type="number"
-                        step="0.01"
-                        value={formData.billAmount}
-                        onChange={(e) => handleInputChange('billAmount', e.target.value)}
-                        placeholder="0.00"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="tenorDays" className="text-sm font-medium">
-                        Tenor (Days)
-                      </Label>
-                      <Input
-                        id="tenorDays"
-                        type="number"
-                        value={formData.tenorDays}
-                        onChange={(e) => handleInputChange('tenorDays', e.target.value)}
-                        placeholder="Enter tenor in days"
-                        className="mt-1"
-                      />
-                    </div>
+            <div className="space-y-8">
+              {/* All Form Fields in Single Layout */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-6 text-gray-800">Bill Details</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Bill Information */}
+                  <div>
+                    <Label htmlFor="billReference" className="text-sm font-medium">
+                      Bill Reference (Read-only)
+                    </Label>
+                    <Input
+                      id="billReference"
+                      value={formData.billReference}
+                      className="mt-1 bg-gray-50"
+                      readOnly
+                    />
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Drawer Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Drawer Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="drawerName" className="text-sm font-medium">
-                        Drawer Name *
-                      </Label>
-                      <Input
-                        id="drawerName"
-                        value={formData.drawerName}
-                        onChange={(e) => handleInputChange('drawerName', e.target.value)}
-                        placeholder="Enter drawer name"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="drawerAddress" className="text-sm font-medium">
-                        Drawer Address
-                      </Label>
-                      <Textarea
-                        id="drawerAddress"
-                        value={formData.drawerAddress}
-                        onChange={(e) => handleInputChange('drawerAddress', e.target.value)}
-                        placeholder="Enter drawer address"
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="billCurrency" className="text-sm font-medium">
+                      Bill Currency *
+                    </Label>
+                    <Select
+                      value={formData.billCurrency}
+                      onValueChange={(value) => handleInputChange('billCurrency', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD - US Dollar</SelectItem>
+                        <SelectItem value="EUR">EUR - Euro</SelectItem>
+                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                        <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Drawee/Payer Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Drawee/Payer Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="draweePayerName" className="text-sm font-medium">
-                        Drawee/Payer Name *
-                      </Label>
-                      <Input
-                        id="draweePayerName"
-                        value={formData.draweePayerName}
-                        onChange={(e) => handleInputChange('draweePayerName', e.target.value)}
-                        placeholder="Enter drawee/payer name"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="draweePayerAddress" className="text-sm font-medium">
-                        Drawee/Payer Address
-                      </Label>
-                      <Textarea
-                        id="draweePayerAddress"
-                        value={formData.draweePayerAddress}
-                        onChange={(e) => handleInputChange('draweePayerAddress', e.target.value)}
-                        placeholder="Enter drawee/payer address"
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="billAmount" className="text-sm font-medium">
+                      Bill Amount *
+                    </Label>
+                    <Input
+                      id="billAmount"
+                      type="number"
+                      step="0.01"
+                      value={formData.billAmount}
+                      onChange={(e) => handleInputChange('billAmount', e.target.value)}
+                      placeholder="0.00"
+                      className="mt-1"
+                    />
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Collecting Bank Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Collecting Bank Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="collectingBank" className="text-sm font-medium">
-                        Collecting Bank *
-                      </Label>
-                      <Input
-                        id="collectingBank"
-                        value={formData.collectingBank}
-                        onChange={(e) => handleInputChange('collectingBank', e.target.value)}
-                        placeholder="Enter collecting bank name"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="collectingBankSwiftCode" className="text-sm font-medium">
-                        SWIFT Code
-                      </Label>
-                      <Input
-                        id="collectingBankSwiftCode"
-                        value={formData.collectingBankSwiftCode}
-                        onChange={(e) => handleInputChange('collectingBankSwiftCode', e.target.value)}
-                        placeholder="Enter SWIFT code"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <Label htmlFor="collectingBankAddress" className="text-sm font-medium">
-                        Collecting Bank Address
-                      </Label>
-                      <Textarea
-                        id="collectingBankAddress"
-                        value={formData.collectingBankAddress}
-                        onChange={(e) => handleInputChange('collectingBankAddress', e.target.value)}
-                        placeholder="Enter collecting bank address"
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="tenorDays" className="text-sm font-medium">
+                      Tenor (Days)
+                    </Label>
+                    <Input
+                      id="tenorDays"
+                      type="number"
+                      value={formData.tenorDays}
+                      onChange={(e) => handleInputChange('tenorDays', e.target.value)}
+                      placeholder="Enter tenor in days"
+                      className="mt-1"
+                    />
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Collection Instructions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Collection Instructions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="presentationInstructions" className="text-sm font-medium">
-                        Presentation Instructions
-                      </Label>
-                      <Select
-                        value={formData.presentationInstructions}
-                        onValueChange={(value) => handleInputChange('presentationInstructions', value)}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select presentation instructions" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="D/P">D/P - Documents against Payment</SelectItem>
-                          <SelectItem value="D/A">D/A - Documents against Acceptance</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="protectCharges" className="text-sm font-medium">
-                        Protest Charges
-                      </Label>
-                      <Select
-                        value={formData.protectCharges}
-                        onValueChange={(value) => handleInputChange('protectCharges', value)}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select protest charges" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="collect">Collect</SelectItem>
-                          <SelectItem value="waive">Waive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <Label htmlFor="specialInstructions" className="text-sm font-medium">
-                        Special Instructions
-                      </Label>
-                      <Textarea
-                        id="specialInstructions"
-                        value={formData.specialInstructions}
-                        onChange={(e) => handleInputChange('specialInstructions', e.target.value)}
-                        placeholder="Enter any special instructions"
-                        className="mt-1"
-                        rows={4}
-                      />
-                    </div>
+                  {/* Drawer Information */}
+                  <div>
+                    <Label htmlFor="drawerName" className="text-sm font-medium">
+                      Drawer Name *
+                    </Label>
+                    <Input
+                      id="drawerName"
+                      value={formData.drawerName}
+                      onChange={(e) => handleInputChange('drawerName', e.target.value)}
+                      placeholder="Enter drawer name"
+                      className="mt-1"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div>
+                    <Label htmlFor="draweePayerName" className="text-sm font-medium">
+                      Drawee/Payer Name *
+                    </Label>
+                    <Input
+                      id="draweePayerName"
+                      value={formData.draweePayerName}
+                      onChange={(e) => handleInputChange('draweePayerName', e.target.value)}
+                      placeholder="Enter drawee/payer name"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {/* Collecting Bank Information */}
+                  <div>
+                    <Label htmlFor="collectingBank" className="text-sm font-medium">
+                      Collecting Bank *
+                    </Label>
+                    <Input
+                      id="collectingBank"
+                      value={formData.collectingBank}
+                      onChange={(e) => handleInputChange('collectingBank', e.target.value)}
+                      placeholder="Enter collecting bank name"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="collectingBankSwiftCode" className="text-sm font-medium">
+                      SWIFT Code
+                    </Label>
+                    <Input
+                      id="collectingBankSwiftCode"
+                      value={formData.collectingBankSwiftCode}
+                      onChange={(e) => handleInputChange('collectingBankSwiftCode', e.target.value)}
+                      placeholder="Enter SWIFT code"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {/* Collection Instructions */}
+                  <div>
+                    <Label htmlFor="presentationInstructions" className="text-sm font-medium">
+                      Presentation Instructions
+                    </Label>
+                    <Select
+                      value={formData.presentationInstructions}
+                      onValueChange={(value) => handleInputChange('presentationInstructions', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select presentation instructions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="D/P">D/P - Documents against Payment</SelectItem>
+                        <SelectItem value="D/A">D/A - Documents against Acceptance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="protectCharges" className="text-sm font-medium">
+                      Protest Charges
+                    </Label>
+                    <Select
+                      value={formData.protectCharges}
+                      onValueChange={(value) => handleInputChange('protectCharges', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select protest charges" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="collect">Collect</SelectItem>
+                        <SelectItem value="waive">Waive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Address Fields - Full Width */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                  <div>
+                    <Label htmlFor="drawerAddress" className="text-sm font-medium">
+                      Drawer Address
+                    </Label>
+                    <Textarea
+                      id="drawerAddress"
+                      value={formData.drawerAddress}
+                      onChange={(e) => handleInputChange('drawerAddress', e.target.value)}
+                      placeholder="Enter drawer address"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="draweePayerAddress" className="text-sm font-medium">
+                      Drawee/Payer Address
+                    </Label>
+                    <Textarea
+                      id="draweePayerAddress"
+                      value={formData.draweePayerAddress}
+                      onChange={(e) => handleInputChange('draweePayerAddress', e.target.value)}
+                      placeholder="Enter drawee/payer address"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="collectingBankAddress" className="text-sm font-medium">
+                      Collecting Bank Address
+                    </Label>
+                    <Textarea
+                      id="collectingBankAddress"
+                      value={formData.collectingBankAddress}
+                      onChange={(e) => handleInputChange('collectingBankAddress', e.target.value)}
+                      placeholder="Enter collecting bank address"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="specialInstructions" className="text-sm font-medium">
+                      Special Instructions
+                    </Label>
+                    <Textarea
+                      id="specialInstructions"
+                      value={formData.specialInstructions}
+                      onChange={(e) => handleInputChange('specialInstructions', e.target.value)}
+                      placeholder="Enter any special instructions"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Document Upload */}
               <DocumentUploadSection
@@ -538,7 +502,7 @@ const OutwardBillUpdateForm: React.FC<OutwardBillUpdateFormProps> = ({
                   {isSubmitting ? 'Updating...' : 'Update Bill'}
                 </Button>
               </div>
-            </>
+            </div>
           )}
 
           {isLoading && (
