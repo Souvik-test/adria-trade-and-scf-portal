@@ -1,6 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentUserAsync } from './database';
+
+// Hardcoded user ID for souvikgenius@gmail.com
+const HARDCODED_USER_ID = '8cceba0f-c1a9-4074-8dbc-be256e0cc448';
 
 interface DocumentaryCollectionBill {
   bill_reference: string;
@@ -24,14 +26,11 @@ interface DocumentaryCollectionBill {
 }
 
 export const submitDocumentaryCollectionBill = async (billData: DocumentaryCollectionBill) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
-
   try {
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .insert({
-        user_id: user.id,
+        user_id: HARDCODED_USER_ID,
         ...billData
       })
       .select()
@@ -46,15 +45,12 @@ export const submitDocumentaryCollectionBill = async (billData: DocumentaryColle
 };
 
 export const updateDocumentaryCollectionBill = async (billReference: string, billData: DocumentaryCollectionBill) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
-
   try {
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .update(billData)
       .eq('bill_reference', billReference)
-      .eq('user_id', user.id)
+      .eq('user_id', HARDCODED_USER_ID)
       .select()
       .single();
 
@@ -67,14 +63,11 @@ export const updateDocumentaryCollectionBill = async (billReference: string, bil
 };
 
 export const fetchDocumentaryCollectionBills = async () => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
-
   try {
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', HARDCODED_USER_ID)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -86,15 +79,12 @@ export const fetchDocumentaryCollectionBills = async () => {
 };
 
 export const fetchDocumentaryCollectionBillByRef = async (billReference: string) => {
-  const user = await getCurrentUserAsync();
-  if (!user) throw new Error('User not authenticated');
-
   try {
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .select('*')
       .eq('bill_reference', billReference)
-      .eq('user_id', user.id)
+      .eq('user_id', HARDCODED_USER_ID)
       .single();
 
     if (error) throw error;
