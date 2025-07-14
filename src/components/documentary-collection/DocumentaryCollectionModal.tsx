@@ -6,6 +6,7 @@ import DocumentaryCollectionActionSection from './DocumentaryCollectionActionSec
 import DocumentaryCollectionMethodSection from './DocumentaryCollectionMethodSection';
 import OutwardBillSubmissionForm from './OutwardBillSubmissionForm';
 import OutwardBillUpdateForm from './OutwardBillUpdateForm';
+import OutwardBillDiscountFinanceForm from './OutwardBillDiscountFinanceForm';
 
 type ActionType = 'submit' | 'update' | 'finance' | null;
 
@@ -21,11 +22,13 @@ const DocumentaryCollectionModal: React.FC<DocumentaryCollectionModalProps> = ({
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showDiscountFinanceForm, setShowDiscountFinanceForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
     setShowSubmitForm(false);
     setShowUpdateForm(false);
+    setShowDiscountFinanceForm(false);
   };
 
   const handleMethodSelect = (method: string) => {
@@ -33,14 +36,17 @@ const DocumentaryCollectionModal: React.FC<DocumentaryCollectionModalProps> = ({
       setShowSubmitForm(true);
     } else if (method === 'manual' && selectedAction === 'update') {
       setShowUpdateForm(true);
+    } else if (method === 'manual' && selectedAction === 'finance') {
+      setShowDiscountFinanceForm(true);
     }
     // Handle other method selections here
   };
 
   const handleBack = () => {
-    if (showSubmitForm || showUpdateForm) {
+    if (showSubmitForm || showUpdateForm || showDiscountFinanceForm) {
       setShowSubmitForm(false);
       setShowUpdateForm(false);
+      setShowDiscountFinanceForm(false);
     } else {
       setSelectedAction(null);
     }
@@ -49,6 +55,7 @@ const DocumentaryCollectionModal: React.FC<DocumentaryCollectionModalProps> = ({
   const handleFormClose = () => {
     setShowSubmitForm(false);
     setShowUpdateForm(false);
+    setShowDiscountFinanceForm(false);
     setSelectedAction(null);
     onClose();
   };
@@ -65,6 +72,15 @@ const DocumentaryCollectionModal: React.FC<DocumentaryCollectionModalProps> = ({
   if (showUpdateForm && selectedAction === 'update') {
     return (
       <OutwardBillUpdateForm
+        onClose={handleFormClose}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (showDiscountFinanceForm && selectedAction === 'finance') {
+    return (
+      <OutwardBillDiscountFinanceForm
         onClose={handleFormClose}
         onBack={handleBack}
       />
