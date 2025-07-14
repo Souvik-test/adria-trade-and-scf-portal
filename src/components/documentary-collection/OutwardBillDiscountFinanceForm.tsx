@@ -4,10 +4,10 @@ import { X, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { fetchDocumentaryCollectionBills, fetchDocumentaryCollectionBillByRef } from '@/services/documentaryCollectionService';
+import { submitDiscountFinanceRequest, saveDiscountFinanceRequestAsDraft } from '@/services/discountFinanceService';
 
 interface OutwardBillDiscountFinanceFormProps {
   onClose: () => void;
@@ -149,6 +149,42 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     }));
   };
 
+  const buildRequestData = () => {
+    const baseData = {
+      bill_reference: selectedBillRef,
+      request_type: formData.requestType as 'discount' | 'finance',
+      bill_currency: billDetails.billCurrency,
+      bill_amount: billDetails.billAmount,
+      submission_date: billDetails.submissionDate,
+      due_date: billDetails.dueDate,
+      importer_name: billDetails.importerName,
+      importer_address: billDetails.importerAddress,
+      exporter_name: billDetails.exporterName,
+      exporter_address: billDetails.exporterAddress,
+    };
+
+    if (formData.requestType === 'discount') {
+      return {
+        ...baseData,
+        discount_percentage: parseFloat(formData.discountPercentage) || 0,
+        proceed_amount: formData.proceedAmount,
+        credit_account_number: formData.creditAccountNumber,
+      };
+    } else {
+      return {
+        ...baseData,
+        finance_currency: formData.financeCurrency,
+        finance_amount: formData.financeAmount,
+        finance_tenor_days: parseInt(formData.financeTenorDays) || 0,
+        finance_percentage: parseFloat(formData.financePercentage) || 0,
+        principal_amount: formData.principalAmount,
+        interest_amount: formData.interestAmount,
+        total_repayment_amount: formData.totalRepaymentAmount,
+        repayment_account_number: formData.repaymentAccountNumber,
+      };
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedBillRef) {
       toast({
@@ -170,8 +206,8 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
 
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to submit the request
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const requestData = buildRequestData();
+      await submitDiscountFinanceRequest(requestData);
       
       toast({
         title: "Success",
@@ -204,8 +240,8 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
 
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to save as draft
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const requestData = buildRequestData();
+      await saveDiscountFinanceRequestAsDraft(requestData);
       
       toast({
         title: "Success",
