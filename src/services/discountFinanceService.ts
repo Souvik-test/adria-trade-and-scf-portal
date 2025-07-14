@@ -38,7 +38,7 @@ interface DiscountFinanceRequest {
 
 export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceRequest) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .insert({
         user_id: HARDCODED_USER_ID,
@@ -58,7 +58,7 @@ export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceR
 
 export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFinanceRequest) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .insert({
         user_id: HARDCODED_USER_ID,
@@ -78,7 +78,7 @@ export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFin
 
 export const fetchDiscountFinanceRequests = async () => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .select('*')
       .eq('user_id', HARDCODED_USER_ID)
