@@ -38,6 +38,7 @@ interface DiscountFinanceRequest {
 
 export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceRequest) => {
   try {
+    console.log('Submitting discount/finance request:', requestData);
     const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .insert({
@@ -48,7 +49,12 @@ export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceR
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error submitting request:', error);
+      throw error;
+    }
+    
+    console.log('Successfully submitted request:', data);
     return data;
   } catch (error) {
     console.error('Error submitting discount/finance request:', error);
@@ -58,6 +64,7 @@ export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceR
 
 export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFinanceRequest) => {
   try {
+    console.log('Saving discount/finance request as draft:', requestData);
     const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .insert({
@@ -68,7 +75,12 @@ export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFin
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving draft:', error);
+      throw error;
+    }
+    
+    console.log('Successfully saved draft:', data);
     return data;
   } catch (error) {
     console.error('Error saving discount/finance request as draft:', error);
@@ -78,16 +90,44 @@ export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFin
 
 export const fetchDiscountFinanceRequests = async () => {
   try {
+    console.log('Fetching discount/finance requests for user:', HARDCODED_USER_ID);
     const { data, error } = await (supabase as any)
       .from('outward_dc_discount_finance_requests')
       .select('*')
       .eq('user_id', HARDCODED_USER_ID)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching requests:', error);
+      throw error;
+    }
+    
+    console.log('Successfully fetched requests:', data);
     return data || [];
   } catch (error) {
     console.error('Error fetching discount/finance requests:', error);
     throw error;
+  }
+};
+
+// Test function to verify table exists
+export const testTableConnection = async () => {
+  try {
+    console.log('Testing connection to outward_dc_discount_finance_requests table...');
+    const { data, error } = await (supabase as any)
+      .from('outward_dc_discount_finance_requests')
+      .select('count(*)')
+      .limit(1);
+
+    if (error) {
+      console.error('Table connection test failed:', error);
+      return false;
+    }
+    
+    console.log('Table connection test successful:', data);
+    return true;
+  } catch (error) {
+    console.error('Table connection test error:', error);
+    return false;
   }
 };

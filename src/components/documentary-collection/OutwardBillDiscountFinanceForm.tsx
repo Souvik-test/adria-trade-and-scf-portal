@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { fetchDocumentaryCollectionBills, fetchDocumentaryCollectionBillByRef } from '@/services/documentaryCollectionService';
-import { submitDiscountFinanceRequest, saveDiscountFinanceRequestAsDraft } from '@/services/discountFinanceService';
+import { submitDiscountFinanceRequest, saveDiscountFinanceRequestAsDraft, testTableConnection } from '@/services/discountFinanceService';
 
 interface OutwardBillDiscountFinanceFormProps {
   onClose: () => void;
@@ -57,6 +56,7 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
 
   useEffect(() => {
     loadAvailableBills();
+    testDatabaseConnection();
   }, []);
 
   // Auto-calculate proceed amount for discount
@@ -88,15 +88,41 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     }
   }, [formData.financeTenorDays, formData.financePercentage, billDetails.billAmount, formData.requestType]);
 
+  const testDatabaseConnection = async () => {
+    try {
+      const isConnected = await testTableConnection();
+      console.log('Database connection test result:', isConnected);
+      if (!isConnected) {
+        toast({
+          title: "Database Connection Issue",
+          description: "Unable to connect to discount/finance requests table",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Database connection test failed:', error);
+    }
+  };
+
   const loadAvailableBills = async () => {
     try {
+      console.log('Loading available bills...');
       const bills = await fetchDocumentaryCollectionBills();
+      console.log('Loaded bills:', bills);
       setAvailableBills(bills);
+      
+      if (bills.length === 0) {
+        toast({
+          title: "No Bills Found",
+          description: "No documentary collection bills are available for selection",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error loading bills:', error);
       toast({
         title: "Error",
-        description: "Failed to load available bills",
+        description: "Failed to load available bills. Check console for details.",
         variant: "destructive"
       });
     }
@@ -105,9 +131,12 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
   const handleBillSelect = async (billRef: string) => {
     if (!billRef) return;
     
+    console.log('Selected bill reference:', billRef);
     setIsLoading(true);
     try {
       const bill = await fetchDocumentaryCollectionBillByRef(billRef);
+      console.log('Fetched bill details:', bill);
+      
       if (bill) {
         setBillDetails({
           billCurrency: bill.bill_currency || 'USD',
@@ -129,12 +158,24 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
         
         setSelectedBillRef(billRef);
         setSearchTerm('');
+        
+        toast({
+          title: "Bill Selected",
+          description: `Successfully loaded details for ${billRef}`,
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Bill Not Found",
+          description: `No bill found with reference ${billRef}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error loading bill details:', error);
       toast({
         title: "Error",
-        description: "Failed to load bill details",
+        description: "Failed to load bill details. Check console for details.",
         variant: "destructive"
       });
     } finally {
@@ -207,11 +248,13 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     setIsSubmitting(true);
     try {
       const requestData = buildRequestData();
+      console.log('Submitting request data:', requestData);
+      
       await submitDiscountFinanceRequest(requestData);
       
       toast({
-        title: "Success",
-        description: `${formData.requestType === 'discount' ? 'Discount' : 'Finance'} request submitted successfully`,
+        title: "Request Submitted Successfully",
+        description: `${formData.requestType === 'discount' ? 'Discount' : 'Finance'} request has been submitted`,
         variant: "default"
       });
       
@@ -219,8 +262,8 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     } catch (error) {
       console.error('Error submitting request:', error);
       toast({
-        title: "Error",
-        description: "Failed to submit request",
+        title: "Submission Failed",
+        description: "Failed to submit request. Check console for details.",
         variant: "destructive"
       });
     } finally {
@@ -241,11 +284,13 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     setIsSubmitting(true);
     try {
       const requestData = buildRequestData();
+      console.log('Saving draft data:', requestData);
+      
       await saveDiscountFinanceRequestAsDraft(requestData);
       
       toast({
-        title: "Success",
-        description: "Request saved as draft",
+        title: "Draft Saved Successfully",
+        description: "Your request has been saved as a draft",
         variant: "default"
       });
       
@@ -253,8 +298,8 @@ const OutwardBillDiscountFinanceForm: React.FC<OutwardBillDiscountFinanceFormPro
     } catch (error) {
       console.error('Error saving draft:', error);
       toast({
-        title: "Error",
-        description: "Failed to save request as draft",
+        title: "Save Failed",
+        description: "Failed to save request as draft. Check console for details.",
         variant: "destructive"
       });
     } finally {
