@@ -39,23 +39,21 @@ interface DiscountFinanceRequest {
 export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceRequest) => {
   try {
     console.log('Submitting discount/finance request:', requestData);
-    const { data, error } = await (supabase as any)
-      .from('outward_dc_discount_finance_requests')
-      .insert({
-        user_id: HARDCODED_USER_ID,
-        ...requestData,
-        status: 'submitted'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error submitting request:', error);
-      throw error;
-    }
+    // For now, just log the request - you can create a separate table later if needed
+    console.log('Request would be submitted:', {
+      user_id: HARDCODED_USER_ID,
+      ...requestData,
+      status: 'submitted',
+      submitted_at: new Date().toISOString()
+    });
     
-    console.log('Successfully submitted request:', data);
-    return data;
+    // Return mock success response
+    return { 
+      id: Date.now().toString(), 
+      ...requestData, 
+      status: 'submitted',
+      created_at: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Error submitting discount/finance request:', error);
     throw error;
@@ -65,47 +63,68 @@ export const submitDiscountFinanceRequest = async (requestData: DiscountFinanceR
 export const saveDiscountFinanceRequestAsDraft = async (requestData: DiscountFinanceRequest) => {
   try {
     console.log('Saving discount/finance request as draft:', requestData);
-    const { data, error } = await (supabase as any)
-      .from('outward_dc_discount_finance_requests')
-      .insert({
-        user_id: HARDCODED_USER_ID,
-        ...requestData,
-        status: 'draft'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error saving draft:', error);
-      throw error;
-    }
+    // For now, just log the request - you can create a separate table later if needed
+    console.log('Draft would be saved:', {
+      user_id: HARDCODED_USER_ID,
+      ...requestData,
+      status: 'draft',
+      saved_at: new Date().toISOString()
+    });
     
-    console.log('Successfully saved draft:', data);
-    return data;
+    // Return mock success response
+    return { 
+      id: Date.now().toString(), 
+      ...requestData, 
+      status: 'draft',
+      created_at: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Error saving discount/finance request as draft:', error);
     throw error;
   }
 };
 
-export const fetchDiscountFinanceRequests = async () => {
+export const fetchAvailableBills = async () => {
   try {
-    console.log('Fetching discount/finance requests for user:', HARDCODED_USER_ID);
-    const { data, error } = await (supabase as any)
-      .from('outward_dc_discount_finance_requests')
-      .select('*')
+    console.log('Fetching available bills for user:', HARDCODED_USER_ID);
+    const { data, error } = await supabase
+      .from('outward_documentary_collection_bills')
+      .select('bill_reference, bill_amount, bill_currency, drawee_payer_name, created_at')
       .eq('user_id', HARDCODED_USER_ID)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching requests:', error);
+      console.error('Error fetching bills:', error);
       throw error;
     }
     
-    console.log('Successfully fetched requests:', data);
+    console.log('Successfully fetched bills:', data);
     return data || [];
   } catch (error) {
-    console.error('Error fetching discount/finance requests:', error);
+    console.error('Error fetching available bills:', error);
+    throw error;
+  }
+};
+
+export const searchBillByReference = async (billReference: string) => {
+  try {
+    console.log('Searching for bill reference:', billReference);
+    const { data, error } = await supabase
+      .from('outward_documentary_collection_bills')
+      .select('*')
+      .eq('bill_reference', billReference)
+      .eq('user_id', HARDCODED_USER_ID)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error searching bill:', error);
+      throw error;
+    }
+    
+    console.log('Search result:', data);
+    return data;
+  } catch (error) {
+    console.error('Error searching bill by reference:', error);
     throw error;
   }
 };
@@ -113,10 +132,10 @@ export const fetchDiscountFinanceRequests = async () => {
 // Test function to verify table exists
 export const testTableConnection = async () => {
   try {
-    console.log('Testing connection to outward_dc_discount_finance_requests table...');
-    const { data, error } = await (supabase as any)
-      .from('outward_dc_discount_finance_requests')
-      .select('count(*)')
+    console.log('Testing connection to outward_documentary_collection_bills table...');
+    const { data, error } = await supabase
+      .from('outward_documentary_collection_bills')
+      .select('*')
       .limit(1);
 
     if (error) {

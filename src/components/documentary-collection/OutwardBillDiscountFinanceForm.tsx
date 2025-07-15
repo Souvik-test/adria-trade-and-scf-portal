@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { fetchDocumentaryCollectionBills, fetchDocumentaryCollectionBillByRef } from '@/services/documentaryCollectionService';
-import { submitDiscountFinanceRequest, saveDiscountFinanceRequestAsDraft, testTableConnection } from '@/services/discountFinanceService';
+import { submitDiscountFinanceRequest, saveDiscountFinanceRequestAsDraft, fetchAvailableBills, searchBillByReference, testTableConnection } from '@/services/discountFinanceService';
 
 interface OutwardBillDiscountFinanceFormProps {
   onClose: () => void;
