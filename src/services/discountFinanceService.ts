@@ -1,8 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Hardcoded user ID for souvikgenius@gmail.com
-const HARDCODED_USER_ID = '8cceba0f-c1a9-4074-8dbc-be256e0cc448';
+// Using the user ID that has the dummy bill data
+const HARDCODED_USER_ID = '6777a7d0-5e7c-4335-90e1-4ed530cd452a';
 
 interface DiscountFinanceRequest {
   bill_reference: string;
