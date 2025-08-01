@@ -1,8 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Hardcoded user ID for souvikgenius@gmail.com
-const HARDCODED_USER_ID = '8cceba0f-c1a9-4074-8dbc-be256e0cc448';
+// Get current user from auth
+const getCurrentUserId = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+  
+  // Check if user exists in custom_users table
+  const { data: customUser } = await supabase
+    .from('custom_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+  
+  return customUser?.id || user.id;
+};
 
 interface DocumentaryCollectionBill {
   bill_reference: string;
@@ -27,10 +39,11 @@ interface DocumentaryCollectionBill {
 
 export const submitDocumentaryCollectionBill = async (billData: DocumentaryCollectionBill) => {
   try {
+    const userId = await getCurrentUserId();
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .insert({
-        user_id: HARDCODED_USER_ID,
+        user_id: userId,
         ...billData
       })
       .select()
@@ -46,11 +59,12 @@ export const submitDocumentaryCollectionBill = async (billData: DocumentaryColle
 
 export const updateDocumentaryCollectionBill = async (billReference: string, billData: DocumentaryCollectionBill) => {
   try {
+    const userId = await getCurrentUserId();
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .update(billData)
       .eq('bill_reference', billReference)
-      .eq('user_id', HARDCODED_USER_ID)
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -64,10 +78,11 @@ export const updateDocumentaryCollectionBill = async (billReference: string, bil
 
 export const fetchDocumentaryCollectionBills = async () => {
   try {
+    const userId = await getCurrentUserId();
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .select('*')
-      .eq('user_id', HARDCODED_USER_ID)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -80,11 +95,12 @@ export const fetchDocumentaryCollectionBills = async () => {
 
 export const fetchDocumentaryCollectionBillByRef = async (billReference: string) => {
   try {
+    const userId = await getCurrentUserId();
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
       .select('*')
       .eq('bill_reference', billReference)
-      .eq('user_id', HARDCODED_USER_ID)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw error;
