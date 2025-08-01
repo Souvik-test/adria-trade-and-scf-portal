@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { customAuth } from './customAuth';
 
 export interface ImportLCRequest {
   id: string;
@@ -19,7 +18,7 @@ export const fetchSubmittedImportLCRequests = async (searchTerm?: string): Promi
     console.log('Fetching Import LC requests with search term:', searchTerm);
     
     // Ensure user is authenticated
-    const user = customAuth.getSession()?.user;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error('User not authenticated');
       return [];

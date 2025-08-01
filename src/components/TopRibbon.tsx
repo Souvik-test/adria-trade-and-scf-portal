@@ -108,7 +108,7 @@ const TopRibbon = () => {
                   variant="ghost" 
                   size="icon"
                   className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-all duration-200"
-                  title={`User: ${user?.user_id || 'Guest'}`}
+                  title={`User: ${user?.email || 'Guest'}`}
                 >
                   <User className="h-4 w-4" />
                 </Button>
@@ -119,8 +119,8 @@ const TopRibbon = () => {
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">{user?.full_name || 'User'}</span>
-                    <span className="text-xs text-muted-foreground">{user?.user_id || 'Guest'}</span>
+                    <span className="font-semibold text-foreground">{user?.user_metadata?.full_name || user?.email || 'User'}</span>
+                    <span className="text-xs text-muted-foreground">{user?.email || 'Guest'}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem 

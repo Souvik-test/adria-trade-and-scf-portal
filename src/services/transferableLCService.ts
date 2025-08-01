@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { customAuth } from './customAuth';
 
 export interface TransferableLC {
   id: string;
@@ -14,23 +13,12 @@ export interface TransferableLC {
 }
 
 export const fetchTransferableLCs = async (searchTerm?: string): Promise<TransferableLC[]> => {
-  const user = customAuth.getSession()?.user;
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('User not authenticated');
   }
 
   console.log('Searching for transferable LCs with term:', searchTerm);
-
-  // Set the user context for RLS
-  const { error: configError } = await supabase
-    .from('custom_users')
-    .select('id')
-    .eq('user_id', user.user_id)
-    .limit(1);
-
-  if (configError) {
-    console.error('User context error:', configError);
-  }
 
   let query = supabase
     .from('import_lc_requests')
