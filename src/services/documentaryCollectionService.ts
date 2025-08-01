@@ -5,15 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 const getCurrentUserId = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
-  
-  // Check if user exists in custom_users table
-  const { data: customUser } = await supabase
-    .from('custom_users')
-    .select('id')
-    .eq('user_id', user.id)
-    .single();
-  
-  return customUser?.id || user.id;
+  return user.id;
 };
 
 interface DocumentaryCollectionBill {
