@@ -31,20 +31,37 @@ interface DocumentaryCollectionBill {
 
 export const submitDocumentaryCollectionBill = async (billData: DocumentaryCollectionBill) => {
   try {
+    console.log('=== DEBUG: Starting documentary collection bill submission ===');
+    console.log('Bill data received:', billData);
+    
     const userId = await getCurrentUserId();
+    console.log('Current user ID:', userId);
+    
+    const insertData = {
+      user_id: userId,
+      ...billData
+    };
+    console.log('Data to insert:', insertData);
+    
     const { data, error } = await supabase
       .from('outward_documentary_collection_bills')
-      .insert({
-        user_id: userId,
-        ...billData
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (error) throw error;
+    console.log('Supabase response - data:', data);
+    console.log('Supabase response - error:', error);
+
+    if (error) {
+      console.error('Supabase error details:', error);
+      throw error;
+    }
+    
+    console.log('=== DEBUG: Successfully submitted documentary collection bill ===');
     return data;
   } catch (error) {
     console.error('Error submitting documentary collection bill:', error);
+    console.error('Error stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     throw error;
   }
 };
