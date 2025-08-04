@@ -20,6 +20,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   onClose,
   onBack
 }) => {
+  console.log('=== DEBUG: OutwardBillSubmissionForm component mounted ===');
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
