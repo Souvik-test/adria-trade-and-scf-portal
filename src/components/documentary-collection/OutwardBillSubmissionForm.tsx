@@ -472,7 +472,10 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               {isSubmitting ? 'Saving...' : 'Save as Draft'}
             </Button>
             <Button
-              onClick={handleSubmit}
+              onClick={() => {
+                console.log('=== DEBUG: Submit button clicked ===');
+                handleSubmit();
+              }}
               className="px-8 bg-primary hover:bg-primary/90"
               disabled={isSubmitting}
             >
