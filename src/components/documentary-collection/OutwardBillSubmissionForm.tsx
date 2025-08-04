@@ -102,6 +102,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   };
 
   const handleSubmit = async () => {
+    console.log('=== DEBUG: handleSubmit called ===');
     // Basic validation
     if (!formData.billReference || !formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
       toast({
