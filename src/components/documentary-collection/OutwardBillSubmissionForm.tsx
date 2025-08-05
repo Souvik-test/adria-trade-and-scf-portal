@@ -72,8 +72,8 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
         collecting_bank_address: formData.collectingBankAddress,
         collecting_bank_swift_code: formData.collectingBankSwiftCode,
         bill_currency: formData.billCurrency,
-        bill_amount: formData.billAmount ? parseFloat(formData.billAmount) : undefined,
-        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : undefined,
+        bill_amount: formData.billAmount ? parseFloat(formData.billAmount) : null,
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : null,
         presentation_instructions: formData.presentationInstructions,
         documents_against: formData.documentsAgainst,
         special_instructions: formData.specialInstructions,
@@ -92,9 +92,22 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
       onClose();
     } catch (error) {
       console.error('Error saving draft:', error);
+      
+      // Provide clear error message for draft saving
+      let errorMessage = "Failed to save documentary collection bill as draft";
+      if (error instanceof Error) {
+        if (error.message.includes('violates check constraint')) {
+          errorMessage = "Invalid data format: Please ensure all numeric fields contain valid numbers";
+        } else if (error.message.includes('duplicate key')) {
+          errorMessage = "Bill reference already exists: Please use a unique bill reference";
+        } else {
+          errorMessage = `Draft save failed: ${error.message}`;
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to save documentary collection bill as draft",
+        title: "Draft Save Error",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -127,7 +140,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
         collecting_bank_swift_code: formData.collectingBankSwiftCode,
         bill_currency: formData.billCurrency,
         bill_amount: parseFloat(formData.billAmount),
-        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : undefined,
+        tenor_days: formData.tenorDays ? parseInt(formData.tenorDays) : null,
         presentation_instructions: formData.presentationInstructions,
         documents_against: formData.documentsAgainst,
         special_instructions: formData.specialInstructions,
@@ -146,9 +159,26 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
       onClose();
     } catch (error) {
       console.error('Error submitting bill:', error);
+      
+      // Provide clear error message based on the error type
+      let errorMessage = "Failed to submit documentary collection bill";
+      if (error instanceof Error) {
+        if (error.message.includes('violates check constraint')) {
+          errorMessage = "Invalid data format: Please ensure all numeric fields contain valid numbers";
+        } else if (error.message.includes('not-null constraint')) {
+          errorMessage = "Missing required information: Please fill in all mandatory fields";
+        } else if (error.message.includes('duplicate key')) {
+          errorMessage = "Bill reference already exists: Please use a unique bill reference";
+        } else if (error.message.includes('foreign key')) {
+          errorMessage = "Invalid reference: Please check your input data";
+        } else {
+          errorMessage = `Submission failed: ${error.message}`;
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to submit documentary collection bill",
+        title: "Submission Error",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
