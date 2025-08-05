@@ -20,7 +20,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   onClose,
   onBack
 }) => {
-  console.log('=== DEBUG: OutwardBillSubmissionForm component mounted ===');
+  
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -116,7 +116,6 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    console.log('=== DEBUG: handleSubmit called ===');
     // Basic validation
     if (!formData.billReference || !formData.drawerName || !formData.draweePayerName || !formData.collectingBank || !formData.billAmount) {
       toast({
@@ -503,10 +502,7 @@ const OutwardBillSubmissionForm: React.FC<OutwardBillSubmissionFormProps> = ({
               {isSubmitting ? 'Saving...' : 'Save as Draft'}
             </Button>
             <Button
-              onClick={() => {
-                console.log('=== DEBUG: Submit button clicked ===');
-                handleSubmit();
-              }}
+              onClick={handleSubmit}
               className="px-8 bg-primary hover:bg-primary/90"
               disabled={isSubmitting}
             >
