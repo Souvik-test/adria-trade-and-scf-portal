@@ -6,6 +6,7 @@ import BankGuaranteeModal from './bank-guarantee/BankGuaranteeModal';
 import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
+import InwardDocumentaryCollectionModal from './documentary-collection/InwardDocumentaryCollectionModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 
@@ -20,6 +21,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
+  const [showInwardDocumentaryCollectionModal, setShowInwardDocumentaryCollectionModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
@@ -90,8 +92,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     } else if (option === 'Outward Documentary Collection Bills') {
       setShowDocumentaryCollectionModal(true);
     } else if (option === 'Inward Documentary Collection Bills') {
-      console.log('Inward Documentary Collection Bills clicked');
-      // TODO: Implement when ready
+      setShowInwardDocumentaryCollectionModal(true);
     }
   };
 
@@ -216,6 +217,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <DocumentaryCollectionModal
           open={showDocumentaryCollectionModal}
           onClose={() => setShowDocumentaryCollectionModal(false)}
+        />
+      )}
+
+      {showInwardDocumentaryCollectionModal && (
+        <InwardDocumentaryCollectionModal
+          open={showInwardDocumentaryCollectionModal}
+          onClose={() => setShowInwardDocumentaryCollectionModal(false)}
         />
       )}
     </div>
