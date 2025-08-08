@@ -47,7 +47,7 @@ const InwardDocumentaryCollectionModal: React.FC<InwardDocumentaryCollectionModa
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[98vw] max-w-[98vw] h-[95vh] overflow-y-auto">
         {currentView === 'form' ? (
           <InwardBillPaymentForm 
             onBack={handleBack}
