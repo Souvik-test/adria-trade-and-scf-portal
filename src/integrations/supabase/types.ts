@@ -770,6 +770,131 @@ export type Database = {
         }
         Relationships: []
       }
+      inward_dc_bill_payment_documents: {
+        Row: {
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          payment_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          payment_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          payment_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inward_dc_bill_payment_documents_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "inward_documentary_collection_bill_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inward_documentary_collection_bill_payments: {
+        Row: {
+          advising_bank_address: string | null
+          advising_bank_name: string | null
+          advising_bank_swift_code: string | null
+          amount: number | null
+          beneficiary_account: string | null
+          beneficiary_address: string | null
+          beneficiary_name: string | null
+          bill_reference: string | null
+          collection_reference: string | null
+          created_at: string
+          currency: string | null
+          drawee_name: string | null
+          drawer_name: string | null
+          id: string
+          ordering_customer_account: string | null
+          ordering_customer_address: string | null
+          ordering_customer_name: string | null
+          payment_date: string | null
+          related_reference: string | null
+          remittance_information: string | null
+          sender_to_receiver_info: string | null
+          status: string | null
+          supporting_documents: Json | null
+          transaction_reference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advising_bank_address?: string | null
+          advising_bank_name?: string | null
+          advising_bank_swift_code?: string | null
+          amount?: number | null
+          beneficiary_account?: string | null
+          beneficiary_address?: string | null
+          beneficiary_name?: string | null
+          bill_reference?: string | null
+          collection_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          drawee_name?: string | null
+          drawer_name?: string | null
+          id?: string
+          ordering_customer_account?: string | null
+          ordering_customer_address?: string | null
+          ordering_customer_name?: string | null
+          payment_date?: string | null
+          related_reference?: string | null
+          remittance_information?: string | null
+          sender_to_receiver_info?: string | null
+          status?: string | null
+          supporting_documents?: Json | null
+          transaction_reference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advising_bank_address?: string | null
+          advising_bank_name?: string | null
+          advising_bank_swift_code?: string | null
+          amount?: number | null
+          beneficiary_account?: string | null
+          beneficiary_address?: string | null
+          beneficiary_name?: string | null
+          bill_reference?: string | null
+          collection_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          drawee_name?: string | null
+          drawer_name?: string | null
+          id?: string
+          ordering_customer_account?: string | null
+          ordering_customer_address?: string | null
+          ordering_customer_name?: string | null
+          payment_date?: string | null
+          related_reference?: string | null
+          remittance_information?: string | null
+          sender_to_receiver_info?: string | null
+          status?: string | null
+          supporting_documents?: Json | null
+          transaction_reference?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lc_transfer_requests: {
         Row: {
           amount: number | null
