@@ -31,6 +31,14 @@ interface InwardBillPaymentFormData {
   advisingBankAddress: string;
   advisingBankSwiftCode: string;
   
+  collectingBankName: string;
+  collectingBankAddress: string;
+  collectingBankSwiftCode: string;
+  
+  remittingBankName: string;
+  remittingBankAddress: string;
+  remittingBankSwiftCode: string;
+  
   beneficiaryName: string;
   beneficiaryAddress: string;
   beneficiaryAccount: string;
@@ -111,14 +119,14 @@ const InwardBillPaymentForm: React.FC<InwardBillPaymentFormProps> = ({
   const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'];
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="w-full px-4 py-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Inward Documentary Collection - Bill Payment
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Manual entry for inward documentary collection bill payment (SWIFT MT 400/416)
+            Manual entry for inward documentary collection bill payment
           </p>
         </div>
       </div>
@@ -269,6 +277,72 @@ const InwardBillPaymentForm: React.FC<InwardBillPaymentFormProps> = ({
               <SwiftTagLabel tag=":57A/D" label="Advising Bank SWIFT Code" />
               <Input
                 {...register('advisingBankSwiftCode')}
+                placeholder="Enter SWIFT code"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Collecting Bank */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Collecting Bank Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <SwiftTagLabel tag=":52A/D" label="Collecting Bank Name" />
+              <Input
+                {...register('collectingBankName')}
+                placeholder="Enter collecting bank name"
+              />
+            </div>
+
+            <div>
+              <SwiftTagLabel tag=":52A/D" label="Collecting Bank Address" />
+              <Textarea
+                {...register('collectingBankAddress')}
+                placeholder="Enter collecting bank address"
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div>
+              <SwiftTagLabel tag=":52A/D" label="Collecting Bank SWIFT Code" />
+              <Input
+                {...register('collectingBankSwiftCode')}
+                placeholder="Enter SWIFT code"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Remitting Bank */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Remitting Bank Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <SwiftTagLabel tag=":53A/D" label="Remitting Bank Name" />
+              <Input
+                {...register('remittingBankName')}
+                placeholder="Enter remitting bank name"
+              />
+            </div>
+
+            <div>
+              <SwiftTagLabel tag=":53A/D" label="Remitting Bank Address" />
+              <Textarea
+                {...register('remittingBankAddress')}
+                placeholder="Enter remitting bank address"
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div>
+              <SwiftTagLabel tag=":53A/D" label="Remitting Bank SWIFT Code" />
+              <Input
+                {...register('remittingBankSwiftCode')}
                 placeholder="Enter SWIFT code"
               />
             </div>
