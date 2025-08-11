@@ -513,7 +513,7 @@ const InwardBillPaymentForm: React.FC<InwardBillPaymentFormProps> = ({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            Reject
           </Button>
           
           <Button

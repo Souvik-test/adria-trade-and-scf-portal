@@ -4,6 +4,7 @@ import InwardDocumentaryCollectionModalHeader from './InwardDocumentaryCollectio
 import InwardDocumentaryCollectionActionSection from './InwardDocumentaryCollectionActionSection';
 import InwardDocumentaryCollectionMethodSection from './InwardDocumentaryCollectionMethodSection';
 import InwardBillPaymentForm from './InwardBillPaymentForm';
+import InwardBillAcceptRefuseForm from './InwardBillAcceptRefuseForm';
 
 type ActionType = 'payment' | 'acceptance' | 'finance' | null;
 type ViewType = 'selection' | 'form';
@@ -25,7 +26,7 @@ const InwardDocumentaryCollectionModal: React.FC<InwardDocumentaryCollectionModa
   };
 
   const handleMethodSelect = (method: string) => {
-    if (method === 'manual' && selectedAction === 'payment') {
+    if (method === 'manual' && (selectedAction === 'payment' || selectedAction === 'acceptance')) {
       setCurrentView('form');
     }
     // Handle other method selections here
@@ -49,10 +50,17 @@ const InwardDocumentaryCollectionModal: React.FC<InwardDocumentaryCollectionModa
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="w-[98vw] max-w-[98vw] h-[95vh] overflow-y-auto">
         {currentView === 'form' ? (
-          <InwardBillPaymentForm 
-            onBack={handleBack}
-            onCancel={handleCancel}
-          />
+          selectedAction === 'payment' ? (
+            <InwardBillPaymentForm 
+              onBack={handleBack}
+              onCancel={handleCancel}
+            />
+          ) : selectedAction === 'acceptance' ? (
+            <InwardBillAcceptRefuseForm 
+              onBack={handleBack}
+              onCancel={handleCancel}
+            />
+          ) : null
         ) : (
           <>
             <InwardDocumentaryCollectionModalHeader onBack={handleBack} />
