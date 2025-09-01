@@ -1686,6 +1686,10 @@ export type Database = {
         Args: { product_type: string }
         Returns: string
       }
+      update_user_password: {
+        Args: { new_password: string; old_password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       product_type:
