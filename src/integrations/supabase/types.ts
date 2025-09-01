@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -765,6 +765,81 @@ export type Database = {
           issuing_bank?: string | null
           rejection_reason?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inward_dc_bill_acceptance_refusal: {
+        Row: {
+          beneficiary_address: string | null
+          beneficiary_name: string | null
+          bill_reference: string
+          collecting_bank: string | null
+          collection_reference: string | null
+          created_at: string
+          currency: string | null
+          decision: string | null
+          discrepancies: Json | null
+          document_value: number | null
+          documents: Json | null
+          id: string
+          internal_notes: string | null
+          maturity_date: string | null
+          payment_terms: string | null
+          principal_address: string | null
+          principal_name: string | null
+          remarks: string | null
+          remitting_bank: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          beneficiary_address?: string | null
+          beneficiary_name?: string | null
+          bill_reference: string
+          collecting_bank?: string | null
+          collection_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          decision?: string | null
+          discrepancies?: Json | null
+          document_value?: number | null
+          documents?: Json | null
+          id?: string
+          internal_notes?: string | null
+          maturity_date?: string | null
+          payment_terms?: string | null
+          principal_address?: string | null
+          principal_name?: string | null
+          remarks?: string | null
+          remitting_bank?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          beneficiary_address?: string | null
+          beneficiary_name?: string | null
+          bill_reference?: string
+          collecting_bank?: string | null
+          collection_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          decision?: string | null
+          discrepancies?: Json | null
+          document_value?: number | null
+          documents?: Json | null
+          id?: string
+          internal_notes?: string | null
+          maturity_date?: string | null
+          payment_terms?: string | null
+          principal_address?: string | null
+          principal_name?: string | null
+          remarks?: string | null
+          remitting_bank?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string
         }
