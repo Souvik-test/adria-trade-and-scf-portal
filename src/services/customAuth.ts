@@ -84,23 +84,34 @@ export const customAuth = {
   // Sign in user
   signIn: async (userId: string, password: string) => {
     try {
+      // Use secure function to get user data for authentication
       const { data, error } = await supabase
-        .from('custom_users')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+        .rpc('authenticate_custom_user', { input_user_id: userId });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         return { session: null, error: 'Invalid credentials' };
       }
 
-      if (!verifyPassword(password, data.password_hash)) {
+      const userData = data[0];
+      if (!verifyPassword(password, userData.password_hash)) {
         return { session: null, error: 'Invalid credentials' };
       }
 
-      // Create session
+      // Create session with properly mapped user data
+      const user: CustomUser = {
+        id: userData.id,
+        user_id: userData.user_id,
+        full_name: userData.full_name,
+        user_login_id: userData.user_login_id,
+        corporate_id: userData.corporate_id,
+        role_type: userData.role_type,
+        product_linkage: userData.product_linkage,
+        created_at: userData.created_at,
+        updated_at: userData.updated_at
+      };
+
       const session: CustomSession = {
-        user: data as CustomUser,
+        user,
         access_token: btoa(JSON.stringify({ userId, timestamp: Date.now() }))
       };
 

@@ -1666,6 +1666,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_custom_user: {
+        Args: { input_user_id: string }
+        Returns: {
+          corporate_id: string
+          created_at: string
+          full_name: string
+          id: string
+          password_hash: string
+          product_linkage: Database["public"]["Enums"]["product_type"][]
+          role_type: Database["public"]["Enums"]["user_role_type"]
+          updated_at: string
+          user_id: string
+          user_login_id: string
+        }[]
+      }
       generate_assignment_ref: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1685,6 +1700,20 @@ export type Database = {
       generate_transaction_ref: {
         Args: { product_type: string }
         Returns: string
+      }
+      get_custom_user_profile: {
+        Args: { input_user_id: string }
+        Returns: {
+          corporate_id: string
+          created_at: string
+          full_name: string
+          id: string
+          product_linkage: Database["public"]["Enums"]["product_type"][]
+          role_type: Database["public"]["Enums"]["user_role_type"]
+          updated_at: string
+          user_id: string
+          user_login_id: string
+        }[]
       }
       update_user_password: {
         Args: { new_password: string; old_password: string }
