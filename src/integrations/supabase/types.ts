@@ -656,7 +656,7 @@ export type Database = {
           tax_amount: number | null
           total_amount: number | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -681,7 +681,7 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -706,7 +706,7 @@ export type Database = {
           tax_amount?: number | null
           total_amount?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1371,7 +1371,7 @@ export type Database = {
           terms_of_sale: string | null
           total_tax: number | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           valid_until_date: string | null
         }
         Insert: {
@@ -1395,7 +1395,7 @@ export type Database = {
           terms_of_sale?: string | null
           total_tax?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           valid_until_date?: string | null
         }
         Update: {
@@ -1419,7 +1419,7 @@ export type Database = {
           terms_of_sale?: string | null
           total_tax?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           valid_until_date?: string | null
         }
         Relationships: []
@@ -1445,7 +1445,7 @@ export type Database = {
           terms_of_sale: string | null
           total_tax: number | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           vendor_supplier: string | null
         }
         Insert: {
@@ -1468,7 +1468,7 @@ export type Database = {
           terms_of_sale?: string | null
           total_tax?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           vendor_supplier?: string | null
         }
         Update: {
@@ -1491,7 +1491,7 @@ export type Database = {
           terms_of_sale?: string | null
           total_tax?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           vendor_supplier?: string | null
         }
         Relationships: []
