@@ -7,6 +7,7 @@ import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
 import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 import InwardDocumentaryCollectionModal from './documentary-collection/InwardDocumentaryCollectionModal';
+import ShippingGuaranteeModal from './shipping-guarantee/ShippingGuaranteeModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 
@@ -22,6 +23,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
   const [showInwardDocumentaryCollectionModal, setShowInwardDocumentaryCollectionModal] = useState(false);
+  const [showShippingGuaranteeModal, setShowShippingGuaranteeModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
@@ -56,7 +58,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       id: 'shipping',
       title: 'Shipping Guarantee',
       icon: Ship,
-      description: 'Manage shipping guarantees and delivery orders'
+      description: 'Manage shipping guarantees and delivery orders',
+      onClick: () => setShowShippingGuaranteeModal(true)
     },
     {
       id: 'trade-loan',
@@ -148,6 +151,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       handleEEnablerClick(option);
     } else if (productId === 'underlying-docs') {
       handleUnderlyingDocsClick(option);
+    } else if (productId === 'shipping') {
+      setShowShippingGuaranteeModal(true);
     }
   };
 
@@ -170,6 +175,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
               onMouseEnter={() => handleCardHover(product.id)}
               onMouseLeave={handleCardLeave}
               onOptionClick={handleOptionClick}
+              onClick={(product as any).onClick}
             />
           ))}
         </div>
@@ -224,6 +230,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <InwardDocumentaryCollectionModal
           open={showInwardDocumentaryCollectionModal}
           onClose={() => setShowInwardDocumentaryCollectionModal(false)}
+        />
+      )}
+
+      {showShippingGuaranteeModal && (
+        <ShippingGuaranteeModal
+          isOpen={showShippingGuaranteeModal}
+          onClose={() => setShowShippingGuaranteeModal(false)}
+          onBack={() => setShowShippingGuaranteeModal(false)}
         />
       )}
     </div>

@@ -15,6 +15,7 @@ interface ProductCardProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onOptionClick: (productId: string, option: string) => void;
+  onClick?: () => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -27,7 +28,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   isFlipped,
   onMouseEnter,
   onMouseLeave,
-  onOptionClick
+  onOptionClick,
+  onClick
 }) => {
   return (
     <div className="relative h-56 perspective-1000 group">
@@ -39,7 +41,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         onMouseLeave={hasFlip ? onMouseLeave : undefined}
       >
         {/* Front of card */}
-        <Card className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-0 professional-shadow hover:professional-shadow-lg group-hover:scale-105">
+        <Card 
+          className="absolute inset-0 backface-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-0 professional-shadow hover:professional-shadow-lg group-hover:scale-105"
+          onClick={!hasFlip ? onClick : undefined}
+        >
           <CardContent className="p-6 flex flex-col items-center justify-center h-full bg-gradient-to-br from-white to-gray-50 dark:from-card dark:to-card/80 rounded-lg">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4 shadow-lg">
               <Icon className="w-8 h-8 text-white" />
