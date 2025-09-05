@@ -70,9 +70,9 @@ const ShippingGuaranteeModal: React.FC<ShippingGuaranteeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none">
         <div className="flex flex-col h-full">
-          <div className="border-b border-border px-6 py-4">
+          <div className="border-b border-border px-6 py-4 flex-shrink-0">
             <div className="flex items-center gap-4">
               <button 
                 onClick={handleBack}
@@ -86,8 +86,10 @@ const ShippingGuaranteeModal: React.FC<ShippingGuaranteeModalProps> = ({
             </div>
           </div>
           
-          <div className="flex-1 overflow-auto p-6">
-            {renderContent()}
+          <div className="flex-1 overflow-auto">
+            <div className="p-6">
+              {renderContent()}
+            </div>
           </div>
         </div>
       </DialogContent>

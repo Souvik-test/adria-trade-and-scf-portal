@@ -2,6 +2,7 @@ export interface ShippingGuaranteeFormData {
   // Basic Information
   guaranteeReference?: string;
   corporateReference?: string;
+  relatedReference?: string;
   issueDate?: string;
   expiryDate?: string;
   guaranteeAmount?: number;

@@ -81,8 +81,8 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="border-b border-border pb-4 mb-6">
+    <div className="flex flex-col min-h-[calc(100vh-120px)]">
+      <div className="border-b border-border pb-4 mb-6 flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"
@@ -104,7 +104,7 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
         />
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
         <ShippingGuaranteePaneRenderer
           currentPane={currentPane}
           formData={formData}
@@ -113,17 +113,19 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
         />
       </div>
 
-      <ShippingGuaranteeFormActions
-        currentPane={currentPane}
-        onDiscard={handleDiscard}
-        onSaveAsDraft={handleSaveDraft}
-        onGoBack={handlePrevious}
-        onNext={handleNext}
-        onSubmit={handleSubmit}
-        canProceed={true}
-        isFirstPane={currentPane === 0}
-        isLastPane={currentPane === panes.length - 1}
-      />
+      <div className="flex-shrink-0 mt-6">
+        <ShippingGuaranteeFormActions
+          currentPane={currentPane}
+          onDiscard={handleDiscard}
+          onSaveAsDraft={handleSaveDraft}
+          onGoBack={handlePrevious}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+          canProceed={true}
+          isFirstPane={currentPane === 0}
+          isLastPane={currentPane === panes.length - 1}
+        />
+      </div>
     </div>
   );
 };
