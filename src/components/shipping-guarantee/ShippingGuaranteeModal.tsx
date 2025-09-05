@@ -68,9 +68,15 @@ const ShippingGuaranteeModal: React.FC<ShippingGuaranteeModalProps> = ({
     );
   };
 
+  const isFormView = selectedMethod && selectedAction;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none">
+      <DialogContent className={
+        isFormView 
+          ? "w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none" 
+          : "max-w-6xl max-h-[90vh] overflow-hidden p-0"
+      }>
         <div className="flex flex-col h-full">
           <div className="border-b border-border px-6 py-4 flex-shrink-0">
             <div className="flex items-center gap-4">
@@ -86,10 +92,8 @@ const ShippingGuaranteeModal: React.FC<ShippingGuaranteeModalProps> = ({
             </div>
           </div>
           
-          <div className="flex-1 overflow-auto">
-            <div className="p-6">
-              {renderContent()}
-            </div>
+          <div className={isFormView ? "flex-1 overflow-hidden" : "flex-1 overflow-auto p-6"}>
+            {isFormView ? renderContent() : <div className="h-full">{renderContent()}</div>}
           </div>
         </div>
       </DialogContent>
