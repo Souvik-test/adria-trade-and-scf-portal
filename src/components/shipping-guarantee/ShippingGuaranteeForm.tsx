@@ -81,8 +81,8 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="border-b border-border pb-4 mb-6 flex-shrink-0 px-6 pt-6">
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 border-b border-border px-6 py-4">
         <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"
@@ -104,8 +104,8 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6">
-        <div className="pb-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
           <ShippingGuaranteePaneRenderer
             currentPane={currentPane}
             formData={formData}
@@ -115,8 +115,8 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
         </div>
       </div>
 
-      <div className="flex-shrink-0 px-6 pb-6 border-t border-border bg-background">
-        <div className="pt-6">
+      <div className="flex-shrink-0 border-t border-border bg-background">
+        <div className="p-6">
           <ShippingGuaranteeFormActions
             currentPane={currentPane}
             onDiscard={handleDiscard}
