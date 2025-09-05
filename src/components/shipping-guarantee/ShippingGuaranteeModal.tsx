@@ -92,7 +92,7 @@ const ShippingGuaranteeModal: React.FC<ShippingGuaranteeModalProps> = ({
             </div>
           </div>
           
-          <div className={isFormView ? "flex-1 overflow-hidden" : "flex-1 overflow-auto p-6"}>
+          <div className={isFormView ? "flex-1 flex flex-col overflow-hidden" : "flex-1 overflow-auto p-6"}>
             {isFormView ? renderContent() : <div className="h-full">{renderContent()}</div>}
           </div>
         </div>

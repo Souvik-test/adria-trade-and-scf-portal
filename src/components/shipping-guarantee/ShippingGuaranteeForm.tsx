@@ -81,7 +81,7 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen">
       <div className="border-b border-border pb-4 mb-6 flex-shrink-0 px-6 pt-6">
         <div className="flex items-center gap-4 mb-4">
           <Button
@@ -104,27 +104,31 @@ const ShippingGuaranteeForm: React.FC<ShippingGuaranteeFormProps> = ({
         />
       </div>
 
-      <div className="flex-1 overflow-auto px-6">
-        <ShippingGuaranteePaneRenderer
-          currentPane={currentPane}
-          formData={formData}
-          onFieldChange={handleFieldChange}
-          action={action}
-        />
+      <div className="flex-1 overflow-y-auto px-6">
+        <div className="pb-6">
+          <ShippingGuaranteePaneRenderer
+            currentPane={currentPane}
+            formData={formData}
+            onFieldChange={handleFieldChange}
+            action={action}
+          />
+        </div>
       </div>
 
-      <div className="flex-shrink-0 px-6 pb-6">
-        <ShippingGuaranteeFormActions
-          currentPane={currentPane}
-          onDiscard={handleDiscard}
-          onSaveAsDraft={handleSaveDraft}
-          onGoBack={handlePrevious}
-          onNext={handleNext}
-          onSubmit={handleSubmit}
-          canProceed={true}
-          isFirstPane={currentPane === 0}
-          isLastPane={currentPane === panes.length - 1}
-        />
+      <div className="flex-shrink-0 px-6 pb-6 border-t border-border bg-background">
+        <div className="pt-6">
+          <ShippingGuaranteeFormActions
+            currentPane={currentPane}
+            onDiscard={handleDiscard}
+            onSaveAsDraft={handleSaveDraft}
+            onGoBack={handlePrevious}
+            onNext={handleNext}
+            onSubmit={handleSubmit}
+            canProceed={true}
+            isFirstPane={currentPane === 0}
+            isLastPane={currentPane === panes.length - 1}
+          />
+        </div>
       </div>
     </div>
   );
