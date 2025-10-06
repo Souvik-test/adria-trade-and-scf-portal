@@ -2,14 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import TopRibbon from '@/components/TopRibbon';
+import TopRibbon, { ModuleType } from '@/components/TopRibbon';
 import Footer from '@/components/Footer';
 import DashboardWidgets from '@/components/DashboardWidgets';
 import ProductSuite from '@/components/ProductSuite';
+import SCFDashboard from '@/components/SCFDashboard';
+import SCFProductSuite from '@/components/SCFProductSuite';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [loginTime, setLoginTime] = useState('');
+  const [selectedModule, setSelectedModule] = useState<ModuleType>('trade-finance');
 
   useEffect(() => {
     // Set login time when component mounts (user is authenticated)
@@ -21,7 +24,54 @@ const Index = () => {
     console.log('Menu clicked:', menuId);
   };
 
+  const handleModuleChange = (module: ModuleType) => {
+    setSelectedModule(module);
+    // Reset to dashboard when switching modules
+    setActiveMenu('dashboard');
+    console.log('Module changed:', module);
+  };
+
   const renderMainContent = () => {
+    // Render based on selected module
+    if (selectedModule === 'supply-chain-finance') {
+      switch (activeMenu) {
+        case 'product-suite':
+          return <SCFProductSuite onBack={() => setActiveMenu('dashboard')} />;
+        case 'inquiry':
+        case 'correspondence':
+        case 'configuration':
+        case 'administration':
+          return (
+            <div className="p-8 animate-fade-in">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-3xl font-bold text-foreground mb-4">
+                  {activeMenu.charAt(0).toUpperCase() + activeMenu.slice(1)}
+                </h2>
+                <div className="bg-card rounded-lg p-6 professional-shadow">
+                  <p className="text-muted-foreground text-lg">This feature is coming soon for Supply Chain Finance...</p>
+                </div>
+              </div>
+            </div>
+          );
+        default:
+          return <SCFDashboard />;
+      }
+    } else if (selectedModule === 'corporate-lending' || selectedModule === 'cash-management') {
+      return (
+        <div className="p-8 animate-fade-in">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              {selectedModule === 'corporate-lending' ? 'Corporate Lending' : 'Cash Management'}
+            </h2>
+            <div className="bg-card rounded-lg p-6 professional-shadow">
+              <p className="text-muted-foreground text-lg">This module is coming soon...</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default to Trade Finance module
     switch (activeMenu) {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
@@ -79,7 +129,10 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
         <div className="flex-1 flex flex-col">
-          <TopRibbon />
+          <TopRibbon 
+            selectedModule={selectedModule}
+            onModuleChange={handleModuleChange}
+          />
           
           <main className="flex-1 overflow-auto bg-gradient-to-br from-background to-muted/20">
             {renderMainContent()}

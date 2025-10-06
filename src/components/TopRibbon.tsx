@@ -1,14 +1,21 @@
 
-import { Moon, Sun, Bell, User, LogOut } from "lucide-react";
+import { Moon, Sun, Bell, User, LogOut, Grid3x3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import NotificationsPanel from "@/components/NotificationsPanel";
 import { fetchNotifications } from '@/services/notificationService';
 
-const TopRibbon = () => {
+export type ModuleType = 'trade-finance' | 'supply-chain-finance' | 'corporate-lending' | 'cash-management';
+
+interface TopRibbonProps {
+  selectedModule?: ModuleType;
+  onModuleChange?: (module: ModuleType) => void;
+}
+
+const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance', onModuleChange }) => {
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -53,6 +60,16 @@ const TopRibbon = () => {
     }
   };
 
+  const getModuleLabel = (module: ModuleType) => {
+    const labels = {
+      'trade-finance': 'Trade Finance',
+      'supply-chain-finance': 'Supply Chain Finance',
+      'corporate-lending': 'Corporate Lending',
+      'cash-management': 'Cash Management'
+    };
+    return labels[module];
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-professional-navy border-b border-border px-6 py-4 professional-shadow">
@@ -72,6 +89,48 @@ const TopRibbon = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Module Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-all duration-200"
+                  title="Select Module"
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border shadow-lg">
+                <DropdownMenuLabel className="text-muted-foreground">Select Module</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className={`cursor-pointer ${selectedModule === 'trade-finance' ? 'bg-primary/10 text-primary font-semibold' : ''}`}
+                  onClick={() => onModuleChange?.('trade-finance')}
+                >
+                  Trade Finance
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className={`cursor-pointer ${selectedModule === 'supply-chain-finance' ? 'bg-primary/10 text-primary font-semibold' : ''}`}
+                  onClick={() => onModuleChange?.('supply-chain-finance')}
+                >
+                  Supply Chain Finance
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className={`cursor-pointer ${selectedModule === 'corporate-lending' ? 'bg-primary/10 text-primary font-semibold' : ''}`}
+                  onClick={() => onModuleChange?.('corporate-lending')}
+                >
+                  Corporate Lending
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className={`cursor-pointer ${selectedModule === 'cash-management' ? 'bg-primary/10 text-primary font-semibold' : ''}`}
+                  onClick={() => onModuleChange?.('cash-management')}
+                >
+                  Cash Management
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Theme Toggle */}
             <Button
               variant="ghost"
