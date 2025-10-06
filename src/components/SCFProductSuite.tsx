@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { TrendingUp, Package, Receipt, Users, FileCheck, ArrowLeftRight } from 'lucide-react';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
+import POPIModal from './POPIModal';
+import InvoiceModal from './InvoiceModal';
 
 interface SCFProductSuiteProps {
   onBack: () => void;
@@ -9,6 +11,8 @@ interface SCFProductSuiteProps {
 
 const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
+  const [showPOPIModal, setShowPOPIModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const scfProducts = [
     {
@@ -58,6 +62,14 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
       description: 'Efficient payment and settlement solutions',
       hasFlip: true,
       flipOptions: ['Payment Automation', 'Settlement Tracking', 'Reconciliation']
+    },
+    {
+      id: 'underlying-docs',
+      title: 'Underlying PO/PI/Invoice Management',
+      icon: Receipt,
+      description: 'Manage purchase orders, proforma invoices and commercial invoices',
+      hasFlip: true,
+      flipOptions: ['PO-PI', 'Invoice']
     }
   ];
 
@@ -69,9 +81,21 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
     setFlippedCard(null);
   };
 
+  const handleUnderlyingDocsClick = (option: string) => {
+    if (option === 'PO-PI') {
+      setShowPOPIModal(true);
+    } else if (option === 'Invoice') {
+      setShowInvoiceModal(true);
+    }
+  };
+
   const handleOptionClick = (productId: string, option: string) => {
-    console.log('SCF Product option clicked:', productId, option);
-    // TODO: Implement modal handlers for SCF products
+    if (productId === 'underlying-docs') {
+      handleUnderlyingDocsClick(option);
+    } else {
+      console.log('SCF Product option clicked:', productId, option);
+      // TODO: Implement modal handlers for SCF products
+    }
   };
 
   return (
@@ -102,6 +126,20 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
           ))}
         </div>
       </div>
+
+      {showPOPIModal && (
+        <POPIModal 
+          onClose={() => setShowPOPIModal(false)} 
+          onBack={() => setShowPOPIModal(false)}
+        />
+      )}
+
+      {showInvoiceModal && (
+        <InvoiceModal 
+          onClose={() => setShowInvoiceModal(false)} 
+          onBack={() => setShowInvoiceModal(false)}
+        />
+      )}
     </div>
   );
 };
