@@ -65,11 +65,11 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
     },
     {
       id: 'underlying-docs',
-      title: 'Underlying PO/PI/Invoice Management',
+      title: 'Underlying Invoice Management',
       icon: Receipt,
-      description: 'Manage purchase orders, proforma invoices and commercial invoices',
+      description: 'Manage Commercial Invoices, Credit and Debit Notes',
       hasFlip: true,
-      flipOptions: ['PO-PI', 'Invoice']
+      flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
     }
   ];
 
@@ -82,10 +82,11 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   };
 
   const handleUnderlyingDocsClick = (option: string) => {
-    if (option === 'PO-PI') {
-      setShowPOPIModal(true);
-    } else if (option === 'Invoice') {
+    if (option === 'Commercial Invoice') {
       setShowInvoiceModal(true);
+    } else if (option === 'Credit Note' || option === 'Debit Note') {
+      console.log('Credit/Debit Note clicked:', option);
+      // TODO: Implement Credit/Debit Note modals
     }
   };
 
