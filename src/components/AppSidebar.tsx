@@ -77,22 +77,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
         title: 'Product Suite',
         icon: Package,
         id: 'product-suite'
-      }
-    ];
-
-    // Add SCF-specific menu items
-    if (selectedModule === 'supply-chain-finance') {
-      baseItems.push(
-        {
-          title: 'Master Set-up',
-          icon: Database,
-          id: 'master-setup'
-        }
-      );
-    }
-
-    // Add common items
-    baseItems.push(
+      },
       {
         title: 'Inquiry Function',
         icon: Search,
@@ -102,13 +87,8 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
         title: 'Secured Correspondence',
         icon: Shield,
         id: 'correspondence'
-      },
-      {
-        title: 'Configuration',
-        icon: Settings,
-        id: 'configuration'
       }
-    );
+    ];
 
     return baseItems;
   };
@@ -153,7 +133,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
             </div>
             <SidebarGroupContent className="px-3 py-4">
               <SidebarMenu className="space-y-2">
-                {menuItems.map((item) => (
+                {menuItems.slice(0, 2).map((item) => (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton 
                       tooltip={isCollapsed ? item.title : undefined}
@@ -174,7 +154,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                   </SidebarMenuItem>
                 ))}
 
-                {/* Control Center Menu - Only for SCF */}
+                {/* Control Center Menu - Only for SCF - Place after Product Suite */}
                 {selectedModule === 'supply-chain-finance' && (
                   <Collapsible open={controlCenterOpen} onOpenChange={setControlCenterOpen}>
                     <SidebarMenuItem>
@@ -204,11 +184,11 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                         <TooltipTrigger asChild>
                                           <SidebarMenuSubButton className="cursor-pointer w-full">
                                             <subItem.icon className="w-4 h-4 flex-shrink-0" />
-                                            <span className="flex-1">{subItem.title}</span>
-                                            <ChevronDown className={`w-3 h-3 transition-transform ${administrationOpen ? 'rotate-180' : ''}`} />
+                                            {!isCollapsed && <span className="flex-1">{subItem.title}</span>}
+                                            {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${administrationOpen ? 'rotate-180' : ''}`} />}
                                           </SidebarMenuSubButton>
                                         </TooltipTrigger>
-                                        <TooltipContent side="right">
+                                        <TooltipContent side="right" className="z-50">
                                           <p>{subItem.tooltip}</p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -226,10 +206,10 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                                   onClick={() => onMenuClick(nestedItem.id)}
                                                 >
                                                   <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
-                                                  <span>{nestedItem.title}</span>
+                                                  {!isCollapsed && <span>{nestedItem.title}</span>}
                                                 </SidebarMenuSubButton>
                                               </TooltipTrigger>
-                                              <TooltipContent side="right">
+                                              <TooltipContent side="right" className="z-50">
                                                 <p>{nestedItem.tooltip}</p>
                                               </TooltipContent>
                                             </Tooltip>
@@ -250,10 +230,10 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                         onClick={() => onMenuClick(subItem.id)}
                                       >
                                         <subItem.icon className="w-4 h-4 flex-shrink-0" />
-                                        <span>{subItem.title}</span>
+                                        {!isCollapsed && <span>{subItem.title}</span>}
                                       </SidebarMenuSubButton>
                                     </TooltipTrigger>
-                                    <TooltipContent side="right">
+                                    <TooltipContent side="right" className="z-50">
                                       <p>{subItem.tooltip}</p>
                                     </TooltipContent>
                                   </Tooltip>
@@ -266,6 +246,28 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                     </SidebarMenuItem>
                   </Collapsible>
                 )}
+
+                {/* Remaining menu items after Control Center */}
+                {menuItems.slice(2).map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton 
+                      tooltip={isCollapsed ? item.title : undefined}
+                      className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
+                        activeMenu === item.id 
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
+                      }`}
+                      onClick={() => onMenuClick(item.id)}
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      {!isCollapsed && (
+                        <span className="font-medium text-sm tracking-wide">
+                          {item.title}
+                        </span>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
