@@ -4,6 +4,7 @@ import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 import POPIModal from './POPIModal';
 import InvoiceModal from './InvoiceModal';
+import { Separator } from '@/components/ui/separator';
 
 interface SCFProductSuiteProps {
   onBack: () => void;
@@ -14,23 +15,16 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
-  const scfProducts = [
-    {
-      id: 'underlying-docs',
-      title: 'Underlying Invoice Management',
-      icon: Receipt,
-      description: 'Manage Commercial Invoices, Credit and Debit Notes',
-      hasFlip: true,
-      flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
-    },
-    {
-      id: 'payables-finance',
-      title: 'Payables Finance',
-      icon: Receipt,
-      description: 'Optimize working capital through early payment programs',
-      hasFlip: true,
-      flipOptions: ['Approved Payables Finance', 'Dynamic Discounting', 'Reverse Factoring']
-    },
+  const invoiceCard = {
+    id: 'underlying-docs',
+    title: 'Underlying Invoice Management',
+    icon: Receipt,
+    description: 'Manage Commercial Invoices, Credit and Debit Notes',
+    hasFlip: true,
+    flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
+  };
+
+  const sellerAnchoredPrograms = [
     {
       id: 'receivables-finance',
       title: 'Receivables Finance',
@@ -46,6 +40,17 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
       description: 'Finance inventory and goods in transit',
       hasFlip: true,
       flipOptions: ['Warehouse Receipt Finance', 'Distributor Finance', 'Dealer Finance']
+    }
+  ];
+
+  const buyerAnchoredPrograms = [
+    {
+      id: 'payables-finance',
+      title: 'Payables Finance',
+      icon: Receipt,
+      description: 'Optimize working capital through early payment programs',
+      hasFlip: true,
+      flipOptions: ['Approved Payables Finance', 'Dynamic Discounting', 'Reverse Factoring']
     },
     {
       id: 'po-finance',
@@ -93,22 +98,71 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
           <p className="text-muted-foreground">Comprehensive financing solutions to optimize your supply chain working capital</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {scfProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              title={product.title}
-              icon={product.icon}
-              description={product.description}
-              hasFlip={product.hasFlip}
-              flipOptions={product.flipOptions}
-              isFlipped={flippedCard === product.id}
-              onMouseEnter={() => handleCardHover(product.id)}
-              onMouseLeave={handleCardLeave}
-              onOptionClick={handleOptionClick}
-            />
-          ))}
+        {/* Invoice Management Card */}
+        <div className="mb-8">
+          <ProductCard
+            key={invoiceCard.id}
+            id={invoiceCard.id}
+            title={invoiceCard.title}
+            icon={invoiceCard.icon}
+            description={invoiceCard.description}
+            hasFlip={invoiceCard.hasFlip}
+            flipOptions={invoiceCard.flipOptions}
+            isFlipped={flippedCard === invoiceCard.id}
+            onMouseEnter={() => handleCardHover(invoiceCard.id)}
+            onMouseLeave={handleCardLeave}
+            onOptionClick={handleOptionClick}
+          />
+        </div>
+
+        {/* Separator */}
+        <Separator className="my-12" />
+
+        {/* Two Column Layout for Anchored Programs */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Seller/Supplier Anchored Program */}
+          <div>
+            <h4 className="text-lg font-semibold text-foreground mb-6">Seller/Supplier Anchored Program</h4>
+            <div className="space-y-6">
+              {sellerAnchoredPrograms.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  icon={product.icon}
+                  description={product.description}
+                  hasFlip={product.hasFlip}
+                  flipOptions={product.flipOptions}
+                  isFlipped={flippedCard === product.id}
+                  onMouseEnter={() => handleCardHover(product.id)}
+                  onMouseLeave={handleCardLeave}
+                  onOptionClick={handleOptionClick}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Buyer Anchored Program */}
+          <div>
+            <h4 className="text-lg font-semibold text-foreground mb-6">Buyer Anchored Program</h4>
+            <div className="space-y-6">
+              {buyerAnchoredPrograms.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  icon={product.icon}
+                  description={product.description}
+                  hasFlip={product.hasFlip}
+                  flipOptions={product.flipOptions}
+                  isFlipped={flippedCard === product.id}
+                  onMouseEnter={() => handleCardHover(product.id)}
+                  onMouseLeave={handleCardLeave}
+                  onOptionClick={handleOptionClick}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
