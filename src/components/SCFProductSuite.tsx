@@ -25,41 +25,19 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   };
 
   const sellerAnchoredPrograms = [
-    {
-      id: 'receivables-finance',
-      title: 'Receivables Finance',
-      icon: TrendingUp,
-      description: 'Accelerate cash flow by financing outstanding invoices',
-      hasFlip: true,
-      flipOptions: ['Invoice Discounting', 'Factoring', 'Invoice Purchase']
-    },
-    {
-      id: 'inventory-finance',
-      title: 'Inventory Finance',
-      icon: Package,
-      description: 'Finance inventory and goods in transit',
-      hasFlip: true,
-      flipOptions: ['Warehouse Receipt Finance', 'Distributor Finance', 'Dealer Finance']
-    }
+    { id: 'receivable-finance', title: 'Receivable Finance', icon: TrendingUp },
+    { id: 'dealer-distributor-finance', title: 'Dealer/Distributor Finance', icon: Users },
+    { id: 'invoice-discounting', title: 'Invoice Discounting', icon: Receipt },
+    { id: 'factoring', title: 'Factoring', icon: FileCheck },
+    { id: 'forfaiting', title: 'Forfaiting', icon: ArrowLeftRight },
+    { id: 'inventory-finance', title: 'Inventory Finance', icon: Package }
   ];
 
   const buyerAnchoredPrograms = [
-    {
-      id: 'payables-finance',
-      title: 'Payables Finance',
-      icon: Receipt,
-      description: 'Optimize working capital through early payment programs',
-      hasFlip: true,
-      flipOptions: ['Approved Payables Finance', 'Dynamic Discounting', 'Reverse Factoring']
-    },
-    {
-      id: 'po-finance',
-      title: 'Purchase Order Finance',
-      icon: FileCheck,
-      description: 'Finance purchase orders to fulfill customer orders',
-      hasFlip: true,
-      flipOptions: ['Pre-shipment Finance', 'Post-shipment Finance']
-    }
+    { id: 'approved-payable-finance', title: 'Approved Payable Finance', icon: Receipt },
+    { id: 'dynamic-discounting', title: 'Dynamic Discounting', icon: TrendingUp },
+    { id: 'vendor-finance', title: 'Vendor Finance', icon: Users },
+    { id: 'po-financing', title: 'Purchase Order Financing', icon: FileCheck }
   ];
 
   const handleCardHover = (productId: string) => {
@@ -123,20 +101,19 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
           {/* Seller/Supplier Anchored Program */}
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-6">Seller/Supplier Anchored Program</h4>
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {sellerAnchoredPrograms.map((product) => (
                 <ProductCard
                   key={product.id}
                   id={product.id}
                   title={product.title}
                   icon={product.icon}
-                  description={product.description}
-                  hasFlip={product.hasFlip}
-                  flipOptions={product.flipOptions}
-                  isFlipped={flippedCard === product.id}
-                  onMouseEnter={() => handleCardHover(product.id)}
-                  onMouseLeave={handleCardLeave}
-                  onOptionClick={handleOptionClick}
+                  description=""
+                  hasFlip={false}
+                  isFlipped={false}
+                  onMouseEnter={() => {}}
+                  onMouseLeave={() => {}}
+                  onOptionClick={() => {}}
                 />
               ))}
             </div>
@@ -148,20 +125,19 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
           {/* Buyer Anchored Program */}
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-6">Buyer Anchored Program</h4>
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {buyerAnchoredPrograms.map((product) => (
                 <ProductCard
                   key={product.id}
                   id={product.id}
                   title={product.title}
                   icon={product.icon}
-                  description={product.description}
-                  hasFlip={product.hasFlip}
-                  flipOptions={product.flipOptions}
-                  isFlipped={flippedCard === product.id}
-                  onMouseEnter={() => handleCardHover(product.id)}
-                  onMouseLeave={handleCardLeave}
-                  onOptionClick={handleOptionClick}
+                  description=""
+                  hasFlip={false}
+                  isFlipped={false}
+                  onMouseEnter={() => {}}
+                  onMouseLeave={() => {}}
+                  onOptionClick={() => {}}
                 />
               ))}
             </div>
