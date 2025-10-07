@@ -179,20 +179,20 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               {subItem.subMenus ? (
                                 <Collapsible open={administrationOpen} onOpenChange={setAdministrationOpen}>
                                   <SidebarMenuSubItem>
-                                    <CollapsibleTrigger asChild>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <CollapsibleTrigger asChild>
                                           <SidebarMenuSubButton className="cursor-pointer w-full">
                                             <subItem.icon className="w-4 h-4 flex-shrink-0" />
                                             {!isCollapsed && <span className="flex-1">{subItem.title}</span>}
                                             {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${administrationOpen ? 'rotate-180' : ''}`} />}
                                           </SidebarMenuSubButton>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="z-50">
-                                          <p>{subItem.tooltip}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </CollapsibleTrigger>
+                                        </CollapsibleTrigger>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="right" className="z-50">
+                                        <p>{subItem.tooltip}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                     <CollapsibleContent>
                                       <SidebarMenuSub>
                                         {subItem.subMenus.map((nestedItem) => (
