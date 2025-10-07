@@ -119,7 +119,7 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
         <Separator className="my-12" />
 
         {/* Two Column Layout for Anchored Programs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start">
           {/* Seller/Supplier Anchored Program */}
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-6">Seller/Supplier Anchored Program</h4>
@@ -141,6 +141,9 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
               ))}
             </div>
           </div>
+
+          {/* Vertical Separator */}
+          <Separator orientation="vertical" className="hidden lg:block h-auto min-h-[400px]" />
 
           {/* Buyer Anchored Program */}
           <div>
