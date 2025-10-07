@@ -289,7 +289,7 @@ const SCFDashboard: React.FC = () => {
 
         <Sheet open={esgTrackerOpen} onOpenChange={setEsgTrackerOpen}>
           <SheetTrigger asChild>
-            <Button size="lg" variant="outline" className="rounded-full shadow-lg hover:scale-105 transition-transform border-green-600 text-green-600 hover:bg-green-50">
+            <Button size="lg" variant="outline" className="rounded-full shadow-lg hover:scale-105 transition-transform border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
               <Leaf className="h-5 w-5 mr-2" />
               ESG Tracker
             </Button>
