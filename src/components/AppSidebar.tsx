@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar, FileSearch, FolderSearch, MessageSquareText, BarChart3, ShieldCheck, History, FileCheck, HelpCircle, Ticket, BookOpen, GraduationCap } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModuleType } from './TopRibbon';
@@ -64,6 +64,9 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
   const isCollapsed = state === 'collapsed';
   const [controlCenterOpen, setControlCenterOpen] = React.useState(false);
   const [administrationOpen, setAdministrationOpen] = React.useState(false);
+  const [inquiryOpen, setInquiryOpen] = React.useState(false);
+  const [auditComplianceOpen, setAuditComplianceOpen] = React.useState(false);
+  const [supportOpen, setSupportOpen] = React.useState(false);
 
   // Define menu items based on selected module
   const getMenuItems = () => {
@@ -71,22 +74,53 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
       {
         title: 'Dashboard',
         icon: LayoutDashboard,
-        id: 'dashboard'
+        id: 'dashboard',
+        tooltip: 'View key metrics and performance overview'
       },
       {
         title: 'Product Suite',
         icon: Package,
-        id: 'product-suite'
+        id: 'product-suite',
+        tooltip: 'Access all available trade finance products and services'
       },
       {
-        title: 'Inquiry Function',
+        title: 'Inquiry and Reports',
         icon: Search,
-        id: 'inquiry'
+        id: 'inquiry',
+        tooltip: 'Search transactions, documents, and generate reports',
+        subMenus: [
+          { id: 'transaction-inquiry', title: 'Transaction Inquiry', icon: FileSearch, tooltip: 'Search and view transaction history and details' },
+          { id: 'document-inquiry', title: 'Document Inquiry', icon: FolderSearch, tooltip: 'Search and retrieve document records and archives' },
+          { id: 'swift-message-inquiry', title: 'SWIFT / Message Inquiry', icon: MessageSquareText, tooltip: 'Query SWIFT messages and communication logs' },
+          { id: 'custom-reports', title: 'Custom Reports', icon: BarChart3, tooltip: 'Generate and download customized reports' }
+        ]
       },
       {
         title: 'Secured Correspondence',
         icon: Shield,
-        id: 'correspondence'
+        id: 'correspondence',
+        tooltip: 'Manage secure communications and encrypted messages'
+      },
+      {
+        title: 'Audit & Compliance',
+        icon: ShieldCheck,
+        id: 'audit-compliance',
+        tooltip: 'Access audit trails and compliance documentation',
+        subMenus: [
+          { id: 'audit-trail-inquiry', title: 'Audit Trail Inquiry', icon: History, tooltip: 'View detailed audit logs and system activity history' },
+          { id: 'compliance-certificates', title: 'Compliance Certificates', icon: FileCheck, tooltip: 'Manage and download compliance certificates and reports' }
+        ]
+      },
+      {
+        title: 'Support & Assistance',
+        icon: HelpCircle,
+        id: 'support-assistance',
+        tooltip: 'Get help and access learning resources',
+        subMenus: [
+          { id: 'helpdesk-raise-ticket', title: 'Helpdesk / Raise Ticket', icon: Ticket, tooltip: 'Submit support tickets and track resolution status' },
+          { id: 'knowledge-base', title: 'Knowledge Base', icon: BookOpen, tooltip: 'Browse help articles and documentation' },
+          { id: 'walkthrough-tutorials', title: 'Walkthrough & Tutorials', icon: GraduationCap, tooltip: 'Access step-by-step guides and video tutorials' }
+        ]
       }
     ];
 
@@ -137,22 +171,31 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
               <SidebarMenu className="space-y-2">
                 {menuItems.slice(0, 2).map((item) => (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton 
-                      tooltip={isCollapsed ? item.title : undefined}
-                      className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
-                        activeMenu === item.id 
-                          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
-                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
-                      }`}
-                      onClick={() => onMenuClick(item.id)}
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton 
+                          tooltip={isCollapsed ? item.title : undefined}
+                          className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
+                            activeMenu === item.id 
+                              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
+                              : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
+                          }`}
+                          onClick={() => onMenuClick(item.id)}
+                        >
+                          <item.icon className="w-5 h-5 flex-shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium text-sm tracking-wide">
+                              {item.title}
+                            </span>
+                          )}
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
                       {!isCollapsed && (
-                        <span className="font-medium text-sm tracking-wide">
-                          {item.title}
-                        </span>
+                        <TooltipContent side="top" className="z-50">
+                          <p>{item.tooltip}</p>
+                        </TooltipContent>
                       )}
-                    </SidebarMenuButton>
+                    </Tooltip>
                   </SidebarMenuItem>
                 ))}
 
@@ -249,27 +292,193 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                   </Collapsible>
                 )}
 
-                {/* Remaining menu items after Control Center */}
-                {menuItems.slice(2).map((item) => (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton 
-                      tooltip={isCollapsed ? item.title : undefined}
-                      className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
-                        activeMenu === item.id 
-                          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
-                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
-                      }`}
-                      onClick={() => onMenuClick(item.id)}
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                {/* Inquiry and Reports Menu */}
+                <Collapsible open={inquiryOpen} onOpenChange={setInquiryOpen}>
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={isCollapsed ? 'Inquiry and Reports' : undefined}
+                            className="cursor-pointer transition-all duration-200 rounded-lg p-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm w-full"
+                          >
+                            <Search className="w-5 h-5 flex-shrink-0" />
+                            {!isCollapsed && (
+                              <>
+                                <span className="font-medium text-sm tracking-wide flex-1">Inquiry and Reports</span>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${inquiryOpen ? 'rotate-180' : ''}`} />
+                              </>
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                      </TooltipTrigger>
                       {!isCollapsed && (
-                        <span className="font-medium text-sm tracking-wide">
-                          {item.title}
-                        </span>
+                        <TooltipContent side="top" className="z-50">
+                          <p>Search transactions, documents, and generate reports</p>
+                        </TooltipContent>
                       )}
-                    </SidebarMenuButton>
+                    </Tooltip>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {menuItems[2].subMenus?.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                    activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => onMenuClick(subItem.id)}
+                                >
+                                  <subItem.icon className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>{subItem.tooltip}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
                   </SidebarMenuItem>
-                ))}
+                </Collapsible>
+
+                {/* Secured Correspondence */}
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton 
+                        tooltip={isCollapsed ? 'Secured Correspondence' : undefined}
+                        className={`cursor-pointer transition-all duration-200 rounded-lg p-3 ${
+                          activeMenu === 'correspondence' 
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
+                        }`}
+                        onClick={() => onMenuClick('correspondence')}
+                      >
+                        <Shield className="w-5 h-5 flex-shrink-0" />
+                        {!isCollapsed && (
+                          <span className="font-medium text-sm tracking-wide">
+                            Secured Correspondence
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    {!isCollapsed && (
+                      <TooltipContent side="top" className="z-50">
+                        <p>Manage secure communications and encrypted messages</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </SidebarMenuItem>
+
+                {/* Audit & Compliance Menu */}
+                <Collapsible open={auditComplianceOpen} onOpenChange={setAuditComplianceOpen}>
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={isCollapsed ? 'Audit & Compliance' : undefined}
+                            className="cursor-pointer transition-all duration-200 rounded-lg p-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm w-full"
+                          >
+                            <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                            {!isCollapsed && (
+                              <>
+                                <span className="font-medium text-sm tracking-wide flex-1">Audit & Compliance</span>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${auditComplianceOpen ? 'rotate-180' : ''}`} />
+                              </>
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                      </TooltipTrigger>
+                      {!isCollapsed && (
+                        <TooltipContent side="top" className="z-50">
+                          <p>Access audit trails and compliance documentation</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {menuItems[4].subMenus?.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                    activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => onMenuClick(subItem.id)}
+                                >
+                                  <subItem.icon className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>{subItem.tooltip}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+
+                {/* Support & Assistance Menu */}
+                <Collapsible open={supportOpen} onOpenChange={setSupportOpen}>
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={isCollapsed ? 'Support & Assistance' : undefined}
+                            className="cursor-pointer transition-all duration-200 rounded-lg p-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm w-full"
+                          >
+                            <HelpCircle className="w-5 h-5 flex-shrink-0" />
+                            {!isCollapsed && (
+                              <>
+                                <span className="font-medium text-sm tracking-wide flex-1">Support & Assistance</span>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${supportOpen ? 'rotate-180' : ''}`} />
+                              </>
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                      </TooltipTrigger>
+                      {!isCollapsed && (
+                        <TooltipContent side="top" className="z-50">
+                          <p>Get help and access learning resources</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {menuItems[5].subMenus?.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                    activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => onMenuClick(subItem.id)}
+                                >
+                                  <subItem.icon className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>{subItem.tooltip}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
