@@ -77,11 +77,6 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
     if (selectedModule === 'supply-chain-finance') {
       baseItems.push(
         {
-          title: 'Counter Party On-Boarding',
-          icon: UserPlus,
-          id: 'counter-party-onboarding'
-        },
-        {
           title: 'Master Set-up',
           icon: Database,
           id: 'master-setup'

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, Package } from 'lucide-react';
+import { Database, Package, Settings, UserPlus, Landmark, Link, FileText, FileType } from 'lucide-react';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 
@@ -20,10 +20,50 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
       flipOptions: ['View'] // Only View for Corporates
     },
     {
-      id: 'program',
-      title: 'Program',
-      icon: Database,
-      description: 'Manage program setup and configurations',
+      id: 'program-configuration',
+      title: 'Program Configuration',
+      icon: Settings,
+      description: 'Define eligibility, discount rates, limits',
+      hasFlip: true,
+      flipOptions: ['View', 'Create', 'Update']
+    },
+    {
+      id: 'counter-party-onboarding',
+      title: 'Counter-Party Onboarding',
+      icon: UserPlus,
+      description: 'Manage supplier and buyer onboarding',
+      hasFlip: true,
+      flipOptions: ['View', 'Create', 'Update']
+    },
+    {
+      id: 'bank-account-master',
+      title: 'Bank Account Master',
+      icon: Landmark,
+      description: 'Accounts used for disbursement or repayment',
+      hasFlip: true,
+      flipOptions: ['View', 'Create', 'Update']
+    },
+    {
+      id: 'bank-integrations',
+      title: 'Bank Integrations',
+      icon: Link,
+      description: 'Link with multiple financiers for multi-banking setup',
+      hasFlip: true,
+      flipOptions: ['View', 'Create', 'Update']
+    },
+    {
+      id: 'document-repository',
+      title: 'Document Repository',
+      icon: FileText,
+      description: 'Agreements, policies, mandates',
+      hasFlip: true,
+      flipOptions: ['View', 'Upload', 'Update']
+    },
+    {
+      id: 'document-master',
+      title: 'Document Master',
+      icon: FileType,
+      description: 'Standard templates for invoices',
       hasFlip: true,
       flipOptions: ['View', 'Create', 'Update']
     }
