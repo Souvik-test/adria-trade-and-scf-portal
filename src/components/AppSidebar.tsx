@@ -118,7 +118,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
   return (
     <TooltipProvider>
       <Sidebar 
-        className="border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg"
+        className="border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg min-w-[280px]"
         collapsible="icon"
       >
         <SidebarContent>
@@ -194,19 +194,19 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                       </TooltipContent>
                                     </Tooltip>
                                     <CollapsibleContent>
-                                      <SidebarMenuSub>
+                                       <SidebarMenuSub>
                                         {subItem.subMenus.map((nestedItem) => (
                                           <SidebarMenuSubItem key={nestedItem.id}>
                                             <Tooltip>
                                               <TooltipTrigger asChild>
                                                 <SidebarMenuSubButton
-                                                  className={`cursor-pointer pl-8 ${
+                                                  className={`cursor-pointer pl-8 whitespace-normal break-words ${
                                                     activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                                   }`}
                                                   onClick={() => onMenuClick(nestedItem.id)}
                                                 >
                                                   <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
-                                                  {!isCollapsed && <span>{nestedItem.title}</span>}
+                                                  {!isCollapsed && <span className="flex-1">{nestedItem.title}</span>}
                                                 </SidebarMenuSubButton>
                                               </TooltipTrigger>
                                               <TooltipContent side="right" className="z-50">
@@ -224,13 +224,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <SidebarMenuSubButton
-                                        className={`cursor-pointer ${
+                                        className={`cursor-pointer whitespace-normal break-words ${
                                           activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                         }`}
                                         onClick={() => onMenuClick(subItem.id)}
                                       >
                                         <subItem.icon className="w-4 h-4 flex-shrink-0" />
-                                        {!isCollapsed && <span>{subItem.title}</span>}
+                                        {!isCollapsed && <span className="flex-1">{subItem.title}</span>}
                                       </SidebarMenuSubButton>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className="z-50">
