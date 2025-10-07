@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 const SCFDashboard: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState('30days');
   const [programFilter, setProgramFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'buyer' | 'supplier'>('buyer');
   const [aiInsightsOpen, setAiInsightsOpen] = useState(false);
   const [esgTrackerOpen, setEsgTrackerOpen] = useState(false);
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
@@ -16,7 +17,18 @@ const SCFDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-foreground">Supply Chain Finance Dashboard</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-foreground">Supply Chain Finance Dashboard</h2>
+          <Select value={viewMode} onValueChange={(value) => setViewMode(value as 'buyer' | 'supplier')}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="buyer">Buyer View</SelectItem>
+              <SelectItem value="supplier">Supplier View</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex gap-3">
           <Select value={programFilter} onValueChange={setProgramFilter}>
             <SelectTrigger className="w-[180px]">
