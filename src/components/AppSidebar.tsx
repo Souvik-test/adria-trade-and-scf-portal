@@ -202,7 +202,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                              <Tooltip>
                                                <TooltipTrigger asChild>
                                                   <SidebarMenuSubButton
-                                                    className={`cursor-pointer pl-6 whitespace-normal break-words min-w-0 ${
+                                                    className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
                                                       activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                                     }`}
                                                     onClick={() => onMenuClick(nestedItem.id)}
