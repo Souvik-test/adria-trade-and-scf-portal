@@ -119,7 +119,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
     <TooltipProvider>
       <Sidebar 
         className={`border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg ${
-          isCollapsed ? 'w-16' : 'w-64'
+          isCollapsed ? 'w-16' : 'w-80'
         }`}
         collapsible="icon"
       >
