@@ -83,7 +83,7 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
                 TextCorp Ltd
               </h1>
               <span className="text-muted-foreground text-sm font-medium px-3 py-1 bg-muted rounded-full">
-                Trade Finance Portal
+                {selectedModule === 'supply-chain-finance' ? 'Supply Chain Finance Portal' : 'Trade Finance Portal'}
               </span>
             </div>
           </div>

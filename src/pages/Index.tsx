@@ -8,6 +8,7 @@ import DashboardWidgets from '@/components/DashboardWidgets';
 import ProductSuite from '@/components/ProductSuite';
 import SCFDashboard from '@/components/SCFDashboard';
 import SCFProductSuite from '@/components/SCFProductSuite';
+import SCFMasterSetup from '@/components/SCFMasterSetup';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -37,6 +38,19 @@ const Index = () => {
       switch (activeMenu) {
         case 'product-suite':
           return <SCFProductSuite onBack={() => setActiveMenu('dashboard')} />;
+        case 'counter-party-onboarding':
+          return (
+            <div className="p-8 animate-fade-in">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-3xl font-bold text-foreground mb-4">Counter Party On-Boarding</h2>
+                <div className="bg-card rounded-lg p-6 professional-shadow">
+                  <p className="text-muted-foreground text-lg">Counter party on-boarding feature coming soon...</p>
+                </div>
+              </div>
+            </div>
+          );
+        case 'master-setup':
+          return <SCFMasterSetup onBack={() => setActiveMenu('dashboard')} />;
         case 'inquiry':
         case 'correspondence':
         case 'configuration':
@@ -127,7 +141,11 @@ const Index = () => {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar activeMenu={activeMenu} onMenuClick={handleMenuClick} />
+        <AppSidebar 
+          activeMenu={activeMenu} 
+          onMenuClick={handleMenuClick}
+          selectedModule={selectedModule}
+        />
         <div className="flex-1 flex flex-col">
           <TopRibbon 
             selectedModule={selectedModule}

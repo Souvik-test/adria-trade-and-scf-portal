@@ -12,7 +12,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User, LayoutDashboard } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, LayoutDashboard, UserPlus, Database } from 'lucide-react';
+import { ModuleType } from './TopRibbon';
 
 const menuItems = [
   {
@@ -50,11 +51,72 @@ const menuItems = [
 interface AppSidebarProps {
   activeMenu: string;
   onMenuClick: (menuId: string) => void;
+  selectedModule?: ModuleType;
 }
 
-export function AppSidebar({ activeMenu, onMenuClick }: AppSidebarProps) {
+export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-finance' }: AppSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+
+  // Define menu items based on selected module
+  const getMenuItems = () => {
+    const baseItems = [
+      {
+        title: 'Dashboard',
+        icon: LayoutDashboard,
+        id: 'dashboard'
+      },
+      {
+        title: 'Product Suite',
+        icon: Package,
+        id: 'product-suite'
+      }
+    ];
+
+    // Add SCF-specific menu items
+    if (selectedModule === 'supply-chain-finance') {
+      baseItems.push(
+        {
+          title: 'Counter Party On-Boarding',
+          icon: UserPlus,
+          id: 'counter-party-onboarding'
+        },
+        {
+          title: 'Master Set-up',
+          icon: Database,
+          id: 'master-setup'
+        }
+      );
+    }
+
+    // Add common items
+    baseItems.push(
+      {
+        title: 'Inquiry Function',
+        icon: Search,
+        id: 'inquiry'
+      },
+      {
+        title: 'Secured Correspondence',
+        icon: Shield,
+        id: 'correspondence'
+      },
+      {
+        title: 'Configuration',
+        icon: Settings,
+        id: 'configuration'
+      },
+      {
+        title: 'Administration',
+        icon: User,
+        id: 'administration'
+      }
+    );
+
+    return baseItems;
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <Sidebar 

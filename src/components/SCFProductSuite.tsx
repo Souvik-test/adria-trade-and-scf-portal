@@ -16,6 +16,14 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
 
   const scfProducts = [
     {
+      id: 'underlying-docs',
+      title: 'Underlying Invoice Management',
+      icon: Receipt,
+      description: 'Manage Commercial Invoices, Credit and Debit Notes',
+      hasFlip: true,
+      flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
+    },
+    {
       id: 'payables-finance',
       title: 'Payables Finance',
       icon: Receipt,
@@ -46,30 +54,6 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
       description: 'Finance purchase orders to fulfill customer orders',
       hasFlip: true,
       flipOptions: ['Pre-shipment Finance', 'Post-shipment Finance']
-    },
-    {
-      id: 'supplier-finance',
-      title: 'Supplier Finance Programs',
-      icon: Users,
-      description: 'Comprehensive supplier financing solutions',
-      hasFlip: true,
-      flipOptions: ['Supplier Onboarding', 'Program Management', 'Supplier Portal']
-    },
-    {
-      id: 'trade-settlement',
-      title: 'Trade Settlement',
-      icon: ArrowLeftRight,
-      description: 'Efficient payment and settlement solutions',
-      hasFlip: true,
-      flipOptions: ['Payment Automation', 'Settlement Tracking', 'Reconciliation']
-    },
-    {
-      id: 'underlying-docs',
-      title: 'Underlying Invoice Management',
-      icon: Receipt,
-      description: 'Manage Commercial Invoices, Credit and Debit Notes',
-      hasFlip: true,
-      flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
     }
   ];
 
