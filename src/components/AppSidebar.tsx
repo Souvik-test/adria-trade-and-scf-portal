@@ -191,7 +191,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                           </SidebarMenuSubButton>
                                         </CollapsibleTrigger>
                                       </TooltipTrigger>
-                                      <TooltipContent side="right" className="z-50">
+                                      <TooltipContent side="top" className="z-50">
                                         <p>{subItem.tooltip}</p>
                                       </TooltipContent>
                                     </Tooltip>
@@ -201,19 +201,19 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                            <SidebarMenuSubItem key={nestedItem.id}>
                                              <Tooltip>
                                                <TooltipTrigger asChild>
-                                                 <SidebarMenuSubButton
-                                                   className={`cursor-pointer pl-8 whitespace-normal break-words min-w-0 ${
-                                                     activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
-                                                   }`}
-                                                   onClick={() => onMenuClick(nestedItem.id)}
-                                                 >
-                                                   <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
-                                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{nestedItem.title}</span>}
-                                                 </SidebarMenuSubButton>
+                                                  <SidebarMenuSubButton
+                                                    className={`cursor-pointer pl-6 whitespace-normal break-words min-w-0 ${
+                                                      activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                                    }`}
+                                                    onClick={() => onMenuClick(nestedItem.id)}
+                                                  >
+                                                    <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
+                                                    {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{nestedItem.title}</span>}
+                                                  </SidebarMenuSubButton>
                                                </TooltipTrigger>
-                                               <TooltipContent side="right" className="z-50">
-                                                 <p>{nestedItem.tooltip}</p>
-                                               </TooltipContent>
+                                                <TooltipContent side="top" className="z-50">
+                                                  <p>{nestedItem.tooltip}</p>
+                                                </TooltipContent>
                                              </Tooltip>
                                            </SidebarMenuSubItem>
                                         ))}
@@ -235,7 +235,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                         {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
                                       </SidebarMenuSubButton>
                                     </TooltipTrigger>
-                                    <TooltipContent side="right" className="z-50">
+                                    <TooltipContent side="top" className="z-50">
                                       <p>{subItem.tooltip}</p>
                                     </TooltipContent>
                                   </Tooltip>
