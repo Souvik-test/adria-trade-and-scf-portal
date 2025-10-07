@@ -196,24 +196,24 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <CollapsibleContent>
                                        <SidebarMenuSub>
                                         {subItem.subMenus.map((nestedItem) => (
-                                          <SidebarMenuSubItem key={nestedItem.id}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <SidebarMenuSubButton
-                                                  className={`cursor-pointer pl-8 whitespace-normal break-words ${
-                                                    activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
-                                                  }`}
-                                                  onClick={() => onMenuClick(nestedItem.id)}
-                                                >
-                                                  <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
-                                                  {!isCollapsed && <span className="flex-1">{nestedItem.title}</span>}
-                                                </SidebarMenuSubButton>
-                                              </TooltipTrigger>
-                                              <TooltipContent side="right" className="z-50">
-                                                <p>{nestedItem.tooltip}</p>
-                                              </TooltipContent>
-                                            </Tooltip>
-                                          </SidebarMenuSubItem>
+                                           <SidebarMenuSubItem key={nestedItem.id}>
+                                             <Tooltip>
+                                               <TooltipTrigger asChild>
+                                                 <SidebarMenuSubButton
+                                                   className={`cursor-pointer pl-8 whitespace-normal break-words min-w-0 ${
+                                                     activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                                   }`}
+                                                   onClick={() => onMenuClick(nestedItem.id)}
+                                                 >
+                                                   <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
+                                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{nestedItem.title}</span>}
+                                                 </SidebarMenuSubButton>
+                                               </TooltipTrigger>
+                                               <TooltipContent side="right" className="z-50">
+                                                 <p>{nestedItem.tooltip}</p>
+                                               </TooltipContent>
+                                             </Tooltip>
+                                           </SidebarMenuSubItem>
                                         ))}
                                       </SidebarMenuSub>
                                     </CollapsibleContent>
@@ -224,13 +224,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <SidebarMenuSubButton
-                                        className={`cursor-pointer whitespace-normal break-words ${
+                                        className={`cursor-pointer whitespace-normal break-words min-w-0 ${
                                           activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                         }`}
                                         onClick={() => onMenuClick(subItem.id)}
                                       >
                                         <subItem.icon className="w-4 h-4 flex-shrink-0" />
-                                        {!isCollapsed && <span className="flex-1">{subItem.title}</span>}
+                                        {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
                                       </SidebarMenuSubButton>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className="z-50">
