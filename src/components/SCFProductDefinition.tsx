@@ -569,7 +569,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                               disabled={isAdding || editingId !== null || product.authorizationRequired}
                               className={product.authorizationRequired 
                                 ? "opacity-50 cursor-not-allowed" 
-                                : "hover:bg-accent/10 text-accent-foreground"}
+                                : "hover:bg-primary/10 text-primary"}
                               title={product.authorizationRequired 
                                 ? "Authorization required - Program mapping disabled" 
                                 : "Program Mapping"}

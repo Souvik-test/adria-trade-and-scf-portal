@@ -14,7 +14,10 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   const [currentView, setCurrentView] = useState<"main" | "productDefinition" | "programConfiguration">("main");
 
   if (currentView === "productDefinition") {
-    return <SCFProductDefinition onBack={() => setCurrentView("main")} />;
+    return <SCFProductDefinition 
+      onBack={() => setCurrentView("main")} 
+      onNavigateToProgramConfig={() => setCurrentView("programConfiguration")}
+    />;
   }
 
   if (currentView === "programConfiguration") {
