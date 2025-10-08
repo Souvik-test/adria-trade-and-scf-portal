@@ -55,7 +55,8 @@ export const customAuth = {
     try {
       const passwordHash = hashPassword(userData.password);
       
-      const { data, error } = await supabase
+      // Insert new user (password_hash is write-only)
+      const { error: insertError } = await supabase
         .from('custom_users')
         .insert({
           user_id: userData.userId,
@@ -65,16 +66,23 @@ export const customAuth = {
           role_type: userData.roleType,
           product_linkage: userData.productLinkage,
           corporate_id: 'TC001'
-        } as any)
-        .select()
-        .single();
+        } as any);
 
-      if (error) {
-        console.error('Signup error:', error);
-        return { user: null, error: error.message };
+      if (insertError) {
+        console.error('Signup error:', insertError);
+        return { user: null, error: insertError.message };
       }
 
-      return { user: data as CustomUser, error: null };
+      // Retrieve user profile securely (without password_hash)
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_custom_user_profile', { input_user_id: userData.userId });
+
+      if (profileError || !profileData || profileData.length === 0) {
+        console.error('Profile retrieval error:', profileError);
+        return { user: null, error: 'Failed to retrieve user profile' };
+      }
+
+      return { user: profileData[0] as CustomUser, error: null };
     } catch (error) {
       console.error('Signup error:', error);
       return { user: null, error: 'Failed to create account' };
