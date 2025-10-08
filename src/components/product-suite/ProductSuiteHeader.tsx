@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button';
 
 interface ProductSuiteHeaderProps {
   onBack: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
-const ProductSuiteHeader: React.FC<ProductSuiteHeaderProps> = ({ onBack }) => {
+const ProductSuiteHeader: React.FC<ProductSuiteHeaderProps> = ({ 
+  onBack, 
+  title = "Product Suite",
+  subtitle = "Comprehensive trade finance solutions"
+}) => {
   return (
     <div className="flex items-center gap-4 mb-8 p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg professional-shadow">
       <Button 
@@ -19,8 +25,8 @@ const ProductSuiteHeader: React.FC<ProductSuiteHeaderProps> = ({ onBack }) => {
         <ArrowLeft className="w-5 h-5 text-primary" />
       </Button>
       <div>
-        <h2 className="text-3xl font-bold text-foreground tracking-tight">Product Suite</h2>
-        <p className="text-muted-foreground mt-1">Comprehensive trade finance solutions</p>
+        <h2 className="text-3xl font-bold text-foreground tracking-tight">{title}</h2>
+        <p className="text-muted-foreground mt-1">{subtitle}</p>
       </div>
     </div>
   );

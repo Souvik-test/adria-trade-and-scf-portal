@@ -68,7 +68,11 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
-      <ProductSuiteHeader onBack={onBack} />
+      <ProductSuiteHeader 
+        onBack={onBack} 
+        title="Adria SCF Studio"
+        subtitle="Comprehensive supply chain finance solutions"
+      />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="mb-8">
@@ -77,7 +81,7 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
         </div>
 
         {/* Invoice Management Card */}
-        <div className="mb-8">
+        <div className="mb-8 max-w-md">
           <ProductCard
             key={invoiceCard.id}
             id={invoiceCard.id}

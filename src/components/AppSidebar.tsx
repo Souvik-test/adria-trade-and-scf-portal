@@ -130,6 +130,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
   const menuItems = getMenuItems();
 
   const controlCenterSubMenus = [
+    { id: 'product-definition', title: 'Product Definition', icon: Package, tooltip: 'Define SCF products based on your business needs' },
     { id: 'program-configuration', title: 'Program Configuration', icon: Sliders, tooltip: 'Define eligibility, discount rates, and limits for financing programs' },
     { id: 'counter-party-onboarding', title: 'Counter-Party Onboarding', icon: UserPlus, tooltip: 'Manage supplier and buyer onboarding processes' },
     { id: 'bank-account-master', title: 'Bank Account Master', icon: Landmark, tooltip: 'Manage bank accounts used for disbursement or repayment' },
