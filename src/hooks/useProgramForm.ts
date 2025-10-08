@@ -5,6 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 
+// Product code to name mapping
+const PRODUCT_CODE_MAPPING: Record<string, string> = {
+  "INV_FIN": "Invoice Financing",
+  "PO_FIN": "Purchase Order Financing",
+  "DIS_FIN": "Distributor Financing",
+  "VEN_FIN": "Vendor Financing",
+  "DYN_DISC": "Dynamic Discounting",
+};
+
 const programSchema = z.object({
   program_id: z.string().min(1, "Program ID is required"),
   program_name: z.string().min(1, "Program name is required"),
@@ -27,10 +36,12 @@ const programSchema = z.object({
   borrower_selection: z.string().default("Anchor Party"),
   finance_tenor: z.number().optional(),
   finance_tenor_unit: z.string().default("days"),
-  min_tenor: z.number().min(0, "Minimum tenor must be positive").optional(),
-  min_tenor_unit: z.string().default("days"),
-  max_tenor: z.number().min(0, "Maximum tenor must be positive").optional(),
-  max_tenor_unit: z.string().default("days"),
+  min_tenor_years: z.number().min(0).default(0),
+  min_tenor_months: z.number().min(0).max(11).default(0),
+  min_tenor_days: z.number().min(0).max(30).default(0),
+  max_tenor_years: z.number().min(0).default(0),
+  max_tenor_months: z.number().min(0).max(11).default(0),
+  max_tenor_days: z.number().min(0).max(30).default(0),
   margin_percentage: z.number().default(0),
   finance_percentage: z.number().min(0).max(100, "Finance percentage cannot exceed 100%").default(100),
   grace_days: z.number().min(0, "Grace days cannot be negative").default(0),
@@ -41,12 +52,18 @@ const programSchema = z.object({
   unaccepted_invoice_percentage: z.number().min(0).max(100).default(0),
   recourse_enabled: z.boolean().default(false),
   recourse_percentage: z.number().min(0).max(100).default(0),
-  disbursement_mode: z.string().optional(),
-  disbursement_account: z.string().optional(),
-  disbursement_conditions: z.string().optional(),
-  repayment_mode: z.string().optional(),
-  repayment_account: z.string().optional(),
-  appropriation_sequence: z.array(z.any()).default([]),
+  multiple_disbursement: z.boolean().default(false),
+  max_disbursements_allowed: z.number().min(1).max(100).default(1),
+  auto_disbursement: z.boolean().default(false),
+  holiday_treatment: z.string().default("Next Business Day"),
+  repayment_by: z.string().default("Buyer"),
+  debit_account_number: z.string().optional(),
+  auto_repayment: z.boolean().default(false),
+  part_payment_allowed: z.boolean().default(false),
+  pre_payment_allowed: z.boolean().default(false),
+  charge_penalty_on_prepayment: z.boolean().default(false),
+  appropriation_sequence_after_due: z.array(z.any()).default([]),
+  appropriation_sequence_before_due: z.array(z.any()).default([]),
   insurance_required: z.boolean().default(false),
   insurance_policies: z.array(z.any()).default([]),
   fee_catalogue: z.array(z.any()).default([]),
@@ -85,10 +102,12 @@ export const useProgramForm = (
       borrower_selection: "Anchor Party",
       finance_tenor: 0,
       finance_tenor_unit: "days",
-      min_tenor: 0,
-      min_tenor_unit: "days",
-      max_tenor: 0,
-      max_tenor_unit: "days",
+      min_tenor_years: 0,
+      min_tenor_months: 0,
+      min_tenor_days: 0,
+      max_tenor_years: 0,
+      max_tenor_months: 0,
+      max_tenor_days: 0,
       margin_percentage: 0,
       finance_percentage: 100,
       grace_days: 0,
@@ -99,12 +118,18 @@ export const useProgramForm = (
       unaccepted_invoice_percentage: 0,
       recourse_enabled: false,
       recourse_percentage: 0,
-      disbursement_mode: "",
-      disbursement_account: "",
-      disbursement_conditions: "",
-      repayment_mode: "",
-      repayment_account: "",
-      appropriation_sequence: [],
+      multiple_disbursement: false,
+      max_disbursements_allowed: 1,
+      auto_disbursement: false,
+      holiday_treatment: "Next Business Day",
+      repayment_by: "Buyer",
+      debit_account_number: "",
+      auto_repayment: false,
+      part_payment_allowed: false,
+      pre_payment_allowed: false,
+      charge_penalty_on_prepayment: false,
+      appropriation_sequence_after_due: [],
+      appropriation_sequence_before_due: [],
       insurance_required: false,
       insurance_policies: [],
       fee_catalogue: [],
@@ -126,7 +151,7 @@ export const useProgramForm = (
     }
   }, [program, mode, form]);
 
-  // Auto-populate available limit when program limit changes (only in add mode)
+  // Auto-populate fields when values change (only in add mode)
   useEffect(() => {
     if (mode === "add") {
       const subscription = form.watch((value, { name }) => {
@@ -138,6 +163,10 @@ export const useProgramForm = (
         }
         if (name === "anchor_name" && !form.getValues("anchor_party")) {
           form.setValue("anchor_party", value.anchor_name || "");
+        }
+        if (name === "product_code") {
+          const productName = PRODUCT_CODE_MAPPING[value.product_code as string] || "";
+          form.setValue("product_name", productName);
         }
       });
       return () => subscription.unsubscribe();

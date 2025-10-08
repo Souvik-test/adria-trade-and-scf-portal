@@ -35,6 +35,14 @@ export const ProgramFormDialog = ({
     }
   };
 
+  const handlePrevious = () => {
+    if (activeTab === "fees") {
+      setActiveTab("disbursement");
+    } else if (activeTab === "disbursement") {
+      setActiveTab("general");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
@@ -68,7 +76,11 @@ export const ProgramFormDialog = ({
                 </TabsContent>
 
                 <TabsContent value="disbursement" className="mt-6">
-                  <DisbursementRepaymentPane isReadOnly={isReadOnly} />
+                  <DisbursementRepaymentPane 
+                    isReadOnly={isReadOnly} 
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                  />
                 </TabsContent>
 
                 <TabsContent value="fees" className="mt-6">
@@ -77,6 +89,7 @@ export const ProgramFormDialog = ({
                     mode={mode}
                     onClose={() => onOpenChange(false)}
                     isSubmitting={isSubmitting}
+                    onPrevious={handlePrevious}
                   />
                 </TabsContent>
               </Tabs>

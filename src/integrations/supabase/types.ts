@@ -1566,12 +1566,18 @@ export type Database = {
           anchor_name: string
           anchor_party: string | null
           appropriation_sequence: Json | null
+          appropriation_sequence_after_due: Json | null
+          appropriation_sequence_before_due: Json | null
           assignment_enabled: boolean | null
           assignment_percentage: number | null
+          auto_disbursement: boolean | null
+          auto_repayment: boolean | null
           available_limit: number
           borrower_selection: string | null
+          charge_penalty_on_prepayment: boolean | null
           counter_parties: Json | null
           created_at: string
+          debit_account_number: string | null
           disbursement_account: string | null
           disbursement_conditions: string | null
           disbursement_mode: string | null
@@ -1583,14 +1589,25 @@ export type Database = {
           finance_tenor_unit: string | null
           flat_fee_config: Json | null
           grace_days: number | null
+          holiday_treatment: string | null
           id: string
           insurance_policies: Json | null
           insurance_required: boolean | null
           margin_percentage: number | null
+          max_disbursements_allowed: number | null
           max_tenor: number | null
+          max_tenor_days: number | null
+          max_tenor_months: number | null
           max_tenor_unit: string | null
+          max_tenor_years: number | null
           min_tenor: number | null
+          min_tenor_days: number | null
+          min_tenor_months: number | null
           min_tenor_unit: string | null
+          min_tenor_years: number | null
+          multiple_disbursement: boolean | null
+          part_payment_allowed: boolean | null
+          pre_payment_allowed: boolean | null
           product_code: string
           product_name: string | null
           program_currency: string
@@ -1601,6 +1618,7 @@ export type Database = {
           recourse_enabled: boolean | null
           recourse_percentage: number | null
           repayment_account: string | null
+          repayment_by: string | null
           repayment_mode: string | null
           stale_period: number | null
           status: string
@@ -1618,12 +1636,18 @@ export type Database = {
           anchor_name: string
           anchor_party?: string | null
           appropriation_sequence?: Json | null
+          appropriation_sequence_after_due?: Json | null
+          appropriation_sequence_before_due?: Json | null
           assignment_enabled?: boolean | null
           assignment_percentage?: number | null
+          auto_disbursement?: boolean | null
+          auto_repayment?: boolean | null
           available_limit: number
           borrower_selection?: string | null
+          charge_penalty_on_prepayment?: boolean | null
           counter_parties?: Json | null
           created_at?: string
+          debit_account_number?: string | null
           disbursement_account?: string | null
           disbursement_conditions?: string | null
           disbursement_mode?: string | null
@@ -1635,14 +1659,25 @@ export type Database = {
           finance_tenor_unit?: string | null
           flat_fee_config?: Json | null
           grace_days?: number | null
+          holiday_treatment?: string | null
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
           margin_percentage?: number | null
+          max_disbursements_allowed?: number | null
           max_tenor?: number | null
+          max_tenor_days?: number | null
+          max_tenor_months?: number | null
           max_tenor_unit?: string | null
+          max_tenor_years?: number | null
           min_tenor?: number | null
+          min_tenor_days?: number | null
+          min_tenor_months?: number | null
           min_tenor_unit?: string | null
+          min_tenor_years?: number | null
+          multiple_disbursement?: boolean | null
+          part_payment_allowed?: boolean | null
+          pre_payment_allowed?: boolean | null
           product_code: string
           product_name?: string | null
           program_currency?: string
@@ -1653,6 +1688,7 @@ export type Database = {
           recourse_enabled?: boolean | null
           recourse_percentage?: number | null
           repayment_account?: string | null
+          repayment_by?: string | null
           repayment_mode?: string | null
           stale_period?: number | null
           status?: string
@@ -1670,12 +1706,18 @@ export type Database = {
           anchor_name?: string
           anchor_party?: string | null
           appropriation_sequence?: Json | null
+          appropriation_sequence_after_due?: Json | null
+          appropriation_sequence_before_due?: Json | null
           assignment_enabled?: boolean | null
           assignment_percentage?: number | null
+          auto_disbursement?: boolean | null
+          auto_repayment?: boolean | null
           available_limit?: number
           borrower_selection?: string | null
+          charge_penalty_on_prepayment?: boolean | null
           counter_parties?: Json | null
           created_at?: string
+          debit_account_number?: string | null
           disbursement_account?: string | null
           disbursement_conditions?: string | null
           disbursement_mode?: string | null
@@ -1687,14 +1729,25 @@ export type Database = {
           finance_tenor_unit?: string | null
           flat_fee_config?: Json | null
           grace_days?: number | null
+          holiday_treatment?: string | null
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
           margin_percentage?: number | null
+          max_disbursements_allowed?: number | null
           max_tenor?: number | null
+          max_tenor_days?: number | null
+          max_tenor_months?: number | null
           max_tenor_unit?: string | null
+          max_tenor_years?: number | null
           min_tenor?: number | null
+          min_tenor_days?: number | null
+          min_tenor_months?: number | null
           min_tenor_unit?: string | null
+          min_tenor_years?: number | null
+          multiple_disbursement?: boolean | null
+          part_payment_allowed?: boolean | null
+          pre_payment_allowed?: boolean | null
           product_code?: string
           product_name?: string | null
           program_currency?: string
@@ -1705,6 +1758,7 @@ export type Database = {
           recourse_enabled?: boolean | null
           recourse_percentage?: number | null
           repayment_account?: string | null
+          repayment_by?: string | null
           repayment_mode?: string | null
           stale_period?: number | null
           status?: string

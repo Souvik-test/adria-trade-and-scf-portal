@@ -7,7 +7,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -17,19 +16,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
+import { ArrowRight, Plus, Trash2, ChevronLeft } from "lucide-react";
 
-export const DisbursementRepaymentPane = ({ isReadOnly }: { isReadOnly: boolean }) => {
+interface DisbursementRepaymentPaneProps {
+  isReadOnly: boolean;
+  onNext?: () => void;
+  onPrevious?: () => void;
+}
+
+export const DisbursementRepaymentPane = ({ 
+  isReadOnly, 
+  onNext,
+  onPrevious 
+}: DisbursementRepaymentPaneProps) => {
   const form = useFormContext();
   const insuranceRequired = form.watch("insurance_required");
+  const multipleDisb = form.watch("multiple_disbursement");
+  const repaymentBy = form.watch("repayment_by");
+
   const [insurancePolicies, setInsurancePolicies] = useState<any[]>(
     form.getValues("insurance_policies") || []
   );
-  const [appropriationSeq, setAppropriationSeq] = useState<any[]>(
-    form.getValues("appropriation_sequence") || []
+  const [appropriationAfterDue, setAppropriationAfterDue] = useState<string[]>(
+    form.getValues("appropriation_sequence_after_due") || []
   );
+  const [appropriationBeforeDue, setAppropriationBeforeDue] = useState<string[]>(
+    form.getValues("appropriation_sequence_before_due") || []
+  );
+
+  const appropriationOptions = [
+    { value: "P", label: "Principal" },
+    { value: "I", label: "Interest" },
+    { value: "C", label: "Charge" },
+    { value: "N", label: "Penalty" },
+  ];
 
   const addInsurancePolicy = () => {
     const newPolicy = {
@@ -58,30 +80,51 @@ export const DisbursementRepaymentPane = ({ isReadOnly }: { isReadOnly: boolean 
     form.setValue("insurance_policies", updated);
   };
 
-  const addAppropriationItem = () => {
-    const newItem = {
-      id: Date.now().toString(),
-      priority: appropriationSeq.length + 1,
-      type: "",
-      percentage: "",
-    };
-    const updated = [...appropriationSeq, newItem];
-    setAppropriationSeq(updated);
-    form.setValue("appropriation_sequence", updated);
+  const moveAppropriationItem = (
+    list: string[],
+    setter: (val: string[]) => void,
+    formField: string,
+    index: number,
+    direction: "up" | "down"
+  ) => {
+    if (
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === list.length - 1)
+    ) {
+      return;
+    }
+    const newList = [...list];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    [newList[index], newList[newIndex]] = [newList[newIndex], newList[index]];
+    setter(newList);
+    form.setValue(formField, newList);
   };
 
-  const removeAppropriationItem = (id: string) => {
-    const updated = appropriationSeq.filter((item) => item.id !== id);
-    setAppropriationSeq(updated);
-    form.setValue("appropriation_sequence", updated);
+  const addAppropriationItem = (
+    list: string[],
+    setter: (val: string[]) => void,
+    formField: string,
+    value: string
+  ) => {
+    if (list.includes(value)) return;
+    const updated = [...list, value];
+    setter(updated);
+    form.setValue(formField, updated);
   };
 
-  const updateAppropriationItem = (id: string, field: string, value: string) => {
-    const updated = appropriationSeq.map((item) =>
-      item.id === id ? { ...item, [field]: value } : item
-    );
-    setAppropriationSeq(updated);
-    form.setValue("appropriation_sequence", updated);
+  const removeAppropriationItem = (
+    list: string[],
+    setter: (val: string[]) => void,
+    formField: string,
+    index: number
+  ) => {
+    const updated = list.filter((_, i) => i !== index);
+    setter(updated);
+    form.setValue(formField, updated);
+  };
+
+  const getAvailableOptions = (currentList: string[]) => {
+    return appropriationOptions.filter((opt) => !currentList.includes(opt.value));
   };
 
   return (
@@ -89,62 +132,88 @@ export const DisbursementRepaymentPane = ({ isReadOnly }: { isReadOnly: boolean 
       {/* Disbursement Parameters */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Disbursement Parameters</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <FormField
             control={form.control}
-            name="disbursement_mode"
+            name="multiple_disbursement"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between">
+                <FormLabel>Multiple Disbursement</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {multipleDisb && (
+            <FormField
+              control={form.control}
+              name="max_disbursements_allowed"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Disbursements Allowed (1-100)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      disabled={isReadOnly}
+                      placeholder="Enter max disbursements"
+                      min={1}
+                      max={100}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          <FormField
+            control={form.control}
+            name="auto_disbursement"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between">
+                <FormLabel>Auto-Disbursement</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="holiday_treatment"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Disbursement Mode</FormLabel>
+                <FormLabel>Holiday Treatment</FormLabel>
                 <FormControl>
                   <Select
                     disabled={isReadOnly}
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select mode" />
+                      <SelectValue placeholder="Select treatment" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="RTGS">RTGS</SelectItem>
-                      <SelectItem value="NEFT">NEFT</SelectItem>
-                      <SelectItem value="IMPS">IMPS</SelectItem>
-                      <SelectItem value="WIRE">Wire Transfer</SelectItem>
+                      <SelectItem value="Next Business Day">Next Business Day</SelectItem>
+                      <SelectItem value="Previous Business Day">Previous Business Day</SelectItem>
+                      <SelectItem value="No Change">No Change</SelectItem>
                     </SelectContent>
                   </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="disbursement_account"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Disbursement Account</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={isReadOnly} placeholder="Account number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="disbursement_conditions"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Disbursement Conditions</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    disabled={isReadOnly}
-                    placeholder="Enter conditions"
-                    rows={3}
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,96 +225,254 @@ export const DisbursementRepaymentPane = ({ isReadOnly }: { isReadOnly: boolean 
       {/* Repayment Parameters */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Repayment Parameters</h3>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <FormField
-            control={form.control}
-            name="repayment_mode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Repayment Mode</FormLabel>
-                <FormControl>
-                  <Select
-                    disabled={isReadOnly}
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AUTO_DEBIT">Auto Debit</SelectItem>
-                      <SelectItem value="MANUAL">Manual</SelectItem>
-                      <SelectItem value="STANDING_INST">Standing Instruction</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="repayment_by"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repayment By</FormLabel>
+                  <FormControl>
+                    <Select
+                      disabled={isReadOnly}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select repayment by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Buyer">Buyer</SelectItem>
+                        <SelectItem value="Supplier">Supplier</SelectItem>
+                        <SelectItem value="Account Debit">Account Debit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="repayment_account"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Repayment Account</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={isReadOnly} placeholder="Account number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            {repaymentBy === "Account Debit" && (
+              <FormField
+                control={form.control}
+                name="debit_account_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Debit Account Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isReadOnly}
+                        placeholder="Enter account number"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
-        </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium">Appropriation Sequence</h4>
-            {!isReadOnly && (
-              <Button type="button" variant="outline" size="sm" onClick={addAppropriationItem}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
-            )}
+            <FormField
+              control={form.control}
+              name="auto_repayment"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between">
+                  <FormLabel>Auto-Repayment</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="part_payment_allowed"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between">
+                  <FormLabel>Part Payment</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pre_payment_allowed"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between">
+                  <FormLabel>Pre-Payment</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="charge_penalty_on_prepayment"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between">
+                  <FormLabel>Charge Penalty on Prepayment</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          {appropriationSeq.map((item) => (
-            <Card key={item.id} className="p-4">
-              <div className="grid grid-cols-4 gap-4">
-                <Input
-                  placeholder="Priority"
-                  type="number"
-                  value={item.priority}
-                  onChange={(e) => updateAppropriationItem(item.id, "priority", e.target.value)}
-                  disabled={isReadOnly}
-                />
-                <Input
-                  placeholder="Type"
-                  value={item.type}
-                  onChange={(e) => updateAppropriationItem(item.id, "type", e.target.value)}
-                  disabled={isReadOnly}
-                />
-                <Input
-                  placeholder="Percentage"
-                  type="number"
-                  value={item.percentage}
-                  onChange={(e) => updateAppropriationItem(item.id, "percentage", e.target.value)}
-                  disabled={isReadOnly}
-                />
+          {/* Appropriation Sequences */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* On/After Due Date */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Appropriation Sequence On/After Due Date</h4>
                 {!isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeAppropriationItem(item.id)}
+                  <Select
+                    onValueChange={(value) =>
+                      addAppropriationItem(
+                        appropriationAfterDue,
+                        setAppropriationAfterDue,
+                        "appropriation_sequence_after_due",
+                        value
+                      )
+                    }
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Add" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableOptions(appropriationAfterDue).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
-            </Card>
-          ))}
+              <div className="flex items-center gap-2 flex-wrap">
+                {appropriationAfterDue.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <div className="flex items-center bg-muted px-3 py-2 rounded-md gap-2">
+                      <span className="font-medium">
+                        {appropriationOptions.find((o) => o.value === item)?.label} ({item})
+                      </span>
+                      {!isReadOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5"
+                          onClick={() =>
+                            removeAppropriationItem(
+                              appropriationAfterDue,
+                              setAppropriationAfterDue,
+                              "appropriation_sequence_after_due",
+                              index
+                            )
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                    {index < appropriationAfterDue.length - 1 && (
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Before Due Date */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Appropriation Sequence Before Due Date</h4>
+                {!isReadOnly && (
+                  <Select
+                    onValueChange={(value) =>
+                      addAppropriationItem(
+                        appropriationBeforeDue,
+                        setAppropriationBeforeDue,
+                        "appropriation_sequence_before_due",
+                        value
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Add" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableOptions(appropriationBeforeDue).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {appropriationBeforeDue.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <div className="flex items-center bg-muted px-3 py-2 rounded-md gap-2">
+                      <span className="font-medium">
+                        {appropriationOptions.find((o) => o.value === item)?.label} ({item})
+                      </span>
+                      {!isReadOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5"
+                          onClick={() =>
+                            removeAppropriationItem(
+                              appropriationBeforeDue,
+                              setAppropriationBeforeDue,
+                              "appropriation_sequence_before_due",
+                              index
+                            )
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                    {index < appropriationBeforeDue.length - 1 && (
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -329,6 +556,23 @@ export const DisbursementRepaymentPane = ({ isReadOnly }: { isReadOnly: boolean 
           </div>
         )}
       </Card>
+
+      {/* Navigation Buttons */}
+      {!isReadOnly && (
+        <div className="flex justify-between">
+          {onPrevious && (
+            <Button type="button" variant="outline" onClick={onPrevious}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+          )}
+          {onNext && (
+            <Button type="button" onClick={onNext} className="ml-auto">
+              Next
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 
@@ -17,6 +17,7 @@ interface FeeCataloguePaneProps {
   mode: "add" | "edit" | "view" | "delete";
   onClose: () => void;
   isSubmitting: boolean;
+  onPrevious?: () => void;
 }
 
 export const FeeCataloguePane = ({
@@ -24,6 +25,7 @@ export const FeeCataloguePane = ({
   mode,
   onClose,
   isSubmitting,
+  onPrevious,
 }: FeeCataloguePaneProps) => {
   const form = useFormContext();
   const [feeCatalogue, setFeeCatalogue] = useState<any[]>(
@@ -216,28 +218,24 @@ export const FeeCataloguePane = ({
       </Card>
 
       {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-6 border-t">
-        <Button type="button" variant="outline" onClick={onClose}>
-          {mode === "view" ? "Close" : "Cancel"}
-        </Button>
-        {!isReadOnly && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.setValue("status", "draft");
-              }}
-              disabled={isSubmitting}
-            >
-              Save as Draft
+      {!isReadOnly && (
+        <div className="flex justify-between pt-6 border-t">
+          {onPrevious && (
+            <Button type="button" variant="outline" onClick={onPrevious}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+          )}
+          <div className="flex gap-3 ml-auto">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {mode === "add" ? "Submit" : "Update"}
+              {isSubmitting ? "Saving..." : mode === "add" ? "Create Program" : "Update Program"}
             </Button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

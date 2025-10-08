@@ -152,7 +152,7 @@ export const SCFProgramConfiguration = ({ onBack }: { onBack: () => void }) => {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onBack}>
-              Back to Master Setup
+              Back to Dashboard
             </Button>
             <Button onClick={handleAdd} className="gap-2">
               <Plus className="h-4 w-4" />

@@ -1,20 +1,32 @@
 import { useFormContext } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, ChevronRight } from "lucide-react";
-import { useState } from "react";
 import {
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Plus, Trash2, Search } from "lucide-react";
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface GeneralPartyPaneProps {
   isReadOnly: boolean;
@@ -22,225 +34,220 @@ interface GeneralPartyPaneProps {
 }
 
 export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) => {
-  const { control, setValue, watch } = useFormContext();
+  const form = useFormContext();
   const [counterParties, setCounterParties] = useState<any[]>(
-    watch("counter_parties") || []
+    form.getValues("counter_parties") || []
   );
 
-  const programLimit = watch("program_limit");
-  const programCurrency = watch("program_currency");
-
   const addCounterParty = () => {
-    const newCounterParty = {
-      id: "",
-      name: "",
-      limit_currency: programCurrency || "USD",
+    const newParty = {
+      id: Date.now().toString(),
+      counter_party_id: "",
+      counter_party_name: "",
+      limit_currency: form.getValues("program_currency") || "USD",
       limit_amount: 0,
-      available_limit_currency: programCurrency || "USD",
+      available_limit_currency: form.getValues("program_currency") || "USD",
       available_limit_amount: 0,
-      disbursement_currency: programCurrency || "USD",
+      disbursement_currency: form.getValues("program_currency") || "USD",
       preferred_disbursement_method: "",
     };
-    const updated = [...counterParties, newCounterParty];
+    const updated = [...counterParties, newParty];
     setCounterParties(updated);
-    setValue("counter_parties", updated);
+    form.setValue("counter_parties", updated);
   };
 
-  const removeCounterParty = (index: number) => {
-    const updated = counterParties.filter((_, i) => i !== index);
+  const removeCounterParty = (id: string) => {
+    const updated = counterParties.filter((p) => p.id !== id);
     setCounterParties(updated);
-    setValue("counter_parties", updated);
+    form.setValue("counter_parties", updated);
   };
 
-  const updateCounterParty = (index: number, field: string, value: any) => {
-    const updated = counterParties.map((cp, i) =>
-      i === index ? { ...cp, [field]: value } : cp
+  const updateCounterParty = (id: string, field: string, value: any) => {
+    const updated = counterParties.map((p) =>
+      p.id === id ? { ...p, [field]: value } : p
     );
     setCounterParties(updated);
-    setValue("counter_parties", updated);
+    form.setValue("counter_parties", updated);
   };
 
   return (
     <div className="space-y-6">
       {/* General Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>General Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={control}
-              name="program_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program ID *</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly} placeholder="Enter program ID" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="program_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program Name *</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly} placeholder="Enter program name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="product_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Code *</FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={isReadOnly}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product code" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background z-50">
-                        <SelectItem value="SCFI">Invoice Finance</SelectItem>
-                        <SelectItem value="SCFPO">PO Finance</SelectItem>
-                        <SelectItem value="SCFVF">Vendor Finance</SelectItem>
-                        <SelectItem value="SCFDF">Distributor Finance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="product_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled placeholder="Auto-populated" className="bg-muted" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="program_currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program Currency *</FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={isReadOnly}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background z-50">
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="INR">INR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="program_limit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program Limit *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      disabled={isReadOnly}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Enter program limit"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="available_limit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program Available Limit *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      disabled={isReadOnly}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Auto-set to program limit"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="effective_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Effective Date *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} disabled={isReadOnly} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="expiry_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expiry Date *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} disabled={isReadOnly} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">General Details</h3>
+        <div className="grid grid-cols-3 gap-4">
           <FormField
-            control={control}
-            name="program_description"
+            control={form.control}
+            name="program_id"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Program ID</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isReadOnly} placeholder="Enter program ID" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="program_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Name</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isReadOnly} placeholder="Enter program name" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="product_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Code</FormLabel>
+                <FormControl>
+                  <Select
+                    disabled={isReadOnly}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select product code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INV_FIN">INV_FIN</SelectItem>
+                      <SelectItem value="PO_FIN">PO_FIN</SelectItem>
+                      <SelectItem value="DIS_FIN">DIS_FIN</SelectItem>
+                      <SelectItem value="VEN_FIN">VEN_FIN</SelectItem>
+                      <SelectItem value="DYN_DISC">DYN_DISC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="product_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Name</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled placeholder="Auto-populated" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="program_currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Currency</FormLabel>
+                <FormControl>
+                  <Select
+                    disabled={isReadOnly}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="program_limit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Limit</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter limit"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="available_limit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Available Limit</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter available limit"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="effective_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Period From</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={isReadOnly} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="expiry_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Program Period To</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={isReadOnly} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="program_description"
+            render={({ field }) => (
+              <FormItem className="col-span-3">
                 <FormLabel>Program Description</FormLabel>
                 <FormControl>
                   <Textarea
@@ -254,685 +261,699 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
               </FormItem>
             )}
           />
-        </CardContent>
+        </div>
       </Card>
 
       {/* Party Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Party Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={control}
-              name="anchor_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anchor ID</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly} placeholder="Search or enter anchor ID" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="anchor_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anchor Name *</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly} placeholder="Enter anchor name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="anchor_account"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anchor Account</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isReadOnly} placeholder="Enter anchor account" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-2">
-              <Label>Anchor Limit</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={control}
-                  name="anchor_limit_currency"
-                  render={({ field }) => (
-                    <FormItem>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Party Details</h3>
+        <div className="space-y-6">
+          {/* Anchor Details */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Anchor Details</h4>
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="anchor_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor ID</FormLabel>
+                    <div className="flex gap-2">
                       <FormControl>
-                        <Select
-                          disabled={isReadOnly}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="GBP">GBP</SelectItem>
-                            <SelectItem value="INR">INR</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input {...field} disabled={isReadOnly} placeholder="Search anchor ID" />
                       </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="anchor_limit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={isReadOnly}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            if (value > programLimit) {
-                              field.onChange(programLimit);
-                            } else {
-                              field.onChange(value);
-                            }
-                          }}
-                          placeholder="Amount"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Cannot exceed program limit</p>
-            </div>
+                      {!isReadOnly && (
+                        <Button type="button" variant="outline" size="icon">
+                          <Search className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-2">
-              <Label>Anchor Available Limit</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Select disabled value={programCurrency}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value={programCurrency}>{programCurrency}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormField
-                  control={control}
-                  name="anchor_available_limit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={isReadOnly}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          placeholder="Amount"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="anchor_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={isReadOnly} placeholder="Enter anchor name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="anchor_account"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor Account</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={isReadOnly} placeholder="Enter account number" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="anchor_limit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor Limit</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Enter limit"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="anchor_available_limit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor Available Limit</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Enter available limit"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="anchor_limit_currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Anchor Limit Currency</FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="GBP">GBP</SelectItem>
+                          <SelectItem value="INR">INR</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
           {/* Counter Parties */}
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Counter Parties</Label>
+              <h4 className="font-medium">Counter Parties</h4>
               {!isReadOnly && (
                 <Button type="button" variant="outline" size="sm" onClick={addCounterParty}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Add Counter Party
                 </Button>
               )}
             </div>
 
-            {counterParties.map((cp, index) => (
-              <Card key={index} className="border-2">
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Counter Party {index + 1}</h4>
-                      {!isReadOnly && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeCounterParty(index)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Counter Party ID</Label>
-                        <Input
-                          value={cp.id || ""}
-                          onChange={(e) => updateCounterParty(index, "id", e.target.value)}
-                          disabled={isReadOnly}
-                          placeholder="Optional"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Counter Party Name *</Label>
-                        <Input
-                          value={cp.name || ""}
-                          onChange={(e) => updateCounterParty(index, "name", e.target.value)}
-                          disabled={isReadOnly}
-                          placeholder="Enter name"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Counter Party Limit</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Select
-                            value={cp.limit_currency}
-                            onValueChange={(value) => updateCounterParty(index, "limit_currency", value)}
+            {counterParties.length > 0 && (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Counter Party ID</TableHead>
+                      <TableHead>Counter Party Name</TableHead>
+                      <TableHead>Limit</TableHead>
+                      <TableHead>Available Limit</TableHead>
+                      <TableHead>Disbursement Currency</TableHead>
+                      <TableHead>Preferred Method</TableHead>
+                      {!isReadOnly && <TableHead>Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {counterParties.map((party) => (
+                      <TableRow key={party.id}>
+                        <TableCell>
+                          <Input
+                            value={party.counter_party_id}
+                            onChange={(e) =>
+                              updateCounterParty(party.id, "counter_party_id", e.target.value)
+                            }
                             disabled={isReadOnly}
+                            placeholder="Optional"
+                            className="h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={party.counter_party_name}
+                            onChange={(e) =>
+                              updateCounterParty(party.id, "counter_party_name", e.target.value)
+                            }
+                            disabled={isReadOnly}
+                            placeholder="Name"
+                            className="h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Select
+                              disabled={isReadOnly}
+                              value={party.limit_currency}
+                              onValueChange={(value) =>
+                                updateCounterParty(party.id, "limit_currency", value)
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-20">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="USD">USD</SelectItem>
+                                <SelectItem value="EUR">EUR</SelectItem>
+                                <SelectItem value="GBP">GBP</SelectItem>
+                                <SelectItem value="INR">INR</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              value={party.limit_amount}
+                              onChange={(e) =>
+                                updateCounterParty(party.id, "limit_amount", parseFloat(e.target.value) || 0)
+                              }
+                              disabled={isReadOnly}
+                              placeholder="Amount"
+                              className="h-8"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Select
+                              disabled={isReadOnly}
+                              value={party.available_limit_currency}
+                              onValueChange={(value) =>
+                                updateCounterParty(party.id, "available_limit_currency", value)
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-20">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="USD">USD</SelectItem>
+                                <SelectItem value="EUR">EUR</SelectItem>
+                                <SelectItem value="GBP">GBP</SelectItem>
+                                <SelectItem value="INR">INR</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              value={party.available_limit_amount}
+                              onChange={(e) =>
+                                updateCounterParty(party.id, "available_limit_amount", parseFloat(e.target.value) || 0)
+                              }
+                              disabled={isReadOnly}
+                              placeholder="Amount"
+                              className="h-8"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            disabled={isReadOnly}
+                            value={party.disbursement_currency}
+                            onValueChange={(value) =>
+                              updateCounterParty(party.id, "disbursement_currency", value)
+                            }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-8">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-background z-50">
+                            <SelectContent>
                               <SelectItem value="USD">USD</SelectItem>
                               <SelectItem value="EUR">EUR</SelectItem>
                               <SelectItem value="GBP">GBP</SelectItem>
                               <SelectItem value="INR">INR</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Input
-                            type="number"
-                            value={cp.limit_amount || 0}
-                            onChange={(e) => updateCounterParty(index, "limit_amount", parseFloat(e.target.value) || 0)}
-                            disabled={isReadOnly}
-                            placeholder="Amount"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label>Counter Party Available Limit</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        </TableCell>
+                        <TableCell>
                           <Select
-                            value={cp.available_limit_currency}
-                            onValueChange={(value) => updateCounterParty(index, "available_limit_currency", value)}
                             disabled={isReadOnly}
+                            value={party.preferred_disbursement_method}
+                            onValueChange={(value) =>
+                              updateCounterParty(party.id, "preferred_disbursement_method", value)
+                            }
                           >
-                            <SelectTrigger>
-                              <SelectValue />
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Method" />
                             </SelectTrigger>
-                            <SelectContent className="bg-background z-50">
-                              <SelectItem value="USD">USD</SelectItem>
-                              <SelectItem value="EUR">EUR</SelectItem>
-                              <SelectItem value="GBP">GBP</SelectItem>
-                              <SelectItem value="INR">INR</SelectItem>
+                            <SelectContent>
+                              <SelectItem value="RTGS">RTGS</SelectItem>
+                              <SelectItem value="NEFT">NEFT</SelectItem>
+                              <SelectItem value="IMPS">IMPS</SelectItem>
+                              <SelectItem value="WIRE">Wire Transfer</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Input
-                            type="number"
-                            value={cp.available_limit_amount || 0}
-                            onChange={(e) => updateCounterParty(index, "available_limit_amount", parseFloat(e.target.value) || 0)}
-                            disabled={isReadOnly}
-                            placeholder="Amount"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label>Disbursement Currency</Label>
-                        <Select
-                          value={cp.disbursement_currency}
-                          onValueChange={(value) => updateCounterParty(index, "disbursement_currency", value)}
-                          disabled={isReadOnly}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="GBP">GBP</SelectItem>
-                            <SelectItem value="INR">INR</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label>Preferred Disbursement Method</Label>
-                        <Select
-                          value={cp.preferred_disbursement_method}
-                          onValueChange={(value) => updateCounterParty(index, "preferred_disbursement_method", value)}
-                          disabled={isReadOnly}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select method" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                            <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
-                            <SelectItem value="Check">Check</SelectItem>
-                            <SelectItem value="ACH">ACH</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        </TableCell>
+                        {!isReadOnly && (
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeCounterParty(party.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* Finance Parameters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Finance Parameters</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={control}
-              name="anchor_party"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anchor Party</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled placeholder="Auto-populated from anchor name" className="bg-muted" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Finance Parameters</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="anchor_party"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Anchor Party</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled placeholder="Auto-populated from Anchor Name" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={control}
-              name="borrower_selection"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Borrower *</FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={isReadOnly}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select borrower" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background z-50">
-                        <SelectItem value="Anchor Party">Anchor Party</SelectItem>
-                        <SelectItem value="Counter Party">Counter Party</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="borrower_selection"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Borrower</FormLabel>
+                <FormControl>
+                  <Select
+                    disabled={isReadOnly}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select borrower" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Anchor Party">Anchor Party</SelectItem>
+                      <SelectItem value="Counter Party">Counter Party</SelectItem>
+                      <SelectItem value="Both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <div className="space-y-2">
-              <Label>Minimum Tenor</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={control}
-                  name="min_tenor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={isReadOnly}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="Value"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="min_tenor_unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          disabled={isReadOnly}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="days">Days</SelectItem>
-                            <SelectItem value="months">Months</SelectItem>
-                            <SelectItem value="years">Years</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <FormField
+            control={form.control}
+            name="finance_percentage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Finance % (Max 100%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter percentage"
+                    max={100}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Minimum Tenor */}
+          <div className="space-y-2">
+            <FormLabel>Minimum Tenor</FormLabel>
+            <div className="grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="min_tenor_years"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Years"
+                        min={0}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="min_tenor_months"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Months"
+                        min={0}
+                        max={11}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="min_tenor_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Days"
+                        min={0}
+                        max={30}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label>Maximum Tenor</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={control}
-                  name="max_tenor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          disabled={isReadOnly}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          placeholder="Value"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="max_tenor_unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          disabled={isReadOnly}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            <SelectItem value="days">Days</SelectItem>
-                            <SelectItem value="months">Months</SelectItem>
-                            <SelectItem value="years">Years</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+          {/* Maximum Tenor */}
+          <div className="space-y-2">
+            <FormLabel>Maximum Tenor</FormLabel>
+            <div className="grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="max_tenor_years"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Years"
+                        min={0}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_tenor_months"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Months"
+                        min={0}
+                        max={11}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_tenor_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={isReadOnly}
+                        placeholder="Days"
+                        min={0}
+                        max={30}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
+          </div>
 
+          <FormField
+            control={form.control}
+            name="margin_percentage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Margin %</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter margin"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="grace_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Grace Days</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter grace days"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="stale_period"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stale Period (Days)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    disabled={isReadOnly}
+                    placeholder="Enter stale period"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Assignment Finance */}
+          <FormField
+            control={form.control}
+            name="assignment_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isReadOnly}
+                    className="h-4 w-4"
+                  />
+                </FormControl>
+                <FormLabel className="!mt-0">Assignment Finance</FormLabel>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.watch("assignment_enabled") && (
             <FormField
-              control={control}
-              name="margin_percentage"
+              control={form.control}
+              name="assignment_percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Margin %</FormLabel>
+                  <FormLabel>Assignment %</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       {...field}
-                      disabled={isReadOnly}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Enter margin percentage"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name="finance_percentage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Finance %</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
                       disabled={isReadOnly}
+                      placeholder="Enter percentage"
                       max={100}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        field.onChange(value > 100 ? 100 : value);
-                      }}
-                      placeholder="Max 100%"
                     />
                   </FormControl>
-                  <p className="text-xs text-muted-foreground">Should not exceed 100% of underlying instrument value</p>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          )}
 
+          {/* Unaccepted Invoice Finance */}
+          <FormField
+            control={form.control}
+            name="unaccepted_invoice_finance_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isReadOnly}
+                    className="h-4 w-4"
+                  />
+                </FormControl>
+                <FormLabel className="!mt-0">Unaccepted Invoice Finance</FormLabel>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.watch("unaccepted_invoice_finance_enabled") && (
             <FormField
-              control={control}
-              name="grace_days"
+              control={form.control}
+              name="unaccepted_invoice_percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Grace Days</FormLabel>
+                  <FormLabel>Unaccepted Invoice %</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       disabled={isReadOnly}
-                      min={0}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      placeholder="Default: 0"
+                      placeholder="Enter percentage"
+                      max={100}
                     />
                   </FormControl>
-                  <p className="text-xs text-muted-foreground">Days added to maturity date where interest is still charged</p>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          )}
 
+          {/* Recourse */}
+          <FormField
+            control={form.control}
+            name="recourse_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isReadOnly}
+                    className="h-4 w-4"
+                  />
+                </FormControl>
+                <FormLabel className="!mt-0">Recourse</FormLabel>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.watch("recourse_enabled") && (
             <FormField
-              control={control}
-              name="stale_period"
+              control={form.control}
+              name="recourse_percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stale Period (Days)</FormLabel>
+                  <FormLabel>Recourse %</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       disabled={isReadOnly}
-                      min={0}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      placeholder="Enter stale period"
+                      placeholder="Enter percentage"
+                      max={100}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-
-          {/* Assignment Section */}
-          <div className="space-y-3 pt-4 border-t">
-            <FormField
-              control={control}
-              name="assignment_enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Enable Assignment</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {watch("assignment_enabled") && (
-              <FormField
-                control={control}
-                name="assignment_percentage"
-                render={({ field }) => (
-                  <FormItem className="ml-6">
-                    <FormLabel>Assignment %</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        disabled={isReadOnly}
-                        max={100}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value > 100 ? 100 : value);
-                        }}
-                        placeholder="Max 100%"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-
-          {/* Unaccepted Invoice Finance Section */}
-          <div className="space-y-3 pt-4 border-t">
-            <FormField
-              control={control}
-              name="unaccepted_invoice_finance_enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Enable Unaccepted Invoice Finance</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {watch("unaccepted_invoice_finance_enabled") && (
-              <FormField
-                control={control}
-                name="unaccepted_invoice_percentage"
-                render={({ field }) => (
-                  <FormItem className="ml-6">
-                    <FormLabel>Unaccepted Invoice %</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        disabled={isReadOnly}
-                        max={100}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value > 100 ? 100 : value);
-                        }}
-                        placeholder="Max 100%"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-
-          {/* Recourse Section */}
-          <div className="space-y-3 pt-4 border-t">
-            <FormField
-              control={control}
-              name="recourse_enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Enable Recourse</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {watch("recourse_enabled") && (
-              <FormField
-                control={control}
-                name="recourse_percentage"
-                render={({ field }) => (
-                  <FormItem className="ml-6">
-                    <FormLabel>Recourse %</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        disabled={isReadOnly}
-                        max={100}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value > 100 ? 100 : value);
-                        }}
-                        placeholder="Max 100%"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-        </CardContent>
+          )}
+        </div>
       </Card>
 
-      {/* Next Button */}
       {!isReadOnly && onNext && (
-        <div className="flex justify-end pt-4">
-          <Button type="button" onClick={onNext} className="gap-2">
+        <div className="flex justify-end">
+          <Button type="button" onClick={onNext}>
             Next
-            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       )}
