@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Upload, Edit2, Check, X } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [corporateName, setCorporateName] = useState('Client aDria Ltd');
+  const [corporateLogo, setCorporateLogo] = useState<string>('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState('');
 
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -25,6 +30,61 @@ const LoginPage: React.FC = () => {
     fullName: '',
     userLoginId: ''
   });
+
+  useEffect(() => {
+    const savedName = localStorage.getItem('corporateName');
+    const savedLogo = localStorage.getItem('corporateLogo');
+    if (savedName) setCorporateName(savedName);
+    if (savedLogo) setCorporateLogo(savedLogo);
+  }, []);
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Logo must be less than 2MB',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setCorporateLogo(result);
+        localStorage.setItem('corporateLogo', result);
+        toast({
+          title: 'Logo uploaded',
+          description: 'Corporate logo has been updated'
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleStartEdit = () => {
+    setTempName(corporateName);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (tempName.trim()) {
+      setCorporateName(tempName.trim());
+      localStorage.setItem('corporateName', tempName.trim());
+      setIsEditing(false);
+      toast({
+        title: 'Updated',
+        description: 'Corporate name has been updated'
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setTempName('');
+    setIsEditing(false);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +151,53 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <div className="flex flex-col items-center gap-4 mb-4">
+            {corporateLogo && (
+              <img src={corporateLogo} alt="Corporate Logo" className="h-16 w-16 object-contain" />
+            )}
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <Input
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="h-8 text-sm"
+                    autoFocus
+                  />
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSaveEdit}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancelEdit}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="text-lg font-semibold">{corporateName}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleStartEdit}>
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                </>
+              )}
+            </div>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              <Button size="sm" variant="outline" asChild>
+                <span className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload Logo
+                </span>
+              </Button>
+            </label>
+          </div>
           <CardTitle className="text-center">Trade Finance Portal</CardTitle>
           <CardDescription className="text-center">
             Access your trade finance dashboard

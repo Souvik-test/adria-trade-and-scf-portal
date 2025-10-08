@@ -60,8 +60,13 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-finance' }: AppSidebarProps) {
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  
+  const handleMenuClick = (menuId: string) => {
+    onMenuClick(menuId);
+    setOpen(false); // Auto-collapse sidebar
+  };
   const [controlCenterOpen, setControlCenterOpen] = React.useState(false);
   const [administrationOpen, setAdministrationOpen] = React.useState(false);
   const [inquiryOpen, setInquiryOpen] = React.useState(false);
@@ -78,7 +83,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
         tooltip: 'View key metrics and performance overview'
       },
       {
-        title: 'Product Suite',
+        title: selectedModule === 'supply-chain-finance' ? 'Adria SCF Studio' : 'Product Suite',
         icon: Package,
         id: 'product-suite',
         tooltip: 'Access all available trade finance products and services'
@@ -181,7 +186,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
                               : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
                           }`}
-                          onClick={() => onMenuClick(item.id)}
+                          onClick={() => handleMenuClick(item.id)}
                         >
                           <item.icon className="w-5 h-5 flex-shrink-0" />
                           {!isCollapsed && (
@@ -249,7 +254,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                                     className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
                                                       activeMenu === nestedItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                                     }`}
-                                                    onClick={() => onMenuClick(nestedItem.id)}
+                                                    onClick={() => handleMenuClick(nestedItem.id)}
                                                   >
                                                     <nestedItem.icon className="w-4 h-4 flex-shrink-0" />
                                                     {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{nestedItem.title}</span>}
@@ -273,7 +278,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                         className={`cursor-pointer whitespace-normal break-words min-w-0 ${
                                           activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                         }`}
-                                        onClick={() => onMenuClick(subItem.id)}
+                                         onClick={() => handleMenuClick(subItem.id)}
                                       >
                                         <subItem.icon className="w-4 h-4 flex-shrink-0" />
                                         {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
@@ -329,7 +334,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
                                     activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
-                                  onClick={() => onMenuClick(subItem.id)}
+                                   onClick={() => handleMenuClick(subItem.id)}
                                 >
                                   <subItem.icon className="w-4 h-4 flex-shrink-0" />
                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
@@ -357,7 +362,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md transform scale-105' 
                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm'
                         }`}
-                        onClick={() => onMenuClick('correspondence')}
+                        onClick={() => handleMenuClick('correspondence')}
                       >
                         <Shield className="w-5 h-5 flex-shrink-0" />
                         {!isCollapsed && (
@@ -411,7 +416,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
                                     activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
-                                  onClick={() => onMenuClick(subItem.id)}
+                                   onClick={() => handleMenuClick(subItem.id)}
                                 >
                                   <subItem.icon className="w-4 h-4 flex-shrink-0" />
                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
@@ -464,7 +469,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
                                     activeMenu === subItem.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
-                                  onClick={() => onMenuClick(subItem.id)}
+                                  onClick={() => handleMenuClick(subItem.id)}
                                 >
                                   <subItem.icon className="w-4 h-4 flex-shrink-0" />
                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">{subItem.title}</span>}
