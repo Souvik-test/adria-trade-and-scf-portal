@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power, CheckSquare, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 interface SCFProductDefinitionProps {
@@ -29,11 +31,17 @@ interface SCFProductDefinitionProps {
 
 interface ProductDefinition {
   id: string;
+  productCode: string;
   productName: string;
+  productDescription?: string;
   anchorRole: string;
   counterPartyRole: string;
+  borrowerRole?: string;
   underlyingInstrument: string;
+  effectiveDate: string;
+  expiryDate?: string;
   isActive: boolean;
+  authorizationRequired: boolean;
 }
 
 const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) => {
@@ -41,41 +49,60 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
   const [products, setProducts] = useState<ProductDefinition[]>([
     {
       id: '1',
+      productCode: 'RF001',
       productName: 'Receivable Finance',
+      productDescription: 'Finance against receivables',
       anchorRole: 'Seller/Supplier',
       counterPartyRole: 'Buyer',
+      borrowerRole: 'Seller/Supplier',
       underlyingInstrument: 'Invoice',
+      effectiveDate: '2024-01-01',
+      expiryDate: '2025-12-31',
       isActive: true,
+      authorizationRequired: true,
     },
     {
       id: '2',
+      productCode: 'APF001',
       productName: 'Approved Payable Finance',
+      productDescription: 'Finance against approved payables',
       anchorRole: 'Buyer',
       counterPartyRole: 'Supplier',
+      borrowerRole: 'Buyer',
       underlyingInstrument: 'Invoice',
+      effectiveDate: '2024-01-01',
+      expiryDate: '2025-12-31',
       isActive: true,
+      authorizationRequired: false,
     },
   ]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<ProductDefinition, 'id'>>({
+    productCode: '',
     productName: '',
+    productDescription: '',
     anchorRole: '',
     counterPartyRole: '',
+    borrowerRole: '',
     underlyingInstrument: '',
+    effectiveDate: new Date().toISOString().split('T')[0],
+    expiryDate: '',
     isActive: true,
+    authorizationRequired: false,
   });
 
   const anchorRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor'];
   const counterPartyRoles = ['Buyer', 'Supplier', 'Vendor', 'Dealer'];
+  const borrowerRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor', 'Both'];
   const underlyingInstruments = ['Invoice', 'Purchase Order', 'Bill of Lading', 'Warehouse Receipt'];
 
   const handleAdd = () => {
-    if (!formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument) {
+    if (!formData.productCode || !formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument || !formData.effectiveDate) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all fields',
+        description: 'Please fill in all mandatory fields (Product Code, Name, Anchor Role, Counter-Party Role, Underlying Instrument, and Effective Date)',
         variant: 'destructive',
       });
       return;
@@ -88,11 +115,17 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
 
     setProducts([...products, newProduct]);
     setFormData({
+      productCode: '',
       productName: '',
+      productDescription: '',
       anchorRole: '',
       counterPartyRole: '',
+      borrowerRole: '',
       underlyingInstrument: '',
+      effectiveDate: new Date().toISOString().split('T')[0],
+      expiryDate: '',
       isActive: true,
+      authorizationRequired: false,
     });
     setIsAdding(false);
 
@@ -105,19 +138,25 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
   const handleEdit = (product: ProductDefinition) => {
     setEditingId(product.id);
     setFormData({
+      productCode: product.productCode,
       productName: product.productName,
+      productDescription: product.productDescription,
       anchorRole: product.anchorRole,
       counterPartyRole: product.counterPartyRole,
+      borrowerRole: product.borrowerRole,
       underlyingInstrument: product.underlyingInstrument,
+      effectiveDate: product.effectiveDate,
+      expiryDate: product.expiryDate,
       isActive: product.isActive,
+      authorizationRequired: product.authorizationRequired,
     });
   };
 
   const handleUpdate = () => {
-    if (!formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument) {
+    if (!formData.productCode || !formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument || !formData.effectiveDate) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all fields',
+        description: 'Please fill in all mandatory fields (Product Code, Name, Anchor Role, Counter-Party Role, Underlying Instrument, and Effective Date)',
         variant: 'destructive',
       });
       return;
@@ -131,11 +170,17 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
     
     setEditingId(null);
     setFormData({
+      productCode: '',
       productName: '',
+      productDescription: '',
       anchorRole: '',
       counterPartyRole: '',
+      borrowerRole: '',
       underlyingInstrument: '',
+      effectiveDate: new Date().toISOString().split('T')[0],
+      expiryDate: '',
       isActive: true,
+      authorizationRequired: false,
     });
 
     toast({
@@ -156,11 +201,17 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
     setIsAdding(false);
     setEditingId(null);
     setFormData({
+      productCode: '',
       productName: '',
+      productDescription: '',
       anchorRole: '',
       counterPartyRole: '',
+      borrowerRole: '',
       underlyingInstrument: '',
+      effectiveDate: new Date().toISOString().split('T')[0],
+      expiryDate: '',
       isActive: true,
+      authorizationRequired: false,
     });
   };
 
@@ -225,12 +276,33 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="space-y-2">
+                  <Label htmlFor="productCode">Product Code *</Label>
+                  <Input
+                    id="productCode"
+                    value={formData.productCode}
+                    onChange={(e) => setFormData({ ...formData, productCode: e.target.value })}
+                    placeholder="e.g., RF001"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="productName">Product Name *</Label>
                   <Input
                     id="productName"
                     value={formData.productName}
                     onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                     placeholder="e.g., Dynamic Discounting"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="productDescription">Product Description (Optional)</Label>
+                  <Textarea
+                    id="productDescription"
+                    value={formData.productDescription}
+                    onChange={(e) => setFormData({ ...formData, productDescription: e.target.value })}
+                    placeholder="Brief description of the product"
+                    rows={2}
                   />
                 </div>
                 
@@ -273,6 +345,25 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="borrowerRole">Borrower Role (Optional)</Label>
+                  <Select
+                    value={formData.borrowerRole || ''}
+                    onValueChange={(value) => setFormData({ ...formData, borrowerRole: value })}
+                  >
+                    <SelectTrigger id="borrowerRole">
+                      <SelectValue placeholder="Select borrower role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {borrowerRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="underlyingInstrument">Underlying Instrument *</Label>
                   <Select
                     value={formData.underlyingInstrument}
@@ -290,17 +381,53 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="effectiveDate">Product Effective Date *</Label>
+                  <Input
+                    id="effectiveDate"
+                    type="date"
+                    value={formData.effectiveDate}
+                    onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="expiryDate">Product Expiry Date (Optional)</Label>
+                  <Input
+                    id="expiryDate"
+                    type="date"
+                    value={formData.expiryDate || ''}
+                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2 p-4 bg-muted/30 rounded-lg mb-6">
-                <Switch
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                />
-                <Label htmlFor="isActive" className="cursor-pointer font-medium">
-                  Active Product {formData.isActive ? '(Enabled)' : '(Disabled)'}
-                </Label>
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center space-x-2 p-4 bg-muted/30 rounded-lg">
+                  <Switch
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  />
+                  <Label htmlFor="isActive" className="cursor-pointer font-medium">
+                    Active Product {formData.isActive ? '(Enabled)' : '(Disabled)'}
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <Checkbox
+                    id="authorizationRequired"
+                    checked={formData.authorizationRequired}
+                    onCheckedChange={(checked) => setFormData({ ...formData, authorizationRequired: checked as boolean })}
+                  />
+                  <Label htmlFor="authorizationRequired" className="cursor-pointer font-medium">
+                    Authorization Required
+                    <span className="block text-xs text-muted-foreground mt-1">
+                      Product will require approval before linking with programs
+                    </span>
+                  </Label>
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -330,18 +457,22 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
+                    <TableHead className="font-bold">Product Code</TableHead>
                     <TableHead className="font-bold">Product Name</TableHead>
                     <TableHead className="font-bold">Anchor Role</TableHead>
                     <TableHead className="font-bold">Counter-Party Role</TableHead>
+                    <TableHead className="font-bold">Borrower Role</TableHead>
                     <TableHead className="font-bold">Underlying Instrument</TableHead>
+                    <TableHead className="font-bold">Effective Date</TableHead>
                     <TableHead className="font-bold text-center">Status</TableHead>
+                    <TableHead className="font-bold text-center">Auth Required</TableHead>
                     <TableHead className="font-bold text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                         <div className="flex flex-col items-center gap-2">
                           <p className="text-lg font-medium">No products defined yet</p>
                           <p className="text-sm">Click "Add Product" to create your first product definition</p>
@@ -351,8 +482,16 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                   ) : (
                     products.map((product) => (
                       <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-mono text-sm font-bold text-primary">
+                          {product.productCode}
+                        </TableCell>
                         <TableCell className="font-semibold text-foreground">
-                          {product.productName}
+                          <div>
+                            {product.productName}
+                            {product.productDescription && (
+                              <p className="text-xs text-muted-foreground mt-1">{product.productDescription}</p>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-primary/10">
@@ -365,9 +504,26 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                           </Badge>
                         </TableCell>
                         <TableCell>
+                          {product.borrowerRole ? (
+                            <Badge variant="outline" className="bg-accent/10">
+                              {product.borrowerRole}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Badge variant="outline" className="bg-accent/10">
                             {product.underlyingInstrument}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div>
+                            {new Date(product.effectiveDate).toLocaleDateString()}
+                            {product.expiryDate && (
+                              <p className="text-xs text-muted-foreground">to {new Date(product.expiryDate).toLocaleDateString()}</p>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-2">
@@ -383,6 +539,13 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                               {product.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {product.authorizationRequired ? (
+                            <CheckSquare className="w-5 h-5 text-primary mx-auto" />
+                          ) : (
+                            <Square className="w-5 h-5 text-muted-foreground mx-auto" />
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
