@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Database, Package, Settings, UserPlus, Landmark, Link, FileText, FileType } from 'lucide-react';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
+import SCFProductDefinition from './SCFProductDefinition';
+import { SCFProgramConfiguration } from './scf-program/SCFProgramConfiguration';
 
 interface SCFMasterSetupProps {
   onBack: () => void;
@@ -9,6 +11,15 @@ interface SCFMasterSetupProps {
 
 const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<"main" | "productDefinition" | "programConfiguration">("main");
+
+  if (currentView === "productDefinition") {
+    return <SCFProductDefinition onBack={() => setCurrentView("main")} />;
+  }
+
+  if (currentView === "programConfiguration") {
+    return <SCFProgramConfiguration onBack={() => setCurrentView("main")} />;
+  }
 
   const masterSetupItems = [
     {
@@ -79,7 +90,12 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
 
   const handleOptionClick = (itemId: string, option: string) => {
     console.log('Master Setup option clicked:', itemId, option);
-    // TODO: Implement modal handlers for Product/Program actions
+    
+    if (itemId === 'product' && option === 'View') {
+      setCurrentView("productDefinition");
+    } else if (itemId === 'program-configuration') {
+      setCurrentView("programConfiguration");
+    }
   };
 
   return (

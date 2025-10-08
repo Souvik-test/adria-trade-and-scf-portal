@@ -1556,6 +1556,108 @@ export type Database = {
         }
         Relationships: []
       }
+      scf_program_configurations: {
+        Row: {
+          anchor_account: string | null
+          anchor_name: string
+          appropriation_sequence: Json | null
+          available_limit: number
+          counter_parties: Json | null
+          created_at: string
+          disbursement_account: string | null
+          disbursement_conditions: string | null
+          disbursement_mode: string | null
+          effective_date: string
+          expiry_date: string
+          fee_catalogue: Json | null
+          finance_percentage: number | null
+          finance_tenor: number | null
+          finance_tenor_unit: string | null
+          flat_fee_config: Json | null
+          id: string
+          insurance_policies: Json | null
+          insurance_required: boolean | null
+          margin_percentage: number | null
+          product_code: string
+          program_currency: string
+          program_description: string | null
+          program_id: string
+          program_limit: number
+          program_name: string
+          repayment_account: string | null
+          repayment_mode: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anchor_account?: string | null
+          anchor_name: string
+          appropriation_sequence?: Json | null
+          available_limit: number
+          counter_parties?: Json | null
+          created_at?: string
+          disbursement_account?: string | null
+          disbursement_conditions?: string | null
+          disbursement_mode?: string | null
+          effective_date: string
+          expiry_date: string
+          fee_catalogue?: Json | null
+          finance_percentage?: number | null
+          finance_tenor?: number | null
+          finance_tenor_unit?: string | null
+          flat_fee_config?: Json | null
+          id?: string
+          insurance_policies?: Json | null
+          insurance_required?: boolean | null
+          margin_percentage?: number | null
+          product_code: string
+          program_currency?: string
+          program_description?: string | null
+          program_id: string
+          program_limit: number
+          program_name: string
+          repayment_account?: string | null
+          repayment_mode?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anchor_account?: string | null
+          anchor_name?: string
+          appropriation_sequence?: Json | null
+          available_limit?: number
+          counter_parties?: Json | null
+          created_at?: string
+          disbursement_account?: string | null
+          disbursement_conditions?: string | null
+          disbursement_mode?: string | null
+          effective_date?: string
+          expiry_date?: string
+          fee_catalogue?: Json | null
+          finance_percentage?: number | null
+          finance_tenor?: number | null
+          finance_tenor_unit?: string | null
+          flat_fee_config?: Json | null
+          id?: string
+          insurance_policies?: Json | null
+          insurance_required?: boolean | null
+          margin_percentage?: number | null
+          product_code?: string
+          program_currency?: string
+          program_description?: string | null
+          program_id?: string
+          program_limit?: number
+          program_name?: string
+          repayment_account?: string | null
+          repayment_mode?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number | null
