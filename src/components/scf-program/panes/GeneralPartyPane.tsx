@@ -63,9 +63,17 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
   };
 
   const updateCounterParty = (id: string, field: string, value: any) => {
-    const updated = counterParties.map((p) =>
-      p.id === id ? { ...p, [field]: value } : p
-    );
+    const updated = counterParties.map((p) => {
+      if (p.id === id) {
+        const updatedParty = { ...p, [field]: value };
+        // Auto-populate available limit when limit amount changes
+        if (field === "limit_amount") {
+          updatedParty.available_limit_amount = value;
+        }
+        return updatedParty;
+      }
+      return p;
+    });
     setCounterParties(updated);
     form.setValue("counter_parties", updated);
   };
@@ -404,17 +412,17 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             </div>
 
             {counterParties.length > 0 && (
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Counter Party ID</TableHead>
-                      <TableHead>Counter Party Name</TableHead>
-                      <TableHead>Limit</TableHead>
-                      <TableHead>Available Limit</TableHead>
-                      <TableHead>Disbursement Currency</TableHead>
-                      <TableHead>Preferred Method</TableHead>
-                      {!isReadOnly && <TableHead>Actions</TableHead>}
+                      <TableHead className="min-w-[120px]">Counter Party ID</TableHead>
+                      <TableHead className="min-w-[150px]">Counter Party Name</TableHead>
+                      <TableHead className="min-w-[200px]">Limit</TableHead>
+                      <TableHead className="min-w-[200px]">Available Limit</TableHead>
+                      <TableHead className="min-w-[120px]">Disbursement Currency</TableHead>
+                      <TableHead className="min-w-[150px]">Preferred Method</TableHead>
+                      {!isReadOnly && <TableHead className="min-w-[80px]">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -649,6 +657,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         min={0}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Year</p>
                   </FormItem>
                 )}
               />
@@ -668,6 +677,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         max={11}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Month</p>
                   </FormItem>
                 )}
               />
@@ -687,6 +697,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         max={30}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Day</p>
                   </FormItem>
                 )}
               />
@@ -712,6 +723,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         min={0}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Year</p>
                   </FormItem>
                 )}
               />
@@ -731,6 +743,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         max={11}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Month</p>
                   </FormItem>
                 )}
               />
@@ -750,6 +763,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                         max={30}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground text-center mt-1">Day</p>
                   </FormItem>
                 )}
               />

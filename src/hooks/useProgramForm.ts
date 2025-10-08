@@ -161,12 +161,15 @@ export const useProgramForm = (
         if (name === "program_currency") {
           form.setValue("anchor_limit_currency", value.program_currency || "USD");
         }
-        if (name === "anchor_name" && !form.getValues("anchor_party")) {
+        if (name === "anchor_name") {
           form.setValue("anchor_party", value.anchor_name || "");
         }
         if (name === "product_code") {
           const productName = PRODUCT_CODE_MAPPING[value.product_code as string] || "";
           form.setValue("product_name", productName);
+        }
+        if (name === "anchor_limit") {
+          form.setValue("anchor_available_limit", value.anchor_limit || 0);
         }
       });
       return () => subscription.unsubscribe();

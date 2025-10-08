@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power, CheckSquare, Square } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power, CheckSquare, Square, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SCFProductDefinitionProps {
   onBack: () => void;
+  onNavigateToProgramConfig?: () => void;
 }
 
 interface ProductDefinition {
@@ -44,7 +45,7 @@ interface ProductDefinition {
   authorizationRequired: boolean;
 }
 
-const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) => {
+const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onNavigateToProgramConfig }) => {
   const { toast } = useToast();
   const [products, setProducts] = useState<ProductDefinition[]>([
     {
@@ -229,12 +230,24 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
     });
   };
 
-  const handleProceedToConfiguration = () => {
+  const handleProgramMapping = (product: ProductDefinition) => {
+    if (product.authorizationRequired) {
+      toast({
+        title: 'Authorization Required',
+        description: 'This product requires authorization before program mapping.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     toast({
-      title: 'Proceeding to Program Configuration',
-      description: 'Redirecting to link products with programs...',
+      title: 'Navigating to Program Configuration',
+      description: `Setting up program for ${product.productName}...`,
     });
-    // This would trigger navigation to Program Configuration
+    
+    if (onNavigateToProgramConfig) {
+      onNavigateToProgramConfig();
+    }
   };
 
   return (
@@ -552,6 +565,20 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                             <Button
                               size="icon"
                               variant="ghost"
+                              onClick={() => handleProgramMapping(product)}
+                              disabled={isAdding || editingId !== null || product.authorizationRequired}
+                              className={product.authorizationRequired 
+                                ? "opacity-50 cursor-not-allowed" 
+                                : "hover:bg-accent/10 text-accent-foreground"}
+                              title={product.authorizationRequired 
+                                ? "Authorization required - Program mapping disabled" 
+                                : "Program Mapping"}
+                            >
+                              <Settings className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
                               onClick={() => handleEdit(product)}
                               disabled={isAdding || editingId !== null}
                               className="hover:bg-primary/10"
@@ -575,15 +602,6 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                 </TableBody>
               </Table>
             </div>
-
-            {products.length > 0 && (
-              <div className="mt-6 flex justify-end">
-                <Button onClick={handleProceedToConfiguration} size="lg" className="gap-2">
-                  Proceed to Program Configuration
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
