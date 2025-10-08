@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 interface SCFProductDefinitionProps {
@@ -31,6 +33,7 @@ interface ProductDefinition {
   anchorRole: string;
   counterPartyRole: string;
   underlyingInstrument: string;
+  isActive: boolean;
 }
 
 const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) => {
@@ -42,6 +45,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: 'Seller/Supplier',
       counterPartyRole: 'Buyer',
       underlyingInstrument: 'Invoice',
+      isActive: true,
     },
     {
       id: '2',
@@ -49,6 +53,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: 'Buyer',
       counterPartyRole: 'Supplier',
       underlyingInstrument: 'Invoice',
+      isActive: true,
     },
   ]);
 
@@ -59,6 +64,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
     anchorRole: '',
     counterPartyRole: '',
     underlyingInstrument: '',
+    isActive: true,
   });
 
   const anchorRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor'];
@@ -86,6 +92,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: '',
       counterPartyRole: '',
       underlyingInstrument: '',
+      isActive: true,
     });
     setIsAdding(false);
 
@@ -102,6 +109,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: product.anchorRole,
       counterPartyRole: product.counterPartyRole,
       underlyingInstrument: product.underlyingInstrument,
+      isActive: product.isActive,
     });
   };
 
@@ -127,6 +135,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: '',
       counterPartyRole: '',
       underlyingInstrument: '',
+      isActive: true,
     });
 
     toast({
@@ -151,6 +160,21 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
       anchorRole: '',
       counterPartyRole: '',
       underlyingInstrument: '',
+      isActive: true,
+    });
+  };
+
+  const handleToggleActive = (id: string) => {
+    setProducts(products.map(p => 
+      p.id === id 
+        ? { ...p, isActive: !p.isActive }
+        : p
+    ));
+    
+    const product = products.find(p => p.id === id);
+    toast({
+      title: product?.isActive ? 'Product Deactivated' : 'Product Activated',
+      description: `${product?.productName} has been ${product?.isActive ? 'deactivated' : 'activated'}`,
     });
   };
 
@@ -199,7 +223,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label htmlFor="productName">Product Name *</Label>
                   <Input
@@ -268,7 +292,18 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-6">
+              <div className="flex items-center space-x-2 p-4 bg-muted/30 rounded-lg mb-6">
+                <Switch
+                  id="isActive"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                />
+                <Label htmlFor="isActive" className="cursor-pointer font-medium">
+                  Active Product {formData.isActive ? '(Enabled)' : '(Disabled)'}
+                </Label>
+              </div>
+
+              <div className="flex gap-2">
                 <Button onClick={editingId ? handleUpdate : handleAdd} className="gap-2">
                   <Save className="w-4 h-4" />
                   {editingId ? 'Update' : 'Save'}
@@ -291,56 +326,92 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack }) =
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold">Product Name</TableHead>
-                  <TableHead className="font-semibold">Anchor Role</TableHead>
-                  <TableHead className="font-semibold">Counter-Party Role</TableHead>
-                  <TableHead className="font-semibold">Underlying Instrument</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No products defined yet. Click "Add Product" to create your first product definition.
-                    </TableCell>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-bold">Product Name</TableHead>
+                    <TableHead className="font-bold">Anchor Role</TableHead>
+                    <TableHead className="font-bold">Counter-Party Role</TableHead>
+                    <TableHead className="font-bold">Underlying Instrument</TableHead>
+                    <TableHead className="font-bold text-center">Status</TableHead>
+                    <TableHead className="font-bold text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.productName}</TableCell>
-                      <TableCell>{product.anchorRole}</TableCell>
-                      <TableCell>{product.counterPartyRole}</TableCell>
-                      <TableCell>{product.underlyingInstrument}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEdit(product)}
-                            disabled={isAdding || editingId !== null}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(product.id)}
-                            disabled={isAdding || editingId !== null}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                </TableHeader>
+                <TableBody>
+                  {products.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-lg font-medium">No products defined yet</p>
+                          <p className="text-sm">Click "Add Product" to create your first product definition</p>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    products.map((product) => (
+                      <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-semibold text-foreground">
+                          {product.productName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-primary/10">
+                            {product.anchorRole}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-secondary/10">
+                            {product.counterPartyRole}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-accent/10">
+                            {product.underlyingInstrument}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Switch
+                              checked={product.isActive}
+                              onCheckedChange={() => handleToggleActive(product.id)}
+                              disabled={isAdding || editingId !== null}
+                            />
+                            <Badge 
+                              variant={product.isActive ? "default" : "secondary"}
+                              className={product.isActive ? "bg-green-500" : "bg-gray-400"}
+                            >
+                              {product.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleEdit(product)}
+                              disabled={isAdding || editingId !== null}
+                              className="hover:bg-primary/10"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDelete(product.id)}
+                              disabled={isAdding || editingId !== null}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
             {products.length > 0 && (
               <div className="mt-6 flex justify-end">
