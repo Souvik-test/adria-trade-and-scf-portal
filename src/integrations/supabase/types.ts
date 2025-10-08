@@ -1559,9 +1559,17 @@ export type Database = {
       scf_program_configurations: {
         Row: {
           anchor_account: string | null
+          anchor_available_limit: number | null
+          anchor_id: string | null
+          anchor_limit: number | null
+          anchor_limit_currency: string | null
           anchor_name: string
+          anchor_party: string | null
           appropriation_sequence: Json | null
+          assignment_enabled: boolean | null
+          assignment_percentage: number | null
           available_limit: number
+          borrower_selection: string | null
           counter_parties: Json | null
           created_at: string
           disbursement_account: string | null
@@ -1574,27 +1582,46 @@ export type Database = {
           finance_tenor: number | null
           finance_tenor_unit: string | null
           flat_fee_config: Json | null
+          grace_days: number | null
           id: string
           insurance_policies: Json | null
           insurance_required: boolean | null
           margin_percentage: number | null
+          max_tenor: number | null
+          max_tenor_unit: string | null
+          min_tenor: number | null
+          min_tenor_unit: string | null
           product_code: string
+          product_name: string | null
           program_currency: string
           program_description: string | null
           program_id: string
           program_limit: number
           program_name: string
+          recourse_enabled: boolean | null
+          recourse_percentage: number | null
           repayment_account: string | null
           repayment_mode: string | null
+          stale_period: number | null
           status: string
+          unaccepted_invoice_finance_enabled: boolean | null
+          unaccepted_invoice_percentage: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           anchor_account?: string | null
+          anchor_available_limit?: number | null
+          anchor_id?: string | null
+          anchor_limit?: number | null
+          anchor_limit_currency?: string | null
           anchor_name: string
+          anchor_party?: string | null
           appropriation_sequence?: Json | null
+          assignment_enabled?: boolean | null
+          assignment_percentage?: number | null
           available_limit: number
+          borrower_selection?: string | null
           counter_parties?: Json | null
           created_at?: string
           disbursement_account?: string | null
@@ -1607,27 +1634,46 @@ export type Database = {
           finance_tenor?: number | null
           finance_tenor_unit?: string | null
           flat_fee_config?: Json | null
+          grace_days?: number | null
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
           margin_percentage?: number | null
+          max_tenor?: number | null
+          max_tenor_unit?: string | null
+          min_tenor?: number | null
+          min_tenor_unit?: string | null
           product_code: string
+          product_name?: string | null
           program_currency?: string
           program_description?: string | null
           program_id: string
           program_limit: number
           program_name: string
+          recourse_enabled?: boolean | null
+          recourse_percentage?: number | null
           repayment_account?: string | null
           repayment_mode?: string | null
+          stale_period?: number | null
           status?: string
+          unaccepted_invoice_finance_enabled?: boolean | null
+          unaccepted_invoice_percentage?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           anchor_account?: string | null
+          anchor_available_limit?: number | null
+          anchor_id?: string | null
+          anchor_limit?: number | null
+          anchor_limit_currency?: string | null
           anchor_name?: string
+          anchor_party?: string | null
           appropriation_sequence?: Json | null
+          assignment_enabled?: boolean | null
+          assignment_percentage?: number | null
           available_limit?: number
+          borrower_selection?: string | null
           counter_parties?: Json | null
           created_at?: string
           disbursement_account?: string | null
@@ -1640,19 +1686,30 @@ export type Database = {
           finance_tenor?: number | null
           finance_tenor_unit?: string | null
           flat_fee_config?: Json | null
+          grace_days?: number | null
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
           margin_percentage?: number | null
+          max_tenor?: number | null
+          max_tenor_unit?: string | null
+          min_tenor?: number | null
+          min_tenor_unit?: string | null
           product_code?: string
+          product_name?: string | null
           program_currency?: string
           program_description?: string | null
           program_id?: string
           program_limit?: number
           program_name?: string
+          recourse_enabled?: boolean | null
+          recourse_percentage?: number | null
           repayment_account?: string | null
           repayment_mode?: string | null
+          stale_period?: number | null
           status?: string
+          unaccepted_invoice_finance_enabled?: boolean | null
+          unaccepted_invoice_percentage?: number | null
           updated_at?: string
           user_id?: string
         }

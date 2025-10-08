@@ -5,6 +5,7 @@ import { DisbursementRepaymentPane } from "./panes/DisbursementRepaymentPane";
 import { FeeCataloguePane } from "./panes/FeeCataloguePane";
 import { useProgramForm } from "@/hooks/useProgramForm";
 import { FormProvider } from "react-hook-form";
+import { useState } from "react";
 
 interface ProgramFormDialogProps {
   open: boolean;
@@ -22,8 +23,17 @@ export const ProgramFormDialog = ({
   onSuccess,
 }: ProgramFormDialogProps) => {
   const { form, onSubmit, isSubmitting } = useProgramForm(mode, program, onSuccess);
+  const [activeTab, setActiveTab] = useState("general");
 
   const isReadOnly = mode === "view" || mode === "delete";
+
+  const handleNext = () => {
+    if (activeTab === "general") {
+      setActiveTab("disbursement");
+    } else if (activeTab === "disbursement") {
+      setActiveTab("fees");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,7 +56,7 @@ export const ProgramFormDialog = ({
 
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <Tabs defaultValue="general" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="general">General & Party Details</TabsTrigger>
                   <TabsTrigger value="disbursement">Disbursement & Repayment</TabsTrigger>
@@ -54,7 +64,7 @@ export const ProgramFormDialog = ({
                 </TabsList>
 
                 <TabsContent value="general" className="mt-6">
-                  <GeneralPartyPane isReadOnly={isReadOnly} />
+                  <GeneralPartyPane isReadOnly={isReadOnly} onNext={handleNext} />
                 </TabsContent>
 
                 <TabsContent value="disbursement" className="mt-6">
