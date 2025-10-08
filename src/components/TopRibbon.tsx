@@ -20,12 +20,22 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
   const { user, signOut } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [corporateName, setCorporateName] = useState('Client aDria Ltd');
+  const [corporateLogo, setCorporateLogo] = useState<string>('');
 
   useEffect(() => {
     loadUnreadCount();
     // Poll for new notifications every 30 seconds
     const interval = setInterval(loadUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Load saved values from localStorage
+    const savedName = localStorage.getItem('corporateName');
+    const savedLogo = localStorage.getItem('corporateLogo');
+    if (savedName) setCorporateName(savedName);
+    if (savedLogo) setCorporateLogo(savedLogo);
   }, []);
 
   const loadUnreadCount = async () => {
@@ -76,11 +86,15 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 professional-gradient rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-sm">TC</span>
-              </div>
+              {corporateLogo ? (
+                <img src={corporateLogo} alt="Corporate Logo" className="w-8 h-8 rounded-md object-contain" />
+              ) : (
+                <div className="w-8 h-8 professional-gradient rounded-md flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">TC</span>
+                </div>
+              )}
               <h1 className="text-xl font-bold text-foreground tracking-tight">
-                TextCorp Ltd
+                {corporateName}
               </h1>
               <span className="text-muted-foreground text-sm font-medium px-3 py-1 bg-muted rounded-full">
                 {selectedModule === 'supply-chain-finance' ? 'SCF Studio' : 'Trade Finance Portal'}
