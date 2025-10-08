@@ -10,6 +10,7 @@ import SCFDashboard from '@/components/SCFDashboard';
 import SCFProductSuite from '@/components/SCFProductSuite';
 import SCFMasterSetup from '@/components/SCFMasterSetup';
 import SCFProductDefinition from '@/components/SCFProductDefinition';
+import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -41,6 +42,8 @@ const Index = () => {
           return <SCFProductSuite onBack={() => setActiveMenu('dashboard')} />;
         case 'product-definition':
           return <SCFProductDefinition onBack={() => setActiveMenu('dashboard')} />;
+        case 'program-configuration':
+          return <SCFProgramConfiguration onBack={() => setActiveMenu('dashboard')} />;
         case 'counter-party-onboarding':
           return (
             <div className="p-8 animate-fade-in">
