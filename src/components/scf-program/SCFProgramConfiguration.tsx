@@ -39,7 +39,12 @@ interface ProgramConfig {
   status: string;
 }
 
-export const SCFProgramConfiguration = ({ onBack }: { onBack: () => void }) => {
+interface SCFProgramConfigurationProps {
+  onBack: () => void;
+  initialMode?: "add";
+}
+
+export const SCFProgramConfiguration = ({ onBack, initialMode }: SCFProgramConfigurationProps) => {
   const [programs, setPrograms] = useState<ProgramConfig[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,6 +57,13 @@ export const SCFProgramConfiguration = ({ onBack }: { onBack: () => void }) => {
   useEffect(() => {
     fetchPrograms();
   }, []);
+
+  // Auto-open dialog in add mode if navigating from Product Definition
+  useEffect(() => {
+    if (initialMode === "add") {
+      handleAdd();
+    }
+  }, [initialMode]);
 
   const fetchPrograms = async () => {
     try {

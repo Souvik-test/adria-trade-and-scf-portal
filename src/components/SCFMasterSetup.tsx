@@ -12,16 +12,30 @@ interface SCFMasterSetupProps {
 const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"main" | "productDefinition" | "programConfiguration">("main");
+  const [openProgramInAddMode, setOpenProgramInAddMode] = useState(false);
 
   if (currentView === "productDefinition") {
     return <SCFProductDefinition 
       onBack={() => setCurrentView("main")} 
-      onNavigateToProgramConfig={() => setCurrentView("programConfiguration")}
+      onNavigateToProgramConfig={() => {
+        setOpenProgramInAddMode(true);
+        setCurrentView("programConfiguration");
+      }}
     />;
   }
 
   if (currentView === "programConfiguration") {
-    return <SCFProgramConfiguration onBack={() => setCurrentView("main")} />;
+    return <SCFProgramConfiguration 
+      onBack={() => {
+        setOpenProgramInAddMode(false);
+        if (openProgramInAddMode) {
+          setCurrentView("productDefinition");
+        } else {
+          setCurrentView("main");
+        }
+      }}
+      initialMode={openProgramInAddMode ? "add" : undefined}
+    />;
   }
 
   const masterSetupItems = [
