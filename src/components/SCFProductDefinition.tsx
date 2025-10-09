@@ -240,11 +240,6 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       return;
     }
     
-    toast({
-      title: 'Navigating to Program Configuration',
-      description: `Setting up program for ${product.productName}...`,
-    });
-    
     if (onNavigateToProgramConfig) {
       onNavigateToProgramConfig();
     }
