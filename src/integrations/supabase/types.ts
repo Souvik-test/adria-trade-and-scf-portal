@@ -1686,116 +1686,53 @@ export type Database = {
       }
       scf_product_definitions: {
         Row: {
-          allowed_currencies: string[] | null
-          approval_workflow: string | null
-          base_currency: string | null
-          base_interest_rate: number | null
+          anchor_role: string | null
+          authorization_required: boolean | null
+          borrower_role: string | null
+          counter_party_role: string | null
           created_at: string
-          documents_required: string[] | null
-          eligibility_criteria: Json | null
-          fee_structure: Json | null
-          finance_percentage_max: number | null
-          finance_percentage_min: number | null
-          grace_period_days: number | null
+          effective_date: string
+          expiry_date: string | null
           id: string
-          insurance_percentage: number | null
-          interest_calculation_method: string | null
-          interest_rate_type: string | null
           is_active: boolean | null
-          margin_percentage_max: number | null
-          margin_percentage_min: number | null
-          max_transaction_amount: number | null
-          min_transaction_amount: number | null
-          partial_payment_allowed: boolean | null
-          penalty_rate: number | null
-          prepayment_allowed: boolean | null
-          prepayment_penalty_percentage: number | null
           product_code: string
           product_description: string | null
           product_name: string
-          product_type: string
-          recourse_type: string | null
-          requires_insurance: boolean | null
-          spread_rate: number | null
-          tenor_max_days: number | null
-          tenor_min_days: number | null
-          terms_and_conditions: string | null
+          underlying_instrument: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          allowed_currencies?: string[] | null
-          approval_workflow?: string | null
-          base_currency?: string | null
-          base_interest_rate?: number | null
+          anchor_role?: string | null
+          authorization_required?: boolean | null
+          borrower_role?: string | null
+          counter_party_role?: string | null
           created_at?: string
-          documents_required?: string[] | null
-          eligibility_criteria?: Json | null
-          fee_structure?: Json | null
-          finance_percentage_max?: number | null
-          finance_percentage_min?: number | null
-          grace_period_days?: number | null
+          effective_date?: string
+          expiry_date?: string | null
           id?: string
-          insurance_percentage?: number | null
-          interest_calculation_method?: string | null
-          interest_rate_type?: string | null
           is_active?: boolean | null
-          margin_percentage_max?: number | null
-          margin_percentage_min?: number | null
-          max_transaction_amount?: number | null
-          min_transaction_amount?: number | null
-          partial_payment_allowed?: boolean | null
-          penalty_rate?: number | null
-          prepayment_allowed?: boolean | null
-          prepayment_penalty_percentage?: number | null
           product_code: string
           product_description?: string | null
           product_name: string
-          product_type: string
-          recourse_type?: string | null
-          requires_insurance?: boolean | null
-          spread_rate?: number | null
-          tenor_max_days?: number | null
-          tenor_min_days?: number | null
-          terms_and_conditions?: string | null
+          underlying_instrument?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          allowed_currencies?: string[] | null
-          approval_workflow?: string | null
-          base_currency?: string | null
-          base_interest_rate?: number | null
+          anchor_role?: string | null
+          authorization_required?: boolean | null
+          borrower_role?: string | null
+          counter_party_role?: string | null
           created_at?: string
-          documents_required?: string[] | null
-          eligibility_criteria?: Json | null
-          fee_structure?: Json | null
-          finance_percentage_max?: number | null
-          finance_percentage_min?: number | null
-          grace_period_days?: number | null
+          effective_date?: string
+          expiry_date?: string | null
           id?: string
-          insurance_percentage?: number | null
-          interest_calculation_method?: string | null
-          interest_rate_type?: string | null
           is_active?: boolean | null
-          margin_percentage_max?: number | null
-          margin_percentage_min?: number | null
-          max_transaction_amount?: number | null
-          min_transaction_amount?: number | null
-          partial_payment_allowed?: boolean | null
-          penalty_rate?: number | null
-          prepayment_allowed?: boolean | null
-          prepayment_penalty_percentage?: number | null
           product_code?: string
           product_description?: string | null
           product_name?: string
-          product_type?: string
-          recourse_type?: string | null
-          requires_insurance?: boolean | null
-          spread_rate?: number | null
-          tenor_max_days?: number | null
-          tenor_min_days?: number | null
-          terms_and_conditions?: string | null
+          underlying_instrument?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -1,0 +1,40 @@
+-- Add missing columns for product definition
+ALTER TABLE public.scf_product_definitions
+ADD COLUMN anchor_role text,
+ADD COLUMN counter_party_role text,
+ADD COLUMN borrower_role text,
+ADD COLUMN underlying_instrument text,
+ADD COLUMN effective_date date NOT NULL DEFAULT CURRENT_DATE,
+ADD COLUMN expiry_date date,
+ADD COLUMN authorization_required boolean DEFAULT false;
+
+-- Remove unnecessary program-level configuration columns
+ALTER TABLE public.scf_product_definitions
+DROP COLUMN IF EXISTS product_type,
+DROP COLUMN IF EXISTS base_currency,
+DROP COLUMN IF EXISTS allowed_currencies,
+DROP COLUMN IF EXISTS min_transaction_amount,
+DROP COLUMN IF EXISTS max_transaction_amount,
+DROP COLUMN IF EXISTS finance_percentage_min,
+DROP COLUMN IF EXISTS finance_percentage_max,
+DROP COLUMN IF EXISTS margin_percentage_min,
+DROP COLUMN IF EXISTS margin_percentage_max,
+DROP COLUMN IF EXISTS tenor_min_days,
+DROP COLUMN IF EXISTS tenor_max_days,
+DROP COLUMN IF EXISTS grace_period_days,
+DROP COLUMN IF EXISTS interest_calculation_method,
+DROP COLUMN IF EXISTS interest_rate_type,
+DROP COLUMN IF EXISTS base_interest_rate,
+DROP COLUMN IF EXISTS spread_rate,
+DROP COLUMN IF EXISTS penalty_rate,
+DROP COLUMN IF EXISTS prepayment_allowed,
+DROP COLUMN IF EXISTS prepayment_penalty_percentage,
+DROP COLUMN IF EXISTS partial_payment_allowed,
+DROP COLUMN IF EXISTS recourse_type,
+DROP COLUMN IF EXISTS approval_workflow,
+DROP COLUMN IF EXISTS requires_insurance,
+DROP COLUMN IF EXISTS insurance_percentage,
+DROP COLUMN IF EXISTS documents_required,
+DROP COLUMN IF EXISTS eligibility_criteria,
+DROP COLUMN IF EXISTS fee_structure,
+DROP COLUMN IF EXISTS terms_and_conditions;

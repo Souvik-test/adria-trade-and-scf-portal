@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Power, CheckSquare, Square, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,59 +24,28 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  fetchProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  toggleProductActive,
+  type ProductFormData,
+} from '@/services/scfProductService';
 
 interface SCFProductDefinitionProps {
   onBack: () => void;
   onNavigateToProgramConfig?: () => void;
 }
 
-interface ProductDefinition {
-  id: string;
-  productCode: string;
-  productName: string;
-  productDescription?: string;
-  anchorRole: string;
-  counterPartyRole: string;
-  borrowerRole?: string;
-  underlyingInstrument: string;
-  effectiveDate: string;
-  expiryDate?: string;
-  isActive: boolean;
-  authorizationRequired: boolean;
-}
+type ProductDefinition = ProductFormData & { id: string };
 
 const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onNavigateToProgramConfig }) => {
   const { toast } = useToast();
-  const [products, setProducts] = useState<ProductDefinition[]>([
-    {
-      id: '1',
-      productCode: 'RF001',
-      productName: 'Receivable Finance',
-      productDescription: 'Finance against receivables',
-      anchorRole: 'Seller/Supplier',
-      counterPartyRole: 'Buyer',
-      borrowerRole: 'Seller/Supplier',
-      underlyingInstrument: 'Invoice',
-      effectiveDate: '2024-01-01',
-      expiryDate: '2025-12-31',
-      isActive: true,
-      authorizationRequired: true,
-    },
-    {
-      id: '2',
-      productCode: 'APF001',
-      productName: 'Approved Payable Finance',
-      productDescription: 'Finance against approved payables',
-      anchorRole: 'Buyer',
-      counterPartyRole: 'Supplier',
-      borrowerRole: 'Buyer',
-      underlyingInstrument: 'Invoice',
-      effectiveDate: '2024-01-01',
-      expiryDate: '2025-12-31',
-      isActive: true,
-      authorizationRequired: false,
-    },
-  ]);
+  const { user } = useAuth();
+  const [products, setProducts] = useState<ProductDefinition[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -99,7 +68,30 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   const borrowerRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor', 'Both'];
   const underlyingInstruments = ['Invoice', 'Purchase Order', 'Bill of Lading', 'Warehouse Receipt'];
 
-  const handleAdd = () => {
+  // Fetch products on mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        const data = await fetchProducts(user.id);
+        setProducts(data);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load products. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [user?.id, toast]);
+
+  const handleAdd = async () => {
     if (!formData.productCode || !formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument || !formData.effectiveDate) {
       toast({
         title: 'Validation Error',
@@ -109,31 +101,44 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       return;
     }
 
-    const newProduct: ProductDefinition = {
-      id: Date.now().toString(),
-      ...formData,
-    };
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to create products',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    setProducts([...products, newProduct]);
-    setFormData({
-      productCode: '',
-      productName: '',
-      productDescription: '',
-      anchorRole: '',
-      counterPartyRole: '',
-      borrowerRole: '',
-      underlyingInstrument: '',
-      effectiveDate: new Date().toISOString().split('T')[0],
-      expiryDate: '',
-      isActive: true,
-      authorizationRequired: false,
-    });
-    setIsAdding(false);
+    try {
+      const newProduct = await createProduct(formData, user.id);
+      setProducts([newProduct, ...products]);
+      setFormData({
+        productCode: '',
+        productName: '',
+        productDescription: '',
+        anchorRole: '',
+        counterPartyRole: '',
+        borrowerRole: '',
+        underlyingInstrument: '',
+        effectiveDate: new Date().toISOString().split('T')[0],
+        expiryDate: '',
+        isActive: true,
+        authorizationRequired: false,
+      });
+      setIsAdding(false);
 
-    toast({
-      title: 'Product Added',
-      description: 'Product definition has been created successfully',
-    });
+      toast({
+        title: 'Product Added',
+        description: 'Product definition has been created successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create product. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEdit = (product: ProductDefinition) => {
@@ -153,7 +158,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     });
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!formData.productCode || !formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument || !formData.effectiveDate) {
       toast({
         title: 'Validation Error',
@@ -163,39 +168,57 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       return;
     }
 
-    setProducts(products.map(p => 
-      p.id === editingId 
-        ? { ...p, ...formData }
-        : p
-    ));
-    
-    setEditingId(null);
-    setFormData({
-      productCode: '',
-      productName: '',
-      productDescription: '',
-      anchorRole: '',
-      counterPartyRole: '',
-      borrowerRole: '',
-      underlyingInstrument: '',
-      effectiveDate: new Date().toISOString().split('T')[0],
-      expiryDate: '',
-      isActive: true,
-      authorizationRequired: false,
-    });
+    if (!user?.id || !editingId) return;
 
-    toast({
-      title: 'Product Updated',
-      description: 'Product definition has been updated successfully',
-    });
+    try {
+      const updatedProduct = await updateProduct(editingId, formData, user.id);
+      setProducts(products.map(p => p.id === editingId ? updatedProduct : p));
+      
+      setEditingId(null);
+      setFormData({
+        productCode: '',
+        productName: '',
+        productDescription: '',
+        anchorRole: '',
+        counterPartyRole: '',
+        borrowerRole: '',
+        underlyingInstrument: '',
+        effectiveDate: new Date().toISOString().split('T')[0],
+        expiryDate: '',
+        isActive: true,
+        authorizationRequired: false,
+      });
+
+      toast({
+        title: 'Product Updated',
+        description: 'Product definition has been updated successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update product. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast({
-      title: 'Product Deleted',
-      description: 'Product definition has been removed',
-    });
+  const handleDelete = async (id: string) => {
+    if (!user?.id) return;
+
+    try {
+      await deleteProduct(id, user.id);
+      setProducts(products.filter(p => p.id !== id));
+      toast({
+        title: 'Product Deleted',
+        description: 'Product definition has been removed',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete product. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -216,28 +239,35 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     });
   };
 
-  const handleToggleActive = (id: string) => {
-    setProducts(products.map(p => 
-      p.id === id 
-        ? { ...p, isActive: !p.isActive }
-        : p
-    ));
-    
+  const handleToggleActive = async (id: string) => {
+    if (!user?.id) return;
+
     const product = products.find(p => p.id === id);
-    toast({
-      title: product?.isActive ? 'Product Deactivated' : 'Product Activated',
-      description: `${product?.productName} has been ${product?.isActive ? 'deactivated' : 'activated'}`,
-    });
+    if (!product) return;
+
+    try {
+      const updatedProduct = await toggleProductActive(id, product.isActive, user.id);
+      setProducts(products.map(p => p.id === id ? updatedProduct : p));
+      
+      toast({
+        title: product.isActive ? 'Product Deactivated' : 'Product Activated',
+        description: `${product.productName} has been ${product.isActive ? 'deactivated' : 'activated'}`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to toggle product status. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleProgramMapping = (product: ProductDefinition) => {
     if (product.authorizationRequired) {
       toast({
-        title: 'Authorization Required',
-        description: 'This product requires authorization before program mapping.',
-        variant: 'destructive',
+        title: 'Authorization Pending',
+        description: `Navigating to Program Configuration for ${product.productName}. Note: Authorization is pending for this product.`,
       });
-      return;
     }
     
     if (onNavigateToProgramConfig) {
@@ -461,15 +491,24 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-bold">Product Code</TableHead>
-                    <TableHead className="font-bold">Product Name</TableHead>
-                    <TableHead className="font-bold">Anchor Role</TableHead>
-                    <TableHead className="font-bold">Counter-Party Role</TableHead>
-                    <TableHead className="font-bold">Borrower Role</TableHead>
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading products...
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No products defined yet. Click "Add Product" to create your first product.
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold">Product Code</TableHead>
+                      <TableHead className="font-bold">Product Name</TableHead>
+                      <TableHead className="font-bold">Anchor Role</TableHead>
+                      <TableHead className="font-bold">Counter-Party Role</TableHead>
+                      <TableHead className="font-bold">Borrower Role</TableHead>
                     <TableHead className="font-bold">Underlying Instrument</TableHead>
                     <TableHead className="font-bold">Effective Date</TableHead>
                     <TableHead className="font-bold text-center">Status</TableHead>
@@ -561,13 +600,9 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                               size="icon"
                               variant="ghost"
                               onClick={() => handleProgramMapping(product)}
-                              disabled={isAdding || editingId !== null || product.authorizationRequired}
-                              className={product.authorizationRequired 
-                                ? "opacity-50 cursor-not-allowed" 
-                                : "hover:bg-primary/10 text-primary"}
-                              title={product.authorizationRequired 
-                                ? "Authorization required - Program mapping disabled" 
-                                : "Program Mapping"}
+                              disabled={isAdding || editingId !== null}
+                              className="hover:bg-primary/10 text-primary"
+                              title="Program Mapping"
                             >
                               <Settings className="w-4 h-4" />
                             </Button>
@@ -597,6 +632,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                 </TableBody>
               </Table>
             </div>
+            )}
           </CardContent>
         </Card>
       </div>
