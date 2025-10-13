@@ -11,6 +11,8 @@ export interface InvoiceLineItem {
 
 export interface InvoiceFormData {
   invoiceType: 'invoice' | 'credit-note' | 'debit-note';
+  programId: string;
+  programName: string;
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
@@ -18,9 +20,10 @@ export interface InvoiceFormData {
   purchaseOrderCurrency: string;
   purchaseOrderAmount: number;
   purchaseOrderDate: string;
-  customerName: string;
-  customerAddress: string;
-  customerContact: string;
+  buyerId: string;
+  buyerName: string;
+  sellerId: string;
+  sellerName: string;
   currency: string;
   lineItems: InvoiceLineItem[];
   subtotal: number;
@@ -36,6 +39,8 @@ export type InvoiceFormStep = 'general' | 'items' | 'summary';
 const useInvoiceForm = () => {
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceType: 'invoice',
+    programId: '',
+    programName: '',
     invoiceNumber: '',
     invoiceDate: '',
     dueDate: '',
@@ -43,9 +48,10 @@ const useInvoiceForm = () => {
     purchaseOrderCurrency: '',
     purchaseOrderAmount: 0,
     purchaseOrderDate: '',
-    customerName: '',
-    customerAddress: '',
-    customerContact: '',
+    buyerId: '',
+    buyerName: '',
+    sellerId: '',
+    sellerName: '',
     currency: 'USD',
     lineItems: [],
     subtotal: 0,
@@ -169,7 +175,7 @@ const useInvoiceForm = () => {
   const validateCurrentStep = useCallback(() => {
     switch (currentStep) {
       case 'general':
-        return !!(formData.invoiceNumber && formData.invoiceDate && formData.customerName);
+        return !!(formData.invoiceNumber && formData.invoiceDate && formData.buyerName && formData.sellerName);
       case 'items':
         return formData.lineItems.length > 0;
       case 'summary':

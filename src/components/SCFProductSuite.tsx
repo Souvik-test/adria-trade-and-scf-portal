@@ -17,11 +17,11 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
 
   const invoiceCard = {
     id: 'underlying-docs',
-    title: 'Underlying Invoice Management',
+    title: 'Invoice / Credit and Debit Notes',
     icon: Receipt,
     description: 'Manage Commercial Invoices, Credit and Debit Notes',
     hasFlip: true,
-    flipOptions: ['Commercial Invoice', 'Credit Note', 'Debit Note']
+    flipOptions: ['Commercial Invoice']
   };
 
   const sellerAnchoredPrograms = [

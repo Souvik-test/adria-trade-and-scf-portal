@@ -57,7 +57,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
         updateField('purchaseOrderCurrency', poData.currency);
         updateField('purchaseOrderAmount', poData.grand_total);
         updateField('purchaseOrderDate', poData.po_date);
-        updateField('customerName', poData.vendor_supplier);
         
         toast({
           title: 'Purchase Order Found',

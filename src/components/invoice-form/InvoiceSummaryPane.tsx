@@ -44,9 +44,18 @@ const InvoiceSummaryPane: React.FC<InvoiceSummaryPaneProps> = ({
             </div>
             
             <div>
-              <Label>Customer</Label>
+              <Label>Buyer Name</Label>
               <Input
-                value={formData.customerName}
+                value={formData.buyerName}
+                readOnly
+                className="bg-gray-50 dark:bg-gray-800"
+              />
+            </div>
+            
+            <div>
+              <Label>Seller Name</Label>
+              <Input
+                value={formData.sellerName}
                 readOnly
                 className="bg-gray-50 dark:bg-gray-800"
               />

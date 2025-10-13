@@ -40,7 +40,6 @@ const InvoiceMethodSection: React.FC<InvoiceMethodSectionProps> = ({
           }
           icon={Upload}
           isEnabled={!!selectedAction}
-          isComingSoon={true}
           onClick={() => onMethodSelect('upload')}
         />
 
@@ -52,7 +51,6 @@ const InvoiceMethodSection: React.FC<InvoiceMethodSectionProps> = ({
           }
           icon={MessageSquare}
           isEnabled={!!selectedAction}
-          isComingSoon={true}
           onClick={() => onMethodSelect('assistance')}
         />
       </div>

@@ -27,6 +27,14 @@ interface PurchaseOrder {
   po_date: string;
 }
 
+interface SCFProgram {
+  id: string;
+  program_id: string;
+  program_name: string;
+  anchor_name: string;
+  anchor_id: string;
+}
+
 const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   formData,
   updateField,
@@ -35,6 +43,9 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [poSearchOpen, setPoSearchOpen] = useState(false);
   const [isLoadingPOs, setIsLoadingPOs] = useState(false);
+  const [scfPrograms, setScfPrograms] = useState<SCFProgram[]>([]);
+  const [programSearchOpen, setProgramSearchOpen] = useState(false);
+  const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
 
   // Fetch POs (all, no user filter)
   const fetchPurchaseOrders = useCallback(async () => {
@@ -68,13 +79,54 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
     }
   }, [poSearchOpen, fetchPurchaseOrders]);
 
+  // Fetch SCF Programs
+  const fetchSCFPrograms = useCallback(async () => {
+    setIsLoadingPrograms(true);
+    try {
+      const { data, error } = await supabase
+        .from('scf_program_configurations')
+        .select('id, program_id, program_name, anchor_name, anchor_id')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error fetching SCF programs:', error);
+      } else {
+        setScfPrograms(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching SCF programs:', error);
+    } finally {
+      setIsLoadingPrograms(false);
+    }
+  }, []);
+
+  // Initial fetch for programs
+  useEffect(() => {
+    fetchSCFPrograms();
+  }, [fetchSCFPrograms]);
+
+  // Refetch programs when popover opens
+  useEffect(() => {
+    if (programSearchOpen) {
+      fetchSCFPrograms();
+    }
+  }, [programSearchOpen, fetchSCFPrograms]);
+
+  const handleProgramSelect = (selectedProgram: SCFProgram) => {
+    updateField('programId', selectedProgram.program_id);
+    updateField('programName', selectedProgram.program_name);
+    // Auto-populate buyer and seller based on program
+    updateField('buyerId', selectedProgram.anchor_id);
+    updateField('buyerName', selectedProgram.anchor_name);
+    setProgramSearchOpen(false);
+  };
+
   const handlePOSelect = (selectedPO: PurchaseOrder) => {
     // Auto-populate fields when PO is selected
     updateField('purchaseOrderNumber', selectedPO.po_number);
     updateField('purchaseOrderCurrency', selectedPO.currency);
     updateField('purchaseOrderAmount', selectedPO.grand_total);
     updateField('purchaseOrderDate', selectedPO.po_date);
-    updateField('customerName', selectedPO.vendor_supplier);
     setPoSearchOpen(false);
   };
 
@@ -97,6 +149,99 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Program Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Program Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="programId">Program ID *</Label>
+              <div className="flex gap-2 mt-1 items-center">
+                <div className="flex-1">
+                  <Input
+                    id="programId"
+                    value={formData.programId}
+                    onChange={(e) => updateField('programId', e.target.value)}
+                    placeholder="Search or enter Program ID"
+                  />
+                </div>
+                <Popover open={programSearchOpen} onOpenChange={setProgramSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="shrink-0"
+                      disabled={isLoadingPrograms}
+                      aria-label="Search Program"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0" align="start">
+                    <div className="flex items-center justify-between px-3 py-2 border-b">
+                      <span className="text-sm font-semibold">Active SCF Programs</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Refresh Program List"
+                        onClick={fetchSCFPrograms}
+                        disabled={isLoadingPrograms}
+                        className="ml-2"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isLoadingPrograms ? "animate-spin" : ""}`} />
+                      </Button>
+                    </div>
+                    <Command>
+                      <CommandInput placeholder="Search programs..." />
+                      <CommandList>
+                        {isLoadingPrograms ? (
+                          <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                        ) : (
+                          <>
+                            <CommandEmpty>No programs found.</CommandEmpty>
+                            <CommandGroup>
+                              {scfPrograms.map((program) => (
+                                <CommandItem
+                                  key={program.id}
+                                  onSelect={() => handleProgramSelect(program)}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex flex-col w-full">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-medium">{program.program_id}</span>
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {program.program_name} • {program.anchor_name}
+                                    </div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </>
+                        )}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="programName">Program Name</Label>
+              <Input
+                id="programName"
+                value={formData.programName}
+                placeholder="Auto-populated from Program ID"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Purchase Order Details */}
       <Card>
         <CardHeader>
@@ -270,41 +415,54 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
         </CardContent>
       </Card>
 
-      {/* Customer Information */}
+      {/* Party Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Customer Information</CardTitle>
+          <CardTitle>Party Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="customerName">Customer Name *</Label>
-            <Input
-              id="customerName"
-              value={formData.customerName}
-              onChange={(e) => updateField('customerName', e.target.value)}
-              placeholder="Enter customer name"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="customerAddress">Customer Address</Label>
-            <Textarea
-              id="customerAddress"
-              value={formData.customerAddress}
-              onChange={(e) => updateField('customerAddress', e.target.value)}
-              placeholder="Enter customer address"
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="customerContact">Customer Contact</Label>
-            <Input
-              id="customerContact"
-              value={formData.customerContact}
-              onChange={(e) => updateField('customerContact', e.target.value)}
-              placeholder="Enter contact details"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="buyerId">Buyer ID *</Label>
+              <Input
+                id="buyerId"
+                value={formData.buyerId}
+                placeholder="Auto-populated from Program"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="buyerName">Buyer Name *</Label>
+              <Input
+                id="buyerName"
+                value={formData.buyerName}
+                placeholder="Auto-populated from Program"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="sellerId">Seller ID *</Label>
+              <Input
+                id="sellerId"
+                value={formData.sellerId}
+                onChange={(e) => updateField('sellerId', e.target.value)}
+                placeholder="Enter Seller ID"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="sellerName">Seller Name *</Label>
+              <Input
+                id="sellerName"
+                value={formData.sellerName}
+                onChange={(e) => updateField('sellerName', e.target.value)}
+                placeholder="Enter Seller Name"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
