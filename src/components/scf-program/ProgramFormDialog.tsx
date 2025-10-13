@@ -13,6 +13,7 @@ interface ProgramFormDialogProps {
   mode: "add" | "edit" | "view" | "delete";
   program: any;
   onSuccess: () => void;
+  selectedProductCode?: string;
 }
 
 export const ProgramFormDialog = ({
@@ -21,8 +22,9 @@ export const ProgramFormDialog = ({
   mode,
   program,
   onSuccess,
+  selectedProductCode,
 }: ProgramFormDialogProps) => {
-  const { form, onSubmit, isSubmitting } = useProgramForm(mode, program, onSuccess);
+  const { form, onSubmit, isSubmitting } = useProgramForm(mode, program, onSuccess, selectedProductCode);
   const [activeTab, setActiveTab] = useState("general");
 
   const isReadOnly = mode === "view" || mode === "delete";

@@ -13,11 +13,13 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"main" | "productDefinition" | "programConfiguration">("main");
   const [openProgramInAddMode, setOpenProgramInAddMode] = useState(false);
+  const [selectedProductCode, setSelectedProductCode] = useState<string | undefined>();
 
   if (currentView === "productDefinition") {
     return <SCFProductDefinition 
       onBack={() => setCurrentView("main")} 
-      onNavigateToProgramConfig={() => {
+      onNavigateToProgramConfig={(productCode) => {
+        setSelectedProductCode(productCode);
         setOpenProgramInAddMode(true);
         setCurrentView("programConfiguration");
       }}
@@ -27,14 +29,12 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   if (currentView === "programConfiguration") {
     return <SCFProgramConfiguration 
       onBack={() => {
+        setCurrentView("main");
         setOpenProgramInAddMode(false);
-        if (openProgramInAddMode) {
-          setCurrentView("productDefinition");
-        } else {
-          setCurrentView("main");
-        }
-      }}
+        setSelectedProductCode(undefined);
+      }} 
       initialMode={openProgramInAddMode ? "add" : undefined}
+      selectedProductCode={selectedProductCode}
     />;
   }
 

@@ -36,7 +36,7 @@ import {
 
 interface SCFProductDefinitionProps {
   onBack: () => void;
-  onNavigateToProgramConfig?: () => void;
+  onNavigateToProgramConfig?: (productCode?: string) => void;
 }
 
 type ProductDefinition = ProductFormData & { id: string };
@@ -271,7 +271,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     }
     
     if (onNavigateToProgramConfig) {
-      onNavigateToProgramConfig();
+      onNavigateToProgramConfig(product.productCode);
     }
   };
 

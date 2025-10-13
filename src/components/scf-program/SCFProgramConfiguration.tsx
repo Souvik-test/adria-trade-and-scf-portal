@@ -42,9 +42,10 @@ interface ProgramConfig {
 interface SCFProgramConfigurationProps {
   onBack: () => void;
   initialMode?: "add";
+  selectedProductCode?: string;
 }
 
-export const SCFProgramConfiguration = ({ onBack, initialMode }: SCFProgramConfigurationProps) => {
+export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCode }: SCFProgramConfigurationProps) => {
   const [programs, setPrograms] = useState<ProgramConfig[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -279,6 +280,7 @@ export const SCFProgramConfiguration = ({ onBack, initialMode }: SCFProgramConfi
         mode={dialogMode}
         program={selectedProgram}
         onSuccess={handleSuccess}
+        selectedProductCode={selectedProductCode}
       />
 
       {/* Delete Confirmation Dialog */}

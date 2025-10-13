@@ -76,14 +76,15 @@ type ProgramFormValues = z.infer<typeof programSchema>;
 export const useProgramForm = (
   mode: "add" | "edit" | "view" | "delete",
   program: any,
-  onSuccess: () => void
+  onSuccess: () => void,
+  selectedProductCode?: string
 ) => {
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: {
       program_id: "",
       program_name: "",
-      product_code: "",
+      product_code: selectedProductCode || "",
       product_name: "",
       program_description: "",
       program_limit: 0,
@@ -148,8 +149,23 @@ export const useProgramForm = (
         fee_catalogue: program.fee_catalogue || [],
         flat_fee_config: program.flat_fee_config || {},
       });
+    } else if (selectedProductCode && mode === "add") {
+      // Pre-populate product code when coming from Product Definition
+      form.setValue("product_code", selectedProductCode);
+      // Fetch and set product name from database
+      const fetchProductName = async () => {
+        const { data } = await supabase
+          .from("scf_product_definitions")
+          .select("product_name")
+          .eq("product_code", selectedProductCode)
+          .single();
+        if (data) {
+          form.setValue("product_name", data.product_name);
+        }
+      };
+      fetchProductName();
     }
-  }, [program, mode, form]);
+  }, [program, mode, form, selectedProductCode]);
 
   // Auto-populate fields when values change (only in add mode)
   useEffect(() => {

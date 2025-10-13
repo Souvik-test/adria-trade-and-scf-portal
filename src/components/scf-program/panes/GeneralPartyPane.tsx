@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Plus, Trash2, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -38,6 +39,23 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
   const [counterParties, setCounterParties] = useState<any[]>(
     form.getValues("counter_parties") || []
   );
+  const [productCodes, setProductCodes] = useState<{ code: string; name: string }[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from("scf_product_definitions")
+        .select("product_code, product_name")
+        .eq("is_active", true)
+        .order("product_code");
+      
+      if (!error && data) {
+        setProductCodes(data.map(p => ({ code: p.product_code, name: p.product_name })));
+      }
+    };
+    
+    fetchProducts();
+  }, []);
 
   const addCounterParty = () => {
     const newParty = {
@@ -121,18 +139,28 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 <FormControl>
                   <Select
                     disabled={isReadOnly}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      const product = productCodes.find(p => p.code === value);
+                      if (product) {
+                        form.setValue("product_name", product.name);
+                      }
+                    }}
                     value={field.value}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select product code" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="INV_FIN">INV_FIN</SelectItem>
-                      <SelectItem value="PO_FIN">PO_FIN</SelectItem>
-                      <SelectItem value="DIS_FIN">DIS_FIN</SelectItem>
-                      <SelectItem value="VEN_FIN">VEN_FIN</SelectItem>
-                      <SelectItem value="DYN_DISC">DYN_DISC</SelectItem>
+                      {productCodes.length === 0 ? (
+                        <SelectItem value="none" disabled>No products available</SelectItem>
+                      ) : (
+                        productCodes.map((product) => (
+                          <SelectItem key={product.code} value={product.code}>
+                            {product.code}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </FormControl>
