@@ -1556,6 +1556,134 @@ export type Database = {
         }
         Relationships: []
       }
+      scf_invoice_line_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          line_total: number
+          quantity: number
+          scf_invoice_id: string
+          tax_rate: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          line_total: number
+          quantity?: number
+          scf_invoice_id: string
+          tax_rate?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          line_total?: number
+          quantity?: number
+          scf_invoice_id?: string
+          tax_rate?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scf_invoice_line_items_scf_invoice_id_fkey"
+            columns: ["scf_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "scf_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scf_invoices: {
+        Row: {
+          buyer_id: string
+          buyer_name: string
+          created_at: string
+          currency: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string
+          invoice_type: string
+          notes: string | null
+          payment_terms: string | null
+          program_id: string
+          program_name: string
+          purchase_order_amount: number | null
+          purchase_order_currency: string | null
+          purchase_order_date: string | null
+          purchase_order_number: string | null
+          seller_id: string
+          seller_name: string
+          status: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buyer_id: string
+          buyer_name: string
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number: string
+          invoice_type: string
+          notes?: string | null
+          payment_terms?: string | null
+          program_id: string
+          program_name: string
+          purchase_order_amount?: number | null
+          purchase_order_currency?: string | null
+          purchase_order_date?: string | null
+          purchase_order_number?: string | null
+          seller_id: string
+          seller_name: string
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buyer_id?: string
+          buyer_name?: string
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string
+          invoice_type?: string
+          notes?: string | null
+          payment_terms?: string | null
+          program_id?: string
+          program_name?: string
+          purchase_order_amount?: number | null
+          purchase_order_currency?: string | null
+          purchase_order_date?: string | null
+          purchase_order_number?: string | null
+          seller_id?: string
+          seller_name?: string
+          status?: string | null
+          subtotal?: number | null
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       scf_program_configurations: {
         Row: {
           anchor_account: string | null
