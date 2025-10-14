@@ -272,52 +272,110 @@ export const useProgramForm = (
   };
 
   const onSubmit = async (data: ProgramFormValues) => {
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Form data received:', data);
+    console.log('Form validation state:', form.formState);
+    console.log('Form errors:', form.formState.errors);
+    
+    // Pre-flight validation check
+    const errors = form.formState.errors;
+    const errorKeys = Object.keys(errors);
+    
+    if (errorKeys.length > 0) {
+      console.error('❌ Validation errors found:', errors);
+      
+      const errorMessages = errorKeys.map(key => {
+        const error = errors[key as keyof typeof errors];
+        return `${key}: ${error?.message || 'Invalid'}`;
+      }).slice(0, 3); // Show first 3 errors
+      
+      toast({
+        title: "Validation Failed",
+        description: `Please fix: ${errorMessages.join('; ')}${errorKeys.length > 3 ? '...' : ''}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
+      console.log('✓ Validation passed, authenticating user...');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      
+      if (!user) {
+        console.error('❌ Authentication failed: No user');
+        throw new Error("User not authenticated");
+      }
+      console.log('✓ User authenticated:', user.id);
 
       // Transform form data to match database schema
+      console.log('Transforming form data to database schema...');
       const transformedData = transformFormDataForDB(data);
+      console.log('✓ Transformed data:', transformedData);
 
       if (mode === "add") {
+        console.log('Mode: ADD - Inserting new program...');
         const insertData = {
           ...transformedData,
           user_id: user.id,
         };
+        console.log('Insert payload:', insertData);
         
         const { error } = await supabase
           .from("scf_program_configurations")
           .insert(insertData);
 
         if (error) {
-          console.error("Database error details:", error);
+          console.error("❌ Database insert error:", error);
+          console.error("Error code:", error.code);
+          console.error("Error details:", error.details);
+          console.error("Error hint:", error.hint);
+          
+          // Handle specific error cases
+          if (error.code === '23505') {
+            toast({
+              title: "Duplicate Program ID",
+              description: `Program ID "${data.program_id}" already exists. Please use a different ID.`,
+              variant: "destructive",
+            });
+            return;
+          }
+          
           throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}`);
         }
 
+        console.log('✓ Program created successfully');
         toast({
           title: "Success",
           description: "Program configuration created successfully",
         });
       } else if (mode === "edit") {
+        console.log('Mode: EDIT - Updating program:', program.id);
         const { error } = await supabase
           .from("scf_program_configurations")
           .update(transformedData)
           .eq("id", program.id);
 
         if (error) {
-          console.error("Database error details:", error);
+          console.error("❌ Database update error:", error);
+          console.error("Error code:", error.code);
+          console.error("Error details:", error.details);
           throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}`);
         }
 
+        console.log('✓ Program updated successfully');
         toast({
           title: "Success",
           description: "Program configuration updated successfully",
         });
       }
 
+      console.log('Calling onSuccess callback...');
       onSuccess();
+      console.log('=== FORM SUBMISSION COMPLETED SUCCESSFULLY ===');
     } catch (error: any) {
-      console.error("Error saving program:", error);
+      console.error("=== FORM SUBMISSION FAILED ===");
+      console.error("Error:", error);
+      console.error("Error stack:", error?.stack);
       toast({
         title: "Error",
         description: error.message || "Failed to save program configuration",
