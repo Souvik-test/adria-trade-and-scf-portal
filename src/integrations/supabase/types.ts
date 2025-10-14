@@ -591,6 +591,53 @@ export type Database = {
           },
         ]
       }
+      invoice_disbursements: {
+        Row: {
+          accounting_entry_ref: string | null
+          created_at: string
+          disbursed_amount: number
+          disbursed_at: string | null
+          disbursement_status: string
+          finance_percentage: number
+          id: string
+          loan_reference: string
+          program_id: string
+          scf_invoice_id: string
+        }
+        Insert: {
+          accounting_entry_ref?: string | null
+          created_at?: string
+          disbursed_amount: number
+          disbursed_at?: string | null
+          disbursement_status?: string
+          finance_percentage: number
+          id?: string
+          loan_reference: string
+          program_id: string
+          scf_invoice_id: string
+        }
+        Update: {
+          accounting_entry_ref?: string | null
+          created_at?: string
+          disbursed_amount?: number
+          disbursed_at?: string | null
+          disbursement_status?: string
+          finance_percentage?: number
+          id?: string
+          loan_reference?: string
+          program_id?: string
+          scf_invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_disbursements_scf_invoice_id_fkey"
+            columns: ["scf_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "scf_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           created_at: string | null
@@ -628,6 +675,115 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_scanned_documents: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          scf_invoice_id: string | null
+          uploaded_at: string
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          scf_invoice_id?: string | null
+          uploaded_at?: string
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          scf_invoice_id?: string | null
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_scanned_documents_scf_invoice_id_fkey"
+            columns: ["scf_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "scf_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_upload_batches: {
+        Row: {
+          id: string
+          rejected_rows: number
+          status: string
+          successful_rows: number
+          total_rows: number
+          upload_type: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          rejected_rows?: number
+          status?: string
+          successful_rows?: number
+          total_rows?: number
+          upload_type: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          rejected_rows?: number
+          status?: string
+          successful_rows?: number
+          total_rows?: number
+          upload_type?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invoice_upload_rejections: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          invoice_number: string | null
+          raw_data: Json | null
+          rejection_reason: string
+          row_number: number
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          invoice_number?: string | null
+          raw_data?: Json | null
+          rejection_reason: string
+          row_number: number
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          invoice_number?: string | null
+          raw_data?: Json | null
+          rejection_reason?: string
+          row_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_upload_rejections_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_upload_batches"
             referencedColumns: ["id"]
           },
         ]

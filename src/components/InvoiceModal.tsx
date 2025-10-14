@@ -5,6 +5,7 @@ import InvoiceForm from './InvoiceForm';
 import InvoiceModalHeader from './invoice-modal/InvoiceModalHeader';
 import InvoiceActionSection from './invoice-modal/InvoiceActionSection';
 import InvoiceMethodSection from './invoice-modal/InvoiceMethodSection';
+import InvoiceUploadForm from './invoice-upload/InvoiceUploadForm';
 
 interface InvoiceModalProps {
   onClose: () => void;
@@ -16,6 +17,7 @@ type ActionType = 'create' | 'amend' | 'cancel' | null;
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose, onBack }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -24,6 +26,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose, onBack }) => {
   const handleMethodSelect = (method: string) => {
     if (method === 'manual' && selectedAction === 'create') {
       setShowForm(true);
+    } else if (method === 'upload' && selectedAction === 'create') {
+      setShowUploadForm(true);
     } else {
       console.log(`Opening ${method} for ${selectedAction} action`);
     }
@@ -42,6 +46,18 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose, onBack }) => {
       <InvoiceForm 
         onClose={handleFormClose}
         onBack={handleFormBack}
+      />
+    );
+  }
+
+  if (showUploadForm) {
+    return (
+      <InvoiceUploadForm
+        open={showUploadForm}
+        onClose={() => {
+          setShowUploadForm(false);
+          onClose();
+        }}
       />
     );
   }
