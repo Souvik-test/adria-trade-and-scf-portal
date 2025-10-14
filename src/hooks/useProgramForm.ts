@@ -77,7 +77,8 @@ export const useProgramForm = (
   mode: "add" | "edit" | "view" | "delete",
   program: any,
   onSuccess: () => void,
-  selectedProductCode?: string
+  selectedProductCode?: string,
+  onValidationError?: (errors: string[]) => void
 ) => {
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
@@ -286,14 +287,21 @@ export const useProgramForm = (
       
       const errorMessages = errorKeys.map(key => {
         const error = errors[key as keyof typeof errors];
-        return `${key}: ${error?.message || 'Invalid'}`;
-      }).slice(0, 3); // Show first 3 errors
-      
-      toast({
-        title: "Validation Failed",
-        description: `Please fix: ${errorMessages.join('; ')}${errorKeys.length > 3 ? '...' : ''}`,
-        variant: "destructive",
+        const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return `${fieldName}: ${error?.message || 'Invalid value'}`;
       });
+      
+      // Call the error callback if provided (for AlertDialog)
+      if (onValidationError) {
+        onValidationError(errorMessages);
+      } else {
+        // Fallback to toast if no callback provided
+        toast({
+          title: "Validation Failed",
+          description: `Please fix: ${errorMessages.slice(0, 3).join('; ')}${errorMessages.length > 3 ? '...' : ''}`,
+          variant: "destructive",
+        });
+      }
       return;
     }
     
@@ -332,11 +340,16 @@ export const useProgramForm = (
           
           // Handle specific error cases
           if (error.code === '23505') {
-            toast({
-              title: "Duplicate Program ID",
-              description: `Program ID "${data.program_id}" already exists. Please use a different ID.`,
-              variant: "destructive",
-            });
+            const errorMsg = `Program ID "${data.program_id}" already exists. Please use a different ID.`;
+            if (onValidationError) {
+              onValidationError([errorMsg]);
+            } else {
+              toast({
+                title: "Duplicate Program ID",
+                description: errorMsg,
+                variant: "destructive",
+              });
+            }
             return;
           }
           
@@ -359,6 +372,22 @@ export const useProgramForm = (
           console.error("❌ Database update error:", error);
           console.error("Error code:", error.code);
           console.error("Error details:", error.details);
+          
+          // Handle specific error cases for update
+          if (error.code === '23505') {
+            const errorMsg = `Program ID "${data.program_id}" already exists. Please use a different ID.`;
+            if (onValidationError) {
+              onValidationError([errorMsg]);
+            } else {
+              toast({
+                title: "Duplicate Program ID",
+                description: errorMsg,
+                variant: "destructive",
+              });
+            }
+            return;
+          }
+          
           throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}`);
         }
 
@@ -376,11 +405,17 @@ export const useProgramForm = (
       console.error("=== FORM SUBMISSION FAILED ===");
       console.error("Error:", error);
       console.error("Error stack:", error?.stack);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save program configuration",
-        variant: "destructive",
-      });
+      
+      const errorMsg = error.message || "Failed to save program configuration";
+      if (onValidationError) {
+        onValidationError([errorMsg]);
+      } else {
+        toast({
+          title: "Error",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     }
   };
 

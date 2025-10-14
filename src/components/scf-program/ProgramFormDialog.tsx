@@ -1,4 +1,13 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralPartyPane } from "./panes/GeneralPartyPane";
 import { DisbursementRepaymentPane } from "./panes/DisbursementRepaymentPane";
@@ -6,6 +15,7 @@ import { FeeCataloguePane } from "./panes/FeeCataloguePane";
 import { useProgramForm } from "@/hooks/useProgramForm";
 import { FormProvider } from "react-hook-form";
 import { useState } from "react";
+import { AlertCircle } from "lucide-react";
 
 interface ProgramFormDialogProps {
   open: boolean;
@@ -24,8 +34,22 @@ export const ProgramFormDialog = ({
   onSuccess,
   selectedProductCode,
 }: ProgramFormDialogProps) => {
-  const { form, onSubmit, isSubmitting } = useProgramForm(mode, program, onSuccess, selectedProductCode);
   const [activeTab, setActiveTab] = useState("general");
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+
+  const handleValidationError = (errors: string[]) => {
+    setValidationErrors(errors);
+    setShowErrorDialog(true);
+  };
+
+  const { form, onSubmit, isSubmitting } = useProgramForm(
+    mode,
+    program,
+    onSuccess,
+    selectedProductCode,
+    handleValidationError
+  );
 
   const isReadOnly = mode === "view" || mode === "delete";
 
@@ -46,8 +70,33 @@ export const ProgramFormDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+    <>
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Validation Error
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-medium">Please fix the following issues:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <div className="space-y-6">
           <div>
             <h2 className="text-2xl font-bold">
@@ -100,5 +149,6 @@ export const ProgramFormDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
