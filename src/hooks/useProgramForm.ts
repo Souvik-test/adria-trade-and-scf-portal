@@ -192,22 +192,107 @@ export const useProgramForm = (
     }
   }, [mode, form]);
 
+  // Transform form data to match database schema
+  const transformFormDataForDB = (data: ProgramFormValues) => {
+    // Calculate total tenors in days
+    const minTenorDays = (data.min_tenor_years || 0) * 365 + 
+                         (data.min_tenor_months || 0) * 30 + 
+                         (data.min_tenor_days || 0);
+    const maxTenorDays = (data.max_tenor_years || 0) * 365 + 
+                         (data.max_tenor_months || 0) * 30 + 
+                         (data.max_tenor_days || 0);
+    
+    // Combine appropriation sequences
+    const appropriation_sequence = {
+      after_due: data.appropriation_sequence_after_due || [],
+      before_due: data.appropriation_sequence_before_due || []
+    };
+    
+    // Map to database schema - only include fields that exist in the database
+    return {
+      program_id: data.program_id,
+      program_name: data.program_name,
+      product_code: data.product_code,
+      product_name: data.product_name,
+      program_description: data.program_description,
+      program_limit: data.program_limit,
+      available_limit: data.available_limit,
+      effective_date: data.effective_date,
+      expiry_date: data.expiry_date,
+      program_currency: data.program_currency,
+      anchor_id: data.anchor_id,
+      anchor_name: data.anchor_name,
+      anchor_account: data.anchor_account,
+      anchor_limit: data.anchor_limit,
+      anchor_available_limit: data.anchor_available_limit,
+      anchor_limit_currency: data.anchor_limit_currency,
+      anchor_party: data.anchor_party,
+      counter_parties: data.counter_parties,
+      borrower_selection: data.borrower_selection,
+      finance_tenor: data.finance_tenor,
+      finance_tenor_unit: data.finance_tenor_unit,
+      min_tenor: minTenorDays,
+      max_tenor: maxTenorDays,
+      margin_percentage: data.margin_percentage,
+      finance_percentage: data.finance_percentage,
+      grace_days: data.grace_days,
+      stale_period: data.stale_period,
+      assignment_enabled: data.assignment_enabled,
+      assignment_percentage: data.assignment_percentage,
+      unaccepted_invoice_finance_enabled: data.unaccepted_invoice_finance_enabled,
+      unaccepted_invoice_percentage: data.unaccepted_invoice_percentage,
+      recourse_enabled: data.recourse_enabled,
+      recourse_percentage: data.recourse_percentage,
+      appropriation_sequence: appropriation_sequence,
+      insurance_required: data.insurance_required,
+      insurance_policies: data.insurance_policies,
+      fee_catalogue: data.fee_catalogue,
+      flat_fee_config: data.flat_fee_config,
+      status: data.status,
+      // Store the detailed breakdown in the migration columns
+      min_tenor_years: data.min_tenor_years,
+      min_tenor_months: data.min_tenor_months,
+      min_tenor_days: data.min_tenor_days,
+      max_tenor_years: data.max_tenor_years,
+      max_tenor_months: data.max_tenor_months,
+      max_tenor_days: data.max_tenor_days,
+      multiple_disbursement: data.multiple_disbursement,
+      max_disbursements_allowed: data.max_disbursements_allowed,
+      auto_disbursement: data.auto_disbursement,
+      holiday_treatment: data.holiday_treatment,
+      repayment_by: data.repayment_by,
+      debit_account_number: data.debit_account_number,
+      auto_repayment: data.auto_repayment,
+      part_payment_allowed: data.part_payment_allowed,
+      pre_payment_allowed: data.pre_payment_allowed,
+      charge_penalty_on_prepayment: data.charge_penalty_on_prepayment,
+      appropriation_sequence_after_due: data.appropriation_sequence_after_due,
+      appropriation_sequence_before_due: data.appropriation_sequence_before_due,
+    };
+  };
+
   const onSubmit = async (data: ProgramFormValues) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // Transform form data to match database schema
+      const transformedData = transformFormDataForDB(data);
+
       if (mode === "add") {
         const insertData = {
-          ...data,
+          ...transformedData,
           user_id: user.id,
         };
         
         const { error } = await supabase
           .from("scf_program_configurations")
-          .insert(insertData as any);
+          .insert(insertData);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Database error details:", error);
+          throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}`);
+        }
 
         toast({
           title: "Success",
@@ -216,10 +301,13 @@ export const useProgramForm = (
       } else if (mode === "edit") {
         const { error } = await supabase
           .from("scf_program_configurations")
-          .update(data)
+          .update(transformedData)
           .eq("id", program.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Database error details:", error);
+          throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}`);
+        }
 
         toast({
           title: "Success",
@@ -228,11 +316,11 @@ export const useProgramForm = (
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving program:", error);
       toast({
         title: "Error",
-        description: "Failed to save program configuration",
+        description: error.message || "Failed to save program configuration",
         variant: "destructive",
       });
     }
