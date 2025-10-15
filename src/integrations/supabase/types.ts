@@ -1934,15 +1934,9 @@ export type Database = {
           margin_percentage: number | null
           max_disbursements_allowed: number | null
           max_tenor: number | null
-          max_tenor_days: number | null
-          max_tenor_months: number | null
           max_tenor_unit: string | null
-          max_tenor_years: number | null
           min_tenor: number | null
-          min_tenor_days: number | null
-          min_tenor_months: number | null
           min_tenor_unit: string | null
-          min_tenor_years: number | null
           multiple_disbursement: boolean | null
           part_payment_allowed: boolean | null
           pre_payment_allowed: boolean | null
@@ -2004,15 +1998,9 @@ export type Database = {
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null
           max_tenor?: number | null
-          max_tenor_days?: number | null
-          max_tenor_months?: number | null
           max_tenor_unit?: string | null
-          max_tenor_years?: number | null
           min_tenor?: number | null
-          min_tenor_days?: number | null
-          min_tenor_months?: number | null
           min_tenor_unit?: string | null
-          min_tenor_years?: number | null
           multiple_disbursement?: boolean | null
           part_payment_allowed?: boolean | null
           pre_payment_allowed?: boolean | null
@@ -2074,15 +2062,9 @@ export type Database = {
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null
           max_tenor?: number | null
-          max_tenor_days?: number | null
-          max_tenor_months?: number | null
           max_tenor_unit?: string | null
-          max_tenor_years?: number | null
           min_tenor?: number | null
-          min_tenor_days?: number | null
-          min_tenor_months?: number | null
           min_tenor_unit?: string | null
-          min_tenor_years?: number | null
           multiple_disbursement?: boolean | null
           part_payment_allowed?: boolean | null
           pre_payment_allowed?: boolean | null
