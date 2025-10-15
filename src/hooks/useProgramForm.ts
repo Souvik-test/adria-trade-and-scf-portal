@@ -36,10 +36,12 @@ const programSchema = z.object({
   borrower_selection: z.string().default("Anchor Party"),
   finance_tenor: z.number().optional(),
   finance_tenor_unit: z.string().default("days"),
-  min_tenor: z.coerce.number().min(0).optional(),
-  min_tenor_unit: z.string().default("days"),
-  max_tenor: z.coerce.number().min(0).optional(),
-  max_tenor_unit: z.string().default("days"),
+  min_tenor_years: z.coerce.number().min(0).optional(),
+  min_tenor_months: z.coerce.number().min(0, "Months must be 0-11").max(11, "Months must be 0-11").optional(),
+  min_tenor_days: z.coerce.number().min(0, "Days must be 0-30").max(30, "Days must be 0-30").optional(),
+  max_tenor_years: z.coerce.number().min(0).optional(),
+  max_tenor_months: z.coerce.number().min(0, "Months must be 0-11").max(11, "Months must be 0-11").optional(),
+  max_tenor_days: z.coerce.number().min(0, "Days must be 0-30").max(30, "Days must be 0-30").optional(),
   margin_percentage: z.number().default(0),
   finance_percentage: z.number().min(0).max(100, "Finance percentage cannot exceed 100%").default(100),
   grace_days: z.number().min(0, "Grace days cannot be negative").default(0),
@@ -102,10 +104,12 @@ export const useProgramForm = (
       borrower_selection: "Anchor Party",
       finance_tenor: 0,
       finance_tenor_unit: "days",
-      min_tenor: 0,
-      min_tenor_unit: "days",
-      max_tenor: 0,
-      max_tenor_unit: "days",
+      min_tenor_years: 0,
+      min_tenor_months: 0,
+      min_tenor_days: 0,
+      max_tenor_years: 0,
+      max_tenor_months: 0,
+      max_tenor_days: 0,
       margin_percentage: 0,
       finance_percentage: 100,
       grace_days: 0,
@@ -191,6 +195,14 @@ export const useProgramForm = (
 
   // Transform form data to match database schema
   const transformFormDataForDB = (data: ProgramFormValues) => {
+    // Calculate total days from individual year/month/day fields
+    const minTenorTotalDays = (data.min_tenor_years || 0) * 365 + 
+                              (data.min_tenor_months || 0) * 30 + 
+                              (data.min_tenor_days || 0);
+    const maxTenorTotalDays = (data.max_tenor_years || 0) * 365 + 
+                              (data.max_tenor_months || 0) * 30 + 
+                              (data.max_tenor_days || 0);
+
     // Combine appropriation sequences
     const appropriation_sequence = {
       after_due: data.appropriation_sequence_after_due || [],
@@ -220,10 +232,16 @@ export const useProgramForm = (
       borrower_selection: data.borrower_selection,
       finance_tenor: data.finance_tenor,
       finance_tenor_unit: data.finance_tenor_unit,
-      min_tenor: data.min_tenor || 0,
-      min_tenor_unit: data.min_tenor_unit || "days",
-      max_tenor: data.max_tenor || 0,
-      max_tenor_unit: data.max_tenor_unit || "days",
+      min_tenor_years: data.min_tenor_years || 0,
+      min_tenor_months: data.min_tenor_months || 0,
+      min_tenor_days: data.min_tenor_days || 0,
+      max_tenor_years: data.max_tenor_years || 0,
+      max_tenor_months: data.max_tenor_months || 0,
+      max_tenor_days: data.max_tenor_days || 0,
+      min_tenor_total_days: minTenorTotalDays,
+      max_tenor_total_days: maxTenorTotalDays,
+      min_tenor: minTenorTotalDays,
+      max_tenor: maxTenorTotalDays,
       margin_percentage: data.margin_percentage,
       finance_percentage: data.finance_percentage,
       grace_days: data.grace_days,
@@ -288,9 +306,17 @@ export const useProgramForm = (
       return;
     }
     
+    // Calculate total days for validation
+    const minTenorTotalDays = (data.min_tenor_years || 0) * 365 + 
+                              (data.min_tenor_months || 0) * 30 + 
+                              (data.min_tenor_days || 0);
+    const maxTenorTotalDays = (data.max_tenor_years || 0) * 365 + 
+                              (data.max_tenor_months || 0) * 30 + 
+                              (data.max_tenor_days || 0);
+    
     // Validate tenor range
-    if ((data.max_tenor || 0) > 0 && (data.min_tenor || 0) > (data.max_tenor || 0)) {
-      const errorMsg = `Minimum Tenor (${data.min_tenor} ${data.min_tenor_unit}) cannot exceed Maximum Tenor (${data.max_tenor} ${data.max_tenor_unit})`;
+    if (maxTenorTotalDays > 0 && minTenorTotalDays > maxTenorTotalDays) {
+      const errorMsg = `Minimum Tenor (${data.min_tenor_years || 0}Y ${data.min_tenor_months || 0}M ${data.min_tenor_days || 0}D = ${minTenorTotalDays} days) cannot exceed Maximum Tenor (${data.max_tenor_years || 0}Y ${data.max_tenor_months || 0}M ${data.max_tenor_days || 0}D = ${maxTenorTotalDays} days)`;
       if (onValidationError) {
         onValidationError([errorMsg]);
       } else {

@@ -668,103 +668,125 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
 
 
           {/* Minimum Tenor */}
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="min_tenor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Minimum Tenor</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter minimum tenor"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      disabled={isReadOnly}
-                      min={0}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="min_tenor_unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isReadOnly}
-                  >
+          <div className="space-y-2">
+            <FormLabel>Minimum Tenor</FormLabel>
+            <div className="grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="min_tenor_years"
+                render={({ field }) => (
+                  <FormItem>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
+                      <Input
+                        type="number"
+                        placeholder="Years"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="days">Days</SelectItem>
-                      <SelectItem value="months">Months</SelectItem>
-                      <SelectItem value="years">Years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="min_tenor_months"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Months"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="min_tenor_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Days"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           {/* Maximum Tenor */}
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="max_tenor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Maximum Tenor</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter maximum tenor"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      disabled={isReadOnly}
-                      min={0}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="max_tenor_unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unit</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isReadOnly}
-                  >
+          <div className="space-y-2">
+            <FormLabel>Maximum Tenor</FormLabel>
+            <div className="grid grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="max_tenor_years"
+                render={({ field }) => (
+                  <FormItem>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
+                      <Input
+                        type="number"
+                        placeholder="Years"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="days">Days</SelectItem>
-                      <SelectItem value="months">Months</SelectItem>
-                      <SelectItem value="years">Years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_tenor_months"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Months"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_tenor_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Days"
+                        {...field}
+                        disabled={isReadOnly}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           <FormField
