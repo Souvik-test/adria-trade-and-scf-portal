@@ -679,12 +679,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Years"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Years</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -697,12 +698,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Months"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Months</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -715,12 +717,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Days"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Days</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -740,12 +743,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Years"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Years</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -758,12 +762,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Months"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Months</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -776,12 +781,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Days"
+                        placeholder="0"
                         {...field}
                         disabled={isReadOnly}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       />
                     </FormControl>
+                    <FormLabel className="text-xs text-muted-foreground">Days</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
