@@ -115,9 +115,6 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   const handleProgramSelect = async (selectedProgram: SCFProgram) => {
     updateField('programId', selectedProgram.program_id);
     updateField('programName', selectedProgram.program_name);
-    // Auto-populate buyer based on program
-    updateField('buyerId', selectedProgram.anchor_id);
-    updateField('buyerName', selectedProgram.anchor_name);
     
     // Fetch full program configuration
     try {
@@ -137,31 +134,21 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
         updateField('programLimit', Number(programConfig.program_limit) || 0);
         updateField('anchorLimit', Number(programConfig.anchor_limit) || 0);
         
-        // Auto-populate seller from counter_parties
-        const counterParties = (programConfig.counter_parties as any[]) || [];
-        
-        // Get current user's corporate ID
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('corporate_id')
-            .eq('id', user.id)
-            .single();
-          
-          if (profile?.corporate_id) {
-            const seller = counterParties.find(
-              (cp) => 
-                cp.id === profile.corporate_id && 
-                (cp.role === 'Supplier' || cp.role === 'Seller')
-            );
-            
-            if (seller) {
-              updateField('sellerId', seller.id);
-              updateField('sellerName', seller.name);
-              updateField('counterPartyLimit', Number(seller.limit) || 0);
-            }
-          }
+        // Auto-populate buyer and seller based on product roles
+        const { getBuyerSellerInfoFromProgram } = await import('@/services/invoiceManualValidationService');
+        const buyerSellerInfo = await getBuyerSellerInfoFromProgram(
+          programConfig.program_id,
+          programConfig.product_code,
+          programConfig.anchor_id,
+          programConfig.anchor_name,
+          (programConfig.counter_parties as any[]) || []
+        );
+
+        if (buyerSellerInfo) {
+          updateField('buyerId', buyerSellerInfo.buyerId);
+          updateField('buyerName', buyerSellerInfo.buyerName);
+          updateField('sellerId', buyerSellerInfo.sellerId);
+          updateField('sellerName', buyerSellerInfo.sellerName);
         }
       }
     } catch (error) {

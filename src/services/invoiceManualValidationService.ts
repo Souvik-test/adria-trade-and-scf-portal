@@ -135,51 +135,78 @@ export const validateCurrency = (
 };
 
 /**
- * Get seller information from program counter parties
+ * Get buyer and seller information based on product roles
  */
-export const getSellerInfoFromProgram = async (
+export const getBuyerSellerInfoFromProgram = async (
   programId: string,
+  productCode: string,
+  anchorId: string,
+  anchorName: string,
   counterParties: any[]
-): Promise<{ sellerId: string; sellerName: string } | null> => {
+): Promise<{
+  buyerId: string;
+  buyerName: string;
+  sellerId: string;
+  sellerName: string;
+} | null> => {
   try {
-    // Get current user's corporate ID
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    // 1. Fetch product definition to get roles
+    const { data: productDef, error: productError } = await supabase
+      .from('scf_product_definitions')
+      .select('anchor_role, counter_party_role')
+      .eq('product_code', productCode)
+      .maybeSingle();
 
-    // Get user profile to find corporate_id
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('corporate_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.corporate_id) return null;
-
-    // Find seller in counter parties by matching counter_party_id with user's corporate_id
-    const seller = counterParties.find(
-      (cp) => cp.counter_party_id === profile.corporate_id
-    );
-
-    if (seller) {
-      return {
-        sellerId: seller.counter_party_id,
-        sellerName: seller.counter_party_name,
-      };
+    if (productError || !productDef) {
+      console.error('Error fetching product definition:', productError);
+      return null;
     }
 
-    // Fallback: If no exact match, use the first counter party (supplier)
-    // This handles cases where the user has access to the program
-    if (counterParties.length > 0) {
-      const firstCounterParty = counterParties[0];
-      return {
-        sellerId: firstCounterParty.counter_party_id,
-        sellerName: firstCounterParty.counter_party_name,
-      };
+    // 2. Get first counter party
+    if (!counterParties || counterParties.length === 0) {
+      console.error('No counter parties found in program');
+      return null;
     }
 
-    return null;
+    const counterParty = counterParties[0];
+
+    // 3. Initialize result
+    const result = {
+      buyerId: '',
+      buyerName: '',
+      sellerId: '',
+      sellerName: '',
+    };
+
+    // 4. Map based on anchor_role
+    const anchorRole = (productDef.anchor_role || '').toLowerCase();
+    if (anchorRole.includes('buyer')) {
+      result.buyerId = anchorId;
+      result.buyerName = anchorName;
+    } else if (anchorRole.includes('seller') || anchorRole.includes('supplier')) {
+      result.sellerId = anchorId;
+      result.sellerName = anchorName;
+    }
+
+    // 5. Map based on counter_party_role
+    const counterPartyRole = (productDef.counter_party_role || '').toLowerCase();
+    if (counterPartyRole.includes('buyer')) {
+      result.buyerId = counterParty.counter_party_id;
+      result.buyerName = counterParty.counter_party_name;
+    } else if (counterPartyRole.includes('seller') || counterPartyRole.includes('supplier')) {
+      result.sellerId = counterParty.counter_party_id;
+      result.sellerName = counterParty.counter_party_name;
+    }
+
+    // 6. Validate that both buyer and seller are populated
+    if (!result.buyerId || !result.sellerId) {
+      console.error('Could not determine buyer and seller from roles');
+      return null;
+    }
+
+    return result;
   } catch (error) {
-    console.error('Error getting seller info:', error);
+    console.error('Error getting buyer/seller info:', error);
     return null;
   }
 };
