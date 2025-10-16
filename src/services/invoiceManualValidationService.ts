@@ -155,17 +155,25 @@ export const getSellerInfoFromProgram = async (
 
     if (!profile?.corporate_id) return null;
 
-    // Find seller in counter parties (role should be 'Supplier' or 'Seller')
+    // Find seller in counter parties by matching counter_party_id with user's corporate_id
     const seller = counterParties.find(
-      (cp) => 
-        cp.id === profile.corporate_id && 
-        (cp.role === 'Supplier' || cp.role === 'Seller')
+      (cp) => cp.counter_party_id === profile.corporate_id
     );
 
     if (seller) {
       return {
-        sellerId: seller.id,
-        sellerName: seller.name,
+        sellerId: seller.counter_party_id,
+        sellerName: seller.counter_party_name,
+      };
+    }
+
+    // Fallback: If no exact match, use the first counter party (supplier)
+    // This handles cases where the user has access to the program
+    if (counterParties.length > 0) {
+      const firstCounterParty = counterParties[0];
+      return {
+        sellerId: firstCounterParty.counter_party_id,
+        sellerName: firstCounterParty.counter_party_name,
       };
     }
 
