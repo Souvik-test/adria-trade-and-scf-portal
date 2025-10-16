@@ -1,6 +1,15 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
@@ -10,6 +19,11 @@ import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
 import { saveInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  validateInvoiceManual, 
+  fetchProgramConfiguration,
+  ProgramConfiguration 
+} from '@/services/invoiceManualValidationService';
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -29,10 +43,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
     nextStep,
     previousStep,
     validateCurrentStep,
+    validateBeforeSubmit,
     initializeForm
   } = useInvoiceForm();
 
   const { toast } = useToast();
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Initialize form when component mounts
   useEffect(() => {
@@ -102,22 +119,47 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
   };
 
   const handleSubmit = async () => {
-    if (validateCurrentStep()) {
-      try {
-        const result = await saveInvoice(formData);
+    if (!validateCurrentStep()) {
+      return;
+    }
+
+    try {
+      // Fetch program configuration for validation
+      const programConfig = await fetchProgramConfiguration(formData.programId);
+      
+      if (!programConfig) {
         toast({
-          title: `${formData.invoiceType === 'invoice' ? 'Invoice' : formData.invoiceType === 'credit-note' ? 'Credit Note' : 'Debit Note'} Submitted!`,
-          description: `${result.invoice_number} has been successfully saved to the database.`,
-        });
-        onClose();
-      } catch (error) {
-        console.error('Error submitting invoice:', error);
-        toast({
-          title: 'Submission Failed',
-          description: 'There was an error saving your invoice. Please try again.',
+          title: 'Validation Error',
+          description: 'Unable to fetch program configuration. Please check the program ID.',
           variant: 'destructive',
         });
+        return;
       }
+
+      // Run comprehensive validation
+      const validationResult = await validateInvoiceManual(formData, programConfig);
+      
+      if (!validationResult.valid) {
+        // Show validation errors in dialog
+        setValidationErrors(validationResult.errors);
+        setShowValidationDialog(true);
+        return;
+      }
+
+      // All validations passed - proceed with submission
+      const result = await saveInvoice(formData);
+      toast({
+        title: `${formData.invoiceType === 'invoice' ? 'Invoice' : formData.invoiceType === 'credit-note' ? 'Credit Note' : 'Debit Note'} Submitted!`,
+        description: `${result.invoice_number} has been successfully saved to the database.`,
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error submitting invoice:', error);
+      toast({
+        title: 'Submission Failed',
+        description: 'There was an error saving your invoice. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -127,8 +169,31 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
   const isLastStep = currentStepIndex === steps.length - 1;
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-screen max-h-screen w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+    <>
+      {/* Validation Error Dialog */}
+      <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Invoice Validation Failed</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-medium">The following errors must be resolved before submission:</p>
+              <ul className="list-disc list-inside space-y-1 text-red-600">
+                {validationErrors.map((error, index) => (
+                  <li key={index} className="text-sm">{error}</li>
+                ))}
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowValidationDialog(false)}>
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-screen max-h-screen w-full h-full overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -206,6 +271,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 

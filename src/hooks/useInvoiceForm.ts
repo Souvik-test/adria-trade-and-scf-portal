@@ -32,6 +32,15 @@ export interface InvoiceFormData {
   totalAmount: number;
   paymentTerms: string;
   notes: string;
+  // Validation-related fields
+  programCurrency?: string;
+  minTenorDays?: number;
+  maxTenorDays?: number;
+  counterPartyLimit?: number;
+  anchorLimit?: number;
+  programLimit?: number;
+  tenorDays?: number;
+  validationErrors?: string[];
 }
 
 export type InvoiceFormStep = 'general' | 'items' | 'summary';
@@ -59,7 +68,15 @@ const useInvoiceForm = () => {
     discountAmount: 0,
     totalAmount: 0,
     paymentTerms: '',
-    notes: ''
+    notes: '',
+    programCurrency: '',
+    minTenorDays: 0,
+    maxTenorDays: 365,
+    counterPartyLimit: 0,
+    anchorLimit: 0,
+    programLimit: 0,
+    tenorDays: 0,
+    validationErrors: []
   });
 
   const [currentStep, setCurrentStep] = useState<InvoiceFormStep>('general');
@@ -175,7 +192,13 @@ const useInvoiceForm = () => {
   const validateCurrentStep = useCallback(() => {
     switch (currentStep) {
       case 'general':
-        return !!(formData.invoiceNumber && formData.invoiceDate && formData.buyerName && formData.sellerName);
+        return !!(
+          formData.programId &&
+          formData.invoiceNumber && 
+          formData.invoiceDate && 
+          formData.buyerName && 
+          formData.sellerName
+        );
       case 'items':
         return formData.lineItems.length > 0;
       case 'summary':
@@ -201,6 +224,20 @@ const useInvoiceForm = () => {
     setCurrentStep('general');
   }, []);
 
+  const validateBeforeSubmit = useCallback(async () => {
+    const errors: string[] = [];
+    
+    // Basic field validation
+    if (!formData.programId) errors.push('Program ID is required');
+    if (!formData.invoiceNumber) errors.push('Invoice Number is required');
+    if (!formData.invoiceDate) errors.push('Invoice Date is required');
+    if (!formData.buyerName) errors.push('Buyer Name is required');
+    if (!formData.sellerName) errors.push('Seller Name is required');
+    if (formData.lineItems.length === 0) errors.push('At least one line item is required');
+    
+    return errors;
+  }, [formData]);
+
   return {
     formData,
     currentStep,
@@ -213,7 +250,9 @@ const useInvoiceForm = () => {
     nextStep,
     previousStep,
     validateCurrentStep,
-    initializeForm
+    validateBeforeSubmit,
+    initializeForm,
+    setFormData
   };
 };
 

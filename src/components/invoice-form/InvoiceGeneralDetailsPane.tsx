@@ -112,12 +112,62 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
     }
   }, [programSearchOpen, fetchSCFPrograms]);
 
-  const handleProgramSelect = (selectedProgram: SCFProgram) => {
+  const handleProgramSelect = async (selectedProgram: SCFProgram) => {
     updateField('programId', selectedProgram.program_id);
     updateField('programName', selectedProgram.program_name);
-    // Auto-populate buyer and seller based on program
+    // Auto-populate buyer based on program
     updateField('buyerId', selectedProgram.anchor_id);
     updateField('buyerName', selectedProgram.anchor_name);
+    
+    // Fetch full program configuration
+    try {
+      const { data: programConfig, error } = await supabase
+        .from('scf_program_configurations')
+        .select('*')
+        .eq('program_id', selectedProgram.program_id)
+        .eq('status', 'active')
+        .single();
+      
+      if (programConfig && !error) {
+        // Store program configuration in form
+        updateField('programCurrency', programConfig.program_currency || 'USD');
+        updateField('currency', programConfig.program_currency || 'USD');
+        updateField('minTenorDays', programConfig.min_tenor_total_days || 0);
+        updateField('maxTenorDays', programConfig.max_tenor_total_days || 365);
+        updateField('programLimit', Number(programConfig.program_limit) || 0);
+        updateField('anchorLimit', Number(programConfig.anchor_limit) || 0);
+        
+        // Auto-populate seller from counter_parties
+        const counterParties = (programConfig.counter_parties as any[]) || [];
+        
+        // Get current user's corporate ID
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('corporate_id')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile?.corporate_id) {
+            const seller = counterParties.find(
+              (cp) => 
+                cp.id === profile.corporate_id && 
+                (cp.role === 'Supplier' || cp.role === 'Seller')
+            );
+            
+            if (seller) {
+              updateField('sellerId', seller.id);
+              updateField('sellerName', seller.name);
+              updateField('counterPartyLimit', Number(seller.limit) || 0);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching program configuration:', error);
+    }
+    
     setProgramSearchOpen(false);
   };
 
@@ -388,28 +438,33 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
             </div>
             
             <div>
-              <Label htmlFor="dueDate">Due Date</Label>
+              <Label htmlFor="dueDate">Due Date *</Label>
               <Input
                 id="dueDate"
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => updateField('dueDate', e.target.value)}
               />
+              {formData.minTenorDays !== undefined && formData.maxTenorDays !== undefined && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tenor will be validated against program range: {formData.minTenorDays} - {formData.maxTenorDays} days
+                </p>
+              )}
             </div>
             
             <div>
-              <Label htmlFor="currency">Currency</Label>
-              <Select value={formData.currency} onValueChange={(value) => updateField('currency', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                  <SelectItem value="JPY">JPY</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="currency">Currency *</Label>
+              <Input
+                id="currency"
+                value={formData.currency}
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
+              />
+              {formData.programCurrency && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Must match program currency: {formData.programCurrency}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -449,8 +504,9 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
               <Input
                 id="sellerId"
                 value={formData.sellerId}
-                onChange={(e) => updateField('sellerId', e.target.value)}
-                placeholder="Enter Seller ID"
+                placeholder="Auto-populated from Program"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
               />
             </div>
             
@@ -459,8 +515,9 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
               <Input
                 id="sellerName"
                 value={formData.sellerName}
-                onChange={(e) => updateField('sellerName', e.target.value)}
-                placeholder="Enter Seller Name"
+                placeholder="Auto-populated from Program"
+                readOnly
+                className="bg-gray-50 dark:bg-gray-900"
               />
             </div>
           </div>
