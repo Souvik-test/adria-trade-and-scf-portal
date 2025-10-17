@@ -20,14 +20,21 @@ export interface SCFTransactionRow {
 }
 
 export interface TransactionFilters {
+  wildcardSearch?: string;
   productType?: string;
   transactionReference?: string;
   programId?: string;
+  programName?: string;
   anchorId?: string;
+  anchorName?: string;
   counterPartyId?: string;
+  counterPartyName?: string;
   status?: string;
+  currency?: string;
   fromDate?: string;
   toDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
 }
 
 export interface FinanceEligibility {

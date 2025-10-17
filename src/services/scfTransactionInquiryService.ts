@@ -19,15 +19,30 @@ export const fetchSCFTransactions = async (
       .gte('invoice_date', fromDate)
       .lte('invoice_date', toDate);
 
-    if (filters.programId) invoiceQuery = invoiceQuery.eq('program_id', filters.programId);
-    if (filters.transactionReference) {
-      invoiceQuery = invoiceQuery.ilike('invoice_number', `%${filters.transactionReference}%`);
-    }
-    if (filters.productType) {
-      invoiceQuery = invoiceQuery.eq('invoice_type', filters.productType);
-    }
-    if (filters.status) {
-      invoiceQuery = invoiceQuery.eq('status', filters.status);
+    // Wildcard search across multiple columns
+    if (filters.wildcardSearch && filters.wildcardSearch.trim() !== '') {
+      const searchTerm = `%${filters.wildcardSearch}%`;
+      invoiceQuery = invoiceQuery.or(`invoice_number.ilike.${searchTerm},program_id.ilike.${searchTerm},program_name.ilike.${searchTerm},buyer_name.ilike.${searchTerm},seller_name.ilike.${searchTerm},status.ilike.${searchTerm}`);
+    } else {
+      // Apply individual filters only if wildcardSearch is empty
+      if (filters.programId) invoiceQuery = invoiceQuery.eq('program_id', filters.programId);
+      if (filters.programName) invoiceQuery = invoiceQuery.ilike('program_name', `%${filters.programName}%`);
+      if (filters.transactionReference) {
+        invoiceQuery = invoiceQuery.ilike('invoice_number', `%${filters.transactionReference}%`);
+      }
+      if (filters.productType) {
+        invoiceQuery = invoiceQuery.eq('invoice_type', filters.productType);
+      }
+      if (filters.status) {
+        invoiceQuery = invoiceQuery.eq('status', filters.status);
+      }
+      if (filters.anchorId) invoiceQuery = invoiceQuery.eq('buyer_id', filters.anchorId);
+      if (filters.anchorName) invoiceQuery = invoiceQuery.ilike('buyer_name', `%${filters.anchorName}%`);
+      if (filters.counterPartyId) invoiceQuery = invoiceQuery.eq('seller_id', filters.counterPartyId);
+      if (filters.counterPartyName) invoiceQuery = invoiceQuery.ilike('seller_name', `%${filters.counterPartyName}%`);
+      if (filters.currency) invoiceQuery = invoiceQuery.eq('currency', filters.currency);
+      if (filters.minAmount) invoiceQuery = invoiceQuery.gte('total_amount', filters.minAmount);
+      if (filters.maxAmount) invoiceQuery = invoiceQuery.lte('total_amount', filters.maxAmount);
     }
 
     const { data: invoices, error: invoiceError } = await invoiceQuery;

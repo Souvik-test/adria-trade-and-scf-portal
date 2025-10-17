@@ -114,14 +114,6 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
     );
   }
 
-  if (transactions.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-8 text-muted-foreground">
-        No transactions found. Try adjusting your filters.
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="border rounded-lg overflow-hidden">
@@ -146,7 +138,14 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedTransactions.map(transaction => (
+            {transactions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                  No transactions found. Try adjusting your filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedTransactions.map(transaction => (
               <TableRow key={transaction.id}>
                 <TableCell className="font-medium">{transaction.productType}</TableCell>
                 <TableCell>{transaction.transactionReference}</TableCell>
@@ -212,7 +211,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                   <Badge variant={getStatusVariant(transaction.status)}>{transaction.status}</Badge>
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -265,4 +265,4 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
   );
 };
 
-export default SCFTransactionInquiryTable;
+export { SCFTransactionInquiryTable };
