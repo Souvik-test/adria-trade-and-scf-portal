@@ -5,19 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Columns3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { fetchSCFTransactions, exportToCSV, exportToExcel } from "@/services/scfTransactionInquiryService";
-import { TransactionFilters, SCFTransactionRow } from "@/types/scfTransaction";
+import { TransactionFilters, SCFTransactionRow, DEFAULT_COLUMNS, ColumnConfig } from "@/types/scfTransaction";
 import { SCFTransactionInquiryTable } from "./SCFTransactionInquiryTable";
 import { FilterColumnSelector } from "./FilterColumnSelector";
+import { ColumnDisplaySelector } from "./ColumnDisplaySelector";
 
 export default function SCFTransactionInquiry() {
   const [transactions, setTransactions] = useState<SCFTransactionRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showFilterSelector, setShowFilterSelector] = useState(false);
+  const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [wildcardSearch, setWildcardSearch] = useState("");
   const [selectedFilterColumns, setSelectedFilterColumns] = useState<string[]>([
     "productType",
@@ -29,6 +31,7 @@ export default function SCFTransactionInquiry() {
     "toDate",
     "status",
   ]);
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
 
   const [filters, setFilters] = useState<TransactionFilters>({
     wildcardSearch: "",
@@ -454,6 +457,14 @@ export default function SCFTransactionInquiry() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowColumnSelector(true)}
+            >
+              <Columns3 className="h-4 w-4 mr-2" />
+              Columns
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExportCSV}
               disabled={transactions.length === 0}
             >
@@ -471,7 +482,11 @@ export default function SCFTransactionInquiry() {
         </div>
 
         {/* Transaction Table - Always Visible */}
-        <SCFTransactionInquiryTable transactions={transactions} loading={loading} />
+        <SCFTransactionInquiryTable 
+          transactions={transactions} 
+          loading={loading} 
+          columnConfig={columnConfig}
+        />
 
         {/* Filter Column Selector Sheet */}
         <FilterColumnSelector
@@ -479,6 +494,14 @@ export default function SCFTransactionInquiry() {
           onOpenChange={setShowFilterSelector}
           selectedColumns={selectedFilterColumns}
           onApply={handleApplyFilterColumns}
+        />
+
+        {/* Column Display Selector Sheet */}
+        <ColumnDisplaySelector
+          open={showColumnSelector}
+          onOpenChange={setShowColumnSelector}
+          columnConfig={columnConfig}
+          onApply={setColumnConfig}
         />
       </CardContent>
     </Card>

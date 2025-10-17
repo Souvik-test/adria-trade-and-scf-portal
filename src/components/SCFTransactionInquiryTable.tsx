@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SCFTransactionRow } from '@/types/scfTransaction';
+import { SCFTransactionRow, ColumnConfig } from '@/types/scfTransaction';
 import { CheckCircle2, XCircle, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 interface SCFTransactionInquiryTableProps {
   transactions: SCFTransactionRow[];
   loading: boolean;
+  columnConfig: ColumnConfig[];
 }
 
 type SortField = keyof SCFTransactionRow | null;
@@ -25,7 +26,9 @@ type SortDirection = 'asc' | 'desc' | null;
 const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
   transactions,
   loading,
+  columnConfig,
 }) => {
+  const visibleColumns = React.useMemo(() => columnConfig.filter(col => col.visible), [columnConfig]);
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,18 +96,139 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
     return 'secondary';
   };
 
-  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <TableHead>
-      <Button
-        variant="ghost"
-        onClick={() => handleSort(field)}
-        className="h-8 px-2 font-semibold hover:bg-muted"
-      >
-        {children}
-        <ArrowUpDown className="ml-2 h-3 w-3" />
-      </Button>
-    </TableHead>
-  );
+  const renderCell = (transaction: SCFTransactionRow, columnId: string) => {
+    switch (columnId) {
+      case 'productType':
+        return <TableCell key={columnId} className="font-medium">{transaction.productType}</TableCell>;
+      
+      case 'transactionReference':
+        return <TableCell key={columnId}>{transaction.transactionReference}</TableCell>;
+      
+      case 'programId':
+        return <TableCell key={columnId}>{transaction.programId}</TableCell>;
+      
+      case 'programName':
+        return <TableCell key={columnId}>{transaction.programName}</TableCell>;
+      
+      case 'anchorId':
+        return <TableCell key={columnId}>{transaction.anchorId}</TableCell>;
+      
+      case 'anchorName':
+        return <TableCell key={columnId}>{transaction.anchorName}</TableCell>;
+      
+      case 'counterPartyId':
+        return <TableCell key={columnId}>{transaction.counterPartyId}</TableCell>;
+      
+      case 'counterPartyName':
+        return <TableCell key={columnId}>{transaction.counterPartyName}</TableCell>;
+      
+      case 'transactionDate':
+        return (
+          <TableCell key={columnId}>
+            {transaction.transactionDate
+              ? format(new Date(transaction.transactionDate), 'dd MMM yyyy')
+              : '-'}
+          </TableCell>
+        );
+      
+      case 'dueDate':
+        return (
+          <TableCell key={columnId}>
+            {transaction.dueDate 
+              ? format(new Date(transaction.dueDate), 'dd MMM yyyy') 
+              : '-'}
+          </TableCell>
+        );
+      
+      case 'currency':
+        return <TableCell key={columnId}>{transaction.currency}</TableCell>;
+      
+      case 'amount':
+        return (
+          <TableCell key={columnId} className="text-right">
+            {transaction.amount.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </TableCell>
+        );
+      
+      case 'financeEligible':
+        return (
+          <TableCell key={columnId}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-help">
+                    {transaction.financeEligible ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>{transaction.financeEligible ? 'Yes' : 'No'}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {transaction.financeEligibleReason || 
+                    (transaction.financeEligible 
+                      ? 'This transaction is eligible for financing' 
+                      : 'This transaction is not eligible for financing')}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </TableCell>
+        );
+      
+      case 'relatedTransactionRefs':
+        return (
+          <TableCell key={columnId}>
+            {transaction.relatedTransactionRefs.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {transaction.relatedTransactionRefs.map((ref, idx) => (
+                  <Badge key={idx} variant="outline" className="text-xs">
+                    {ref}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              '-'
+            )}
+          </TableCell>
+        );
+      
+      case 'status':
+        return (
+          <TableCell key={columnId}>
+            <Badge variant={getStatusVariant(transaction.status)}>
+              {transaction.status}
+            </Badge>
+          </TableCell>
+        );
+      
+      default:
+        return <TableCell key={columnId}>-</TableCell>;
+    }
+  };
+
+  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => {
+    const column = columnConfig.find(col => col.id === field);
+    if (!column?.sortable) {
+      return <TableHead>{children}</TableHead>;
+    }
+
+    return (
+      <TableHead>
+        <Button
+          variant="ghost"
+          onClick={() => handleSort(field)}
+          className="h-8 px-2 font-semibold hover:bg-muted"
+        >
+          {children}
+          <ArrowUpDown className="ml-2 h-3 w-3" />
+        </Button>
+      </TableHead>
+    );
+  };
 
   if (loading) {
     return (
@@ -120,97 +244,25 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <SortableHeader field="productType">Product Type</SortableHeader>
-              <SortableHeader field="transactionReference">Transaction Ref</SortableHeader>
-              <SortableHeader field="programId">Program ID</SortableHeader>
-              <TableHead>Program Name</TableHead>
-              <TableHead>Anchor ID</TableHead>
-              <TableHead>Anchor Name</TableHead>
-              <TableHead>Counter Party ID</TableHead>
-              <TableHead>Counter Party Name</TableHead>
-              <SortableHeader field="transactionDate">Transaction Date</SortableHeader>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Currency</TableHead>
-              <SortableHeader field="amount">Amount</SortableHeader>
-              <TableHead>Finance Eligible</TableHead>
-              <TableHead>Related Refs</TableHead>
-              <SortableHeader field="status">Status</SortableHeader>
+              {visibleColumns.map(col => (
+                <SortableHeader key={col.id} field={col.id as SortField}>
+                  {col.label}
+                </SortableHeader>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={visibleColumns.length} className="text-center py-8 text-muted-foreground">
                   No transactions found. Try adjusting your filters.
                 </TableCell>
               </TableRow>
             ) : (
               paginatedTransactions.map(transaction => (
-              <TableRow key={transaction.id}>
-                <TableCell className="font-medium">{transaction.productType}</TableCell>
-                <TableCell>{transaction.transactionReference}</TableCell>
-                <TableCell>{transaction.programId}</TableCell>
-                <TableCell>{transaction.programName}</TableCell>
-                <TableCell>{transaction.anchorId}</TableCell>
-                <TableCell>{transaction.anchorName}</TableCell>
-                <TableCell>{transaction.counterPartyId}</TableCell>
-                <TableCell>{transaction.counterPartyName}</TableCell>
-                <TableCell>
-                  {transaction.transactionDate
-                    ? format(new Date(transaction.transactionDate), 'dd MMM yyyy')
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  {transaction.dueDate ? format(new Date(transaction.dueDate), 'dd MMM yyyy') : '-'}
-                </TableCell>
-                <TableCell>{transaction.currency}</TableCell>
-                <TableCell className="text-right">
-                  {transaction.amount.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </TableCell>
-                <TableCell>
-                  {transaction.productType === 'Invoice' ||
-                  transaction.productType === 'Credit Note' ||
-                  transaction.productType === 'Debit Note' ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          {transaction.financeEligible ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-red-600" />
-                          )}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {transaction.financeEligible
-                            ? 'Eligible for financing'
-                            : transaction.financeEligibleReason || 'Not eligible'}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {transaction.relatedTransactionRefs.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {transaction.relatedTransactionRefs.map((ref, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {ref}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(transaction.status)}>{transaction.status}</Badge>
-                </TableCell>
-              </TableRow>
+                <TableRow key={transaction.id}>
+                  {visibleColumns.map(col => renderCell(transaction, col.id))}
+                </TableRow>
               ))
             )}
           </TableBody>
