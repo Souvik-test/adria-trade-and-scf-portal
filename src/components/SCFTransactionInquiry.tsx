@@ -138,7 +138,6 @@ const SCFTransactionInquiry: React.FC = () => {
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
                       <SelectItem value="Invoice">Invoice</SelectItem>
                       <SelectItem value="Credit Note">Credit Note</SelectItem>
                       <SelectItem value="Debit Note">Debit Note</SelectItem>
@@ -210,7 +209,6 @@ const SCFTransactionInquiry: React.FC = () => {
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
                       <SelectItem value="draft">Draft</SelectItem>
                       <SelectItem value="Lodged">Lodged</SelectItem>
                       <SelectItem value="Financed">Financed</SelectItem>
