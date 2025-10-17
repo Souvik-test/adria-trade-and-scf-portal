@@ -679,6 +679,77 @@ export type Database = {
           },
         ]
       }
+      invoice_repayments: {
+        Row: {
+          accounting_entry_ref: string | null
+          created_at: string
+          currency: string
+          id: string
+          interest_amount: number
+          loan_reference: string
+          penalty_amount: number | null
+          principal_amount: number
+          program_id: string
+          remarks: string | null
+          repayment_amount: number
+          repayment_date: string
+          repayment_mode: string | null
+          repayment_reference: string
+          repayment_status: string
+          scf_invoice_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accounting_entry_ref?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          interest_amount: number
+          loan_reference: string
+          penalty_amount?: number | null
+          principal_amount: number
+          program_id: string
+          remarks?: string | null
+          repayment_amount: number
+          repayment_date: string
+          repayment_mode?: string | null
+          repayment_reference: string
+          repayment_status?: string
+          scf_invoice_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accounting_entry_ref?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          interest_amount?: number
+          loan_reference?: string
+          penalty_amount?: number | null
+          principal_amount?: number
+          program_id?: string
+          remarks?: string | null
+          repayment_amount?: number
+          repayment_date?: string
+          repayment_mode?: string | null
+          repayment_reference?: string
+          repayment_status?: string
+          scf_invoice_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_repayments_scf_invoice_id_fkey"
+            columns: ["scf_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "scf_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_scanned_documents: {
         Row: {
           file_name: string

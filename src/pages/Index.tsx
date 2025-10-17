@@ -11,6 +11,7 @@ import SCFProductSuite from '@/components/SCFProductSuite';
 import SCFMasterSetup from '@/components/SCFMasterSetup';
 import SCFProductDefinition from '@/components/SCFProductDefinition';
 import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
+import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -57,6 +58,8 @@ const Index = () => {
           );
         case 'master-setup':
           return <SCFMasterSetup onBack={() => setActiveMenu('dashboard')} />;
+        case 'transaction-inquiry':
+          return <SCFTransactionInquiry />;
         case 'inquiry':
         case 'correspondence':
         case 'configuration':
