@@ -68,7 +68,8 @@ export const processUpload = async (
     .single();
 
   if (batchError || !batch) {
-    throw new Error('Failed to create upload batch');
+    console.error('Batch creation error:', batchError);
+    throw new Error(`Failed to create upload batch: ${batchError?.message || 'Unknown database error'}`);
   }
 
   const successfulInvoices: any[] = [];

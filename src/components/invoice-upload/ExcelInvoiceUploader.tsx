@@ -3,20 +3,24 @@ import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { processUpload } from '@/services/invoiceUploadService';
 import { UploadResult } from '@/types/invoiceUpload';
 
 interface ExcelInvoiceUploaderProps {
   onUploadComplete: (result: UploadResult) => void;
+  onUploadError?: (error: Error) => void;
 }
 
 const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
-  onUploadComplete
+  onUploadComplete,
+  onUploadError
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleFileSelect = (selectedFile: File) => {
     if (!selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls')) {
@@ -34,16 +38,23 @@ const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
   const handleUpload = async () => {
     if (!file) return;
 
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to upload invoices.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsProcessing(true);
     setProgress(10);
 
     try {
-      // Get current user ID (mock for now - replace with actual auth)
-      const userId = 'mock-user-id'; // TODO: Get from auth context
-
       setProgress(30);
 
-      const result = await processUpload(file, userId);
+      const result = await processUpload(file, user.id);
 
       setProgress(100);
 
@@ -56,11 +67,37 @@ const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
       onUploadComplete(result);
     } catch (error) {
       console.error('Upload error:', error);
+      
+      // Display detailed error message
+      let errorMessage = 'Failed to process upload';
+      let errorTitle = 'Upload Failed';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Provide more specific error messages
+        if (error.message.includes('Failed to create upload batch')) {
+          errorTitle = 'Database Error';
+          errorMessage = 'Unable to create upload batch. Please check your connection and permissions.';
+        } else if (error.message.includes('exceed 100 rows')) {
+          errorTitle = 'Row Limit Exceeded';
+          errorMessage = 'Upload cannot exceed 100 rows. Please reduce the number of invoices and try again.';
+        } else if (error.message.includes('Invalid')) {
+          errorTitle = 'Validation Error';
+        }
+      }
+      
       toast({
-        title: 'Upload Failed',
-        description: error instanceof Error ? error.message : 'Failed to process upload',
-        variant: 'destructive'
+        title: errorTitle,
+        description: errorMessage,
+        variant: 'destructive',
+        duration: 10000 // Show error for 10 seconds
       });
+      
+      // Pass error to parent component for detailed display
+      if (onUploadError && error instanceof Error) {
+        onUploadError(error);
+      }
     } finally {
       setIsProcessing(false);
       setProgress(0);

@@ -5,6 +5,7 @@ import TemplateDownloader from './TemplateDownloader';
 import ScannedInvoiceUploader from './ScannedInvoiceUploader';
 import ExcelInvoiceUploader from './ExcelInvoiceUploader';
 import UploadProgressBar from './UploadProgressBar';
+import UploadErrorDisplay from './UploadErrorDisplay';
 import ValidationSummaryCard from './ValidationSummaryCard';
 import InvoiceUploadTable from './InvoiceUploadTable';
 import DisbursementStatusCard from './DisbursementStatusCard';
@@ -20,9 +21,17 @@ const InvoiceUploadForm: React.FC<InvoiceUploadFormProps> = ({ open, onClose }) 
   const [uploadMethod, setUploadMethod] = useState<'excel' | 'scan'>('excel');
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadResults, setUploadResults] = useState<UploadResult | null>(null);
+  const [uploadError, setUploadError] = useState<Error | null>(null);
 
   const handleUploadComplete = (result: UploadResult) => {
     setUploadResults(result);
+    setUploadError(null);
+    setIsProcessing(false);
+  };
+
+  const handleUploadError = (error: Error) => {
+    setUploadError(error);
+    setUploadResults(null);
     setIsProcessing(false);
   };
 
@@ -53,8 +62,10 @@ const InvoiceUploadForm: React.FC<InvoiceUploadFormProps> = ({ open, onClose }) 
             </TabsList>
 
             <TabsContent value="excel" className="space-y-4 mt-4">
+              {uploadError && <UploadErrorDisplay error={uploadError} />}
               <ExcelInvoiceUploader 
                 onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
               />
             </TabsContent>
 
