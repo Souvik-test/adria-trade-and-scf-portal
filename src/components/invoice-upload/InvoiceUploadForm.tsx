@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TemplateDownloader from './TemplateDownloader';
-import UploadTypeSelector from './UploadTypeSelector';
 import ScannedInvoiceUploader from './ScannedInvoiceUploader';
 import ExcelInvoiceUploader from './ExcelInvoiceUploader';
 import UploadProgressBar from './UploadProgressBar';
@@ -18,7 +17,6 @@ interface InvoiceUploadFormProps {
 }
 
 const InvoiceUploadForm: React.FC<InvoiceUploadFormProps> = ({ open, onClose }) => {
-  const [uploadType, setUploadType] = useState<'single' | 'bulk'>('single');
   const [uploadMethod, setUploadMethod] = useState<'excel' | 'scan'>('excel');
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadResults, setUploadResults] = useState<UploadResult | null>(null);
@@ -37,7 +35,10 @@ const InvoiceUploadForm: React.FC<InvoiceUploadFormProps> = ({ open, onClose }) 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Invoice</DialogTitle>
+          <DialogTitle>Upload Invoice Data</DialogTitle>
+          <DialogDescription>
+            Maximum 100 rows allowed, multiple programs supported
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -52,9 +53,7 @@ const InvoiceUploadForm: React.FC<InvoiceUploadFormProps> = ({ open, onClose }) 
             </TabsList>
 
             <TabsContent value="excel" className="space-y-4 mt-4">
-              <UploadTypeSelector value={uploadType} onChange={setUploadType} />
               <ExcelInvoiceUploader 
-                uploadType={uploadType}
                 onUploadComplete={handleUploadComplete}
               />
             </TabsContent>

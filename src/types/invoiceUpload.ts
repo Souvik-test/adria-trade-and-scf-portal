@@ -2,10 +2,14 @@ export interface InvoiceUploadData {
   'Invoice No.': string;
   'Currency': string;
   'Amount': number;
-  'Date': string;
+  'Invoice Date': string;
+  'Due Date': string;
+  'Program ID': string;
   'Program Name': string;
+  'Buyer ID': string;
   'Buyer Name': string;
-  'Supplier Name': string;
+  'Seller ID': string;
+  'Seller Name': string;
 }
 
 export interface ParsedInvoiceData {
@@ -13,15 +17,19 @@ export interface ParsedInvoiceData {
   currency: string;
   total_amount: number;
   invoice_date: Date;
+  due_date: Date;
+  program_id: string;
   program_name: string;
+  buyer_id: string;
   buyer_name: string;
+  seller_id: string;
   seller_name: string;
 }
 
 export interface UploadBatch {
   id: string;
   user_id: string;
-  upload_type: 'single' | 'bulk';
+  upload_type: 'bulk';
   total_rows: number;
   successful_rows: number;
   rejected_rows: number;

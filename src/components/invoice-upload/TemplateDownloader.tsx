@@ -22,7 +22,7 @@ const TemplateDownloader: React.FC = () => {
             Download Invoice Upload Template
           </h3>
           <p className="text-xs text-muted-foreground">
-            Use this standardized Excel template to upload invoice data
+            Download template for invoice data upload (Max 100 rows, multiple programs supported)
           </p>
         </div>
         <TooltipProvider>

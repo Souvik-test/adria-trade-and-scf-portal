@@ -10,10 +10,14 @@ export const generateInvoiceUploadTemplate = (): void => {
     'Invoice No.',
     'Currency',
     'Amount',
-    'Date',
+    'Invoice Date',
+    'Due Date',
+    'Program ID',
     'Program Name',
+    'Buyer ID',
     'Buyer Name',
-    'Supplier Name'
+    'Seller ID',
+    'Seller Name'
   ];
 
   // Example data row
@@ -22,8 +26,12 @@ export const generateInvoiceUploadTemplate = (): void => {
     'USD',
     '10000',
     '14/10/2025',
-    'TEST PROGRAM',
+    '13/11/2025',
+    'TESTPROG2',
+    'Savy Test',
+    'BID001',
     'ABC Corp',
+    'SID001',
     'XYZ Supplier'
   ];
 
@@ -32,10 +40,14 @@ export const generateInvoiceUploadTemplate = (): void => {
     'Format: INV-YYYY-NNN',
     'ISO code: USD, EUR, GBP',
     'Numeric only',
-    'DD/MM/YYYY',
+    'DD/MM/YYYY format',
+    'DD/MM/YYYY format',
     'Must match existing program',
+    'Must match program name',
+    'Required if Buyer is NOT anchor',
     'Registered buyer name',
-    'Registered supplier name'
+    'Required if Seller is NOT anchor',
+    'Registered seller name'
   ];
 
   // Create worksheet data
@@ -44,7 +56,14 @@ export const generateInvoiceUploadTemplate = (): void => {
     exampleRow,
     [''], // Empty row for separation
     ['Validation Hints:'],
-    validationHints
+    validationHints,
+    [''], // Empty row
+    ['Important Notes:'],
+    ['1. Maximum 100 rows per upload'],
+    ['2. Multiple programs allowed in same file'],
+    ['3. Buyer ID required when Seller is anchor'],
+    ['4. Seller ID required when Buyer is anchor'],
+    ['5. Both IDs required if neither is anchor']
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -54,10 +73,14 @@ export const generateInvoiceUploadTemplate = (): void => {
     { wch: 20 }, // Invoice No.
     { wch: 12 }, // Currency
     { wch: 12 }, // Amount
-    { wch: 15 }, // Date
+    { wch: 15 }, // Invoice Date
+    { wch: 15 }, // Due Date
+    { wch: 20 }, // Program ID
     { wch: 25 }, // Program Name
+    { wch: 15 }, // Buyer ID
     { wch: 25 }, // Buyer Name
-    { wch: 25 }  // Supplier Name
+    { wch: 15 }, // Seller ID
+    { wch: 25 }  // Seller Name
   ];
 
   // Add worksheet to workbook

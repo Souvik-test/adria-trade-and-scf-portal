@@ -7,12 +7,10 @@ import { processUpload } from '@/services/invoiceUploadService';
 import { UploadResult } from '@/types/invoiceUpload';
 
 interface ExcelInvoiceUploaderProps {
-  uploadType: 'single' | 'bulk';
   onUploadComplete: (result: UploadResult) => void;
 }
 
 const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
-  uploadType,
   onUploadComplete
 }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -45,7 +43,7 @@ const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
 
       setProgress(30);
 
-      const result = await processUpload(file, uploadType, userId);
+      const result = await processUpload(file, userId);
 
       setProgress(100);
 
@@ -88,7 +86,7 @@ const ExcelInvoiceUploader: React.FC<ExcelInvoiceUploaderProps> = ({
               Upload Excel File
             </p>
             <p className="text-xs text-muted-foreground">
-              {uploadType === 'single' ? '1 invoice per file' : 'Up to 100 invoices'}
+              Up to 100 invoices
             </p>
           </label>
         ) : (

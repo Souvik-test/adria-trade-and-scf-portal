@@ -32,24 +32,27 @@ const mapToInvoiceData = (row: InvoiceUploadData): ParsedInvoiceData => {
     invoice_number: row['Invoice No.'],
     currency: row['Currency'],
     total_amount: Number(row['Amount']),
-    invoice_date: parseDate(row['Date']),
+    invoice_date: parseDate(row['Invoice Date']),
+    due_date: parseDate(row['Due Date']),
+    program_id: row['Program ID'],
     program_name: row['Program Name'],
+    buyer_id: row['Buyer ID'],
     buyer_name: row['Buyer Name'],
-    seller_name: row['Supplier Name']
+    seller_id: row['Seller ID'],
+    seller_name: row['Seller Name']
   };
 };
 
 export const processUpload = async (
   file: File,
-  uploadType: 'single' | 'bulk',
   userId: string
 ): Promise<UploadResult> => {
   // Parse Excel file
   const rawData = await parseExcelFile(file);
   
-  // Validate row count for bulk uploads
-  if (uploadType === 'bulk' && rawData.length > 100) {
-    throw new Error('Bulk upload cannot exceed 100 rows');
+  // Validate row count - always check 100 row limit
+  if (rawData.length > 100) {
+    throw new Error('Upload cannot exceed 100 rows');
   }
 
   // Create batch record
@@ -57,7 +60,7 @@ export const processUpload = async (
     .from('invoice_upload_batches')
     .insert({
       user_id: userId,
-      upload_type: uploadType,
+      upload_type: 'bulk',
       total_rows: rawData.length,
       status: 'processing'
     })
@@ -78,14 +81,19 @@ export const processUpload = async (
     const rowNumber = i + 2; // Excel row number (accounting for header)
 
     try {
-      // Basic validation
-      if (!row['Invoice No.'] || !row['Amount'] || !row['Program Name']) {
+      // Enhanced basic validation
+      if (!row['Invoice No.'] || 
+          !row['Amount'] || 
+          !row['Program ID'] ||
+          !row['Program Name'] ||
+          !row['Invoice Date'] ||
+          !row['Due Date']) {
         rejections.push({
           id: crypto.randomUUID(),
           batch_id: batch.id,
           row_number: rowNumber,
           invoice_number: row['Invoice No.'] || 'N/A',
-          rejection_reason: 'Missing required fields',
+          rejection_reason: 'Missing required fields (Invoice No., Amount, Program ID, Program Name, Invoice Date, Due Date)',
           raw_data: row
         });
         continue;
@@ -115,16 +123,17 @@ export const processUpload = async (
         .insert({
           user_id: userId,
           invoice_type: 'Payable Finance',
-          program_id: validation.program_id,
+          program_id: invoiceData.program_id,
           program_name: invoiceData.program_name,
           invoice_number: invoiceData.invoice_number,
           currency: invoiceData.currency,
           total_amount: invoiceData.total_amount,
           invoice_date: invoiceData.invoice_date.toISOString(),
+          due_date: invoiceData.due_date.toISOString(),
           buyer_name: invoiceData.buyer_name,
-          buyer_id: invoiceData.buyer_name, // TODO: Lookup actual buyer ID
+          buyer_id: invoiceData.buyer_id,
           seller_name: invoiceData.seller_name,
-          seller_id: invoiceData.seller_name, // TODO: Lookup actual seller ID
+          seller_id: invoiceData.seller_id,
           status: 'submitted'
         })
         .select()
@@ -197,7 +206,7 @@ export const processUpload = async (
       successful_rows: successfulInvoices.length,
       rejected_rows: rejections.length,
       status: 'completed' as const,
-      upload_type: uploadType
+      upload_type: 'bulk'
     },
     invoices: successfulInvoices,
     rejections,
