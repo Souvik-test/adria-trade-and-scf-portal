@@ -10,6 +10,21 @@ const UploadErrorDisplay: React.FC<UploadErrorDisplayProps> = ({ error }) => {
   if (!error) return null;
 
   const getErrorDetails = (errorMessage: string) => {
+    // Invoice type validation errors
+    if (errorMessage.includes('Invalid Invoice Type') || errorMessage.includes('invoice_type')) {
+      return {
+        icon: FileX,
+        title: 'Invalid Invoice Type',
+        description: 'Invoice Type must be one of the allowed values.',
+        suggestions: [
+          'Use "invoice" for standard invoices',
+          'Use "credit-note" for credit notes',
+          'Use "debit-note" for debit notes',
+          'Download the latest template for correct format'
+        ]
+      };
+    }
+
     // Parse error message and provide helpful guidance
     if (errorMessage.includes('Failed to create upload batch')) {
       return {

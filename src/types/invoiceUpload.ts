@@ -1,5 +1,6 @@
 export interface InvoiceUploadData {
   'Invoice No.': string;
+  'Invoice Type': string;
   'Currency': string;
   'Amount': number;
   'Invoice Date': string;
@@ -14,6 +15,7 @@ export interface InvoiceUploadData {
 
 export interface ParsedInvoiceData {
   invoice_number: string;
+  invoice_type: string;
   currency: string;
   total_amount: number;
   invoice_date: Date;

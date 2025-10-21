@@ -8,6 +8,7 @@ export const generateInvoiceUploadTemplate = (): void => {
   // Define headers
   const headers = [
     'Invoice No.',
+    'Invoice Type',
     'Currency',
     'Amount',
     'Invoice Date',
@@ -23,6 +24,7 @@ export const generateInvoiceUploadTemplate = (): void => {
   // Example data row
   const exampleRow = [
     'INV-2025-001',
+    'invoice',
     'USD',
     '10000',
     '14/10/2025',
@@ -38,6 +40,7 @@ export const generateInvoiceUploadTemplate = (): void => {
   // Validation hints row
   const validationHints = [
     'Format: INV-YYYY-NNN',
+    'invoice, credit-note, or debit-note',
     'Must match program currency',
     'Numeric only',
     'DD/MM/YYYY format',
@@ -72,6 +75,7 @@ export const generateInvoiceUploadTemplate = (): void => {
   // Set column widths
   ws['!cols'] = [
     { wch: 20 }, // Invoice No.
+    { wch: 18 }, // Invoice Type
     { wch: 12 }, // Currency
     { wch: 12 }, // Amount
     { wch: 15 }, // Invoice Date

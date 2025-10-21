@@ -28,8 +28,12 @@ export const parseExcelFile = async (file: File): Promise<InvoiceUploadData[]> =
 };
 
 const mapToInvoiceData = (row: InvoiceUploadData): ParsedInvoiceData => {
+  // Normalize invoice type to lowercase and default to 'invoice'
+  const invoiceType = (row['Invoice Type'] || 'invoice').toLowerCase().trim();
+  
   return {
     invoice_number: row['Invoice No.'],
+    invoice_type: invoiceType,
     currency: row['Currency'],
     total_amount: Number(row['Amount']),
     invoice_date: parseDate(row['Invoice Date']),
@@ -100,6 +104,21 @@ export const processUpload = async (
         continue;
       }
 
+      // Validate invoice type
+      const validInvoiceTypes = ['invoice', 'credit-note', 'debit-note'];
+      const invoiceType = (row['Invoice Type'] || 'invoice').toLowerCase().trim();
+      if (!validInvoiceTypes.includes(invoiceType)) {
+        rejections.push({
+          id: crypto.randomUUID(),
+          batch_id: batch.id,
+          row_number: rowNumber,
+          invoice_number: row['Invoice No.'],
+          rejection_reason: `Invalid Invoice Type "${row['Invoice Type']}" - Must be one of: invoice, credit-note, debit-note`,
+          raw_data: row
+        });
+        continue;
+      }
+
       // Map to invoice data
       const invoiceData = mapToInvoiceData(row);
 
@@ -123,7 +142,7 @@ export const processUpload = async (
         .from('scf_invoices')
         .insert({
           user_id: userId,
-          invoice_type: 'Payable Finance',
+          invoice_type: invoiceData.invoice_type,
           program_id: invoiceData.program_id,
           program_name: invoiceData.program_name,
           invoice_number: invoiceData.invoice_number,
