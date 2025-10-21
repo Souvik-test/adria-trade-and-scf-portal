@@ -38,7 +38,7 @@ export const generateInvoiceUploadTemplate = (): void => {
   // Validation hints row
   const validationHints = [
     'Format: INV-YYYY-NNN',
-    'ISO code: USD, EUR, GBP',
+    'Must match program currency',
     'Numeric only',
     'DD/MM/YYYY format',
     'DD/MM/YYYY format',
@@ -61,9 +61,10 @@ export const generateInvoiceUploadTemplate = (): void => {
     ['Important Notes:'],
     ['1. Maximum 100 rows per upload'],
     ['2. Multiple programs allowed in same file'],
-    ['3. Buyer ID required when Seller is anchor'],
-    ['4. Seller ID required when Buyer is anchor'],
-    ['5. Both IDs required if neither is anchor']
+    ['3. Invoice currency MUST match program currency'],
+    ['4. If Buyer is anchor: Buyer does NOT need to be in counterparties, but Seller ID is REQUIRED'],
+    ['5. If Seller is anchor: Seller does NOT need to be in counterparties, but Buyer ID is REQUIRED'],
+    ['6. Non-anchor party must be registered in program counterparties with matching ID']
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);

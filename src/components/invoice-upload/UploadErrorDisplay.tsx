@@ -38,14 +38,43 @@ const UploadErrorDisplay: React.FC<UploadErrorDisplayProps> = ({ error }) => {
       };
     }
 
-    if (errorMessage.includes('Program ID') || errorMessage.includes('not found')) {
+    if (errorMessage.includes('Currency Mismatch')) {
+      return {
+        icon: AlertTriangle,
+        title: 'Currency Mismatch',
+        description: errorMessage,
+        suggestions: [
+          'Check the program\'s configured currency',
+          'Ensure your invoice currency matches the program currency',
+          'Update your invoice data with the correct currency code (USD, EUR, GBP, etc.)'
+        ]
+      };
+    }
+
+    if (errorMessage.includes('anchor') || errorMessage.includes('Buyer is the anchor') || errorMessage.includes('Seller is the anchor')) {
+      return {
+        icon: AlertTriangle,
+        title: 'Anchor Party Validation Error',
+        description: errorMessage,
+        suggestions: [
+          'If Buyer is the anchor, only Seller needs to be in counterparties',
+          'If Seller is the anchor, only Buyer needs to be in counterparties',
+          'Verify the correct party ID is provided for the non-anchor party',
+          'Check your program configuration for the anchor party designation'
+        ]
+      };
+    }
+
+    if (errorMessage.includes('Program ID') || errorMessage.includes('not found') || errorMessage.includes('Invalid Buyer') || errorMessage.includes('Invalid Seller')) {
       return {
         icon: AlertTriangle,
         title: 'Program Validation Error',
-        description: 'One or more program IDs in your file are invalid.',
+        description: errorMessage,
         suggestions: [
           'Verify all Program IDs match existing active programs',
           'Check that Program Names match their corresponding Program IDs',
+          'Ensure Buyer/Seller names match the registered counterparties',
+          'Verify party IDs are correct for non-anchor parties',
           'Download a fresh template to see the correct format'
         ]
       };

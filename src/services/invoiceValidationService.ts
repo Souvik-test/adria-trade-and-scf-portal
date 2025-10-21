@@ -28,72 +28,80 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 2. Anchor-based ID Validation
-    const anchorParty = program.anchor_party; // "BUYER" or "SELLER"
+    // 2. Validate Currency matches Program Currency
+    if (invoiceData.currency !== program.program_currency) {
+      return {
+        valid: false,
+        reason: `Currency Mismatch - Invoice currency "${invoiceData.currency}" does not match program currency "${program.program_currency}" for program "${program.program_name}"`
+      };
+    }
+
+    // 3. Anchor-based Party Validation
+    const anchorParty = program.anchor_party?.toUpperCase() || '';
+    const counterparties = (program.counter_parties as any[]) || [];
     
-    // If Buyer is anchor, Seller ID is REQUIRED
-    if (anchorParty === 'BUYER' || anchorParty === 'BUYER ANCHOR') {
+    const isAnchorBuyer = anchorParty.includes('BUYER');
+    const isAnchorSeller = anchorParty.includes('SELLER');
+
+    if (isAnchorBuyer) {
+      // Buyer is anchor - validate SELLER only
       if (!invoiceData.seller_id || invoiceData.seller_id.trim() === '') {
         return {
           valid: false,
           reason: 'Seller ID is required - Buyer is the anchor in this program'
         };
       }
-    }
-    
-    // If Seller is anchor, Buyer ID is REQUIRED
-    if (anchorParty === 'SELLER' || anchorParty === 'SELLER ANCHOR') {
+      
+      // Validate Seller against counterparties
+      const sellerCounterparty = counterparties.find(
+        cp => cp.counter_party_name === invoiceData.seller_name
+      );
+      
+      if (!sellerCounterparty) {
+        const availableCounterparties = counterparties.map(cp => cp.counter_party_name).join(', ');
+        return { 
+          valid: false, 
+          reason: `Invalid Seller - "${invoiceData.seller_name}" not registered in program "${program.program_name}". Available counterparties: ${availableCounterparties || 'None'}` 
+        };
+      }
+      
+      // Validate Seller ID matches
+      if (sellerCounterparty.counter_party_id !== invoiceData.seller_id) {
+        return {
+          valid: false,
+          reason: `Seller ID Mismatch - "${invoiceData.seller_id}" does not match registered ID "${sellerCounterparty.counter_party_id}" for seller "${invoiceData.seller_name}"`
+        };
+      }
+      
+    } else if (isAnchorSeller) {
+      // Seller is anchor - validate BUYER only
       if (!invoiceData.buyer_id || invoiceData.buyer_id.trim() === '') {
         return {
           valid: false,
           reason: 'Buyer ID is required - Seller is the anchor in this program'
         };
       }
-    }
-
-    // 3. Check counterparties with ID validation
-    const counterparties = (program.counter_parties as any[]) || [];
-    
-    // Validate Buyer
-    const buyerCounterparty = counterparties.find(
-      cp => cp.counter_party_name === invoiceData.buyer_name
-    );
-    
-    if (!buyerCounterparty) {
-      return { 
-        valid: false, 
-        reason: `Invalid Buyer - "${invoiceData.buyer_name}" not registered in program "${program.program_name}"` 
-      };
-    }
-    
-    // Validate Buyer ID matches if provided
-    if (invoiceData.buyer_id && 
-        buyerCounterparty.counter_party_id !== invoiceData.buyer_id) {
-      return {
-        valid: false,
-        reason: `Buyer ID Mismatch - "${invoiceData.buyer_id}" does not match registered ID "${buyerCounterparty.counter_party_id}" for buyer "${invoiceData.buyer_name}"`
-      };
-    }
-
-    // Validate Seller
-    const sellerCounterparty = counterparties.find(
-      cp => cp.counter_party_name === invoiceData.seller_name
-    );
-    
-    if (!sellerCounterparty) {
-      return { 
-        valid: false, 
-        reason: `Invalid Seller - "${invoiceData.seller_name}" not registered in program "${program.program_name}"` 
-      };
-    }
-    
-    // Validate Seller ID matches if provided
-    if (invoiceData.seller_id && 
-        sellerCounterparty.counter_party_id !== invoiceData.seller_id) {
-      return {
-        valid: false,
-        reason: `Seller ID Mismatch - "${invoiceData.seller_id}" does not match registered ID "${sellerCounterparty.counter_party_id}" for seller "${invoiceData.seller_name}"`
-      };
+      
+      // Validate Buyer against counterparties
+      const buyerCounterparty = counterparties.find(
+        cp => cp.counter_party_name === invoiceData.buyer_name
+      );
+      
+      if (!buyerCounterparty) {
+        const availableCounterparties = counterparties.map(cp => cp.counter_party_name).join(', ');
+        return { 
+          valid: false, 
+          reason: `Invalid Buyer - "${invoiceData.buyer_name}" not registered in program "${program.program_name}". Available counterparties: ${availableCounterparties || 'None'}` 
+        };
+      }
+      
+      // Validate Buyer ID matches
+      if (buyerCounterparty.counter_party_id !== invoiceData.buyer_id) {
+        return {
+          valid: false,
+          reason: `Buyer ID Mismatch - "${invoiceData.buyer_id}" does not match registered ID "${buyerCounterparty.counter_party_id}" for buyer "${invoiceData.buyer_name}"`
+        };
+      }
     }
 
     // 4. Check program limit
