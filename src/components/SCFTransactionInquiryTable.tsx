@@ -185,13 +185,21 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
             {transaction.relatedTransactionRefs.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {transaction.relatedTransactionRefs.map((ref, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
+                  <span
+                    key={idx}
+                    className="text-primary hover:underline cursor-pointer text-sm font-medium"
+                    onClick={() => {
+                      // Navigate or show details based on reference type
+                      console.log('View transaction:', ref);
+                    }}
+                  >
                     {ref}
-                  </Badge>
+                    {idx < transaction.relatedTransactionRefs.length - 1 && ', '}
+                  </span>
                 ))}
               </div>
             ) : (
-              '-'
+              <span className="text-muted-foreground">—</span>
             )}
           </TableCell>
         );

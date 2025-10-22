@@ -36,7 +36,22 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 3. Anchor-based Party Validation
+    // 3. Validate Tenor (days between invoice_date and due_date)
+    const invoiceDate = new Date(invoiceData.invoice_date);
+    const dueDate = new Date(invoiceData.due_date);
+    const tenorDays = Math.ceil((dueDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    const minTenor = Number(program.min_tenor_total_days || program.min_tenor || 0);
+    const maxTenor = Number(program.max_tenor_total_days || program.max_tenor || 999999);
+
+    if (tenorDays < minTenor || tenorDays > maxTenor) {
+      return {
+        valid: false,
+        reason: `Tenor Validation Failed - Invoice tenor is ${tenorDays} days, but program "${program.program_name}" requires ${minTenor}-${maxTenor} days`
+      };
+    }
+
+    // 4. Anchor-based Party Validation
     const anchorParty = program.anchor_party?.toUpperCase() || '';
     const counterparties = (program.counter_parties as any[]) || [];
     
@@ -104,7 +119,7 @@ export const validateAgainstProgram = async (
       }
     }
 
-    // 4. Check program limit
+    // 5. Check program limit
     const { data: totalInvoices } = await supabase
       .from('scf_invoices')
       .select('total_amount')
@@ -122,7 +137,7 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 5. Check anchor limit (buyer limit)
+    // 6. Check anchor limit (buyer limit)
     const { data: anchorInvoices } = await supabase
       .from('scf_invoices')
       .select('total_amount')
@@ -141,7 +156,7 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 6. All validations passed
+    // 7. All validations passed
     return { 
       valid: true, 
       program_id: program.program_id,

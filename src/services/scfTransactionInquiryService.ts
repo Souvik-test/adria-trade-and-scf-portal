@@ -248,10 +248,10 @@ export const calculateFinanceEligibility = async (
   }
 
   // Check currency match
-  if (invoice.currency !== program.currency) {
+  if (invoice.currency !== program.program_currency) {
     return {
       eligible: false,
-      reason: `Currency mismatch: Invoice ${invoice.currency} vs Program ${program.currency}`,
+      reason: `Currency mismatch: Invoice ${invoice.currency} vs Program ${program.program_currency}`,
     };
   }
 

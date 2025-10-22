@@ -191,6 +191,12 @@ export const processUpload = async (
 
         if (disbursementResult.status === 'completed' && disbursementResult.disbursement) {
           disbursements.push(disbursementResult.disbursement);
+          
+          // Update invoice status to 'financed' after successful disbursement
+          await supabase
+            .from('scf_invoices')
+            .update({ status: 'financed' })
+            .eq('id', invoice.id);
         }
       }
     } catch (error) {

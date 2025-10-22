@@ -53,17 +53,61 @@ export const processDisbursement = async (
     // Update program available limit
     const { data: program } = await supabase
       .from('scf_program_configurations')
-      .select('available_limit')
+      .select('available_limit, anchor_available_limit, counter_parties, anchor_party')
       .eq('program_id', programId)
       .single();
 
     if (program) {
+      // Update program available limit
       await supabase
         .from('scf_program_configurations')
         .update({
           available_limit: Number(program.available_limit) - disbursedAmount
         })
         .eq('program_id', programId);
+
+      // Update anchor available limit
+      if (program.anchor_available_limit) {
+        await supabase
+          .from('scf_program_configurations')
+          .update({
+            anchor_available_limit: Number(program.anchor_available_limit) - disbursedAmount
+          })
+          .eq('program_id', programId);
+      }
+
+      // Update counter party available limit
+      const { data: invoiceData } = await supabase
+        .from('scf_invoices')
+        .select('seller_id, buyer_id')
+        .eq('id', invoiceId)
+        .single();
+
+      if (invoiceData && program.counter_parties) {
+        const counterParties = program.counter_parties as any[];
+        const anchorParty = (program.anchor_party || '').toUpperCase();
+        
+        // Determine which party is the counter party
+        const counterPartyId = anchorParty.includes('BUYER') 
+          ? invoiceData.seller_id 
+          : invoiceData.buyer_id;
+        
+        // Find and update the counter party limit
+        const updatedCounterParties = counterParties.map(cp => {
+          if (cp.counter_party_id === counterPartyId) {
+            return {
+              ...cp,
+              available_limit_amount: Number(cp.available_limit_amount || 0) - disbursedAmount
+            };
+          }
+          return cp;
+        });
+        
+        await supabase
+          .from('scf_program_configurations')
+          .update({ counter_parties: updatedCounterParties })
+          .eq('program_id', programId);
+      }
     }
 
     return {
