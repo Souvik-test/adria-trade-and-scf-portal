@@ -9,13 +9,31 @@ import {
 import { validateAgainstProgram } from './invoiceValidationService';
 import { processDisbursement } from './invoiceDisbursementService';
 
-const parseDate = (dateStr: string): Date => {
-  // Handle DD/MM/YYYY format
-  const parts = dateStr.split('/');
-  if (parts.length === 3) {
-    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+const parseDate = (dateValue: any): Date => {
+  // Handle Excel serial date numbers (days since 1900-01-01)
+  if (typeof dateValue === 'number') {
+    // Excel date serial number conversion
+    const excelEpoch = new Date(1900, 0, 1);
+    const days = dateValue - 2; // Excel has a leap year bug for 1900
+    const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+    return date;
   }
-  return new Date(dateStr);
+  
+  // Handle DD/MM/YYYY string format
+  if (typeof dateValue === 'string') {
+    const parts = dateValue.split('/');
+    if (parts.length === 3) {
+      return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    }
+    return new Date(dateValue);
+  }
+  
+  // Handle Date objects
+  if (dateValue instanceof Date) {
+    return dateValue;
+  }
+  
+  return new Date(dateValue);
 };
 
 export const parseExcelFile = async (file: File): Promise<InvoiceUploadData[]> => {

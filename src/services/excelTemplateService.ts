@@ -20,6 +20,22 @@ export const generateInvoiceUploadTemplate = (): void => {
     'Seller ID',
     'Seller Name'
   ];
+  
+  // Format instructions row
+  const instructions = [
+    'Required - Unique ID',
+    'invoice / credit-note / debit-note',
+    'e.g., USD, EUR, GBP',
+    'Numeric only',
+    'DD/MM/YYYY or Excel date',
+    'DD/MM/YYYY or Excel date',
+    'From Program Setup',
+    'Must match Program ID',
+    'If required by program',
+    'If required by program',
+    'If required by program',
+    'If required by program'
+  ];
 
   // Example data row
   const exampleRow = [
