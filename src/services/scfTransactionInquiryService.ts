@@ -48,12 +48,24 @@ export const fetchSCFTransactions = async (
     const { data: invoices, error: invoiceError } = await invoiceQuery;
     if (invoiceError) throw invoiceError;
 
-    // Fetch disbursements
+    // Collect invoice IDs for fetching related disbursements/repayments
+    const invoiceIds = (invoices || []).map(inv => inv.id);
+
+    // Fetch ALL disbursements related to the found invoices (ignore date filters for related records)
     let disbursementQuery = supabase
       .from('invoice_disbursements')
-      .select('*, scf_invoices!inner(*)')
-      .gte('disbursed_at', fromDate)
-      .lte('disbursed_at', toDate);
+      .select('*, scf_invoices!inner(*)');
+
+    // If we have invoices, fetch their disbursements OR fetch by explicit filters
+    if (invoiceIds.length > 0) {
+      disbursementQuery = disbursementQuery.or(
+        `scf_invoice_id.in.(${invoiceIds.join(',')}),and(disbursed_at.gte.${fromDate},disbursed_at.lte.${toDate})`
+      );
+    } else {
+      disbursementQuery = disbursementQuery
+        .gte('disbursed_at', fromDate)
+        .lte('disbursed_at', toDate);
+    }
 
     if (filters.programId) disbursementQuery = disbursementQuery.eq('program_id', filters.programId);
     if (filters.transactionReference) {
@@ -63,12 +75,20 @@ export const fetchSCFTransactions = async (
     const { data: disbursements, error: disbursementError } = await disbursementQuery;
     if (disbursementError) throw disbursementError;
 
-    // Fetch repayments
+    // Fetch ALL repayments related to the found invoices (ignore date filters for related records)
     let repaymentQuery = supabase
       .from('invoice_repayments')
-      .select('*, scf_invoices!inner(*)')
-      .gte('repayment_date', fromDate)
-      .lte('repayment_date', toDate);
+      .select('*, scf_invoices!inner(*)');
+
+    if (invoiceIds.length > 0) {
+      repaymentQuery = repaymentQuery.or(
+        `scf_invoice_id.in.(${invoiceIds.join(',')}),and(repayment_date.gte.${fromDate},repayment_date.lte.${toDate})`
+      );
+    } else {
+      repaymentQuery = repaymentQuery
+        .gte('repayment_date', fromDate)
+        .lte('repayment_date', toDate);
+    }
 
     if (filters.programId) repaymentQuery = repaymentQuery.eq('program_id', filters.programId);
     if (filters.transactionReference) {
