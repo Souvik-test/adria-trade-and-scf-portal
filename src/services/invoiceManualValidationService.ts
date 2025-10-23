@@ -144,33 +144,76 @@ export const getBuyerSellerInfoFromProgram = async (
   anchorName: string,
   counterParties: any[]
 ): Promise<{
-  buyerId: string;
-  buyerName: string;
-  sellerId: string;
-  sellerName: string;
-} | null> => {
+  success: boolean;
+  data?: {
+    buyerId: string;
+    buyerName: string;
+    sellerId: string;
+    sellerName: string;
+  };
+  error?: string;
+}> => {
   try {
-    // 1. Fetch product definition to get roles
+    console.log('🔍 Starting buyer/seller auto-population...', {
+      programId,
+      productCode,
+      anchorId,
+      anchorName,
+      counterPartiesCount: counterParties?.length || 0
+    });
+
+    // 1. Check if product code is provided
+    if (!productCode) {
+      const error = 'Product code is not set in the program configuration. Please configure the product code for this program.';
+      console.error('❌', error);
+      return { success: false, error };
+    }
+
+    // 2. Fetch product definition to get roles
     const { data: productDef, error: productError } = await supabase
       .from('scf_product_definitions')
       .select('anchor_role, counter_party_role')
       .eq('product_code', productCode)
       .maybeSingle();
 
-    if (productError || !productDef) {
-      console.error('Error fetching product definition:', productError);
-      return null;
+    if (productError) {
+      const error = `Database error fetching product definition: ${productError.message}. This may be due to RLS policies - ensure you have permission to access product definitions.`;
+      console.error('❌', error);
+      return { success: false, error };
     }
 
-    // 2. Get first counter party
+    if (!productDef) {
+      const error = `Product definition not found for product code "${productCode}". Please create a product definition with anchor_role and counter_party_role in the scf_product_definitions table.`;
+      console.error('❌', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Product definition found:', {
+      anchor_role: productDef.anchor_role,
+      counter_party_role: productDef.counter_party_role
+    });
+
+    // 3. Check if roles are set
+    if (!productDef.anchor_role || !productDef.counter_party_role) {
+      const error = `Product definition for "${productCode}" is missing anchor_role or counter_party_role. Please set both roles in the product definition.`;
+      console.error('❌', error);
+      return { success: false, error };
+    }
+
+    // 4. Get first counter party
     if (!counterParties || counterParties.length === 0) {
-      console.error('No counter parties found in program');
-      return null;
+      const error = 'No counter parties defined in the program configuration. Please add at least one counter party to the program.';
+      console.error('❌', error);
+      return { success: false, error };
     }
 
     const counterParty = counterParties[0];
+    console.log('✅ Using counter party:', {
+      id: counterParty.counter_party_id,
+      name: counterParty.counter_party_name
+    });
 
-    // 3. Initialize result
+    // 5. Initialize result
     const result = {
       buyerId: '',
       buyerName: '',
@@ -178,36 +221,55 @@ export const getBuyerSellerInfoFromProgram = async (
       sellerName: '',
     };
 
-    // 4. Map based on anchor_role
+    // 6. Map based on anchor_role
     const anchorRole = (productDef.anchor_role || '').toLowerCase();
+    console.log('🔍 Mapping anchor role:', anchorRole);
+    
     if (anchorRole.includes('buyer')) {
       result.buyerId = anchorId;
       result.buyerName = anchorName;
+      console.log('✅ Anchor mapped to Buyer');
     } else if (anchorRole.includes('seller') || anchorRole.includes('supplier')) {
       result.sellerId = anchorId;
       result.sellerName = anchorName;
+      console.log('✅ Anchor mapped to Seller');
+    } else {
+      const error = `Anchor role "${productDef.anchor_role}" does not contain "Buyer", "Seller", or "Supplier" keywords. Please update the anchor_role in the product definition.`;
+      console.error('❌', error);
+      return { success: false, error };
     }
 
-    // 5. Map based on counter_party_role
+    // 7. Map based on counter_party_role
     const counterPartyRole = (productDef.counter_party_role || '').toLowerCase();
+    console.log('🔍 Mapping counter party role:', counterPartyRole);
+    
     if (counterPartyRole.includes('buyer')) {
       result.buyerId = counterParty.counter_party_id;
       result.buyerName = counterParty.counter_party_name;
+      console.log('✅ Counter Party mapped to Buyer');
     } else if (counterPartyRole.includes('seller') || counterPartyRole.includes('supplier')) {
       result.sellerId = counterParty.counter_party_id;
       result.sellerName = counterParty.counter_party_name;
+      console.log('✅ Counter Party mapped to Seller');
+    } else {
+      const error = `Counter party role "${productDef.counter_party_role}" does not contain "Buyer", "Seller", or "Supplier" keywords. Please update the counter_party_role in the product definition.`;
+      console.error('❌', error);
+      return { success: false, error };
     }
 
-    // 6. Validate that both buyer and seller are populated
+    // 8. Validate that both buyer and seller are populated
     if (!result.buyerId || !result.sellerId) {
-      console.error('Could not determine buyer and seller from roles');
-      return null;
+      const error = `Role mapping incomplete. Buyer ID: ${result.buyerId ? '✓' : '✗'}, Seller ID: ${result.sellerId ? '✓' : '✗'}. Check that anchor_role and counter_party_role complement each other (one should be Buyer, the other Seller/Supplier).`;
+      console.error('❌', error);
+      return { success: false, error };
     }
 
-    return result;
+    console.log('✅ Buyer/Seller mapping successful:', result);
+    return { success: true, data: result };
   } catch (error) {
-    console.error('Error getting buyer/seller info:', error);
-    return null;
+    const errorMsg = `Unexpected error during buyer/seller mapping: ${error instanceof Error ? error.message : String(error)}`;
+    console.error('❌', errorMsg);
+    return { success: false, error: errorMsg };
   }
 };
 

@@ -5,10 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceFormData } from '@/hooks/useInvoiceForm';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 
@@ -46,6 +47,8 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
   const [scfPrograms, setScfPrograms] = useState<SCFProgram[]>([]);
   const [programSearchOpen, setProgramSearchOpen] = useState(false);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
+  const [autoPopulationError, setAutoPopulationError] = useState<string>('');
+  const [autoPopulatedSuccess, setAutoPopulatedSuccess] = useState(false);
 
   // Fetch POs (all, no user filter)
   const fetchPurchaseOrders = useCallback(async () => {
@@ -116,6 +119,16 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
     updateField('programId', selectedProgram.program_id);
     updateField('programName', selectedProgram.program_name);
     
+    // Reset auto-population state
+    setAutoPopulationError('');
+    setAutoPopulatedSuccess(false);
+    
+    // Clear buyer/seller fields
+    updateField('buyerId', '');
+    updateField('buyerName', '');
+    updateField('sellerId', '');
+    updateField('sellerName', '');
+    
     // Fetch full program configuration
     try {
       const { data: programConfig, error } = await supabase
@@ -136,7 +149,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
         
         // Auto-populate buyer and seller based on product roles
         const { getBuyerSellerInfoFromProgram } = await import('@/services/invoiceManualValidationService');
-        const buyerSellerInfo = await getBuyerSellerInfoFromProgram(
+        const result = await getBuyerSellerInfoFromProgram(
           programConfig.program_id,
           programConfig.product_code,
           programConfig.anchor_id,
@@ -144,15 +157,26 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
           (programConfig.counter_parties as any[]) || []
         );
 
-        if (buyerSellerInfo) {
-          updateField('buyerId', buyerSellerInfo.buyerId);
-          updateField('buyerName', buyerSellerInfo.buyerName);
-          updateField('sellerId', buyerSellerInfo.sellerId);
-          updateField('sellerName', buyerSellerInfo.sellerName);
+        if (result && result.success && result.data) {
+          updateField('buyerId', result.data.buyerId);
+          updateField('buyerName', result.data.buyerName);
+          updateField('sellerId', result.data.sellerId);
+          updateField('sellerName', result.data.sellerName);
+          setAutoPopulatedSuccess(true);
+          console.log('✅ Buyer/Seller auto-populated successfully');
+        } else {
+          // Auto-population failed - show error and allow manual entry
+          const errorMsg = result?.error || 'Unknown error during auto-population';
+          setAutoPopulationError(errorMsg);
+          console.error('❌ Auto-population failed:', errorMsg);
         }
+      } else {
+        setAutoPopulationError('Program configuration not found or inactive');
+        console.error('❌ Program configuration error:', error);
       }
     } catch (error) {
-      console.error('Error fetching program configuration:', error);
+      setAutoPopulationError('Error fetching program configuration: ' + String(error));
+      console.error('❌ Error fetching program configuration:', error);
     }
     
     setProgramSearchOpen(false);
@@ -463,15 +487,32 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
           <CardTitle>Party Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {autoPopulationError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Could not auto-populate buyer/seller information</AlertTitle>
+              <AlertDescription className="mt-2">
+                <p className="mb-2">{autoPopulationError}</p>
+                <p className="text-sm">Please enter buyer and seller information manually below. Ensure your program configuration has:</p>
+                <ul className="list-disc list-inside text-sm mt-1 space-y-1">
+                  <li>A valid product code with matching product definition</li>
+                  <li>Product definition with anchor_role and counter_party_role set</li>
+                  <li>At least one counter party defined in the program</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="buyerId">Buyer ID *</Label>
               <Input
                 id="buyerId"
                 value={formData.buyerId}
-                placeholder="Auto-populated from Program"
-                readOnly
-                className="bg-gray-50 dark:bg-gray-900"
+                onChange={(e) => updateField('buyerId', e.target.value)}
+                placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Buyer ID"}
+                readOnly={autoPopulatedSuccess}
+                className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
             
@@ -480,9 +521,10 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
               <Input
                 id="buyerName"
                 value={formData.buyerName}
-                placeholder="Auto-populated from Program"
-                readOnly
-                className="bg-gray-50 dark:bg-gray-900"
+                onChange={(e) => updateField('buyerName', e.target.value)}
+                placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Buyer Name"}
+                readOnly={autoPopulatedSuccess}
+                className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
             
@@ -491,9 +533,10 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
               <Input
                 id="sellerId"
                 value={formData.sellerId}
-                placeholder="Auto-populated from Program"
-                readOnly
-                className="bg-gray-50 dark:bg-gray-900"
+                onChange={(e) => updateField('sellerId', e.target.value)}
+                placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Seller ID"}
+                readOnly={autoPopulatedSuccess}
+                className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
             
@@ -502,9 +545,10 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
               <Input
                 id="sellerName"
                 value={formData.sellerName}
-                placeholder="Auto-populated from Program"
-                readOnly
-                className="bg-gray-50 dark:bg-gray-900"
+                onChange={(e) => updateField('sellerName', e.target.value)}
+                placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Seller Name"}
+                readOnly={autoPopulatedSuccess}
+                className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
           </div>
