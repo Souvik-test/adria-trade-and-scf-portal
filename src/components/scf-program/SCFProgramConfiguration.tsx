@@ -60,18 +60,14 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
   }, []);
 
   const handleAdd = useCallback(() => {
-    console.log('🟡 handleAdd called - opening dialog');
     setSelectedProgram(null);
     setDialogMode("add");
     setDialogOpen(true);
-    console.log('🟡 Dialog state set to open');
   }, []);
 
   // Auto-open dialog in add mode if navigating from Product Definition
   useEffect(() => {
-    console.log('🟡 useEffect triggered - initialMode:', initialMode, 'selectedProductCode:', selectedProductCode);
     if (initialMode === "add") {
-      console.log('🟡 Initial mode is "add" - calling handleAdd');
       handleAdd();
     }
   }, [initialMode, handleAdd, selectedProductCode]);

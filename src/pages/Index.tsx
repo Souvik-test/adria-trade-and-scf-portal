@@ -42,7 +42,10 @@ const Index = () => {
         case 'product-suite':
           return <SCFProductSuite onBack={() => setActiveMenu('dashboard')} />;
         case 'product-definition':
-          return <SCFProductDefinition onBack={() => setActiveMenu('dashboard')} />;
+          return <SCFProductDefinition 
+            onBack={() => setActiveMenu('dashboard')} 
+            onNavigateToProgramConfig={() => setActiveMenu('program-configuration')}
+          />;
         case 'program-configuration':
           return <SCFProgramConfiguration onBack={() => setActiveMenu('dashboard')} />;
         case 'counter-party-onboarding':

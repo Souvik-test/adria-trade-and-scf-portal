@@ -15,16 +15,18 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
   const [openProgramInAddMode, setOpenProgramInAddMode] = useState(false);
   const [selectedProductCode, setSelectedProductCode] = useState<string | undefined>();
 
+  // Define the callback at component level to ensure it's always available
+  const handleNavigateToProgramConfig = React.useCallback((productCode?: string) => {
+    setSelectedProductCode(productCode);
+    setOpenProgramInAddMode(true);
+    setCurrentView("programConfiguration");
+  }, []);
+
   if (currentView === "productDefinition") {
     return <SCFProductDefinition 
+      key="product-definition"
       onBack={() => setCurrentView("main")} 
-      onNavigateToProgramConfig={(productCode) => {
-        console.log('🟢 SCFMasterSetup received productCode:', productCode);
-        setSelectedProductCode(productCode);
-        setOpenProgramInAddMode(true);
-        setCurrentView("programConfiguration");
-        console.log('🟢 State updated - should navigate to program config');
-      }}
+      onNavigateToProgramConfig={handleNavigateToProgramConfig}
     />;
   }
 

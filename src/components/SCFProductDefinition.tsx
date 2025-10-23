@@ -36,7 +36,7 @@ import {
 
 interface SCFProductDefinitionProps {
   onBack: () => void;
-  onNavigateToProgramConfig?: (productCode?: string) => void;
+  onNavigateToProgramConfig: (productCode?: string) => void;
 }
 
 type ProductDefinition = ProductFormData & { id: string };
@@ -263,8 +263,6 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   };
 
   const handleProgramMapping = (product: ProductDefinition) => {
-    console.log('🔵 handleProgramMapping clicked for product:', product.productCode, product.productName);
-    
     if (product.authorizationRequired) {
       toast({
         title: 'Authorization Pending',
@@ -273,10 +271,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     }
     
     if (onNavigateToProgramConfig) {
-      console.log('🔵 Calling onNavigateToProgramConfig with:', product.productCode);
       onNavigateToProgramConfig(product.productCode);
-    } else {
-      console.error('❌ onNavigateToProgramConfig callback not provided');
     }
   };
 
