@@ -18,18 +18,35 @@ export const fetchInvoiceDetails = async (invoiceNumber: string) => {
 
 export const fetchDisbursementDetails = async (loanReference: string) => {
   try {
-    const { data, error } = await supabase
+    // Fetch disbursement
+    const { data: disbursement, error } = await supabase
       .from('invoice_disbursements')
-      .select(`
-        *,
-        invoice:scf_invoices!invoice_disbursements_scf_invoice_id_fkey(*),
-        program:scf_program_configurations!invoice_disbursements_program_id_fkey(*)
-      `)
+      .select('*')
       .eq('loan_reference', loanReference)
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    if (!disbursement) return null;
+
+    // Fetch related invoice
+    const { data: invoice } = await supabase
+      .from('scf_invoices')
+      .select('*')
+      .eq('id', disbursement.scf_invoice_id)
+      .maybeSingle();
+
+    // Fetch related program
+    const { data: program } = await supabase
+      .from('scf_program_configurations')
+      .select('*')
+      .eq('program_id', disbursement.program_id)
+      .maybeSingle();
+
+    return {
+      ...disbursement,
+      invoice,
+      program,
+    };
   } catch (error) {
     console.error('Error fetching disbursement details:', error);
     throw error;
@@ -38,18 +55,35 @@ export const fetchDisbursementDetails = async (loanReference: string) => {
 
 export const fetchRepaymentDetails = async (repaymentReference: string) => {
   try {
-    const { data, error } = await supabase
+    // Fetch repayment
+    const { data: repayment, error } = await supabase
       .from('invoice_repayments')
-      .select(`
-        *,
-        invoice:scf_invoices!invoice_repayments_scf_invoice_id_fkey(*),
-        program:scf_program_configurations!invoice_repayments_program_id_fkey(*)
-      `)
+      .select('*')
       .eq('repayment_reference', repaymentReference)
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    if (!repayment) return null;
+
+    // Fetch related invoice
+    const { data: invoice } = await supabase
+      .from('scf_invoices')
+      .select('*')
+      .eq('id', repayment.scf_invoice_id)
+      .maybeSingle();
+
+    // Fetch related program
+    const { data: program } = await supabase
+      .from('scf_program_configurations')
+      .select('*')
+      .eq('program_id', repayment.program_id)
+      .maybeSingle();
+
+    return {
+      ...repayment,
+      invoice,
+      program,
+    };
   } catch (error) {
     console.error('Error fetching repayment details:', error);
     throw error;
