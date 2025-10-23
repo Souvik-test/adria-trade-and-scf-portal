@@ -123,7 +123,82 @@ export const saveProformaInvoice = async (formData: any) => {
   }
 };
 
-// Save Invoice
+// Save SCF Invoice (for manual invoice creation in SCF programs)
+export const saveSCFInvoice = async (formData: any) => {
+  const user = await getCurrentUserAsync();
+  if (!user) throw new Error('User not authenticated');
+  try {
+    const invoiceNumber = formData.invoiceNumber;
+    if (!invoiceNumber) throw new Error('Please provide an Invoice reference number.');
+    
+    // Validate required SCF fields
+    if (!formData.programId) throw new Error('Program ID is required');
+    if (!formData.programName) throw new Error('Program Name is required');
+    if (!formData.buyerId || !formData.buyerName) throw new Error('Buyer information is required');
+    if (!formData.sellerId || !formData.sellerName) throw new Error('Seller information is required');
+    
+    // Normalize invoice type to lowercase for consistency with upload service
+    const invoiceType = formData.invoiceType?.toLowerCase() || 'invoice';
+    
+    // Get product and process type
+    const { product_type, process_type } = getProductAndProcessType({
+      actionType: formData.actionType || "create",
+      invoiceType: formData.invoiceType,
+      productType: formData.productType ?? "Invoice",
+    });
+
+    const { data: invoice, error: invoiceError } = await supabase
+      .from('scf_invoices')
+      .insert({
+        user_id: user.id,
+        invoice_type: invoiceType,
+        program_id: formData.programId,
+        program_name: formData.programName,
+        invoice_number: invoiceNumber,
+        invoice_date: formData.invoiceDate,
+        due_date: formData.dueDate,
+        purchase_order_number: formData.purchaseOrderNumber,
+        purchase_order_currency: formData.purchaseOrderCurrency,
+        purchase_order_amount: formData.purchaseOrderAmount,
+        purchase_order_date: formData.purchaseOrderDate,
+        buyer_id: formData.buyerId,
+        buyer_name: formData.buyerName,
+        seller_id: formData.sellerId,
+        seller_name: formData.sellerName,
+        currency: formData.currency,
+        subtotal: formData.subtotal,
+        tax_amount: formData.taxAmount,
+        discount_amount: formData.discountAmount,
+        total_amount: formData.totalAmount,
+        payment_terms: formData.paymentTerms,
+        notes: formData.notes,
+        status: 'submitted'
+      })
+      .select()
+      .single();
+    if (invoiceError) throw invoiceError;
+
+    if (formData.lineItems && formData.lineItems.length > 0) {
+      const lineItems = formData.lineItems.map((item: any) => ({
+        scf_invoice_id: invoice.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        tax_rate: item.taxRate,
+        line_total: item.lineTotal
+      }));
+
+      const { error: itemsError } = await supabase.from('scf_invoice_line_items').insert(lineItems);
+      if (itemsError) throw itemsError;
+    }
+    await createTransactionRecord(product_type, formData, invoiceNumber, process_type);
+    return invoice;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Save Invoice (legacy - for non-SCF invoices)
 export const saveInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');

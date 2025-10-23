@@ -17,7 +17,7 @@ import useInvoiceForm from '@/hooks/useInvoiceForm';
 import InvoiceProgressIndicator from './invoice-form/InvoiceProgressIndicator';
 import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
-import { saveInvoice, searchPurchaseOrder } from '@/services/transactionService';
+import { saveSCFInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 import { 
   validateInvoiceManual, 
@@ -147,7 +147,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
       }
 
       // All validations passed - proceed with submission
-      const result = await saveInvoice(formData);
+      const result = await saveSCFInvoice(formData);
       toast({
         title: `${formData.invoiceType === 'invoice' ? 'Invoice' : formData.invoiceType === 'credit-note' ? 'Credit Note' : 'Debit Note'} Submitted!`,
         description: `${result.invoice_number} has been successfully saved to the database.`,
