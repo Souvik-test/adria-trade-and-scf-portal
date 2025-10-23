@@ -19,9 +19,11 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
     return <SCFProductDefinition 
       onBack={() => setCurrentView("main")} 
       onNavigateToProgramConfig={(productCode) => {
+        console.log('🟢 SCFMasterSetup received productCode:', productCode);
         setSelectedProductCode(productCode);
         setOpenProgramInAddMode(true);
         setCurrentView("programConfiguration");
+        console.log('🟢 State updated - should navigate to program config');
       }}
     />;
   }
