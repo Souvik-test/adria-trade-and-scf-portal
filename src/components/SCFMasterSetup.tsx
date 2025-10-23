@@ -28,6 +28,7 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
 
   if (currentView === "programConfiguration") {
     return <SCFProgramConfiguration 
+      key={openProgramInAddMode ? `add-${selectedProductCode}` : 'view'}
       onBack={() => {
         setCurrentView("main");
         setOpenProgramInAddMode(false);

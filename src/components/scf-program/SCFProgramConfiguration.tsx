@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -59,12 +59,18 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
     fetchPrograms();
   }, []);
 
+  const handleAdd = useCallback(() => {
+    setSelectedProgram(null);
+    setDialogMode("add");
+    setDialogOpen(true);
+  }, []);
+
   // Auto-open dialog in add mode if navigating from Product Definition
   useEffect(() => {
     if (initialMode === "add") {
       handleAdd();
     }
-  }, [initialMode]);
+  }, [initialMode, handleAdd]);
 
   const fetchPrograms = async () => {
     try {
@@ -87,11 +93,6 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
     }
   };
 
-  const handleAdd = () => {
-    setSelectedProgram(null);
-    setDialogMode("add");
-    setDialogOpen(true);
-  };
 
   const handleView = (program: ProgramConfig) => {
     setSelectedProgram(program);
