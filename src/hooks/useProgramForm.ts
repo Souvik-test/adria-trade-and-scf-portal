@@ -152,19 +152,36 @@ export const useProgramForm = (
       });
     } else if (selectedProductCode && mode === "add") {
       // Pre-populate product code when coming from Product Definition
-      form.setValue("product_code", selectedProductCode);
-      // Fetch and set product name from database
-      const fetchProductName = async () => {
-        const { data } = await supabase
-          .from("scf_product_definitions")
-          .select("product_name")
-          .eq("product_code", selectedProductCode)
-          .single();
-        if (data) {
-          form.setValue("product_name", data.product_name);
+      console.log("Pre-populating product code:", selectedProductCode);
+      
+      // Fetch and set product details from database
+      const fetchProductDetails = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("scf_product_definitions")
+            .select("product_code, product_name")
+            .eq("product_code", selectedProductCode)
+            .single();
+          
+          if (error) {
+            console.error("Error fetching product details:", error);
+            return;
+          }
+          
+          if (data) {
+            console.log("Setting product details:", data);
+            // Use setTimeout to ensure the form fields are ready
+            setTimeout(() => {
+              form.setValue("product_code", data.product_code, { shouldValidate: true });
+              form.setValue("product_name", data.product_name, { shouldValidate: true });
+            }, 100);
+          }
+        } catch (err) {
+          console.error("Failed to fetch product details:", err);
         }
       };
-      fetchProductName();
+      
+      fetchProductDetails();
     }
   }, [program, mode, form, selectedProductCode]);
 
