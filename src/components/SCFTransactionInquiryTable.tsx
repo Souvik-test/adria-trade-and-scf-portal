@@ -13,6 +13,15 @@ import { SCFTransactionRow, ColumnConfig } from '@/types/scfTransaction';
 import { CheckCircle2, XCircle, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { InvoiceViewModal } from './scf-transaction-inquiry/InvoiceViewModal';
+import { FinanceDisbursementViewModal } from './scf-transaction-inquiry/FinanceDisbursementViewModal';
+import {
+  fetchInvoiceDetails,
+  fetchDisbursementDetails,
+  fetchRepaymentDetails,
+  determineReferenceType,
+} from '@/services/scfTransactionDetailService';
+import { toast } from '@/hooks/use-toast';
 
 interface SCFTransactionInquiryTableProps {
   transactions: SCFTransactionRow[];
@@ -33,6 +42,12 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+  
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showDisbursementModal, setShowDisbursementModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedDisbursement, setSelectedDisbursement] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -188,10 +203,7 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                   <span
                     key={idx}
                     className="text-primary hover:underline cursor-pointer text-sm font-medium"
-                    onClick={() => {
-                      // Navigate or show details based on reference type
-                      console.log('View transaction:', ref);
-                    }}
+                    onClick={() => handleReferenceClick(ref)}
                   >
                     {ref}
                     {idx < transaction.relatedTransactionRefs.length - 1 && ', '}
@@ -215,6 +227,67 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
       
       default:
         return <TableCell key={columnId}>-</TableCell>;
+    }
+  };
+
+  const handleReferenceClick = async (reference: string) => {
+    setLoadingDetails(true);
+    try {
+      const refType = determineReferenceType(reference);
+
+      if (refType === 'invoice') {
+        const invoiceData = await fetchInvoiceDetails(reference);
+        if (invoiceData) {
+          setSelectedInvoice(invoiceData);
+          setShowInvoiceModal(true);
+        } else {
+          toast({
+            title: 'Not Found',
+            description: `Invoice ${reference} not found`,
+            variant: 'destructive',
+          });
+        }
+      } else if (refType === 'loan') {
+        const disbursementData = await fetchDisbursementDetails(reference);
+        if (disbursementData) {
+          setSelectedDisbursement(disbursementData);
+          setShowDisbursementModal(true);
+        } else {
+          toast({
+            title: 'Not Found',
+            description: `Finance disbursement ${reference} not found`,
+            variant: 'destructive',
+          });
+        }
+      } else if (refType === 'repayment') {
+        const repaymentData = await fetchRepaymentDetails(reference);
+        if (repaymentData) {
+          // Treat repayment like a disbursement for display purposes
+          setSelectedDisbursement(repaymentData);
+          setShowDisbursementModal(true);
+        } else {
+          toast({
+            title: 'Not Found',
+            description: `Repayment ${reference} not found`,
+            variant: 'destructive',
+          });
+        }
+      } else {
+        toast({
+          title: 'Unknown Reference Type',
+          description: `Cannot determine type for ${reference}`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching reference details:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch transaction details',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -247,9 +320,21 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
+    <>
+      <InvoiceViewModal
+        open={showInvoiceModal}
+        onOpenChange={setShowInvoiceModal}
+        invoice={selectedInvoice}
+      />
+      <FinanceDisbursementViewModal
+        open={showDisbursementModal}
+        onOpenChange={setShowDisbursementModal}
+        disbursement={selectedDisbursement}
+      />
+      
+      <div className="space-y-4">
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
           <TableHeader>
             <TableRow>
               {visibleColumns.map(col => (
@@ -321,7 +406,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
