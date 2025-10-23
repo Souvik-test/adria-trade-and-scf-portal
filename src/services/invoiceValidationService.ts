@@ -39,7 +39,31 @@ export const validateAgainstProgram = async (
     // 3. Validate Tenor (days between invoice_date and due_date)
     const invoiceDate = new Date(invoiceData.invoice_date);
     const dueDate = new Date(invoiceData.due_date);
+    
+    // Validate dates are valid
+    if (isNaN(invoiceDate.getTime())) {
+      return {
+        valid: false,
+        reason: `Invalid Invoice Date - Cannot parse date "${invoiceData.invoice_date}"`
+      };
+    }
+    
+    if (isNaN(dueDate.getTime())) {
+      return {
+        valid: false,
+        reason: `Invalid Due Date - Cannot parse date "${invoiceData.due_date}"`
+      };
+    }
+    
     const tenorDays = Math.ceil((dueDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if due date is before invoice date
+    if (tenorDays < 0) {
+      return {
+        valid: false,
+        reason: `Invalid Tenor - Due Date (${dueDate.toLocaleDateString('en-GB')}) cannot be before Invoice Date (${invoiceDate.toLocaleDateString('en-GB')}). Tenor: ${tenorDays} days`
+      };
+    }
 
     const minTenor = Number(program.min_tenor_total_days || program.min_tenor || 0);
     const maxTenor = Number(program.max_tenor_total_days || program.max_tenor || 999999);
@@ -47,7 +71,7 @@ export const validateAgainstProgram = async (
     if (tenorDays < minTenor || tenorDays > maxTenor) {
       return {
         valid: false,
-        reason: `Tenor Validation Failed - Invoice tenor is ${tenorDays} days, but program "${program.program_name}" requires ${minTenor}-${maxTenor} days`
+        reason: `Tenor Out of Range - Invoice tenor is ${tenorDays} days (Invoice Date: ${invoiceDate.toLocaleDateString('en-GB')}, Due Date: ${dueDate.toLocaleDateString('en-GB')}), but program "${program.program_name}" requires ${minTenor}-${maxTenor} days`
       };
     }
 

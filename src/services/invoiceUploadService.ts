@@ -9,31 +9,81 @@ import {
 import { validateAgainstProgram } from './invoiceValidationService';
 import { processDisbursement } from './invoiceDisbursementService';
 
-const parseDate = (dateValue: any): Date => {
-  // Handle Excel serial date numbers (days since 1900-01-01)
-  if (typeof dateValue === 'number') {
-    // Excel date serial number conversion
-    const excelEpoch = new Date(1900, 0, 1);
-    const days = dateValue - 2; // Excel has a leap year bug for 1900
-    const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
-    return date;
-  }
-  
-  // Handle DD/MM/YYYY string format
-  if (typeof dateValue === 'string') {
-    const parts = dateValue.split('/');
-    if (parts.length === 3) {
-      return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+const parseDate = (dateValue: any, fieldName: string = 'Date'): Date => {
+  try {
+    // Handle Excel serial date numbers (days since 1900-01-01)
+    if (typeof dateValue === 'number') {
+      // Excel date serial number conversion
+      const excelEpoch = new Date(1900, 0, 1);
+      const days = dateValue - 2; // Excel has a leap year bug for 1900
+      const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+      
+      // Validate the resulting date
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid Excel date number: ${dateValue}`);
+      }
+      return date;
     }
-    return new Date(dateValue);
+    
+    // Handle DD/MM/YYYY string format
+    if (typeof dateValue === 'string') {
+      const trimmed = dateValue.trim();
+      
+      // Try DD/MM/YYYY format first
+      if (trimmed.includes('/')) {
+        const parts = trimmed.split('/');
+        if (parts.length === 3) {
+          const day = Number(parts[0]);
+          const month = Number(parts[1]);
+          const year = Number(parts[2]);
+          
+          // Validate ranges
+          if (day < 1 || day > 31) {
+            throw new Error(`Invalid day: ${day}. Expected format: DD/MM/YYYY`);
+          }
+          if (month < 1 || month > 12) {
+            throw new Error(`Invalid month: ${month}. Expected format: DD/MM/YYYY`);
+          }
+          if (year < 1900 || year > 2100) {
+            throw new Error(`Invalid year: ${year}`);
+          }
+          
+          const date = new Date(year, month - 1, day);
+          
+          // Verify the date is valid (handles cases like Feb 30)
+          if (date.getDate() !== day || date.getMonth() !== month - 1) {
+            throw new Error(`Invalid date: ${trimmed}. Day/month combination doesn't exist`);
+          }
+          
+          return date;
+        }
+      }
+      
+      // Try ISO format or other standard formats
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) {
+        throw new Error(`Cannot parse date: "${trimmed}". Use DD/MM/YYYY format (e.g., 23/10/2025)`);
+      }
+      return date;
+    }
+    
+    // Handle Date objects
+    if (dateValue instanceof Date) {
+      if (isNaN(dateValue.getTime())) {
+        throw new Error('Invalid Date object');
+      }
+      return dateValue;
+    }
+    
+    // Try to convert anything else
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Cannot parse date value: ${dateValue}`);
+    }
+    return date;
+  } catch (error) {
+    throw new Error(`${fieldName} parsing error: ${error instanceof Error ? error.message : 'Invalid date format'}`);
   }
-  
-  // Handle Date objects
-  if (dateValue instanceof Date) {
-    return dateValue;
-  }
-  
-  return new Date(dateValue);
 };
 
 export const parseExcelFile = async (file: File): Promise<InvoiceUploadData[]> => {
@@ -54,8 +104,8 @@ const mapToInvoiceData = (row: InvoiceUploadData): ParsedInvoiceData => {
     invoice_type: invoiceType,
     currency: row['Currency'],
     total_amount: Number(row['Amount']),
-    invoice_date: parseDate(row['Invoice Date']),
-    due_date: parseDate(row['Due Date']),
+    invoice_date: parseDate(row['Invoice Date'], 'Invoice Date'),
+    due_date: parseDate(row['Due Date'], 'Due Date'),
     program_id: row['Program ID'],
     program_name: row['Program Name'],
     buyer_id: row['Buyer ID'],

@@ -314,14 +314,29 @@ export const useProgramForm = (
                               (data.max_tenor_months || 0) * 30 + 
                               (data.max_tenor_days || 0);
     
-    // Validate tenor range
-    if (maxTenorTotalDays > 0 && minTenorTotalDays > maxTenorTotalDays) {
-      const errorMsg = `Minimum Tenor (${data.min_tenor_years || 0}Y ${data.min_tenor_months || 0}M ${data.min_tenor_days || 0}D = ${minTenorTotalDays} days) cannot exceed Maximum Tenor (${data.max_tenor_years || 0}Y ${data.max_tenor_months || 0}M ${data.max_tenor_days || 0}D = ${maxTenorTotalDays} days)`;
+    // Validate tenor range - ensure max tenor is greater than min tenor
+    if (minTenorTotalDays > 0 && maxTenorTotalDays > 0 && minTenorTotalDays > maxTenorTotalDays) {
+      const errorMsg = `Maximum Tenor (${data.max_tenor_years || 0}Y ${data.max_tenor_months || 0}M ${data.max_tenor_days || 0}D = ${maxTenorTotalDays} days) must be greater than Minimum Tenor (${data.min_tenor_years || 0}Y ${data.min_tenor_months || 0}M ${data.min_tenor_days || 0}D = ${minTenorTotalDays} days). Please increase the Maximum Tenor values.`;
       if (onValidationError) {
         onValidationError([errorMsg]);
       } else {
         toast({
-          title: "Validation Failed",
+          title: "Tenor Validation Failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    
+    // Ensure both min and max tenor are specified if one is specified
+    if ((minTenorTotalDays > 0 && maxTenorTotalDays === 0) || (maxTenorTotalDays > 0 && minTenorTotalDays === 0)) {
+      const errorMsg = "Both Minimum Tenor and Maximum Tenor must be specified if you set one of them.";
+      if (onValidationError) {
+        onValidationError([errorMsg]);
+      } else {
+        toast({
+          title: "Tenor Validation Failed", 
           description: errorMsg,
           variant: "destructive",
         });
