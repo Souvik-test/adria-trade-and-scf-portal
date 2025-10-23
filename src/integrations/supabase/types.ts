@@ -2309,22 +2309,10 @@ export type Database = {
           user_login_id: string
         }[]
       }
-      generate_assignment_ref: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_documentary_collection_bill_ref: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_export_bill_ref: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_lc_transfer_ref: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_assignment_ref: { Args: never; Returns: string }
+      generate_documentary_collection_bill_ref: { Args: never; Returns: string }
+      generate_export_bill_ref: { Args: never; Returns: string }
+      generate_lc_transfer_ref: { Args: never; Returns: string }
       generate_transaction_ref: {
         Args: { product_type: string }
         Returns: string
