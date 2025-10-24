@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ProductSolutionToggleProps {
   selectedSolution: 'conventional' | 'custom';
@@ -11,21 +11,33 @@ const ProductSolutionToggle: React.FC<ProductSolutionToggleProps> = ({
   onToggle
 }) => {
   return (
-    <div className="flex items-center justify-center gap-4 mb-8">
-      <Button
-        variant={selectedSolution === 'conventional' ? 'default' : 'outline'}
-        onClick={() => onToggle('conventional')}
-        className="min-w-[180px]"
-      >
-        Conventional Solutions
-      </Button>
-      <Button
-        variant={selectedSolution === 'custom' ? 'default' : 'outline'}
-        onClick={() => onToggle('custom')}
-        className="min-w-[180px]"
-      >
-        Custom Solutions
-      </Button>
+    <div className="flex items-center justify-center mb-8">
+      <div className="inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground">
+        <button
+          onClick={() => onToggle('conventional')}
+          className={cn(
+            "inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-all",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            selectedSolution === 'conventional'
+              ? "bg-background text-foreground shadow-sm"
+              : "hover:bg-background/50"
+          )}
+        >
+          Conventional Solutions
+        </button>
+        <button
+          onClick={() => onToggle('custom')}
+          className={cn(
+            "inline-flex items-center justify-center rounded-md px-6 py-2 text-sm font-medium transition-all",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            selectedSolution === 'custom'
+              ? "bg-background text-foreground shadow-sm"
+              : "hover:bg-background/50"
+          )}
+        >
+          Custom Solutions
+        </button>
+      </div>
     </div>
   );
 };

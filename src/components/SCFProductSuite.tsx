@@ -19,7 +19,7 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   const [showPOPIModal, setShowPOPIModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [solutionType, setSolutionType] = useState<'conventional' | 'custom'>('conventional');
-  const [disbursementModal, setDisbursementModal] = useState<{ isOpen: boolean; productCode?: string; productName?: string }>({ isOpen: false });
+  const [disbursementModal, setDisbursementModal] = useState<{ isOpen: boolean; productCode?: string; productName?: string; anchorType?: 'seller' | 'buyer' }>({ isOpen: false });
 
   const { data: customProducts } = useQuery({
     queryKey: ['custom-products'],
@@ -58,12 +58,40 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
     { id: 'po-financing', title: 'Purchase Order Financing', icon: FileCheck, hasFlip: true, flipOptions: ['Disburse', 'Repay', 'Transfer'] }
   ];
 
-  const customSellerProducts = customProducts?.filter((p: any) => p.anchor_role?.toUpperCase().includes('SELLER') || p.anchor_role?.toUpperCase().includes('SUPPLIER')).map((p: any) => ({ 
-    id: p.product_code, title: p.product_name, icon: TrendingUp, hasFlip: true, flipOptions: ['Disburse', 'Repay', 'Transfer'], description: p.product_description 
+  const normalizeAnchorRole = (role: string): string => {
+    return role?.toUpperCase().replace(/\s+/g, '').replace(/\//g, '') || '';
+  };
+
+  const isSellerAnchored = (anchorRole: string): boolean => {
+    const normalized = normalizeAnchorRole(anchorRole);
+    return normalized.includes('SELLER') || normalized.includes('SUPPLIER');
+  };
+
+  const isBuyerAnchored = (anchorRole: string): boolean => {
+    const normalized = normalizeAnchorRole(anchorRole);
+    return normalized.includes('BUYER');
+  };
+
+  const customSellerProducts = customProducts?.filter((p: any) => 
+    isSellerAnchored(p.anchor_role)
+  ).map((p: any) => ({ 
+    id: p.product_code, 
+    title: p.product_name, 
+    icon: TrendingUp, 
+    hasFlip: true, 
+    flipOptions: ['Disburse', 'Repay', 'Transfer'], 
+    description: p.product_description 
   })) || [];
 
-  const customBuyerProducts = customProducts?.filter((p: any) => p.anchor_role?.toUpperCase().includes('BUYER')).map((p: any) => ({ 
-    id: p.product_code, title: p.product_name, icon: Receipt, hasFlip: true, flipOptions: ['Disburse', 'Repay', 'Transfer'], description: p.product_description 
+  const customBuyerProducts = customProducts?.filter((p: any) => 
+    isBuyerAnchored(p.anchor_role)
+  ).map((p: any) => ({ 
+    id: p.product_code, 
+    title: p.product_name, 
+    icon: Receipt, 
+    hasFlip: true, 
+    flipOptions: ['Disburse', 'Repay', 'Transfer'], 
+    description: p.product_description 
   })) || [];
 
   const handleCardHover = (productId: string) => {
@@ -87,7 +115,21 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
     if (productId === 'underlying-docs') {
       handleUnderlyingDocsClick(option);
     } else if (option === 'Disburse') {
-      setDisbursementModal({ isOpen: true, productCode: productId, productName: productId });
+      // Determine anchor type based on product
+      const isSellerProduct = solutionType === 'conventional' 
+        ? sellerAnchoredPrograms.some(p => p.id === productId)
+        : customSellerProducts.some(p => p.id === productId);
+      
+      const productName = solutionType === 'conventional'
+        ? [...sellerAnchoredPrograms, ...buyerAnchoredPrograms].find(p => p.id === productId)?.title
+        : [...(customSellerProducts || []), ...(customBuyerProducts || [])].find(p => p.id === productId)?.title;
+      
+      setDisbursementModal({ 
+        isOpen: true, 
+        productCode: productId, 
+        productName: productName || productId,
+        anchorType: isSellerProduct ? 'seller' : 'buyer'
+      });
     } else {
       console.log('SCF Product option clicked:', productId, option);
     }
@@ -200,6 +242,7 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
         onClose={() => setDisbursementModal({ isOpen: false })}
         productCode={disbursementModal.productCode}
         productName={disbursementModal.productName}
+        anchorType={disbursementModal.anchorType}
       />
     </div>
   );

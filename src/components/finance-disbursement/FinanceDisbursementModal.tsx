@@ -17,13 +17,15 @@ interface FinanceDisbursementModalProps {
   onClose: () => void;
   productCode?: string;
   productName?: string;
+  anchorType?: 'seller' | 'buyer';
 }
 
 const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   isOpen,
   onClose,
   productCode,
-  productName
+  productName,
+  anchorType = 'seller'
 }) => {
   const [customUser, setCustomUser] = useState<{ user_id: string; corporate_id: string } | null>(null);
   const [currentPane, setCurrentPane] = useState(0);
@@ -108,6 +110,47 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     }
   };
 
+  const handleDiscard = () => {
+    if (currentPane > 0 || formData.selectedInvoices.length > 0) {
+      if (window.confirm('Are you sure you want to discard? All changes will be lost.')) {
+        resetForm();
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      programId: '',
+      programName: '',
+      productCode: productCode || '',
+      productName: productName || '',
+      selectedInvoices: [],
+      invoiceCurrency: 'USD',
+      financeDate: new Date(),
+      financeCurrency: 'USD',
+      exchangeRate: undefined,
+      financeAmount: 0,
+      financeTenorDays: 0,
+      financeDueDate: new Date(),
+      interestRateType: 'manual',
+      interestRate: 0,
+      referenceRateCode: '',
+      referenceRateMargin: 0,
+      interestAmount: 0,
+      totalRepaymentAmount: 0,
+      autoRepaymentEnabled: false,
+      repaymentMode: 'auto',
+      repaymentParty: '',
+      repaymentAccount: '',
+      accountingEntries: [],
+      accountingReference: ''
+    });
+    setCurrentPane(0);
+  };
+
   const handleSubmit = async (action: 'draft' | 'approval' | 'disburse') => {
     if (!customUser) {
       toast.error('User not authenticated');
@@ -164,17 +207,38 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
 
           {/* Pane Content */}
           <div className="min-h-[400px]">
-            <CurrentPaneComponent formData={formData} onFieldChange={handleFieldChange} />
+            {currentPane === 0 ? (
+              <ProgramProductSelectionPane 
+                formData={formData} 
+                onFieldChange={handleFieldChange}
+                anchorType={anchorType}
+              />
+            ) : (
+              <CurrentPaneComponent 
+                formData={formData} 
+                onFieldChange={handleFieldChange}
+              />
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-between border-t pt-4">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentPane === 0}>
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handlePrevious} disabled={currentPane === 0}>
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+            </div>
 
             <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                onClick={handleDiscard}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                Discard
+              </Button>
+              
               {currentPane === panes.length - 1 ? (
                 <>
                   <Button variant="outline" onClick={() => handleSubmit('draft')}>
