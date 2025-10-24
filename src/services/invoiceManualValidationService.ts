@@ -408,15 +408,24 @@ export const validateInvoiceManual = async (
 ): Promise<ValidationResult> => {
   const errors: string[] = [];
 
-  // 1. Validate tenor
-  const tenorDays = calculateInvoiceTenorInDays(formData.invoiceDate, formData.dueDate);
-  const tenorValidation = validateInvoiceTenor(
-    tenorDays,
-    programConfig.min_tenor_total_days,
-    programConfig.max_tenor_total_days
-  );
-  if (!tenorValidation.valid) {
-    errors.push(...tenorValidation.errors);
+  // Fetch override flags from program
+  const { data: programOverrides } = await supabase
+    .from('scf_program_configurations')
+    .select('override_tenor_calculation, override_limit_restrictions')
+    .eq('program_id', programConfig.program_id)
+    .single();
+
+  // 1. Validate tenor (skip if override enabled)
+  if (!programOverrides?.override_tenor_calculation) {
+    const tenorDays = calculateInvoiceTenorInDays(formData.invoiceDate, formData.dueDate);
+    const tenorValidation = validateInvoiceTenor(
+      tenorDays,
+      programConfig.min_tenor_total_days,
+      programConfig.max_tenor_total_days
+    );
+    if (!tenorValidation.valid) {
+      errors.push(...tenorValidation.errors);
+    }
   }
 
   // 2. Validate currency
@@ -430,8 +439,8 @@ export const validateInvoiceManual = async (
     errors.push('Seller information could not be populated from the selected program. Please contact administrator.');
   }
 
-  // 4. Validate amount against limits
-  if (formData.totalAmount > 0) {
+  // 4. Validate amount against limits (skip if override enabled)
+  if (!programOverrides?.override_limit_restrictions && formData.totalAmount > 0) {
     const limitValidation = await validateAmountAgainstLimits(
       formData.totalAmount,
       formData.programId,

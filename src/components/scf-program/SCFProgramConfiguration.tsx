@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Eye, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, Search, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,6 +145,28 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
     setDialogOpen(false);
   };
 
+  const handleCopy = (program: ProgramConfig) => {
+    // Create a copy with modified fields
+    const copiedProgram = {
+      ...program,
+      id: undefined, // Remove ID for new record
+      program_id: `${program.program_id}_COPY`, // Append _COPY to make unique
+      program_name: `${program.program_name} (Copy)`, // Indicate it's a copy
+      status: 'draft', // Set as draft for review
+      created_at: undefined,
+      updated_at: undefined,
+    };
+    
+    setSelectedProgram(copiedProgram as any);
+    setDialogMode("add"); // Use add mode but with pre-filled data
+    setDialogOpen(true);
+    
+    toast({
+      title: "Program Copied",
+      description: "Review and modify the copied program details before saving",
+    });
+  };
+
   const filteredPrograms = programs.filter(
     (program) =>
       program.program_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -255,6 +277,14 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
                           title="Edit"
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopy(program)}
+                          title="Copy Program"
+                        >
+                          <Copy className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"

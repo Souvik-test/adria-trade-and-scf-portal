@@ -65,9 +65,10 @@ export interface Disbursement {
   loan_reference: string;
   disbursed_amount: number;
   finance_percentage: number;
-  disbursement_status: 'pending' | 'completed' | 'failed';
+  disbursement_status: 'pending' | 'completed' | 'failed' | 'not_eligible';
   accounting_entry_ref?: string;
   disbursed_at?: string;
+  rejection_reason?: string;
 }
 
 export interface ValidationResult {

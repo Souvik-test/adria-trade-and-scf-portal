@@ -69,6 +69,8 @@ const programSchema = z.object({
   fee_catalogue: z.array(z.any()).default([]),
   flat_fee_config: z.any().default({}),
   status: z.string().default("active"),
+  override_limit_restrictions: z.boolean().default(false),
+  override_tenor_calculation: z.boolean().default(false),
 });
 
 type ProgramFormValues = z.infer<typeof programSchema>;
@@ -137,6 +139,8 @@ export const useProgramForm = (
       fee_catalogue: [],
       flat_fee_config: {},
       status: "active",
+      override_limit_restrictions: false,
+      override_tenor_calculation: false,
     },
   });
 
@@ -287,6 +291,8 @@ export const useProgramForm = (
       charge_penalty_on_prepayment: data.charge_penalty_on_prepayment,
       appropriation_sequence_after_due: data.appropriation_sequence_after_due,
       appropriation_sequence_before_due: data.appropriation_sequence_before_due,
+      override_limit_restrictions: data.override_limit_restrictions,
+      override_tenor_calculation: data.override_tenor_calculation,
     };
   };
 

@@ -1,6 +1,64 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Disbursement } from '@/types/invoiceUpload';
 
+/**
+ * Validate if disbursement would cause negative limits
+ */
+const validateDisbursementLimits = async (
+  programId: string,
+  disbursementAmount: number,
+  buyerId: string,
+  sellerId: string
+): Promise<{
+  canDisburse: boolean;
+  breachedLimits: string[];
+}> => {
+  const breachedLimits: string[] = [];
+
+  // Fetch program configuration
+  const { data: program } = await supabase
+    .from('scf_program_configurations')
+    .select('available_limit, anchor_available_limit, anchor_party, counter_parties')
+    .eq('program_id', programId)
+    .single();
+
+  if (!program) {
+    return { canDisburse: false, breachedLimits: ['Program not found'] };
+  }
+
+  // Check Program Available Limit
+  const programAvailable = Number(program.available_limit || 0);
+  if (programAvailable - disbursementAmount < 0) {
+    breachedLimits.push(`Program limit (Available: ${programAvailable}, Required: ${disbursementAmount})`);
+  }
+
+  // Check Anchor Available Limit
+  const anchorAvailable = Number(program.anchor_available_limit || 0);
+  if (anchorAvailable - disbursementAmount < 0) {
+    breachedLimits.push(`Anchor limit (Available: ${anchorAvailable}, Required: ${disbursementAmount})`);
+  }
+
+  // Check Counter Party Available Limit
+  const counterParties = (program.counter_parties as any[]) || [];
+  const anchorParty = (program.anchor_party || '').toUpperCase();
+  
+  // Determine which party is the counter party
+  const counterPartyId = anchorParty.includes('BUYER') ? sellerId : buyerId;
+  
+  const counterParty = counterParties.find(cp => cp.counter_party_id === counterPartyId);
+  if (counterParty) {
+    const cpAvailable = Number(counterParty.available_limit_amount || 0);
+    if (cpAvailable - disbursementAmount < 0) {
+      breachedLimits.push(`Counter Party limit for ${counterParty.counter_party_name} (Available: ${cpAvailable}, Required: ${disbursementAmount})`);
+    }
+  }
+
+  return {
+    canDisburse: breachedLimits.length === 0,
+    breachedLimits
+  };
+};
+
 export const processDisbursement = async (
   invoiceId: string,
   programId: string,
@@ -15,6 +73,62 @@ export const processDisbursement = async (
   try {
     // Calculate disbursed amount
     const disbursedAmount = (totalAmount * financePercentage) / 100;
+    
+    // Get invoice details for limit validation
+    const { data: invoiceData } = await supabase
+      .from('scf_invoices')
+      .select('seller_id, buyer_id')
+      .eq('id', invoiceId)
+      .single();
+
+    if (!invoiceData) {
+      return { status: 'failed', error: 'Invoice not found' };
+    }
+
+    // Validate limits before disbursement
+    const limitCheck = await validateDisbursementLimits(
+      programId,
+      disbursedAmount,
+      invoiceData.buyer_id,
+      invoiceData.seller_id
+    );
+
+    if (!limitCheck.canDisburse) {
+      // Create disbursement record with not_eligible status
+      const loanReference = `LOAN-${programId}-${Date.now()}`;
+      const rejectionReason = `Limit breach: ${limitCheck.breachedLimits.join('; ')}`;
+      
+      const { data: disbursement, error: insertError } = await supabase
+        .from('invoice_disbursements')
+        .insert({
+          scf_invoice_id: invoiceId,
+          program_id: programId,
+          loan_reference: loanReference,
+          disbursed_amount: disbursedAmount,
+          finance_percentage: financePercentage,
+          disbursement_status: 'not_eligible',
+          rejection_reason: rejectionReason
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Update invoice status to pending_finance
+      await supabase
+        .from('scf_invoices')
+        .update({ status: 'pending_finance' })
+        .eq('id', invoiceId);
+
+      return {
+        status: 'not_eligible',
+        disbursement: {
+          ...disbursement,
+          disbursement_status: 'not_eligible' as const
+        },
+        error: rejectionReason
+      };
+    }
     
     // Generate loan reference
     const loanReference = `LOAN-${programId}-${Date.now()}`;
@@ -49,6 +163,12 @@ export const processDisbursement = async (
       .eq('id', disbursement.id);
 
     if (updateError) throw updateError;
+    
+    // Update invoice status to financed
+    await supabase
+      .from('scf_invoices')
+      .update({ status: 'financed' })
+      .eq('id', invoiceId);
 
     // Update program available limit
     const { data: program } = await supabase

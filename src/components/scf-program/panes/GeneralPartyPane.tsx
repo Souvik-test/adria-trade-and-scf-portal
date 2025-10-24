@@ -300,6 +300,61 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
         </div>
       </Card>
 
+      {/* Override Criteria */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Override Criteria for Invoice Creation/Upload</h3>
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="override_limit_restrictions"
+            render={({ field }) => (
+              <FormItem className="flex items-start space-x-3 space-y-0">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isReadOnly}
+                    className="mt-1"
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Override Limit Restrictions</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Allow invoice creation/upload even when Program, Anchor, or Counter Party limits are exceeded. 
+                    Note: Disbursements will still be blocked if available limits are negative.
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="override_tenor_calculation"
+            render={({ field }) => (
+              <FormItem className="flex items-start space-x-3 space-y-0">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isReadOnly}
+                    className="mt-1"
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Override Tenor Calculation</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Allow invoice creation/upload even when invoice tenor (Due Date - Invoice Date) is outside the program's minimum and maximum tenor range.
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+      </Card>
+
       {/* Party Details */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Party Details</h3>

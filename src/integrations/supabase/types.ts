@@ -602,6 +602,7 @@ export type Database = {
           id: string
           loan_reference: string
           program_id: string
+          rejection_reason: string | null
           scf_invoice_id: string
         }
         Insert: {
@@ -614,6 +615,7 @@ export type Database = {
           id?: string
           loan_reference: string
           program_id: string
+          rejection_reason?: string | null
           scf_invoice_id: string
         }
         Update: {
@@ -626,6 +628,7 @@ export type Database = {
           id?: string
           loan_reference?: string
           program_id?: string
+          rejection_reason?: string | null
           scf_invoice_id?: string
         }
         Relationships: [
@@ -2017,6 +2020,8 @@ export type Database = {
           min_tenor_unit: string | null
           min_tenor_years: number | null
           multiple_disbursement: boolean | null
+          override_limit_restrictions: boolean | null
+          override_tenor_calculation: boolean | null
           part_payment_allowed: boolean | null
           pre_payment_allowed: boolean | null
           product_code: string
@@ -2089,6 +2094,8 @@ export type Database = {
           min_tenor_unit?: string | null
           min_tenor_years?: number | null
           multiple_disbursement?: boolean | null
+          override_limit_restrictions?: boolean | null
+          override_tenor_calculation?: boolean | null
           part_payment_allowed?: boolean | null
           pre_payment_allowed?: boolean | null
           product_code: string
@@ -2161,6 +2168,8 @@ export type Database = {
           min_tenor_unit?: string | null
           min_tenor_years?: number | null
           multiple_disbursement?: boolean | null
+          override_limit_restrictions?: boolean | null
+          override_tenor_calculation?: boolean | null
           part_payment_allowed?: boolean | null
           pre_payment_allowed?: boolean | null
           product_code?: string

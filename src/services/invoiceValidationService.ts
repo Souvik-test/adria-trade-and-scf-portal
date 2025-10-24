@@ -8,7 +8,7 @@ export const validateAgainstProgram = async (
     // 1. Fetch program configuration BY PROGRAM_ID (not name)
     const { data: program, error: programError } = await supabase
       .from('scf_program_configurations')
-      .select('*')
+      .select('*, override_limit_restrictions, override_tenor_calculation')
       .eq('program_id', invoiceData.program_id)
       .eq('status', 'active')
       .maybeSingle();
@@ -68,11 +68,14 @@ export const validateAgainstProgram = async (
     const minTenor = Number(program.min_tenor_total_days || program.min_tenor || 0);
     const maxTenor = Number(program.max_tenor_total_days || program.max_tenor || 999999);
 
-    if (tenorDays < minTenor || tenorDays > maxTenor) {
-      return {
-        valid: false,
-        reason: `Tenor Out of Range - Invoice tenor is ${tenorDays} days (Invoice Date: ${invoiceDate.toLocaleDateString('en-GB')}, Due Date: ${dueDate.toLocaleDateString('en-GB')}), but program "${program.program_name}" requires ${minTenor}-${maxTenor} days`
-      };
+    // Check override flag for tenor validation
+    if (!program.override_tenor_calculation) {
+      if (tenorDays < minTenor || tenorDays > maxTenor) {
+        return {
+          valid: false,
+          reason: `Tenor Out of Range - Invoice tenor is ${tenorDays} days (Invoice Date: ${invoiceDate.toLocaleDateString('en-GB')}, Due Date: ${dueDate.toLocaleDateString('en-GB')}), but program "${program.program_name}" requires ${minTenor}-${maxTenor} days`
+        };
+      }
     }
 
     // 4. Anchor-based Party Validation
@@ -143,41 +146,43 @@ export const validateAgainstProgram = async (
       }
     }
 
-    // 5. Check program limit
-    const { data: totalInvoices } = await supabase
-      .from('scf_invoices')
-      .select('total_amount')
-      .eq('program_id', program.program_id);
+    // 5. Check program limit (skip if override enabled)
+    if (!program.override_limit_restrictions) {
+      const { data: totalInvoices } = await supabase
+        .from('scf_invoices')
+        .select('total_amount')
+        .eq('program_id', program.program_id);
 
-    const usedLimit = totalInvoices?.reduce(
-      (sum, inv) => sum + (Number(inv.total_amount) || 0), 
-      0
-    ) || 0;
+      const usedLimit = totalInvoices?.reduce(
+        (sum, inv) => sum + (Number(inv.total_amount) || 0), 
+        0
+      ) || 0;
 
-    if (usedLimit + invoiceData.total_amount > Number(program.program_limit)) {
-      return { 
-        valid: false, 
-        reason: `Limit Breach - Program limit exceeded (Used: ${usedLimit}, Requested: ${invoiceData.total_amount}, Limit: ${program.program_limit})` 
-      };
-    }
+      if (usedLimit + invoiceData.total_amount > Number(program.program_limit)) {
+        return { 
+          valid: false, 
+          reason: `Limit Breach - Program limit exceeded (Used: ${usedLimit}, Requested: ${invoiceData.total_amount}, Limit: ${program.program_limit})` 
+        };
+      }
 
-    // 6. Check anchor limit (buyer limit)
-    const { data: anchorInvoices } = await supabase
-      .from('scf_invoices')
-      .select('total_amount')
-      .eq('program_id', program.program_id)
-      .eq('buyer_name', invoiceData.buyer_name);
+      // 6. Check anchor limit (buyer limit)
+      const { data: anchorInvoices } = await supabase
+        .from('scf_invoices')
+        .select('total_amount')
+        .eq('program_id', program.program_id)
+        .eq('buyer_name', invoiceData.buyer_name);
 
-    const anchorUsedLimit = anchorInvoices?.reduce(
-      (sum, inv) => sum + (Number(inv.total_amount) || 0), 
-      0
-    ) || 0;
+      const anchorUsedLimit = anchorInvoices?.reduce(
+        (sum, inv) => sum + (Number(inv.total_amount) || 0), 
+        0
+      ) || 0;
 
-    if (anchorUsedLimit + invoiceData.total_amount > Number(program.anchor_limit || 0)) {
-      return { 
-        valid: false, 
-        reason: `Limit Breach - Anchor/Buyer limit exceeded (Used: ${anchorUsedLimit}, Requested: ${invoiceData.total_amount}, Limit: ${program.anchor_limit})` 
-      };
+      if (anchorUsedLimit + invoiceData.total_amount > Number(program.anchor_limit || 0)) {
+        return { 
+          valid: false, 
+          reason: `Limit Breach - Anchor/Buyer limit exceeded (Used: ${anchorUsedLimit}, Requested: ${invoiceData.total_amount}, Limit: ${program.anchor_limit})` 
+        };
+      }
     }
 
     // 7. All validations passed
