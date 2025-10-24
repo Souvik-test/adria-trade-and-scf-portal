@@ -37,26 +37,23 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
   }, []);
 
   const { data: programs } = useQuery({
-    queryKey: ['finance-programs', userId, anchorType],
+    queryKey: ['finance-programs', anchorType],
     queryFn: async () => {
-      if (!userId) return [];
       const { data } = await supabase
         .from('scf_program_configurations')
         .select('*')
-        .eq('user_id', userId)
         .eq('status', 'active');
       
       // Filter by anchor type
       return (data || []).filter((p: any) => {
-        const anchorRole = p.anchor_party_role?.toUpperCase().replace(/\s+/g, '').replace(/\//g, '') || '';
+        const anchorRole = p.anchor_party?.toUpperCase().replace(/\s+/g, '').replace(/\//g, '') || '';
         if (anchorType === 'seller') {
           return anchorRole.includes('SELLER') || anchorRole.includes('SUPPLIER');
         } else {
           return anchorRole.includes('BUYER');
         }
       });
-    },
-    enabled: !!userId
+    }
   });
 
   const handleProgramSelect = (programId: string) => {

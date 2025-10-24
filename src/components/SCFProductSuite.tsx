@@ -24,11 +24,10 @@ const SCFProductSuite: React.FC<SCFProductSuiteProps> = ({ onBack }) => {
   const { data: customProducts } = useQuery({
     queryKey: ['custom-products'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      const { data: customUser } = await supabase.from('custom_users').select('user_id').eq('id', user.id).single();
-      if (!customUser) return [];
-      const { data } = await supabase.from('scf_product_definitions').select('*').eq('user_id', customUser.user_id).eq('is_active', true);
+      const { data } = await supabase
+        .from('scf_product_definitions')
+        .select('*')
+        .eq('is_active', true);
       return data || [];
     }
   });
