@@ -1,0 +1,263 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface EligibleInvoice {
+  id: string;
+  invoice_number: string;
+  buyer_id: string;
+  buyer_name: string;
+  seller_id: string;
+  seller_name: string;
+  invoice_date: string;
+  due_date: string;
+  total_amount: number;
+  currency: string;
+  status: string;
+}
+
+export interface FinanceDisbursementData {
+  programId: string;
+  programName: string;
+  productCode: string;
+  productName: string;
+  selectedInvoices: Array<{
+    invoice_id: string;
+    invoice_number: string;
+    amount: number;
+    currency: string;
+    due_date: string;
+  }>;
+  invoiceCurrency: string;
+  financeDate: Date;
+  financeCurrency: string;
+  exchangeRate?: number;
+  financeAmount: number;
+  financeTenorDays: number;
+  financeDueDate: Date;
+  interestRateType: 'manual' | 'reference_rate';
+  interestRate: number;
+  referenceRateCode?: string;
+  referenceRateMargin?: number;
+  interestAmount: number;
+  totalRepaymentAmount: number;
+  autoRepaymentEnabled: boolean;
+  repaymentMode: 'auto' | 'manual';
+  repaymentParty: string;
+  repaymentAccount?: string;
+  accountingEntries: Array<{
+    entryType: 'Dr' | 'Cr';
+    account: string;
+    glCode: string;
+    amount: number;
+  }>;
+  accountingReference: string;
+}
+
+/**
+ * Fetch eligible invoices for finance disbursement
+ */
+export const fetchEligibleInvoices = async (
+  programId: string,
+  userId: string
+): Promise<EligibleInvoice[]> => {
+  const { data, error } = await supabase
+    .from('scf_invoices')
+    .select('*')
+    .eq('program_id', programId)
+    .eq('user_id', userId)
+    .in('status', ['submitted', 'lodged'])
+    .gte('due_date', new Date().toISOString())
+    .order('due_date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching eligible invoices:', error);
+    throw new Error('Failed to fetch eligible invoices');
+  }
+
+  return (data || []).map(invoice => ({
+    id: invoice.id,
+    invoice_number: invoice.invoice_number,
+    buyer_id: invoice.buyer_id,
+    buyer_name: invoice.buyer_name,
+    seller_id: invoice.seller_id,
+    seller_name: invoice.seller_name,
+    invoice_date: invoice.invoice_date,
+    due_date: invoice.due_date,
+    total_amount: Number(invoice.total_amount),
+    currency: invoice.currency || 'USD',
+    status: invoice.status || 'draft'
+  }));
+};
+
+/**
+ * Calculate finance tenor based on selected invoices and program limits
+ */
+export const calculateFinanceTenor = (
+  financeDate: Date,
+  selectedInvoices: Array<{ due_date: string }>,
+  programMinTenor: number,
+  programMaxTenor: number
+): { tenorDays: number; latestDueDate: Date; isValid: boolean; error?: string } => {
+  // Find invoice with farthest due date
+  const latestDueDate = new Date(
+    Math.max(...selectedInvoices.map(inv => new Date(inv.due_date).getTime()))
+  );
+
+  const tenorDays = Math.ceil(
+    (latestDueDate.getTime() - financeDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  // Validation
+  if (tenorDays < programMinTenor) {
+    return {
+      tenorDays,
+      latestDueDate,
+      isValid: false,
+      error: `Tenor (${tenorDays} days) is below program minimum (${programMinTenor} days)`
+    };
+  }
+
+  if (tenorDays > programMaxTenor) {
+    return {
+      tenorDays,
+      latestDueDate,
+      isValid: false,
+      error: `Tenor (${tenorDays} days) exceeds program maximum (${programMaxTenor} days)`
+    };
+  }
+
+  return { tenorDays, latestDueDate, isValid: true };
+};
+
+/**
+ * Convert currency amounts using exchange rate
+ */
+export const convertCurrency = (
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  exchangeRate?: number
+): { convertedAmount: number; exchangeRate: number } => {
+  if (fromCurrency === toCurrency) {
+    return { convertedAmount: amount, exchangeRate: 1 };
+  }
+
+  if (!exchangeRate) {
+    throw new Error('Exchange rate is required for currency conversion');
+  }
+
+  return {
+    convertedAmount: amount * exchangeRate,
+    exchangeRate
+  };
+};
+
+/**
+ * Calculate finance due date with holiday adjustments
+ */
+export const calculateFinanceDueDate = (
+  financeDate: Date,
+  tenorDays: number,
+  holidayCalculationMethod: 'Next Day' | 'Previous Day' | 'No Change' = 'No Change'
+): Date => {
+  const dueDate = new Date(financeDate);
+  dueDate.setDate(dueDate.getDate() + tenorDays);
+
+  // TODO: Implement holiday calendar check
+  // For now, just return the calculated date
+  return dueDate;
+};
+
+/**
+ * Calculate interest amount
+ */
+export const calculateInterest = (
+  financeAmount: number,
+  interestRate: number,
+  tenorDays: number
+): number => {
+  return (financeAmount * interestRate * tenorDays) / (365 * 100);
+};
+
+/**
+ * Create finance disbursement record
+ */
+export const createFinanceDisbursement = async (
+  data: FinanceDisbursementData,
+  userId: string,
+  corporateId: string
+): Promise<{ success: boolean; disbursementReference?: string; error?: string }> => {
+  try {
+    // Generate disbursement reference
+    const disbursementRef = `FD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const { error } = await supabase
+      .from('finance_disbursements')
+      .insert({
+        user_id: userId,
+        corporate_id: corporateId,
+        program_id: data.programId,
+        program_name: data.programName,
+        product_code: data.productCode,
+        product_name: data.productName,
+        selected_invoices: data.selectedInvoices,
+        invoice_currency: data.invoiceCurrency,
+        finance_date: data.financeDate.toISOString().split('T')[0],
+        finance_currency: data.financeCurrency,
+        exchange_rate: data.exchangeRate,
+        finance_amount: data.financeAmount,
+        finance_tenor_days: data.financeTenorDays,
+        finance_due_date: data.financeDueDate.toISOString().split('T')[0],
+        interest_rate_type: data.interestRateType,
+        interest_rate: data.interestRate,
+        reference_rate_code: data.referenceRateCode,
+        reference_rate_margin: data.referenceRateMargin,
+        interest_amount: data.interestAmount,
+        total_repayment_amount: data.totalRepaymentAmount,
+        auto_repayment_enabled: data.autoRepaymentEnabled,
+        repayment_mode: data.repaymentMode,
+        repayment_party: data.repaymentParty,
+        repayment_account: data.repaymentAccount,
+        accounting_entries: data.accountingEntries,
+        accounting_reference: data.accountingReference,
+        disbursement_reference: disbursementRef,
+        status: 'draft'
+      });
+
+    if (error) {
+      console.error('Error creating finance disbursement:', error);
+      return { success: false, error: 'Failed to create finance disbursement' };
+    }
+
+    return { success: true, disbursementReference: disbursementRef };
+  } catch (error) {
+    console.error('Error creating finance disbursement:', error);
+    return { success: false, error: 'Failed to create finance disbursement' };
+  }
+};
+
+/**
+ * Update finance disbursement status
+ */
+export const updateDisbursementStatus = async (
+  disbursementId: string,
+  status: 'draft' | 'pending_approval' | 'approved' | 'disbursed' | 'rejected',
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase
+      .from('finance_disbursements')
+      .update({ status })
+      .eq('id', disbursementId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error updating disbursement status:', error);
+      return { success: false, error: 'Failed to update status' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating disbursement status:', error);
+    return { success: false, error: 'Failed to update status' };
+  }
+};

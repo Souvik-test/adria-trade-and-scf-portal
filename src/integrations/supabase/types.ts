@@ -416,6 +416,108 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_disbursements: {
+        Row: {
+          accounting_entries: Json
+          accounting_reference: string
+          auto_repayment_enabled: boolean
+          corporate_id: string
+          created_at: string
+          disbursement_reference: string | null
+          exchange_rate: number | null
+          finance_amount: number
+          finance_currency: string
+          finance_date: string
+          finance_due_date: string
+          finance_tenor_days: number
+          id: string
+          interest_amount: number
+          interest_rate: number
+          interest_rate_type: string
+          invoice_currency: string
+          product_code: string
+          product_name: string
+          program_id: string
+          program_name: string
+          reference_rate_code: string | null
+          reference_rate_margin: number | null
+          repayment_account: string | null
+          repayment_mode: string
+          repayment_party: string
+          selected_invoices: Json
+          status: string
+          total_repayment_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accounting_entries?: Json
+          accounting_reference: string
+          auto_repayment_enabled?: boolean
+          corporate_id: string
+          created_at?: string
+          disbursement_reference?: string | null
+          exchange_rate?: number | null
+          finance_amount: number
+          finance_currency?: string
+          finance_date?: string
+          finance_due_date: string
+          finance_tenor_days: number
+          id?: string
+          interest_amount: number
+          interest_rate: number
+          interest_rate_type: string
+          invoice_currency?: string
+          product_code: string
+          product_name: string
+          program_id: string
+          program_name: string
+          reference_rate_code?: string | null
+          reference_rate_margin?: number | null
+          repayment_account?: string | null
+          repayment_mode: string
+          repayment_party: string
+          selected_invoices?: Json
+          status?: string
+          total_repayment_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accounting_entries?: Json
+          accounting_reference?: string
+          auto_repayment_enabled?: boolean
+          corporate_id?: string
+          created_at?: string
+          disbursement_reference?: string | null
+          exchange_rate?: number | null
+          finance_amount?: number
+          finance_currency?: string
+          finance_date?: string
+          finance_due_date?: string
+          finance_tenor_days?: number
+          id?: string
+          interest_amount?: number
+          interest_rate?: number
+          interest_rate_type?: string
+          invoice_currency?: string
+          product_code?: string
+          product_name?: string
+          program_id?: string
+          program_name?: string
+          reference_rate_code?: string | null
+          reference_rate_margin?: number | null
+          repayment_account?: string | null
+          repayment_mode?: string
+          repayment_party?: string
+          selected_invoices?: Json
+          status?: string
+          total_repayment_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       import_lc_requests: {
         Row: {
           additional_amount: number | null
