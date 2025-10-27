@@ -19,6 +19,7 @@ import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
 import { saveSCFInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   validateInvoiceManual, 
   fetchProgramConfiguration,
@@ -50,6 +51,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
   const { toast } = useToast();
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session?.user);
+    };
+    checkAuth();
+  }, []);
 
   // Initialize form when component mounts
   useEffect(() => {
@@ -119,6 +130,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
   };
 
   const handleSubmit = async () => {
+    // Check authentication first
+    if (!isAuthenticated) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to submit invoices.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!validateCurrentStep()) {
       return;
     }
@@ -155,6 +176,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
       onClose();
     } catch (error) {
       console.error('Error submitting invoice:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       const errorMessage = error instanceof Error ? error.message : 'There was an error saving your invoice. Please try again.';
       toast({
         title: 'Submission Failed',
