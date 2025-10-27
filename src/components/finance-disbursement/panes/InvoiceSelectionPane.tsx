@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { fetchEligibleInvoices, type EligibleInvoice } from '@/services/financeDisbursementService';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
@@ -18,31 +17,13 @@ const InvoiceSelectionPane: React.FC<InvoiceSelectionPaneProps> = ({
   formData,
   onFieldChange
 }) => {
-  const [userId, setUserId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('custom_users')
-          .select('user_id')
-          .eq('id', user.id)
-          .single();
-        if (data) {
-          setUserId(data.user_id);
-        }
-      }
-    };
-    fetchUserId();
-  }, []);
-
   const { data: invoices, isLoading } = useQuery({
-    queryKey: ['eligible-invoices', formData.programId, userId],
-    queryFn: () => fetchEligibleInvoices(formData.programId, userId),
-    enabled: !!formData.programId && !!userId
+    queryKey: ['eligible-invoices', formData.programId],
+    queryFn: () => fetchEligibleInvoices(formData.programId),
+    enabled: !!formData.programId
   });
 
   const filteredInvoices = invoices?.filter(invoice =>

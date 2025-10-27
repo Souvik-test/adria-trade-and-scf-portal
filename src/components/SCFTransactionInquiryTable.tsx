@@ -7,6 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { SCFTransactionRow, ColumnConfig } from '@/types/scfTransaction';
@@ -41,7 +48,7 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
   
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showDisbursementModal, setShowDisbursementModal] = useState(false);
@@ -365,12 +372,43 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, sortedTransactions.length)} of {sortedTransactions.length}{' '}
-            transactions
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Records per page:</span>
+              <Select 
+                value={String(pageSize)} 
+                onValueChange={(value) => {
+                  setPageSize(Number(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="40">40</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Showing {(currentPage - 1) * pageSize + 1} to{' '}
+              {Math.min(currentPage * pageSize, sortedTransactions.length)} of {sortedTransactions.length}{' '}
+              transactions
+            </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              « First
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -402,6 +440,14 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
               disabled={currentPage === totalPages}
             >
               Next
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              Last »
             </Button>
           </div>
         </div>

@@ -54,6 +54,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     productName: '',
     productDescription: '',
     anchorRole: '',
+    productCentric: '',
     counterPartyRole: '',
     borrowerRole: '',
     underlyingInstrument: '',
@@ -67,6 +68,18 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   const counterPartyRoles = ['Buyer', 'Supplier', 'Vendor', 'Dealer'];
   const borrowerRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor', 'Both'];
   const underlyingInstruments = ['Invoice', 'Purchase Order', 'Bill of Lading', 'Warehouse Receipt'];
+
+  // Auto-populate Product Centric based on Anchor Role
+  useEffect(() => {
+    if (formData.anchorRole) {
+      const normalized = formData.anchorRole.toUpperCase();
+      if (normalized.includes('SELLER') || normalized.includes('SUPPLIER')) {
+        setFormData(prev => ({ ...prev, productCentric: 'Seller Centric' }));
+      } else if (normalized.includes('BUYER')) {
+        setFormData(prev => ({ ...prev, productCentric: 'Buyer Centric' }));
+      }
+    }
+  }, [formData.anchorRole]);
 
   // Fetch products on mount
   useEffect(() => {
@@ -118,6 +131,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
         productName: '',
         productDescription: '',
         anchorRole: '',
+        productCentric: '',
         counterPartyRole: '',
         borrowerRole: '',
         underlyingInstrument: '',
@@ -148,6 +162,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       productName: product.productName,
       productDescription: product.productDescription,
       anchorRole: product.anchorRole,
+      productCentric: product.productCentric,
       counterPartyRole: product.counterPartyRole,
       borrowerRole: product.borrowerRole,
       underlyingInstrument: product.underlyingInstrument,
@@ -180,6 +195,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
         productName: '',
         productDescription: '',
         anchorRole: '',
+        productCentric: '',
         counterPartyRole: '',
         borrowerRole: '',
         underlyingInstrument: '',
@@ -229,6 +245,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       productName: '',
       productDescription: '',
       anchorRole: '',
+      productCentric: '',
       counterPartyRole: '',
       borrowerRole: '',
       underlyingInstrument: '',
@@ -361,6 +378,18 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="productCentric">Product Centric</Label>
+                  <Input
+                    id="productCentric"
+                    value={formData.productCentric || ''}
+                    readOnly
+                    disabled
+                    className="bg-muted"
+                    placeholder="Auto-populated based on Anchor Role"
+                  />
                 </div>
 
                 <div className="space-y-2">

@@ -56,14 +56,13 @@ export interface FinanceDisbursementData {
  * Fetch eligible invoices for finance disbursement
  */
 export const fetchEligibleInvoices = async (
-  programId: string,
-  userId: string
+  programId: string
 ): Promise<EligibleInvoice[]> => {
+  // Fetch eligible invoices
   const { data, error } = await supabase
     .from('scf_invoices')
     .select('*')
     .eq('program_id', programId)
-    .eq('user_id', userId)
     .in('status', ['submitted', 'lodged'])
     .gte('due_date', new Date().toISOString())
     .order('due_date', { ascending: true });
@@ -73,19 +72,40 @@ export const fetchEligibleInvoices = async (
     throw new Error('Failed to fetch eligible invoices');
   }
 
-  return (data || []).map(invoice => ({
-    id: invoice.id,
-    invoice_number: invoice.invoice_number,
-    buyer_id: invoice.buyer_id,
-    buyer_name: invoice.buyer_name,
-    seller_id: invoice.seller_id,
-    seller_name: invoice.seller_name,
-    invoice_date: invoice.invoice_date,
-    due_date: invoice.due_date,
-    total_amount: Number(invoice.total_amount),
-    currency: invoice.currency || 'USD',
-    status: invoice.status || 'draft'
-  }));
+  // Get invoice IDs
+  const invoiceIds = (data || []).map(inv => inv.id);
+
+  if (invoiceIds.length === 0) {
+    return [];
+  }
+
+  // Check for existing disbursements
+  const { data: existingDisbursements } = await supabase
+    .from('invoice_disbursements')
+    .select('scf_invoice_id')
+    .in('scf_invoice_id', invoiceIds)
+    .in('disbursement_status', ['pending', 'completed']);
+
+  const financedInvoiceIds = new Set(
+    existingDisbursements?.map(d => d.scf_invoice_id) || []
+  );
+
+  // Filter out already financed invoices
+  return (data || [])
+    .filter(invoice => !financedInvoiceIds.has(invoice.id))
+    .map(invoice => ({
+      id: invoice.id,
+      invoice_number: invoice.invoice_number,
+      buyer_id: invoice.buyer_id,
+      buyer_name: invoice.buyer_name,
+      seller_id: invoice.seller_id,
+      seller_name: invoice.seller_name,
+      invoice_date: invoice.invoice_date,
+      due_date: invoice.due_date,
+      total_amount: Number(invoice.total_amount),
+      currency: invoice.currency || 'USD',
+      status: invoice.status || 'draft'
+    }));
 };
 
 /**

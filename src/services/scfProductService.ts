@@ -23,6 +23,7 @@ export interface ProductFormData {
   productName: string;
   productDescription?: string;
   anchorRole: string;
+  productCentric?: string;
   counterPartyRole: string;
   borrowerRole?: string;
   underlyingInstrument: string;
@@ -39,6 +40,7 @@ const toDbFormat = (formData: ProductFormData, userId: string) => ({
   product_name: formData.productName,
   product_description: formData.productDescription || null,
   anchor_role: formData.anchorRole,
+  product_centric: formData.productCentric || null,
   counter_party_role: formData.counterPartyRole,
   borrower_role: formData.borrowerRole || null,
   underlying_instrument: formData.underlyingInstrument,
@@ -55,6 +57,7 @@ const toUiFormat = (dbProduct: any): ProductFormData & { id: string } => ({
   productName: dbProduct.product_name,
   productDescription: dbProduct.product_description,
   anchorRole: dbProduct.anchor_role,
+  productCentric: dbProduct.product_centric,
   counterPartyRole: dbProduct.counter_party_role,
   borrowerRole: dbProduct.borrower_role,
   underlyingInstrument: dbProduct.underlying_instrument,

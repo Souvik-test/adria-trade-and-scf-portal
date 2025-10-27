@@ -61,6 +61,8 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
     if (program) {
       onFieldChange('programId', program.program_id);
       onFieldChange('programName', program.program_name);
+      onFieldChange('productCode', program.product_code || '');
+      onFieldChange('productName', program.product_name || '');
       onFieldChange('financeCurrency', program.program_currency || 'USD');
       onFieldChange('autoRepaymentEnabled', program.auto_repayment || false);
       onFieldChange('repaymentMode', program.repayment_mode || 'auto');
