@@ -27,27 +27,9 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   productName,
   anchorType = 'seller'
 }) => {
-  const [customUser, setCustomUser] = useState<{ user_id: string; corporate_id: string } | null>(null);
+  // Demo environment - use hardcoded credentials (no authentication required)
+  const demoUser = { user_id: 'DEMO_USER_001', corporate_id: 'DEMO_CORP_001' };
   const [currentPane, setCurrentPane] = useState(0);
-
-  useEffect(() => {
-    const fetchCustomUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('custom_users')
-          .select('user_id, corporate_id')
-          .eq('id', user.id)
-          .single();
-        if (data) {
-          setCustomUser(data);
-        }
-      }
-    };
-    if (isOpen) {
-      fetchCustomUser();
-    }
-  }, [isOpen]);
 
   const [formData, setFormData] = useState<any>({
     // Program & Product
@@ -168,15 +150,10 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   };
 
   const handleSubmit = async (action: 'draft' | 'approval' | 'disburse') => {
-    if (!customUser) {
-      toast.error('User not authenticated');
-      return;
-    }
-
     const result = await createFinanceDisbursement(
       formData,
-      customUser.user_id,
-      customUser.corporate_id
+      demoUser.user_id,
+      demoUser.corporate_id
     );
 
     if (result.success) {
