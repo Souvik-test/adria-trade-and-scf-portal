@@ -72,7 +72,7 @@ serve(async (req) => {
     // Defensive clean-up and type fixes
     insertData.lc_amount = Number(insertData.lc_amount ?? 0);
     insertData.required_documents = Array.isArray(insertData.required_documents)
-      ? insertData.required_documents.filter((doc) => typeof doc === "string")
+      ? insertData.required_documents.filter((doc: any) => typeof doc === "string")
       : [];
     insertData.issue_date = insertData.issue_date || null;
     insertData.expiry_date = insertData.expiry_date || null;
@@ -153,7 +153,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ data: lcResult, debug: debugLogs }), { headers: corsHeaders });
   } catch (error) {
     console.error("DEBUG: Error in function:", error);
-    return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: corsHeaders,
     });
