@@ -27,8 +27,8 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   productName,
   anchorType = 'seller'
 }) => {
-  // Demo environment - use hardcoded credentials (no authentication required)
-  const demoUser = { user_id: 'DEMO_USER_001', corporate_id: 'DEMO_CORP_001' };
+  // Demo environment - use actual user credentials
+  const demoUser = { user_id: 'souvik.chakraborty@adria-bt.com', corporate_id: 'DEMO_CORP_001' };
   const [currentPane, setCurrentPane] = useState(0);
 
   const [formData, setFormData] = useState<any>({
