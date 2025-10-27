@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { calculateFinanceTenor, calculateInterest, convertCurrency } from '@/services/financeDisbursementService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FinanceDetailsPaneProps {
   formData: any;
@@ -18,42 +19,72 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
 }) => {
   const showExchangeRate = formData.invoiceCurrency !== formData.financeCurrency;
 
-  // Auto-calculate finance tenor and due date
+  // Auto-calculate finance tenor and due date WITH GRACE PERIOD
   useEffect(() => {
     if (formData.selectedInvoices.length > 0 && formData.financeDate) {
-      const tenorResult = calculateFinanceTenor(
-        new Date(formData.financeDate),
-        formData.selectedInvoices,
-        30, // TODO: Get from program
-        180 // TODO: Get from program
+      // Find invoice with latest due date
+      const latestDueDate = new Date(
+        Math.max(...formData.selectedInvoices.map((inv: any) => new Date(inv.due_date).getTime()))
       );
       
-      onFieldChange('financeTenorDays', tenorResult.tenorDays);
+      // Calculate tenor from finance date to invoice due date
+      const financeDate = new Date(formData.financeDate);
+      const tenorDays = Math.ceil(
+        (latestDueDate.getTime() - financeDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
       
-      const dueDate = new Date(formData.financeDate);
-      dueDate.setDate(dueDate.getDate() + tenorResult.tenorDays);
+      onFieldChange('financeTenorDays', tenorDays);
+      
+      // Calculate finance due date = invoice due date + grace period + holiday treatment
+      const graceDays = formData.graceDays || 0;
+      const holidayTreatment = formData.holidayTreatment || 'No Change';
+      
+      const dueDate = new Date(latestDueDate);
+      dueDate.setDate(dueDate.getDate() + graceDays);
+      
+      // Apply holiday treatment (simplified - check weekends)
+      if (holidayTreatment !== 'No Change') {
+        const day = dueDate.getDay();
+        if (day === 0 || day === 6) { // Weekend
+          if (holidayTreatment === 'Next Business Day') {
+            while (dueDate.getDay() === 0 || dueDate.getDay() === 6) {
+              dueDate.setDate(dueDate.getDate() + 1);
+            }
+          } else if (holidayTreatment === 'Previous Business Day') {
+            while (dueDate.getDay() === 0 || dueDate.getDay() === 6) {
+              dueDate.setDate(dueDate.getDate() - 1);
+            }
+          }
+        }
+      }
+      
       onFieldChange('financeDueDate', dueDate);
     }
-  }, [formData.selectedInvoices, formData.financeDate]);
+  }, [formData.selectedInvoices, formData.financeDate, formData.graceDays, formData.holidayTreatment]);
 
-  // Auto-calculate finance amount with currency conversion
+  // Auto-calculate finance amount with currency conversion AND finance percentage
   useEffect(() => {
     if (formData.selectedInvoices.length > 0) {
       const totalInvoiceAmount = formData.selectedInvoices.reduce((sum: number, inv: any) => sum + inv.amount, 0);
       
+      // Apply finance percentage
+      const maxFinanceAmount = totalInvoiceAmount * ((formData.financePercentage || 100) / 100);
+      
       if (showExchangeRate && formData.exchangeRate) {
         const converted = convertCurrency(
-          totalInvoiceAmount,
+          maxFinanceAmount,
           formData.invoiceCurrency,
           formData.financeCurrency,
           formData.exchangeRate
         );
         onFieldChange('financeAmount', converted.convertedAmount);
+        onFieldChange('maxFinanceAmount', converted.convertedAmount);
       } else if (!showExchangeRate) {
-        onFieldChange('financeAmount', totalInvoiceAmount);
+        onFieldChange('financeAmount', maxFinanceAmount);
+        onFieldChange('maxFinanceAmount', maxFinanceAmount);
       }
     }
-  }, [formData.selectedInvoices, formData.exchangeRate, showExchangeRate]);
+  }, [formData.selectedInvoices, formData.exchangeRate, formData.financePercentage, showExchangeRate]);
 
   // Auto-calculate interest
   useEffect(() => {
@@ -136,8 +167,19 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               type="number"
               step="0.01"
               value={formData.financeAmount}
-              onChange={(e) => onFieldChange('financeAmount', parseFloat(e.target.value))}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                if (value > (formData.maxFinanceAmount || 0)) {
+                  toast.error(`Finance amount cannot exceed ${(formData.maxFinanceAmount || 0).toFixed(2)} (${formData.financePercentage}% of invoice amount)`);
+                  return;
+                }
+                onFieldChange('financeAmount', value);
+              }}
             />
+            <p className="text-xs text-muted-foreground">
+              Maximum allowed: {(formData.maxFinanceAmount || 0).toFixed(2)} {formData.financeCurrency} 
+              ({formData.financePercentage}% of invoice total)
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -151,8 +193,13 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
           <Input
             type="date"
             value={formData.financeDueDate instanceof Date ? formData.financeDueDate.toISOString().split('T')[0] : ''}
-            onChange={(e) => onFieldChange('financeDueDate', new Date(e.target.value))}
+            disabled
+            className="bg-muted"
           />
+          <p className="text-xs text-muted-foreground">
+            Calculated as: Invoice due date + {formData.graceDays} grace days
+            {formData.holidayTreatment !== 'No Change' && ` (Holiday treatment: ${formData.holidayTreatment})`}
+          </p>
         </div>
 
         <div className="border-t pt-4 space-y-4">

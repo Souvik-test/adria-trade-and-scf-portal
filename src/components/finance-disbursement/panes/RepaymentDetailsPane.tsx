@@ -27,18 +27,30 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
           </div>
           <Switch
             checked={formData.autoRepaymentEnabled}
-            onCheckedChange={(checked) => onFieldChange('autoRepaymentEnabled', checked)}
+            onCheckedChange={(checked) => {
+              onFieldChange('autoRepaymentEnabled', checked);
+              // If auto repayment is disabled, force repayment mode to manual
+              if (!checked) {
+                onFieldChange('repaymentMode', 'manual');
+              }
+            }}
           />
         </div>
 
         <div className="space-y-2">
           <Label>Repayment Mode *</Label>
-          <Select value={formData.repaymentMode} onValueChange={(value) => onFieldChange('repaymentMode', value)}>
+          <Select 
+            value={formData.repaymentMode} 
+            onValueChange={(value) => onFieldChange('repaymentMode', value)}
+            disabled={!formData.autoRepaymentEnabled}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="auto">Auto</SelectItem>
+              <SelectItem value="auto" disabled={!formData.autoRepaymentEnabled}>
+                Auto {!formData.autoRepaymentEnabled && "(Disabled - Enable Auto Repayment first)"}
+              </SelectItem>
               <SelectItem value="manual">Manual</SelectItem>
             </SelectContent>
           </Select>
@@ -46,16 +58,25 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
 
         <div className="space-y-2">
           <Label>Repayment Party *</Label>
-          <Select value={formData.repaymentParty} onValueChange={(value) => onFieldChange('repaymentParty', value)}>
+          <Select 
+            value={formData.repaymentParty || formData.repaymentBy} 
+            onValueChange={(value) => onFieldChange('repaymentParty', value)}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Select repayment party" />
+              <SelectValue placeholder={formData.repaymentBy ? `Default: ${formData.repaymentBy}` : "Select repayment party"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Buyer">Buyer</SelectItem>
               <SelectItem value="Seller">Seller</SelectItem>
+              <SelectItem value="Supplier">Supplier</SelectItem>
               <SelectItem value="Third Party">Third Party</SelectItem>
             </SelectContent>
           </Select>
+          {formData.repaymentBy && (
+            <p className="text-xs text-muted-foreground">
+              Program default: {formData.repaymentBy}
+            </p>
+          )}
         </div>
 
         {formData.repaymentMode === 'manual' && (

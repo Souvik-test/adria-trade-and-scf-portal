@@ -65,6 +65,7 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     financeCurrency: 'USD',
     exchangeRate: undefined,
     financeAmount: 0,
+    maxFinanceAmount: 0,
     financeTenorDays: 0,
     financeDueDate: new Date(),
     interestRateType: 'manual',
@@ -73,6 +74,14 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     referenceRateMargin: 0,
     interestAmount: 0,
     totalRepaymentAmount: 0,
+    
+    // Program Parameters
+    financePercentage: 100,
+    graceDays: 0,
+    holidayTreatment: 'No Change',
+    repaymentBy: '',
+    multipleDisbursement: false,
+    maxDisbursementsAllowed: 1,
     
     // Repayment Details
     autoRepaymentEnabled: false,
@@ -133,6 +142,7 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
       financeCurrency: 'USD',
       exchangeRate: undefined,
       financeAmount: 0,
+      maxFinanceAmount: 0,
       financeTenorDays: 0,
       financeDueDate: new Date(),
       interestRateType: 'manual',
@@ -141,6 +151,12 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
       referenceRateMargin: 0,
       interestAmount: 0,
       totalRepaymentAmount: 0,
+      financePercentage: 100,
+      graceDays: 0,
+      holidayTreatment: 'No Change',
+      repaymentBy: '',
+      multipleDisbursement: false,
+      maxDisbursementsAllowed: 1,
       autoRepaymentEnabled: false,
       repaymentMode: 'auto',
       repaymentParty: '',
@@ -187,19 +203,26 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
           <div className="flex items-center justify-between">
             {panes.map((pane, index) => (
               <div key={index} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index === currentPane
-                      ? 'bg-primary text-primary-foreground'
-                      : index < currentPane
-                      ? 'bg-primary/20 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {index + 1}
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
+                      index === currentPane
+                        ? 'bg-primary text-primary-foreground'
+                        : index < currentPane
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span className={`text-xs mt-1 text-center max-w-[100px] ${
+                    index === currentPane ? 'text-primary font-medium' : 'text-muted-foreground'
+                  }`}>
+                    {pane.title}
+                  </span>
                 </div>
                 {index < panes.length - 1 && (
-                  <div className={`w-12 h-0.5 ${index < currentPane ? 'bg-primary' : 'bg-muted'}`} />
+                  <div className={`w-8 h-0.5 mx-2 ${index < currentPane ? 'bg-primary' : 'bg-muted'}`} />
                 )}
               </div>
             ))}

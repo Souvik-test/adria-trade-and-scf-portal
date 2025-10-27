@@ -66,6 +66,15 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
       onFieldChange('financeCurrency', program.program_currency || 'USD');
       onFieldChange('autoRepaymentEnabled', program.auto_repayment || false);
       onFieldChange('repaymentMode', program.repayment_mode || 'auto');
+      onFieldChange('repaymentParty', program.repayment_by || '');
+      
+      // Pass program parameters for validation
+      onFieldChange('financePercentage', program.finance_percentage || 100);
+      onFieldChange('graceDays', program.grace_days || 0);
+      onFieldChange('holidayTreatment', program.holiday_treatment || 'No Change');
+      onFieldChange('repaymentBy', program.repayment_by || '');
+      onFieldChange('multipleDisbursement', program.multiple_disbursement || false);
+      onFieldChange('maxDisbursementsAllowed', program.max_disbursements_allowed || 1);
     }
   };
 

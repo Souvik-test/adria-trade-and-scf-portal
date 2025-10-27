@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useQuery } from '@tanstack/react-query';
 import { fetchEligibleInvoices, type EligibleInvoice } from '@/services/financeDisbursementService';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 
 interface InvoiceSelectionPaneProps {
@@ -133,7 +134,8 @@ const InvoiceSelectionPane: React.FC<InvoiceSelectionPaneProps> = ({
                     <TableHead>Seller</TableHead>
                     <TableHead>Invoice Date</TableHead>
                     <TableHead>Due Date</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Invoice Amount</TableHead>
+                    <TableHead className="text-right">Remaining Finance</TableHead>
                     <TableHead>Currency</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -146,12 +148,26 @@ const InvoiceSelectionPane: React.FC<InvoiceSelectionPaneProps> = ({
                           onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {invoice.invoice_number}
+                          {(invoice.disbursement_count || 0) > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              Partial ({invoice.disbursement_count}/{formData.maxDisbursementsAllowed})
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{invoice.buyer_name}</TableCell>
                       <TableCell>{invoice.seller_name}</TableCell>
                       <TableCell>{new Date(invoice.invoice_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">{invoice.total_amount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-medium text-primary">
+                        {invoice.remaining_finance_amount !== undefined 
+                          ? invoice.remaining_finance_amount.toFixed(2)
+                          : (invoice.total_amount * ((formData.financePercentage || 100) / 100)).toFixed(2)}
+                      </TableCell>
                       <TableCell>{invoice.currency}</TableCell>
                     </TableRow>
                   ))}

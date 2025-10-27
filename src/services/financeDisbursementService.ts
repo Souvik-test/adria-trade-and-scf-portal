@@ -12,6 +12,10 @@ export interface EligibleInvoice {
   total_amount: number;
   currency: string;
   status: string;
+  disbursed_amount?: number;
+  remaining_finance_amount?: number;
+  disbursement_count?: number;
+  is_fully_financed?: boolean;
 }
 
 export interface FinanceDisbursementData {
@@ -53,11 +57,22 @@ export interface FinanceDisbursementData {
 }
 
 /**
- * Fetch eligible invoices for finance disbursement
+ * Fetch eligible invoices for finance disbursement with multiple disbursement support
  */
 export const fetchEligibleInvoices = async (
   programId: string
 ): Promise<EligibleInvoice[]> => {
+  // Get program config for multiple disbursement check
+  const { data: programData } = await supabase
+    .from('scf_program_configurations')
+    .select('multiple_disbursement, max_disbursements_allowed, finance_percentage')
+    .eq('program_id', programId)
+    .maybeSingle();
+
+  const multipleDisbursementAllowed = programData?.multiple_disbursement || false;
+  const maxDisbursements = programData?.max_disbursements_allowed || 1;
+  const financePercentage = programData?.finance_percentage || 100;
+
   // Fetch eligible invoices
   const { data, error } = await supabase
     .from('scf_invoices')
@@ -72,40 +87,69 @@ export const fetchEligibleInvoices = async (
     throw new Error('Failed to fetch eligible invoices');
   }
 
-  // Get invoice IDs
   const invoiceIds = (data || []).map(inv => inv.id);
 
   if (invoiceIds.length === 0) {
     return [];
   }
 
-  // Check for existing disbursements
+  // Get all disbursements for these invoices
   const { data: existingDisbursements } = await supabase
     .from('invoice_disbursements')
-    .select('scf_invoice_id')
-    .in('scf_invoice_id', invoiceIds)
-    .in('disbursement_status', ['pending', 'completed']);
+    .select('scf_invoice_id, disbursed_amount, disbursement_status')
+    .in('scf_invoice_id', invoiceIds);
 
-  const financedInvoiceIds = new Set(
-    existingDisbursements?.map(d => d.scf_invoice_id) || []
-  );
+  // Calculate disbursed amounts and counts per invoice
+  const disbursementMap = new Map();
+  (existingDisbursements || []).forEach(d => {
+    if (!disbursementMap.has(d.scf_invoice_id)) {
+      disbursementMap.set(d.scf_invoice_id, { totalDisbursed: 0, count: 0 });
+    }
+    const current = disbursementMap.get(d.scf_invoice_id);
+    if (d.disbursement_status === 'completed' || d.disbursement_status === 'pending') {
+      current.totalDisbursed += Number(d.disbursed_amount);
+      current.count += 1;
+    }
+  });
 
-  // Filter out already financed invoices
+  // Filter and transform invoices
   return (data || [])
-    .filter(invoice => !financedInvoiceIds.has(invoice.id))
-    .map(invoice => ({
-      id: invoice.id,
-      invoice_number: invoice.invoice_number,
-      buyer_id: invoice.buyer_id,
-      buyer_name: invoice.buyer_name,
-      seller_id: invoice.seller_id,
-      seller_name: invoice.seller_name,
-      invoice_date: invoice.invoice_date,
-      due_date: invoice.due_date,
-      total_amount: Number(invoice.total_amount),
-      currency: invoice.currency || 'USD',
-      status: invoice.status || 'draft'
-    }));
+    .map(invoice => {
+      const totalAmount = Number(invoice.total_amount);
+      const maxFinanceAmount = totalAmount * (financePercentage / 100);
+      const disbursementInfo = disbursementMap.get(invoice.id) || { totalDisbursed: 0, count: 0 };
+      const remainingAmount = maxFinanceAmount - disbursementInfo.totalDisbursed;
+      
+      return {
+        id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        buyer_id: invoice.buyer_id,
+        buyer_name: invoice.buyer_name,
+        seller_id: invoice.seller_id,
+        seller_name: invoice.seller_name,
+        invoice_date: invoice.invoice_date,
+        due_date: invoice.due_date,
+        total_amount: totalAmount,
+        currency: invoice.currency || 'USD',
+        status: invoice.status || 'draft',
+        disbursed_amount: disbursementInfo.totalDisbursed,
+        remaining_finance_amount: remainingAmount,
+        disbursement_count: disbursementInfo.count,
+        is_fully_financed: remainingAmount <= 0 || disbursementInfo.count >= maxDisbursements
+      };
+    })
+    .filter(invoice => {
+      // If multiple disbursement is NOT allowed, exclude any invoice with existing disbursement
+      if (!multipleDisbursementAllowed) {
+        return invoice.disbursement_count === 0;
+      }
+      
+      // If multiple disbursement IS allowed:
+      // - Include if not fully financed
+      // - Include if disbursement count < max allowed
+      // - Include if remaining amount > 0
+      return !invoice.is_fully_financed && invoice.remaining_finance_amount! > 0;
+    });
 };
 
 /**
