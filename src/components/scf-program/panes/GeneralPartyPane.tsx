@@ -587,7 +587,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     </FormLabel>
                     <FormControl>
                       <Select
-                        disabled={isReadOnly || earlyPaymentEnabled}
+                        disabled={isFieldDisabled("anchor_limit_currency")}
                         onValueChange={field.onChange}
                         value={field.value}
                       >
@@ -1137,10 +1137,22 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     className="h-4 w-4"
                   />
                 </FormControl>
-                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled ? "text-muted-foreground" : ""}`}>
+                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["assignment_enabled"] ? "text-muted-foreground" : ""}`}>
                   Assignment Finance
                   {earlyPaymentEnabled && !isReadOnly && (
-                    <Lock className="h-3 w-3 text-muted-foreground" />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("assignment_enabled")}
+                    >
+                      {fieldStates["assignment_enabled"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
                   )}
                 </FormLabel>
                 <FormMessage />
@@ -1182,11 +1194,28 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     type="checkbox"
                     checked={field.value}
                     onChange={field.onChange}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("unaccepted_invoice_finance_enabled")}
                     className="h-4 w-4"
                   />
                 </FormControl>
-                <FormLabel className="!mt-0">Unaccepted Invoice Finance</FormLabel>
+                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["unaccepted_invoice_finance_enabled"] ? "text-muted-foreground" : ""}`}>
+                  Unaccepted Invoice Finance
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("unaccepted_invoice_finance_enabled")}
+                    >
+                      {fieldStates["unaccepted_invoice_finance_enabled"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormMessage />
               </FormItem>
             )}
@@ -1226,11 +1255,28 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     type="checkbox"
                     checked={field.value}
                     onChange={field.onChange}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("recourse_enabled")}
                     className="h-4 w-4"
                   />
                 </FormControl>
-                <FormLabel className="!mt-0">Recourse</FormLabel>
+                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["recourse_enabled"] ? "text-muted-foreground" : ""}`}>
+                  Recourse
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("recourse_enabled")}
+                    >
+                      {fieldStates["recourse_enabled"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormMessage />
               </FormItem>
             )}

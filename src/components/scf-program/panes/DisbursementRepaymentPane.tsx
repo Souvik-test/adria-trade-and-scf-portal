@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
-import { ArrowRight, Plus, Trash2, ChevronLeft } from "lucide-react";
+import { ArrowRight, Plus, Trash2, ChevronLeft, Lock, Unlock } from "lucide-react";
 
 interface DisbursementRepaymentPaneProps {
   isReadOnly: boolean;
@@ -35,6 +35,8 @@ export const DisbursementRepaymentPane = ({
   const insuranceRequired = form.watch("insurance_required");
   const multipleDisb = form.watch("multiple_disbursement");
   const repaymentBy = form.watch("repayment_by");
+  const earlyPaymentEnabled = form.watch("early_payment_discount_enabled");
+  const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
 
   const [insurancePolicies, setInsurancePolicies] = useState<any[]>(
     form.getValues("insurance_policies") || []
@@ -45,6 +47,16 @@ export const DisbursementRepaymentPane = ({
   const [appropriationBeforeDue, setAppropriationBeforeDue] = useState<string[]>(
     form.getValues("appropriation_sequence_before_due") || []
   );
+
+  const toggleFieldState = (fieldName: string) => {
+    setFieldStates(prev => ({ ...prev, [fieldName]: !prev[fieldName] }));
+  };
+
+  const isFieldDisabled = (fieldName: string) => {
+    if (isReadOnly) return true;
+    if (earlyPaymentEnabled && !fieldStates[fieldName]) return true;
+    return false;
+  };
 
   const appropriationOptions = [
     { value: "P", label: "Principal" },
@@ -138,12 +150,29 @@ export const DisbursementRepaymentPane = ({
             name="multiple_disbursement"
             render={({ field }) => (
               <FormItem className="flex items-center justify-between">
-                <FormLabel>Multiple Disbursement</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  Multiple Disbursement
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("multiple_disbursement")}
+                    >
+                      {fieldStates["multiple_disbursement"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("multiple_disbursement")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -180,12 +209,29 @@ export const DisbursementRepaymentPane = ({
             name="auto_disbursement"
             render={({ field }) => (
               <FormItem className="flex items-center justify-between">
-                <FormLabel>Auto-Disbursement</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  Auto-Disbursement
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("auto_disbursement")}
+                    >
+                      {fieldStates["auto_disbursement"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("auto_disbursement")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -198,10 +244,27 @@ export const DisbursementRepaymentPane = ({
             name="holiday_treatment"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Holiday Treatment</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  Holiday Treatment
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("holiday_treatment")}
+                    >
+                      {fieldStates["holiday_treatment"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Select
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("holiday_treatment")}
                     onValueChange={field.onChange}
                     value={field.value}
                   >
@@ -232,10 +295,27 @@ export const DisbursementRepaymentPane = ({
               name="repayment_by"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repayment By</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Repayment By
+                    {earlyPaymentEnabled && !isReadOnly && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        onClick={() => toggleFieldState("repayment_by")}
+                      >
+                        {fieldStates["repayment_by"] ? (
+                          <Unlock className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Select
-                      disabled={isReadOnly}
+                      disabled={isFieldDisabled("repayment_by")}
                       onValueChange={field.onChange}
                       value={field.value}
                     >
@@ -279,12 +359,29 @@ export const DisbursementRepaymentPane = ({
               name="auto_repayment"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between">
-                  <FormLabel>Auto-Repayment</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Auto-Repayment
+                    {earlyPaymentEnabled && !isReadOnly && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        onClick={() => toggleFieldState("auto_repayment")}
+                      >
+                        {fieldStates["auto_repayment"] ? (
+                          <Unlock className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
+                      disabled={isFieldDisabled("auto_repayment")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -297,12 +394,29 @@ export const DisbursementRepaymentPane = ({
               name="part_payment_allowed"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between">
-                  <FormLabel>Part Payment</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Part Payment
+                    {earlyPaymentEnabled && !isReadOnly && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        onClick={() => toggleFieldState("part_payment_allowed")}
+                      >
+                        {fieldStates["part_payment_allowed"] ? (
+                          <Unlock className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
+                      disabled={isFieldDisabled("part_payment_allowed")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -315,12 +429,29 @@ export const DisbursementRepaymentPane = ({
               name="pre_payment_allowed"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between">
-                  <FormLabel>Pre-Payment</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Pre-Payment
+                    {earlyPaymentEnabled && !isReadOnly && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        onClick={() => toggleFieldState("pre_payment_allowed")}
+                      >
+                        {fieldStates["pre_payment_allowed"] ? (
+                          <Unlock className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
+                      disabled={isFieldDisabled("pre_payment_allowed")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -333,12 +464,29 @@ export const DisbursementRepaymentPane = ({
               name="charge_penalty_on_prepayment"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between">
-                  <FormLabel>Charge Penalty on Prepayment</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Charge Penalty on Prepayment
+                    {earlyPaymentEnabled && !isReadOnly && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        onClick={() => toggleFieldState("charge_penalty_on_prepayment")}
+                      >
+                        {fieldStates["charge_penalty_on_prepayment"] ? (
+                          <Unlock className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={isReadOnly}
+                      disabled={isFieldDisabled("charge_penalty_on_prepayment")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -352,8 +500,25 @@ export const DisbursementRepaymentPane = ({
             {/* On/After Due Date */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Appropriation Sequence On/After Due Date</h4>
-                {!isReadOnly && (
+                <h4 className="font-medium flex items-center gap-2">
+                  Appropriation Sequence On/After Due Date
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("appropriation_sequence_after_due")}
+                    >
+                      {fieldStates["appropriation_sequence_after_due"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </h4>
+                {!isReadOnly && !isFieldDisabled("appropriation_sequence_after_due") && (
                   <Select
                     onValueChange={(value) =>
                       addAppropriationItem(
@@ -414,8 +579,25 @@ export const DisbursementRepaymentPane = ({
             {/* Before Due Date */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Appropriation Sequence Before Due Date</h4>
-                {!isReadOnly && (
+                <h4 className="font-medium flex items-center gap-2">
+                  Appropriation Sequence Before Due Date
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("appropriation_sequence_before_due")}
+                    >
+                      {fieldStates["appropriation_sequence_before_due"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </h4>
+                {!isReadOnly && !isFieldDisabled("appropriation_sequence_before_due") && (
                   <Select
                     onValueChange={(value) =>
                       addAppropriationItem(
