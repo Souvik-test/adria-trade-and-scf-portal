@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Lock, Unlock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -40,6 +41,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
     form.getValues("counter_parties") || []
   );
   const [productCodes, setProductCodes] = useState<{ code: string; name: string }[]>([]);
+  
+  // Early Payment Discount state
+  const earlyPaymentEnabled = form.watch("early_payment_discount_enabled");
+  const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -96,8 +101,68 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
     form.setValue("counter_parties", updated);
   };
 
+  const toggleFieldState = (fieldName: string) => {
+    setFieldStates(prev => ({ ...prev, [fieldName]: !prev[fieldName] }));
+  };
+
+  const isFieldDisabled = (fieldName: string) => {
+    if (isReadOnly) return true;
+    if (earlyPaymentEnabled && !fieldStates[fieldName]) return true;
+    return false;
+  };
+
   return (
     <div className="space-y-6">
+      {/* Early Payment Discount & Dynamic Discounting */}
+      <Card className="p-6 bg-primary/5 border-primary/20">
+        <h3 className="text-lg font-semibold mb-4">Program Features</h3>
+        <div className="grid grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="early_payment_discount_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-start space-x-3 space-y-0 border rounded-lg p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="font-semibold">Early Payment Discount</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Enable early payment discount program. When enabled, limit and tenor fields become conditionally editable.
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="dynamic_discounting_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-start space-x-3 space-y-0 border rounded-lg p-4 opacity-50">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={true}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="font-semibold">Dynamic Discounting</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Coming Soon: Enable dynamic discounting with variable discount rates.
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+      </Card>
+
       {/* General Details */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">General Details</h3>
@@ -216,13 +281,30 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="program_limit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Program Limit</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  Program Limit
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("program_limit")}
+                    >
+                      {fieldStates["program_limit"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("program_limit")}
                     placeholder="Enter limit"
                   />
                 </FormControl>
@@ -236,13 +318,30 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="available_limit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Program Available Limit</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  Program Available Limit
+                  {earlyPaymentEnabled && !isReadOnly && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => toggleFieldState("available_limit")}
+                    >
+                      {fieldStates["available_limit"] ? (
+                        <Unlock className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </Button>
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isReadOnly}
+                    disabled={isFieldDisabled("available_limit")}
                     placeholder="Enter available limit"
                   />
                 </FormControl>
@@ -314,15 +413,16 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                     type="checkbox"
                     checked={field.value}
                     onChange={field.onChange}
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || earlyPaymentEnabled}
                     className="mt-1"
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>Override Limit Restrictions</FormLabel>
+                  <FormLabel className={earlyPaymentEnabled ? "text-muted-foreground" : ""}>Override Limit Restrictions</FormLabel>
                   <p className="text-sm text-muted-foreground">
                     Allow invoice creation/upload even when Program, Anchor, or Counter Party limits are exceeded. 
                     Note: Disbursements will still be blocked if available limits are negative.
+                    {earlyPaymentEnabled && " (Disabled when Early Payment Discount is enabled)"}
                   </p>
                 </div>
               </FormItem>
@@ -417,13 +517,30 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 name="anchor_limit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Anchor Limit</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      Anchor Limit
+                      {earlyPaymentEnabled && !isReadOnly && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-5 w-5"
+                          onClick={() => toggleFieldState("anchor_limit")}
+                        >
+                          {fieldStates["anchor_limit"] ? (
+                            <Unlock className="h-3 w-3 text-green-600" />
+                          ) : (
+                            <Lock className="h-3 w-3 text-muted-foreground" />
+                          )}
+                        </Button>
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        disabled={isReadOnly}
+                        disabled={isFieldDisabled("anchor_limit")}
                         placeholder="Enter limit"
                       />
                     </FormControl>
@@ -457,10 +574,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 name="anchor_limit_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Anchor Limit Currency</FormLabel>
+                    <FormLabel className={earlyPaymentEnabled ? "text-muted-foreground" : ""}>Anchor Limit Currency</FormLabel>
                     <FormControl>
                       <Select
-                        disabled={isReadOnly}
+                        disabled={isReadOnly || earlyPaymentEnabled}
                         onValueChange={field.onChange}
                         value={field.value}
                       >

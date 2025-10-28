@@ -157,6 +157,57 @@ export type Database = {
         }
         Relationships: []
       }
+      early_payment_requests: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          discount_percentage: number
+          estimated_payment_date: string | null
+          id: string
+          invoice_ids: Json
+          program_id: string
+          remarks: string | null
+          status: string | null
+          total_discounted_amount: number
+          total_original_amount: number
+          total_savings: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          discount_percentage: number
+          estimated_payment_date?: string | null
+          id?: string
+          invoice_ids: Json
+          program_id: string
+          remarks?: string | null
+          status?: string | null
+          total_discounted_amount: number
+          total_original_amount: number
+          total_savings: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          discount_percentage?: number
+          estimated_payment_date?: string | null
+          id?: string
+          invoice_ids?: Json
+          program_id?: string
+          remarks?: string | null
+          status?: string | null
+          total_discounted_amount?: number
+          total_original_amount?: number
+          total_savings?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       export_lc_amendment_responses: {
         Row: {
           action: string
@@ -1627,6 +1678,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_requests: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          id: string
+          invoice_ids: Json
+          notes: string | null
+          program_id: string
+          requested_payment_date: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_ids: Json
+          notes?: string | null
+          program_id: string
+          requested_payment_date?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_ids?: Json
+          notes?: string | null
+          program_id?: string
+          requested_payment_date?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       popi_line_items: {
         Row: {
           created_at: string | null
@@ -2095,9 +2188,12 @@ export type Database = {
           counter_parties: Json | null
           created_at: string
           debit_account_number: string | null
+          default_discount_percentage: number | null
           disbursement_account: string | null
           disbursement_conditions: string | null
           disbursement_mode: string | null
+          dynamic_discounting_enabled: boolean | null
+          early_payment_discount_enabled: boolean | null
           effective_date: string
           expiry_date: string
           fee_catalogue: Json | null
@@ -2169,9 +2265,12 @@ export type Database = {
           counter_parties?: Json | null
           created_at?: string
           debit_account_number?: string | null
+          default_discount_percentage?: number | null
           disbursement_account?: string | null
           disbursement_conditions?: string | null
           disbursement_mode?: string | null
+          dynamic_discounting_enabled?: boolean | null
+          early_payment_discount_enabled?: boolean | null
           effective_date: string
           expiry_date: string
           fee_catalogue?: Json | null
@@ -2243,9 +2342,12 @@ export type Database = {
           counter_parties?: Json | null
           created_at?: string
           debit_account_number?: string | null
+          default_discount_percentage?: number | null
           disbursement_account?: string | null
           disbursement_conditions?: string | null
           disbursement_mode?: string | null
+          dynamic_discounting_enabled?: boolean | null
+          early_payment_discount_enabled?: boolean | null
           effective_date?: string
           expiry_date?: string
           fee_catalogue?: Json | null
