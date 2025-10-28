@@ -71,6 +71,9 @@ const programSchema = z.object({
   status: z.string().default("active"),
   override_limit_restrictions: z.boolean().default(false),
   override_tenor_calculation: z.boolean().default(false),
+  early_payment_discount_enabled: z.boolean().default(false),
+  default_discount_percentage: z.number().min(0).max(100).optional(),
+  dynamic_discounting_enabled: z.boolean().default(false),
 });
 
 type ProgramFormValues = z.infer<typeof programSchema>;

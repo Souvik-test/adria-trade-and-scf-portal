@@ -30,6 +30,7 @@ export default function SCFTransactionInquiry() {
     "fromDate",
     "toDate",
     "status",
+    "financeEligible",
   ]);
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
 
@@ -49,6 +50,7 @@ export default function SCFTransactionInquiry() {
     toDate: "",
     minAmount: undefined,
     maxAmount: undefined,
+    financeEligible: undefined,
   });
 
   const handleFilterChange = (field: keyof TransactionFilters, value: string | number | undefined) => {
@@ -58,16 +60,27 @@ export default function SCFTransactionInquiry() {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const searchFilters = wildcardSearch.trim() 
-        ? { wildcardSearch: wildcardSearch.trim() }
-        : filters;
-      
-      const data = await fetchSCFTransactions(searchFilters);
-      setTransactions(data);
-      toast({
-        title: "Search Complete",
-        description: `Found ${data.length} transaction(s)`,
-      });
+    const searchFilters = wildcardSearch.trim() 
+      ? { wildcardSearch: wildcardSearch.trim() }
+      : filters;
+    
+    const data = await fetchSCFTransactions(searchFilters);
+    
+    // Apply financeEligible filter on the client side
+    let filteredData = data;
+    if (filters.financeEligible) {
+      if (filters.financeEligible === "yes") {
+        filteredData = data.filter(row => row.financeEligible === true);
+      } else if (filters.financeEligible === "no") {
+        filteredData = data.filter(row => row.financeEligible === false);
+      }
+    }
+    
+    setTransactions(filteredData);
+    toast({
+      title: "Search Complete",
+      description: `Found ${filteredData.length} transaction(s)`,
+    });
     } catch (error: any) {
       console.error("Error fetching transactions:", error);
       toast({
@@ -98,6 +111,7 @@ export default function SCFTransactionInquiry() {
       toDate: "",
       minAmount: undefined,
       maxAmount: undefined,
+      financeEligible: undefined,
     });
   };
 
@@ -182,6 +196,7 @@ export default function SCFTransactionInquiry() {
     toDate: "To Date",
     minAmount: "Min Amount",
     maxAmount: "Max Amount",
+    financeEligible: "Finance Eligible",
   };
 
   return (
@@ -403,6 +418,21 @@ export default function SCFTransactionInquiry() {
                       <SelectItem value="Financed">Financed</SelectItem>
                       <SelectItem value="Repaid">Repaid</SelectItem>
                       <SelectItem value="Overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {selectedFilterColumns.includes("financeEligible") && (
+                <div className="space-y-2">
+                  <Label htmlFor="financeEligible">Finance Eligible</Label>
+                  <Select value={filters.financeEligible || ""} onValueChange={(value) => handleFilterChange("financeEligible", value || undefined)}>
+                    <SelectTrigger id="financeEligible">
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

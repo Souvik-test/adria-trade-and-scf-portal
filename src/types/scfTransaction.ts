@@ -35,6 +35,7 @@ export interface TransactionFilters {
   toDate?: string;
   minAmount?: number;
   maxAmount?: number;
+  financeEligible?: string; // "yes" | "no"
 }
 
 export interface FinanceEligibility {
