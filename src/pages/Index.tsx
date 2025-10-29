@@ -12,6 +12,7 @@ import SCFMasterSetup from '@/components/SCFMasterSetup';
 import SCFProductDefinition from '@/components/SCFProductDefinition';
 import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
 import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
+import { DocumentInquiry } from '@/components/DocumentInquiry';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -63,6 +64,8 @@ const Index = () => {
           return <SCFMasterSetup onBack={() => setActiveMenu('dashboard')} />;
         case 'transaction-inquiry':
           return <SCFTransactionInquiry />;
+        case 'document-inquiry':
+          return <DocumentInquiry />;
         case 'inquiry':
         case 'correspondence':
         case 'configuration':
@@ -101,6 +104,8 @@ const Index = () => {
     switch (activeMenu) {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
+      case 'document-inquiry':
+        return <DocumentInquiry />;
       case 'inquiry':
         return (
           <div className="p-8 animate-fade-in">

@@ -254,10 +254,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const eligibleIds = paginatedTransactions
-        .filter(t => t.productType === 'Invoice' && t.financeEligible && t.status !== 'Financed')
-        .map(t => t.id);
-      setSelectedTransactions(new Set(eligibleIds));
+      const allIds = paginatedTransactions.map(t => t.id);
+      setSelectedTransactions(new Set(allIds));
     } else {
       setSelectedTransactions(new Set());
     }
@@ -281,13 +279,22 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
     if (invoices.length === 0) return { valid: false, message: "No invoices selected" };
     const programIds = new Set(invoices.map(i => i.programId));
     if (programIds.size > 1) {
-      return { valid: false, message: "Selected invoices must be from the same program" };
+      return { 
+        valid: false, 
+        message: `Selected invoices are from ${programIds.size} different programs. Please select invoices from the same program.` 
+      };
     }
     return { valid: true, programId: Array.from(programIds)[0] };
   };
 
   const canRequestEarlyPayment = (invoices: SCFTransactionRow[]) => {
-    return invoices.every(inv => inv.rawData?.early_payment_discount_enabled === true);
+    const allHaveEPD = invoices.every(inv => inv.rawData?.early_payment_discount_enabled === true);
+    if (!allHaveEPD) return { valid: false, message: "Not all selected invoices are from programs with Early Payment Discount enabled" };
+    
+    const allEligible = invoices.every(inv => inv.financeEligible && inv.status !== 'Financed');
+    if (!allEligible) return { valid: false, message: "Some selected invoices are not eligible or already financed" };
+    
+    return { valid: true };
   };
 
   const handleActionClick = (action: 'early_payment' | 'request_finance' | 'request_payment', transaction?: SCFTransactionRow) => {
@@ -467,12 +474,12 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
           <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedTransactions.size > 0 && selectedTransactions.size === paginatedTransactions.filter(t => t.productType === 'Invoice' && t.financeEligible && t.status !== 'Financed').length}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
+          <TableHead className="w-12">
+            <Checkbox
+              checked={selectedTransactions.size > 0 && selectedTransactions.size === paginatedTransactions.length}
+              onCheckedChange={handleSelectAll}
+            />
+          </TableHead>
               {visibleColumns.map(col => (
                 <SortableHeader key={col.id} field={col.id as SortField}>
                   {col.label}
@@ -491,17 +498,12 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
             ) : (
               paginatedTransactions.map(transaction => (
                 <TableRow key={transaction.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedTransactions.has(transaction.id)}
-                      onCheckedChange={(checked) => handleSelectRow(transaction.id, checked as boolean)}
-                      disabled={
-                        transaction.productType !== 'Invoice' || 
-                        !transaction.financeEligible || 
-                        transaction.status === 'Financed'
-                      }
-                    />
-                  </TableCell>
+            <TableCell>
+              <Checkbox
+                checked={selectedTransactions.has(transaction.id)}
+                onCheckedChange={(checked) => handleSelectRow(transaction.id, checked as boolean)}
+              />
+            </TableCell>
                   {visibleColumns.map(col => renderCell(transaction, col.id))}
                   <TableCell>
                     <DropdownMenu>
@@ -509,26 +511,23 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          disabled={
-                            transaction.productType !== 'Invoice' || 
-                            !transaction.financeEligible || 
-                            transaction.status === 'Financed'
-                          }
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {transaction.rawData?.early_payment_discount_enabled && (
+                        {transaction.rawData?.early_payment_discount_enabled && transaction.financeEligible && transaction.status !== 'Financed' && (
                           <DropdownMenuItem onClick={() => handleActionClick('early_payment', transaction)}>
                             <Clock className="mr-2 h-4 w-4" />
                             Early Payment Request
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => handleActionClick('request_finance', transaction)}>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          Request Finance
-                        </DropdownMenuItem>
+                        {transaction.financeEligible && transaction.status !== 'Financed' && (
+                          <DropdownMenuItem onClick={() => handleActionClick('request_finance', transaction)}>
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Request Finance
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => handleActionClick('request_payment', transaction)}>
                           <Send className="mr-2 h-4 w-4" />
                           Request Payment
