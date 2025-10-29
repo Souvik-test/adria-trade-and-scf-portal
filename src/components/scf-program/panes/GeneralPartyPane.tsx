@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2, Search, Lock, Unlock } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,6 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
   
   // Early Payment Discount state
   const earlyPaymentEnabled = form.watch("early_payment_discount_enabled");
-  const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -101,15 +100,6 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
     form.setValue("counter_parties", updated);
   };
 
-  const toggleFieldState = (fieldName: string) => {
-    setFieldStates(prev => ({ ...prev, [fieldName]: !prev[fieldName] }));
-  };
-
-  const isFieldDisabled = (fieldName: string) => {
-    if (isReadOnly) return true;
-    if (earlyPaymentEnabled && !fieldStates[fieldName]) return true;
-    return false;
-  };
 
   return (
     <div className="space-y-6">
@@ -132,7 +122,7 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 <div className="space-y-1 leading-none">
                   <FormLabel className="font-semibold">Early Payment Discount</FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Enable early payment discount program. When enabled, limit and tenor fields become conditionally editable.
+                    Enable early payment discount for invoices under this program. Invoices can request early payment if not yet financed.
                   </p>
                 </div>
               </FormItem>
@@ -281,30 +271,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="program_limit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Program Limit
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("program_limit")}
-                    >
-                      {fieldStates["program_limit"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Program Limit</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isFieldDisabled("program_limit")}
+                    disabled={isReadOnly}
                     placeholder="Enter limit"
                   />
                 </FormControl>
@@ -318,30 +291,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="available_limit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Program Available Limit
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("available_limit")}
-                    >
-                      {fieldStates["available_limit"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Program Available Limit</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isFieldDisabled("available_limit")}
+                    disabled={isReadOnly}
                     placeholder="Enter available limit"
                   />
                 </FormControl>
@@ -516,30 +472,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 name="anchor_limit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      Anchor Limit
-                      {earlyPaymentEnabled && !isReadOnly && (
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-5 w-5"
-                          onClick={() => toggleFieldState("anchor_limit")}
-                        >
-                          {fieldStates["anchor_limit"] ? (
-                            <Unlock className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Lock className="h-3 w-3 text-muted-foreground" />
-                          )}
-                        </Button>
-                      )}
-                    </FormLabel>
+                    <FormLabel>Anchor Limit</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        disabled={isFieldDisabled("anchor_limit")}
+                        disabled={isReadOnly}
                         placeholder="Enter limit"
                       />
                     </FormControl>
@@ -573,15 +512,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 name="anchor_limit_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={`flex items-center gap-2 ${earlyPaymentEnabled ? "text-muted-foreground" : ""}`}>
-                      Anchor Limit Currency
-                      {earlyPaymentEnabled && !isReadOnly && (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </FormLabel>
+                    <FormLabel>Anchor Limit Currency</FormLabel>
                     <FormControl>
                       <Select
-                        disabled={isFieldDisabled("anchor_limit_currency")}
+                        disabled={isReadOnly}
                         onValueChange={field.onChange}
                         value={field.value}
                       >
@@ -799,27 +733,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="borrower_selection"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Borrower
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("borrower_selection")}
-                    >
-                      {fieldStates["borrower_selection"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Borrower</FormLabel>
                 <FormControl>
                   <Select
-                    disabled={isFieldDisabled("borrower_selection")}
+                    disabled={isReadOnly}
                     onValueChange={field.onChange}
                     value={field.value}
                   >
@@ -843,30 +760,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="finance_percentage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Finance % (Max 100%)
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("finance_percentage")}
-                    >
-                      {fieldStates["finance_percentage"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Finance % (Max 100%)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isFieldDisabled("finance_percentage")}
+                    disabled={isReadOnly}
                     placeholder="Enter percentage"
                     max={100}
                   />
@@ -1010,30 +910,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="margin_percentage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Margin %
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("margin_percentage")}
-                    >
-                      {fieldStates["margin_percentage"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Margin %</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isFieldDisabled("margin_percentage")}
+                    disabled={isReadOnly}
                     placeholder="Enter margin"
                   />
                 </FormControl>
@@ -1047,30 +930,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="grace_days"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Grace Days
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("grace_days")}
-                    >
-                      {fieldStates["grace_days"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Grace Days</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    disabled={isFieldDisabled("grace_days")}
+                    disabled={isReadOnly}
                     placeholder="Enter grace days"
                   />
                 </FormControl>
@@ -1084,30 +950,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             name="stale_period"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Stale Period (Days)
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("stale_period")}
-                    >
-                      {fieldStates["stale_period"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
+                <FormLabel>Stale Period (Days)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    disabled={isFieldDisabled("stale_period")}
+                    disabled={isReadOnly}
                     placeholder="Enter stale period"
                   />
                 </FormControl>
@@ -1121,35 +970,17 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             control={form.control}
             name="assignment_enabled"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
+              <FormItem className="flex items-center space-x-3 space-y-0">
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={field.value}
-                    onChange={field.onChange}
-                    disabled={isFieldDisabled("assignment_enabled")}
-                    className="h-4 w-4"
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
                   />
                 </FormControl>
-                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["assignment_enabled"] ? "text-muted-foreground" : ""}`}>
-                  Assignment Finance
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("assignment_enabled")}
-                    >
-                      {fieldStates["assignment_enabled"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
-                <FormMessage />
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Assignment Finance</FormLabel>
+                </div>
               </FormItem>
             )}
           />
@@ -1182,35 +1013,17 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             control={form.control}
             name="unaccepted_invoice_finance_enabled"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
+              <FormItem className="flex items-center space-x-3 space-y-0">
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={field.value}
-                    onChange={field.onChange}
-                    disabled={isFieldDisabled("unaccepted_invoice_finance_enabled")}
-                    className="h-4 w-4"
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
                   />
                 </FormControl>
-                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["unaccepted_invoice_finance_enabled"] ? "text-muted-foreground" : ""}`}>
-                  Unaccepted Invoice Finance
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("unaccepted_invoice_finance_enabled")}
-                    >
-                      {fieldStates["unaccepted_invoice_finance_enabled"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
-                <FormMessage />
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Unaccepted Invoice Finance</FormLabel>
+                </div>
               </FormItem>
             )}
           />
@@ -1243,35 +1056,17 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             control={form.control}
             name="recourse_enabled"
             render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
+              <FormItem className="flex items-center space-x-3 space-y-0">
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={field.value}
-                    onChange={field.onChange}
-                    disabled={isFieldDisabled("recourse_enabled")}
-                    className="h-4 w-4"
+                    onCheckedChange={field.onChange}
+                    disabled={isReadOnly}
                   />
                 </FormControl>
-                <FormLabel className={`!mt-0 flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["recourse_enabled"] ? "text-muted-foreground" : ""}`}>
-                  Recourse
-                  {earlyPaymentEnabled && !isReadOnly && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5"
-                      onClick={() => toggleFieldState("recourse_enabled")}
-                    >
-                      {fieldStates["recourse_enabled"] ? (
-                        <Unlock className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Lock className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </Button>
-                  )}
-                </FormLabel>
-                <FormMessage />
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Recourse</FormLabel>
+                </div>
               </FormItem>
             )}
           />

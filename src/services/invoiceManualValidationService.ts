@@ -415,7 +415,22 @@ export const validateInvoiceManual = async (
     .eq('program_id', programConfig.program_id)
     .single();
 
-  // 1. Validate tenor (skip if override enabled)
+  // 1. Check for duplicate invoice number (excluding rejected)
+  const { data: existingInvoice } = await supabase
+    .from('scf_invoices')
+    .select('invoice_number, status')
+    .eq('program_id', formData.programId)
+    .eq('invoice_number', formData.invoiceNumber)
+    .neq('status', 'rejected')
+    .maybeSingle();
+
+  if (existingInvoice) {
+    errors.push(
+      `Duplicate Invoice - Invoice number "${formData.invoiceNumber}" already exists for this program with status "${existingInvoice.status}". Same invoice number can only be reused if previous invoice was rejected.`
+    );
+  }
+
+  // 2. Validate tenor (skip if override enabled)
   if (!programOverrides?.override_tenor_calculation) {
     const tenorDays = calculateInvoiceTenorInDays(formData.invoiceDate, formData.dueDate);
     const tenorValidation = validateInvoiceTenor(
@@ -428,18 +443,18 @@ export const validateInvoiceManual = async (
     }
   }
 
-  // 2. Validate currency
+  // 3. Validate currency
   const currencyValidation = validateCurrency(formData.currency, programConfig.currency);
   if (!currencyValidation.valid) {
     errors.push(...currencyValidation.errors);
   }
 
-  // 3. Validate seller info is populated
+  // 4. Validate seller info is populated
   if (!formData.sellerId || !formData.sellerName) {
     errors.push('Seller information could not be populated from the selected program. Please contact administrator.');
   }
 
-  // 4. Validate amount against limits (skip if override enabled)
+  // 5. Validate amount against limits (skip if override enabled)
   if (!programOverrides?.override_limit_restrictions && formData.totalAmount > 0) {
     const limitValidation = await validateAmountAgainstLimits(
       formData.totalAmount,

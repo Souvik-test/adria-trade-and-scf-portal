@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, FileSearch, FileDown } from 'lucide-react';
+import { Download, FileSearch, FileDown, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   DocumentRecord, 
   DocumentFilters, 
@@ -15,6 +16,7 @@ import {
 } from '@/services/documentInquiryService';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export const DocumentInquiry = () => {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -23,6 +25,9 @@ export const DocumentInquiry = () => {
     documentType: 'All',
     direction: 'All',
   });
+  const [previewDoc, setPreviewDoc] = useState<DocumentRecord | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -44,6 +49,38 @@ export const DocumentInquiry = () => {
     }
   };
 
+  const handlePreview = async (doc: DocumentRecord) => {
+    if (!doc.filePath) {
+      toast({
+        title: 'Preview Not Available',
+        description: 'No file path available for this document',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setPreviewLoading(true);
+    setPreviewDoc(doc);
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(doc.filePath, 3600); // 1 hour expiry
+      
+      if (error) throw error;
+      setPreviewUrl(data.signedUrl);
+    } catch (error: any) {
+      toast({
+        title: 'Preview Failed',
+        description: error.message || 'Unable to generate preview',
+        variant: 'destructive',
+      });
+      setPreviewDoc(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handleDownload = async (doc: DocumentRecord) => {
     try {
       await downloadDocument(doc);
@@ -54,7 +91,7 @@ export const DocumentInquiry = () => {
     } catch (error: any) {
       toast({
         title: 'Download Failed',
-        description: error.message,
+        description: error.message || 'Unable to download document',
         variant: 'destructive',
       });
     }
@@ -176,16 +213,24 @@ export const DocumentInquiry = () => {
               <TableHead>Document Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Direction</TableHead>
+              <TableHead>Transaction Ref</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>User ID</TableHead>
               <TableHead>Size</TableHead>
+              <TableHead>Remarks</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {documents.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8">
+                  Searching documents...
+                </TableCell>
+              </TableRow>
+            ) : documents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   No documents found. Use the filters above to search.
                 </TableCell>
               </TableRow>
@@ -195,13 +240,30 @@ export const DocumentInquiry = () => {
                   <TableCell className="font-medium">{doc.documentName}</TableCell>
                   <TableCell>{doc.documentType}</TableCell>
                   <TableCell>{doc.direction}</TableCell>
+                  <TableCell className="font-mono text-sm">{doc.transactionRef || '-'}</TableCell>
                   <TableCell>{format(new Date(doc.date), 'dd MMM yyyy')}</TableCell>
                   <TableCell className="font-mono text-sm">{doc.userId.substring(0, 8)}...</TableCell>
                   <TableCell>{doc.fileSize ? `${(doc.fileSize / 1024).toFixed(2)} KB` : '-'}</TableCell>
+                  <TableCell className="max-w-xs truncate">{doc.remarks || '-'}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleDownload(doc)}>
-                      <Download className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1 justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handlePreview(doc)}
+                        title="Preview"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDownload(doc)}
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -209,6 +271,32 @@ export const DocumentInquiry = () => {
           </TableBody>
         </Table>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewDoc} onOpenChange={() => { setPreviewDoc(null); setPreviewUrl(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Document Preview: {previewDoc?.documentName}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto">
+            {previewLoading ? (
+              <div className="flex items-center justify-center h-96">
+                <p className="text-muted-foreground">Loading preview...</p>
+              </div>
+            ) : previewUrl ? (
+              <iframe
+                src={previewUrl}
+                className="w-full h-[70vh] border rounded"
+                title="Document Preview"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-96">
+                <p className="text-muted-foreground">Preview not available</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

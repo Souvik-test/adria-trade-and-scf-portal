@@ -13,6 +13,8 @@ export interface DocumentRecord {
   fileSize?: number;
   sourceTable: string;
   sourceId: string;
+  remarks?: string;
+  transactionRef?: string;
 }
 
 export interface DocumentFilters {
@@ -27,10 +29,10 @@ export interface DocumentFilters {
 export const fetchDocuments = async (filters: DocumentFilters): Promise<DocumentRecord[]> => {
   const documents: DocumentRecord[] = [];
   
-  // Query export_lc_bill_documents
+  // Query export_lc_bill_documents with bill reference
   const { data: lcDocs } = await supabase
     .from('export_lc_bill_documents')
-    .select('*, export_lc_bills(user_id)')
+    .select('*, export_lc_bills(user_id, bill_reference)')
     .order('uploaded_at', { ascending: false });
   
   if (lcDocs) {
@@ -45,6 +47,8 @@ export const fetchDocuments = async (filters: DocumentFilters): Promise<Document
       fileSize: doc.file_size,
       sourceTable: 'export_lc_bill_documents',
       sourceId: doc.id,
+      transactionRef: doc.export_lc_bills?.bill_reference || '',
+      remarks: '',
     })));
   }
   
@@ -66,6 +70,8 @@ export const fetchDocuments = async (filters: DocumentFilters): Promise<Document
       fileSize: doc.file_size,
       sourceTable: 'outward_bg_supporting_documents',
       sourceId: doc.id,
+      transactionRef: '',
+      remarks: '',
     })));
   }
   
@@ -87,6 +93,8 @@ export const fetchDocuments = async (filters: DocumentFilters): Promise<Document
       fileSize: doc.file_size,
       sourceTable: 'inward_dc_bill_payment_documents',
       sourceId: doc.id,
+      transactionRef: '',
+      remarks: '',
     })));
   }
   

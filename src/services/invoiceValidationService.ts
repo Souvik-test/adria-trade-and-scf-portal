@@ -28,7 +28,23 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 2. Validate Currency matches Program Currency
+    // 2. Check for duplicate invoice number within same program (excluding rejected)
+    const { data: existingInvoice } = await supabase
+      .from('scf_invoices')
+      .select('invoice_number, status')
+      .eq('program_id', invoiceData.program_id)
+      .eq('invoice_number', invoiceData.invoice_number)
+      .neq('status', 'rejected')
+      .maybeSingle();
+
+    if (existingInvoice) {
+      return {
+        valid: false,
+        reason: `Duplicate Invoice - Invoice number "${invoiceData.invoice_number}" already exists for program "${invoiceData.program_id}" with status "${existingInvoice.status}". Same invoice number can only be reused if previous invoice was rejected.`
+      };
+    }
+
+    // 3. Validate Currency matches Program Currency
     if (invoiceData.currency !== program.program_currency) {
       return {
         valid: false,
@@ -36,7 +52,7 @@ export const validateAgainstProgram = async (
       };
     }
 
-    // 3. Validate Tenor (days between invoice_date and due_date)
+    // 4. Validate Tenor (days between invoice_date and due_date)
     const invoiceDate = new Date(invoiceData.invoice_date);
     const dueDate = new Date(invoiceData.due_date);
     
@@ -78,7 +94,7 @@ export const validateAgainstProgram = async (
       }
     }
 
-    // 4. Anchor-based Party Validation
+    // 5. Anchor-based Party Validation
     const anchorParty = program.anchor_party?.toUpperCase() || '';
     const counterparties = (program.counter_parties as any[]) || [];
     
@@ -146,7 +162,7 @@ export const validateAgainstProgram = async (
       }
     }
 
-    // 5. Check program limit (skip if override enabled)
+    // 6. Check program limit (skip if override enabled)
     if (!program.override_limit_restrictions) {
       const { data: totalInvoices } = await supabase
         .from('scf_invoices')
@@ -165,7 +181,7 @@ export const validateAgainstProgram = async (
         };
       }
 
-      // 6. Check anchor limit (buyer limit)
+      // 7. Check anchor limit (buyer limit)
       const { data: anchorInvoices } = await supabase
         .from('scf_invoices')
         .select('total_amount')
@@ -185,7 +201,7 @@ export const validateAgainstProgram = async (
       }
     }
 
-    // 7. All validations passed
+    // 8. All validations passed
     return { 
       valid: true, 
       program_id: program.program_id,

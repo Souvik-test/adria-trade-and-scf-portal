@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Eye, Pencil, Trash2, Search, Copy } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, Search, Copy, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,9 +43,10 @@ interface SCFProgramConfigurationProps {
   onBack: () => void;
   initialMode?: "add";
   selectedProductCode?: string;
+  onNavigateToProductDefinition?: () => void;
 }
 
-export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCode }: SCFProgramConfigurationProps) => {
+export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCode, onNavigateToProductDefinition }: SCFProgramConfigurationProps) => {
   const [programs, setPrograms] = useState<ProgramConfig[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -57,7 +58,7 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
 
   useEffect(() => {
     fetchPrograms();
-  }, []);
+  }, [selectedProductCode]);
 
   const handleAdd = useCallback(() => {
     setSelectedProgram(null);
@@ -74,10 +75,17 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
 
   const fetchPrograms = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("scf_program_configurations")
         .select("*")
         .order("created_at", { ascending: false });
+      
+      // Filter by product code if navigating from Product Definition
+      if (selectedProductCode) {
+        query = query.eq("product_code", selectedProductCode);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setPrograms(data || []);
@@ -184,9 +192,20 @@ export const SCFProgramConfiguration = ({ onBack, initialMode, selectedProductCo
             <h1 className="text-3xl font-bold text-foreground">Program Configuration</h1>
             <p className="text-muted-foreground mt-1">
               Manage SCF program configurations and parameters
+              {selectedProductCode && (
+                <span className="ml-2 text-primary font-medium">
+                  (Filtered by Product: {selectedProductCode})
+                </span>
+              )}
             </p>
           </div>
           <div className="flex gap-3">
+            {onNavigateToProductDefinition && (
+              <Button variant="outline" onClick={onNavigateToProductDefinition} className="gap-2">
+                <Package className="h-4 w-4" />
+                Go to Product Definition
+              </Button>
+            )}
             <Button variant="outline" onClick={onBack}>
               Back to Dashboard
             </Button>

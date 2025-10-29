@@ -30,6 +30,12 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
     />;
   }
 
+  const handleNavigateToProductDefinition = () => {
+    setCurrentView("productDefinition");
+    setOpenProgramInAddMode(false);
+    setSelectedProductCode(undefined);
+  };
+
   if (currentView === "programConfiguration") {
     return <SCFProgramConfiguration 
       key={openProgramInAddMode ? `add-${selectedProductCode}` : 'view'}
@@ -40,6 +46,7 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
       }} 
       initialMode={openProgramInAddMode ? "add" : undefined}
       selectedProductCode={selectedProductCode}
+      onNavigateToProductDefinition={handleNavigateToProductDefinition}
     />;
   }
 
