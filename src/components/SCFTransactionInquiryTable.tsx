@@ -454,6 +454,9 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
           setShowFinanceDisbursementModal(false);
           setSelectedTransactions(new Set());
         }}
+        preSelectedInvoices={getSelectedInvoices()}
+        preSelectedProgramId={getSelectedInvoices()[0]?.programId}
+        preSelectedProgramName={getSelectedInvoices()[0]?.programName}
       />
 
       <RequestPaymentModal
@@ -498,12 +501,16 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
             ) : (
               paginatedTransactions.map(transaction => (
                 <TableRow key={transaction.id}>
-            <TableCell>
-              <Checkbox
-                checked={selectedTransactions.has(transaction.id)}
-                onCheckedChange={(checked) => handleSelectRow(transaction.id, checked as boolean)}
-              />
-            </TableCell>
+              <TableCell>
+                <Checkbox
+                  checked={selectedTransactions.has(transaction.id)}
+                  onCheckedChange={(checked) => handleSelectRow(transaction.id, checked as boolean)}
+                  disabled={
+                    transaction.productType !== 'Invoice' || 
+                    transaction.status.toLowerCase() === 'financed'
+                  }
+                />
+              </TableCell>
                   {visibleColumns.map(col => renderCell(transaction, col.id))}
                   <TableCell>
                     <DropdownMenu>
@@ -511,27 +518,41 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                         <Button 
                           variant="ghost" 
                           size="icon"
+                          disabled={
+                            transaction.productType !== 'Invoice' || 
+                            transaction.status.toLowerCase() === 'financed'
+                          }
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {transaction.rawData?.early_payment_discount_enabled && transaction.financeEligible && transaction.status !== 'Financed' && (
+                        {transaction.productType === 'Invoice' && 
+                         transaction.rawData?.early_payment_discount_enabled && 
+                         transaction.financeEligible && 
+                         transaction.status.toLowerCase() !== 'financed' && (
                           <DropdownMenuItem onClick={() => handleActionClick('early_payment', transaction)}>
                             <Clock className="mr-2 h-4 w-4" />
                             Early Payment Request
                           </DropdownMenuItem>
                         )}
-                        {transaction.financeEligible && transaction.status !== 'Financed' && (
+                        
+                        {transaction.productType === 'Invoice' &&
+                         transaction.financeEligible && 
+                         transaction.status.toLowerCase() !== 'financed' && (
                           <DropdownMenuItem onClick={() => handleActionClick('request_finance', transaction)}>
                             <DollarSign className="mr-2 h-4 w-4" />
                             Request Finance
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => handleActionClick('request_payment', transaction)}>
-                          <Send className="mr-2 h-4 w-4" />
-                          Request Payment
-                        </DropdownMenuItem>
+                        
+                        {transaction.productType === 'Invoice' &&
+                         transaction.status.toLowerCase() !== 'financed' && (
+                          <DropdownMenuItem onClick={() => handleActionClick('request_payment', transaction)}>
+                            <Send className="mr-2 h-4 w-4" />
+                            Request Payment
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

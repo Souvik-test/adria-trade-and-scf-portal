@@ -19,7 +19,7 @@ const InvoiceSelectionPane: React.FC<InvoiceSelectionPaneProps> = ({
   onFieldChange
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>(formData.preSelectedInvoiceIds || []);
 
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['eligible-invoices', formData.programId],
@@ -95,12 +95,47 @@ const InvoiceSelectionPane: React.FC<InvoiceSelectionPaneProps> = ({
         .map(inv => new Date(inv.due_date).getTime())))
     : null;
 
+  // Handle pre-selected invoices
+  React.useEffect(() => {
+    if (formData.preSelectedInvoiceIds?.length > 0 && invoices) {
+      const preSelectedIds = formData.preSelectedInvoiceIds;
+      setSelectedInvoiceIds(preSelectedIds);
+      
+      const selectedInvoicesData = invoices
+        .filter(inv => preSelectedIds.includes(inv.id))
+        .map(inv => ({
+          invoice_id: inv.id,
+          invoice_number: inv.invoice_number,
+          amount: inv.total_amount,
+          currency: inv.currency,
+          due_date: inv.due_date
+        }));
+      
+      onFieldChange('selectedInvoices', selectedInvoicesData);
+      if (selectedInvoicesData.length > 0) {
+        onFieldChange('invoiceCurrency', selectedInvoicesData[0].currency);
+      }
+    }
+  }, [formData.preSelectedInvoiceIds, invoices]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Invoice Selection</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {formData.preSelectedInvoiceIds?.length > 0 && (
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-md border border-green-200 dark:border-green-800">
+            <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Pre-selected Invoices</h4>
+            <p className="text-sm text-green-800 dark:text-green-200">
+              {formData.preSelectedInvoiceIds.length} invoice(s) selected from Transaction Inquiry
+            </p>
+            <p className="text-sm text-green-800 dark:text-green-200 font-medium mt-1">
+              Total Amount: {formData.invoiceCurrency} {formData.totalInvoiceAmount?.toLocaleString()}
+            </p>
+          </div>
+        )}
+        
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />

@@ -18,6 +18,9 @@ interface FinanceDisbursementModalProps {
   productCode?: string;
   productName?: string;
   anchorType?: 'seller' | 'buyer';
+  preSelectedInvoices?: any[];
+  preSelectedProgramId?: string;
+  preSelectedProgramName?: string;
 }
 
 const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
@@ -25,7 +28,10 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   onClose,
   productCode,
   productName,
-  anchorType = 'seller'
+  anchorType = 'seller',
+  preSelectedInvoices,
+  preSelectedProgramId,
+  preSelectedProgramName
 }) => {
   // Demo environment - use actual user credentials
   const demoUser = { user_id: 'souvik.chakraborty@adria-bt.com', corporate_id: 'DEMO_CORP_001' };
@@ -119,8 +125,11 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
       productCode: productCode || '',
       productName: productName || '',
       selectedInvoices: [],
+      preSelectedInvoiceIds: [],
       invoiceCurrency: 'USD',
-      financeDate: new Date(),
+      totalInvoiceAmount: 0,
+      financeTargetAmount: 0,
+      invoiceDueDate: new Date(),
       financeCurrency: 'USD',
       exchangeRate: undefined,
       financeAmount: 0,
@@ -148,6 +157,27 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     });
     setCurrentPane(0);
   };
+
+  // Handle pre-selected invoices from Transaction Inquiry
+  React.useEffect(() => {
+    if (preSelectedInvoices && preSelectedInvoices.length > 0 && isOpen) {
+      const firstInvoice = preSelectedInvoices[0];
+      
+      setFormData(prev => ({
+        ...prev,
+        programId: preSelectedProgramId || firstInvoice.programId || '',
+        programName: preSelectedProgramName || firstInvoice.programName || '',
+        productCode: firstInvoice.rawData?.product_code || productCode || '',
+        productName: firstInvoice.rawData?.product_name || productName || '',
+        preSelectedInvoiceIds: preSelectedInvoices.map(inv => inv.id),
+        totalInvoiceAmount: preSelectedInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0),
+        invoiceCurrency: firstInvoice.currency || 'USD'
+      }));
+      
+      // Skip to Invoice Selection pane
+      setCurrentPane(1);
+    }
+  }, [preSelectedInvoices, isOpen, preSelectedProgramId, preSelectedProgramName, productCode, productName]);
 
   const handleSubmit = async (action: 'draft' | 'approval' | 'disburse') => {
     const result = await createFinanceDisbursement(

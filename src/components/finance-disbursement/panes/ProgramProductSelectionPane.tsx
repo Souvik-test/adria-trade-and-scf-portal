@@ -88,7 +88,11 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
           <Label htmlFor="program">
             Program <span className="text-destructive">*</span>
           </Label>
-          <Select value={formData.programId} onValueChange={handleProgramSelect}>
+          <Select 
+            value={formData.programId} 
+            onValueChange={handleProgramSelect}
+            disabled={!!formData.programId && !!formData.preSelectedInvoiceIds?.length}
+          >
             <SelectTrigger id="program">
               <SelectValue placeholder="Search and select program" />
             </SelectTrigger>
@@ -108,6 +112,11 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
               ))}
             </SelectContent>
           </Select>
+          {formData.programId && formData.preSelectedInvoiceIds?.length > 0 && (
+            <div className="text-sm bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-100 p-3 rounded-md border border-blue-200 dark:border-blue-800">
+              <strong>Note:</strong> Program auto-populated from {formData.preSelectedInvoiceIds.length} selected invoice(s).
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
