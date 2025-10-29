@@ -412,32 +412,16 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={isReadOnly || (earlyPaymentEnabled && !fieldStates["override_limit_restrictions"])}
+                disabled={isReadOnly}
               />
             </FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel className={`flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["override_limit_restrictions"] ? "text-muted-foreground" : ""}`}>
+              <FormLabel>
                 Override Limit Restrictions
-                {earlyPaymentEnabled && !isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0"
-                    onClick={() => toggleFieldState("override_limit_restrictions")}
-                  >
-                    {fieldStates["override_limit_restrictions"] ? (
-                      <Unlock className="h-3 w-3 text-primary" />
-                    ) : (
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                )}
               </FormLabel>
               <p className="text-sm text-muted-foreground">
                 Allow invoice creation/upload even when Program, Anchor, or Counter Party limits are exceeded. 
                 Note: Disbursements will still be blocked if available limits are negative.
-                {earlyPaymentEnabled && " (Locked when Early Payment Discount is enabled)"}
               </p>
             </div>
           </FormItem>
@@ -453,27 +437,12 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={isReadOnly || (earlyPaymentEnabled && !fieldStates["override_tenor_calculation"])}
+                disabled={isReadOnly}
               />
             </FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel className={`flex items-center gap-2 ${earlyPaymentEnabled && !fieldStates["override_tenor_calculation"] ? "text-muted-foreground" : ""}`}>
+              <FormLabel>
                 Override Tenor Calculation
-                {earlyPaymentEnabled && !isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 p-0"
-                    onClick={() => toggleFieldState("override_tenor_calculation")}
-                  >
-                    {fieldStates["override_tenor_calculation"] ? (
-                      <Unlock className="h-3 w-3 text-primary" />
-                    ) : (
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                )}
               </FormLabel>
               <p className="text-sm text-muted-foreground">
                 Allow invoice creation/upload even when invoice tenor (Due Date - Invoice Date) is outside the program's minimum and maximum tenor range.
