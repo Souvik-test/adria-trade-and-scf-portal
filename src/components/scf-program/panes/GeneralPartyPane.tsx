@@ -409,12 +409,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
         render={({ field }) => (
           <FormItem className="flex items-start space-x-3 space-y-0">
             <FormControl>
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={field.value}
-                onChange={field.onChange}
+                onCheckedChange={field.onChange}
                 disabled={isReadOnly || (earlyPaymentEnabled && !fieldStates["override_limit_restrictions"])}
-                className="mt-1"
               />
             </FormControl>
             <div className="space-y-1 leading-none">
@@ -452,12 +450,10 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
         render={({ field }) => (
           <FormItem className="flex items-start space-x-3 space-y-0">
             <FormControl>
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={field.value}
-                onChange={field.onChange}
+                onCheckedChange={field.onChange}
                 disabled={isReadOnly || (earlyPaymentEnabled && !fieldStates["override_tenor_calculation"])}
-                className="mt-1"
               />
             </FormControl>
             <div className="space-y-1 leading-none">
