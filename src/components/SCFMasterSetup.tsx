@@ -123,6 +123,9 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
     if (itemId === 'product' && option === 'View') {
       setCurrentView("productDefinition");
     } else if (itemId === 'program-configuration') {
+      // Reset filters when navigating directly to program configuration
+      setSelectedProductCode(undefined);
+      setOpenProgramInAddMode(false);
       setCurrentView("programConfiguration");
     }
   };
