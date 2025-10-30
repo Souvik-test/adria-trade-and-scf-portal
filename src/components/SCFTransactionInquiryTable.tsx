@@ -531,7 +531,6 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                       <DropdownMenuContent align="end">
                         {transaction.productType.toLowerCase() === 'invoice' && 
                          transaction.rawData?.early_payment_discount_enabled && 
-                         transaction.financeEligible && 
                          transaction.status.toLowerCase() !== 'financed' && (
                           <DropdownMenuItem onClick={() => handleActionClick('early_payment', transaction)}>
                             <Clock className="mr-2 h-4 w-4" />
