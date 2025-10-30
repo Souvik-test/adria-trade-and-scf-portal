@@ -64,6 +64,17 @@ export const RequestPaymentModal = ({
         throw error;
       }
 
+      // Update invoice statuses to 'paid'
+      const { error: updateError } = await supabase
+        .from('scf_invoices')
+        .update({ status: 'paid' })
+        .in('id', selectedInvoices.map(inv => inv.id));
+
+      if (updateError) {
+        console.error('Error updating invoice statuses:', updateError);
+        // Don't throw - request was created successfully
+      }
+
       toast({
         title: "Success",
         description: "Payment request submitted successfully.",

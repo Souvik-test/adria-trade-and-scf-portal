@@ -509,7 +509,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                   onCheckedChange={(checked) => handleSelectRow(transaction.id, checked as boolean)}
                   disabled={
                     transaction.productType.toLowerCase() !== 'invoice' || 
-                    transaction.status.toLowerCase() === 'financed'
+                    transaction.status.toLowerCase() === 'financed' ||
+                    transaction.status.toLowerCase() === 'paid'
                   }
                 />
               </TableCell>
@@ -522,7 +523,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                           size="icon"
                           disabled={
                             transaction.productType.toLowerCase() !== 'invoice' || 
-                            transaction.status.toLowerCase() === 'financed'
+                            transaction.status.toLowerCase() === 'financed' ||
+                            transaction.status.toLowerCase() === 'paid'
                           }
                         >
                           <MoreVertical className="h-4 w-4" />
@@ -531,7 +533,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                       <DropdownMenuContent align="end">
                         {transaction.productType.toLowerCase() === 'invoice' && 
                          transaction.rawData?.early_payment_discount_enabled && 
-                         transaction.status.toLowerCase() !== 'financed' && (
+                         transaction.status.toLowerCase() !== 'financed' &&
+                         transaction.status.toLowerCase() !== 'paid' && (
                           <DropdownMenuItem onClick={() => handleActionClick('early_payment', transaction)}>
                             <Clock className="mr-2 h-4 w-4" />
                             Early Payment Request
@@ -540,7 +543,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                         
                         {transaction.productType.toLowerCase() === 'invoice' &&
                          transaction.financeEligible && 
-                         transaction.status.toLowerCase() !== 'financed' && (
+                         transaction.status.toLowerCase() !== 'financed' &&
+                         transaction.status.toLowerCase() !== 'paid' && (
                           <DropdownMenuItem onClick={() => handleActionClick('request_finance', transaction)}>
                             <DollarSign className="mr-2 h-4 w-4" />
                             Request Finance
@@ -548,7 +552,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
                         )}
                         
                         {transaction.productType.toLowerCase() === 'invoice' &&
-                         transaction.status.toLowerCase() !== 'financed' && (
+                         transaction.status.toLowerCase() !== 'financed' &&
+                         transaction.status.toLowerCase() !== 'paid' && (
                           <DropdownMenuItem onClick={() => handleActionClick('request_payment', transaction)}>
                             <Send className="mr-2 h-4 w-4" />
                             Request Payment

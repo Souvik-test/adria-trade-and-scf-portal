@@ -249,6 +249,7 @@ export const processUpload = async (
         .single();
 
       if (program?.auto_disbursement) {
+        console.log(`Attempting auto-disbursement for invoice ${invoiceData.invoice_number}`);
         const disbursementResult = await processDisbursement(
           invoice.id,
           validation.program_id!,
@@ -256,6 +257,12 @@ export const processUpload = async (
           validation.finance_percentage!,
           true
         );
+
+        console.log(`Auto-disbursement result for ${invoiceData.invoice_number}:`, {
+          status: disbursementResult.status,
+          error: disbursementResult.error,
+          disbursement: disbursementResult.disbursement ? 'Created' : 'None'
+        });
 
         if (disbursementResult.status === 'completed' && disbursementResult.disbursement) {
           disbursements.push(disbursementResult.disbursement);
@@ -265,6 +272,13 @@ export const processUpload = async (
             .from('scf_invoices')
             .update({ status: 'financed' })
             .eq('id', invoice.id);
+          
+          console.log(`✓ Invoice ${invoiceData.invoice_number} auto-disbursed successfully and status updated to 'financed'`);
+        } else if (disbursementResult.status === 'not_eligible') {
+          console.warn(`✗ Auto-disbursement failed for ${invoiceData.invoice_number}: ${disbursementResult.error}`);
+          console.warn(`  Invoice status remains 'pending_finance' for manual review`);
+        } else {
+          console.error(`✗ Auto-disbursement error for ${invoiceData.invoice_number}:`, disbursementResult.error);
         }
       }
     } catch (error) {

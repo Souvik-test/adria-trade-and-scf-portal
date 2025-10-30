@@ -297,6 +297,20 @@ export const createFinanceDisbursement = async (
       };
     }
 
+    // Update selected invoices to 'financed' status
+    const invoiceIds = data.selectedInvoices.map(inv => inv.invoice_id);
+    if (invoiceIds.length > 0) {
+      const { error: updateError } = await supabase
+        .from('scf_invoices')
+        .update({ status: 'financed' })
+        .in('id', invoiceIds);
+
+      if (updateError) {
+        console.error('Error updating invoice statuses to financed:', updateError);
+        // Don't throw - disbursement was created successfully
+      }
+    }
+
     return { success: true, disbursementReference: disbursementRef };
   } catch (error: any) {
     console.error('Error creating finance disbursement:', error);
