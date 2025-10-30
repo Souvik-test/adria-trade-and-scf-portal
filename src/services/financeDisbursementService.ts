@@ -249,12 +249,12 @@ export const createFinanceDisbursement = async (
   data: FinanceDisbursementData,
   userId: string,
   corporateId: string
-): Promise<{ success: boolean; disbursementReference?: string; error?: string }> => {
+): Promise<{ success: boolean; disbursementReference?: string; error?: string; details?: any }> => {
   try {
     // Generate disbursement reference
     const disbursementRef = `FD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    const { error } = await supabase
+    const { data: result, error } = await supabase
       .from('finance_disbursements')
       .insert({
         user_id: userId,
@@ -285,17 +285,26 @@ export const createFinanceDisbursement = async (
         accounting_reference: data.accountingReference,
         disbursement_reference: disbursementRef,
         status: 'draft'
-      });
+      })
+      .select();
 
     if (error) {
       console.error('Error creating finance disbursement:', error);
-      return { success: false, error: 'Failed to create finance disbursement' };
+      return { 
+        success: false, 
+        error: error.message || 'Failed to create finance disbursement',
+        details: error.details || error.hint
+      };
     }
 
     return { success: true, disbursementReference: disbursementRef };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating finance disbursement:', error);
-    return { success: false, error: 'Failed to create finance disbursement' };
+    return { 
+      success: false, 
+      error: error.message || 'Failed to create finance disbursement',
+      details: error.toString()
+    };
   }
 };
 

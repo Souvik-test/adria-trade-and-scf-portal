@@ -159,51 +159,51 @@ export type Database = {
       }
       early_payment_requests: {
         Row: {
-          created_at: string | null
-          currency: string | null
+          created_at: string
+          currency: string
           discount_percentage: number
           estimated_payment_date: string | null
           id: string
-          invoice_ids: Json
+          invoice_ids: string[]
           program_id: string
           remarks: string | null
-          status: string | null
+          status: string
           total_discounted_amount: number
           total_original_amount: number
           total_savings: number
-          updated_at: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          currency?: string | null
+          created_at?: string
+          currency?: string
           discount_percentage: number
           estimated_payment_date?: string | null
           id?: string
-          invoice_ids: Json
+          invoice_ids: string[]
           program_id: string
           remarks?: string | null
-          status?: string | null
+          status?: string
           total_discounted_amount: number
           total_original_amount: number
           total_savings: number
-          updated_at?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          currency?: string | null
+          created_at?: string
+          currency?: string
           discount_percentage?: number
           estimated_payment_date?: string | null
           id?: string
-          invoice_ids?: Json
+          invoice_ids?: string[]
           program_id?: string
           remarks?: string | null
-          status?: string | null
+          status?: string
           total_discounted_amount?: number
           total_original_amount?: number
           total_savings?: number
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -474,7 +474,7 @@ export type Database = {
           auto_repayment_enabled: boolean
           corporate_id: string
           created_at: string
-          disbursement_reference: string | null
+          disbursement_reference: string
           exchange_rate: number | null
           finance_amount: number
           finance_currency: string
@@ -507,17 +507,17 @@ export type Database = {
           auto_repayment_enabled?: boolean
           corporate_id: string
           created_at?: string
-          disbursement_reference?: string | null
+          disbursement_reference: string
           exchange_rate?: number | null
           finance_amount: number
           finance_currency?: string
-          finance_date?: string
+          finance_date: string
           finance_due_date: string
           finance_tenor_days: number
           id?: string
           interest_amount: number
           interest_rate: number
-          interest_rate_type: string
+          interest_rate_type?: string
           invoice_currency?: string
           product_code: string
           product_name: string
@@ -526,7 +526,7 @@ export type Database = {
           reference_rate_code?: string | null
           reference_rate_margin?: number | null
           repayment_account?: string | null
-          repayment_mode: string
+          repayment_mode?: string
           repayment_party: string
           selected_invoices?: Json
           status?: string
@@ -540,7 +540,7 @@ export type Database = {
           auto_repayment_enabled?: boolean
           corporate_id?: string
           created_at?: string
-          disbursement_reference?: string | null
+          disbursement_reference?: string
           exchange_rate?: number | null
           finance_amount?: number
           finance_currency?: string
@@ -1680,42 +1680,42 @@ export type Database = {
       }
       payment_requests: {
         Row: {
-          created_at: string | null
-          currency: string | null
+          created_at: string
+          currency: string
           id: string
-          invoice_ids: Json
+          invoice_ids: string[]
           notes: string | null
           program_id: string
           requested_payment_date: string | null
-          status: string | null
+          status: string
           total_amount: number
-          updated_at: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          currency?: string | null
+          created_at?: string
+          currency?: string
           id?: string
-          invoice_ids: Json
+          invoice_ids: string[]
           notes?: string | null
           program_id: string
           requested_payment_date?: string | null
-          status?: string | null
+          status?: string
           total_amount: number
-          updated_at?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          currency?: string | null
+          created_at?: string
+          currency?: string
           id?: string
-          invoice_ids?: Json
+          invoice_ids?: string[]
           notes?: string | null
           program_id?: string
           requested_payment_date?: string | null
-          status?: string | null
+          status?: string
           total_amount?: number
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

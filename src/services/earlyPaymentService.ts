@@ -80,7 +80,8 @@ export const submitEarlyPaymentRequest = async (
 
   if (error) {
     console.error('Error submitting early payment request:', error);
-    throw new Error(`Failed to submit early payment request: ${error.message}`);
+    console.error('Error details:', error.details, error.hint);
+    throw new Error(`Failed to submit early payment request: ${error.message} ${error.details || ''}`);
   }
 
   // Update invoice statuses to "Paid"

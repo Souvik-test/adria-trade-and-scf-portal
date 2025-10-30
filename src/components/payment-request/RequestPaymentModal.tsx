@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RequestPaymentModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ export const RequestPaymentModal = ({
   onSuccess,
 }: RequestPaymentModalProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState("");
   const [requestedPaymentDate, setRequestedPaymentDate] = useState("");
@@ -33,14 +35,21 @@ export const RequestPaymentModal = ({
   const programId = selectedInvoices[0]?.programId || "";
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to request payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const userId = "user_id"; // Get from auth context
-      
       const { error } = await supabase
         .from('payment_requests')
         .insert({
-          user_id: userId,
+          user_id: user.id,
           program_id: programId,
           invoice_ids: selectedInvoices.map(inv => inv.id),
           total_amount: totalAmount,
@@ -50,7 +59,10 @@ export const RequestPaymentModal = ({
           status: 'pending',
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Payment request error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",

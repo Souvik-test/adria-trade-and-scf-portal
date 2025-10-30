@@ -10,7 +10,7 @@ import RepaymentDetailsPane from './panes/RepaymentDetailsPane';
 import AccountingEntriesPane from './panes/AccountingEntriesPane';
 import ReviewSubmitPane from './panes/ReviewSubmitPane';
 import { createFinanceDisbursement } from '@/services/financeDisbursementService';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FinanceDisbursementModalProps {
   isOpen: boolean;
@@ -33,8 +33,7 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   preSelectedProgramId,
   preSelectedProgramName
 }) => {
-  // Demo environment - use actual user credentials
-  const demoUser = { user_id: 'souvik.chakraborty@adria-bt.com', corporate_id: 'DEMO_CORP_001' };
+  const { user } = useAuth();
   const [currentPane, setCurrentPane] = useState(0);
 
   const [formData, setFormData] = useState<any>({
@@ -180,10 +179,15 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
   }, [preSelectedInvoices, isOpen, preSelectedProgramId, preSelectedProgramName, productCode, productName]);
 
   const handleSubmit = async (action: 'draft' | 'approval' | 'disburse') => {
+    if (!user) {
+      toast.error('Please log in to create finance disbursement');
+      return;
+    }
+
     const result = await createFinanceDisbursement(
       formData,
-      demoUser.user_id,
-      demoUser.corporate_id
+      user.id,
+      'TC001' // Corporate ID from user profile or config
     );
 
     if (result.success) {
