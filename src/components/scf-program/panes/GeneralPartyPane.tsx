@@ -151,6 +151,37 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
             )}
           />
         </div>
+        
+        {/* Conditional Default Discount % Field */}
+        {earlyPaymentEnabled && (
+          <div className="mt-4">
+            <FormField
+              control={form.control}
+              name="default_discount_percentage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default Discount %</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      disabled={isReadOnly}
+                      placeholder="Enter default discount percentage"
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Default discount percentage applied to early payment requests
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
       </Card>
 
       {/* General Details */}

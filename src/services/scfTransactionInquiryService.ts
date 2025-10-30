@@ -158,7 +158,11 @@ export const fetchSCFTransactions = async (
           financeEligibleReason: eligibility.reason,
           relatedTransactionRefs: [...relatedDisbursements, ...relatedRepayments],
           status: invoice.status || 'draft',
-          rawData: invoice,
+          rawData: { 
+            ...invoice,
+            early_payment_discount_enabled: program?.early_payment_discount_enabled || false,
+            default_discount_percentage: program?.default_discount_percentage || 0
+          },
         });
       }
     }

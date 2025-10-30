@@ -14,6 +14,7 @@ import {
   EarlyPaymentCalculation,
 } from "@/services/earlyPaymentService";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EarlyPaymentRequestFormProps {
   selectedInvoices: any[];
@@ -27,9 +28,11 @@ export const EarlyPaymentRequestForm = ({
   onSuccess,
 }: EarlyPaymentRequestFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [calculations, setCalculations] = useState<EarlyPaymentCalculation[]>([]);
   const [discountRate, setDiscountRate] = useState(0);
+  const [editableDiscountRate, setEditableDiscountRate] = useState(0);
   const [remarks, setRemarks] = useState("");
   const [estimatedPaymentDate, setEstimatedPaymentDate] = useState("");
 
@@ -42,6 +45,7 @@ export const EarlyPaymentRequestForm = ({
         const programId = selectedInvoices[0].programId;
         const rate = await fetchProgramDiscountRate(programId);
         setDiscountRate(rate);
+        setEditableDiscountRate(rate);
 
         const invoiceData = selectedInvoices.map(inv => ({
           id: inv.id,
@@ -74,6 +78,20 @@ export const EarlyPaymentRequestForm = ({
     fetchAndCalculate();
   }, [selectedInvoices, toast]);
 
+  const recalculateWithNewDiscount = (newRate: number) => {
+    setEditableDiscountRate(newRate);
+    const invoiceData = selectedInvoices.map(inv => ({
+      id: inv.id,
+      invoice_number: inv.transactionReference,
+      original_amount: inv.amount,
+      due_date: inv.dueDate || "",
+      currency: inv.currency,
+      program_id: inv.programId,
+    }));
+    const calcs = calculateEarlyPaymentSavings(invoiceData, newRate);
+    setCalculations(calcs);
+  };
+
   const totals = calculations.reduce(
     (acc, calc) => ({
       original: acc.original + calc.invoice.original_amount,
@@ -88,7 +106,17 @@ export const EarlyPaymentRequestForm = ({
 
     setLoading(true);
     try {
-      const userId = "user_id"; // Get from auth context
+      const userId = user?.id || '';
+      if (!userId) {
+        toast({
+          title: "Error",
+          description: "User not authenticated.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const programId = selectedInvoices[0].programId;
       const currency = selectedInvoices[0].currency;
       const invoiceData = calculations.map(c => c.invoice);
@@ -99,7 +127,7 @@ export const EarlyPaymentRequestForm = ({
         userId,
         programId,
         invoiceData,
-        discountRate,
+        editableDiscountRate,
         totals.original,
         totals.discounted,
         totals.savings,
@@ -149,8 +177,25 @@ export const EarlyPaymentRequestForm = ({
               <p className="text-2xl font-bold">{selectedInvoices[0]?.currency} {totals.original.toLocaleString()}</p>
             </div>
             <div>
-              <Label className="text-muted-foreground">Discount Rate</Label>
-              <p className="text-2xl font-bold text-primary">{discountRate}%</p>
+              <Label htmlFor="discount_rate" className="text-muted-foreground">Discount Rate (%)</Label>
+              <Input
+                id="discount_rate"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={editableDiscountRate}
+                onChange={(e) => {
+                  const newRate = parseFloat(e.target.value) || 0;
+                  if (newRate >= 0 && newRate <= 100) {
+                    recalculateWithNewDiscount(newRate);
+                  }
+                }}
+                className="text-2xl font-bold text-primary mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Original program rate: {discountRate}% (adjustable)
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground">Total After Discount</Label>

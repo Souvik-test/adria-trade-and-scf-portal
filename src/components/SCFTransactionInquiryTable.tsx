@@ -445,6 +445,8 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
         onSuccess={() => {
           setShowEarlyPaymentModal(false);
           setSelectedTransactions(new Set());
+          // Refresh the page to show updated invoice statuses
+          window.location.reload();
         }}
       />
 

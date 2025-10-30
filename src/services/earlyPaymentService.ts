@@ -83,6 +83,17 @@ export const submitEarlyPaymentRequest = async (
     throw new Error(`Failed to submit early payment request: ${error.message}`);
   }
 
+  // Update invoice statuses to "Paid"
+  const { error: updateError } = await supabase
+    .from('scf_invoices')
+    .update({ status: 'Paid' })
+    .in('id', invoices.map(inv => inv.id));
+
+  if (updateError) {
+    console.error('Error updating invoice statuses:', updateError);
+    // Don't throw - request was created successfully
+  }
+
   return data;
 };
 
