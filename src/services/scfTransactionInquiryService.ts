@@ -266,9 +266,10 @@ export const calculateFinanceEligibility = async (
     return { eligible: false, reason: 'Missing invoice or program data' };
   }
 
-  // Check if already financed
-  if (invoice.status === 'Financed' || invoice.status === 'financed') {
-    return { eligible: false, reason: 'Invoice already financed' };
+  // Check if already financed or paid
+  if (invoice.status === 'Financed' || invoice.status === 'financed' || 
+      invoice.status === 'Paid' || invoice.status === 'paid') {
+    return { eligible: false, reason: 'Invoice already financed or paid' };
   }
 
   // Check currency match

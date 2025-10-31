@@ -46,6 +46,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose, onBack }) => {
       <InvoiceForm 
         onClose={handleFormClose}
         onBack={handleFormBack}
+        module="SCF"
       />
     );
   }

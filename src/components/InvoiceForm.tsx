@@ -17,7 +17,7 @@ import useInvoiceForm from '@/hooks/useInvoiceForm';
 import InvoiceProgressIndicator from './invoice-form/InvoiceProgressIndicator';
 import InvoicePaneRenderer from './invoice-form/InvoicePaneRenderer';
 import InvoiceFormActions from './invoice-form/InvoiceFormActions';
-import { saveSCFInvoice, searchPurchaseOrder } from '@/services/transactionService';
+import { saveSCFInvoice, saveInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -29,9 +29,10 @@ import {
 interface InvoiceFormProps {
   onClose: () => void;
   onBack: () => void;
+  module?: 'SCF' | 'TradeFin';
 }
 
-const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
+const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack, module = 'SCF' }) => {
   const {
     formData,
     currentStep,
@@ -168,7 +169,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack }) => {
       }
 
       // All validations passed - proceed with submission
-      const result = await saveSCFInvoice(formData);
+      const result = module === 'SCF' 
+        ? await saveSCFInvoice(formData)
+        : await saveInvoice(formData);
+      
       toast({
         title: `${formData.invoiceType === 'invoice' ? 'Invoice' : formData.invoiceType === 'credit-note' ? 'Credit Note' : 'Debit Note'} Submitted!`,
         description: `${result.invoice_number} has been successfully saved to the database.`,
