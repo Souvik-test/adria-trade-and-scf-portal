@@ -2547,6 +2547,14 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      notify_scf_users: {
+        Args: {
+          p_message: string
+          p_transaction_ref: string
+          p_transaction_type: string
+        }
+        Returns: undefined
+      }
       update_user_password: {
         Args: { new_password: string; old_password: string }
         Returns: boolean
