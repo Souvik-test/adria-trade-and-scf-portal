@@ -4,10 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Archive, Clock, ExternalLink } from 'lucide-react';
-// import { fetchNotifications, markNotificationAsRead } from '@/services/database';
 import { fetchNotifications, markNotificationAsRead } from '@/services/notificationService';
 import { useToast } from '@/hooks/use-toast';
 import TransactionViewModal from '@/components/TransactionViewModal';
+import { FinanceDisbursementViewModal } from '@/components/scf-transaction-inquiry/FinanceDisbursementViewModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
   id: string;
@@ -29,6 +30,8 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ isOpen, onClose
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTransactionRef, setSelectedTransactionRef] = useState<string | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [showDisbursementModal, setShowDisbursementModal] = useState(false);
+  const [selectedDisbursement, setSelectedDisbursement] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -68,9 +71,47 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ isOpen, onClose
       }
     }
     
-    // Open transaction view modal
-    setSelectedTransactionRef(notification.transaction_ref);
-    setIsViewModalOpen(true);
+    // Check if this is a finance disbursement notification
+    if (notification.transaction_type === 'SCF Finance' && 
+        notification.transaction_ref.startsWith('LOAN-')) {
+      // This is an auto-disbursement - fetch by loan_reference
+      try {
+        const { data, error } = await supabase
+          .from('invoice_disbursements')
+          .select(`
+            *,
+            invoice:scf_invoice_id (
+              invoice_number,
+              total_amount,
+              currency,
+              seller_id,
+              seller_name,
+              buyer_id,
+              buyer_name,
+              due_date,
+              program_id
+            )
+          `)
+          .eq('loan_reference', notification.transaction_ref)
+          .single();
+        
+        if (error) throw error;
+        
+        setSelectedDisbursement(data);
+        setShowDisbursementModal(true);
+      } catch (error) {
+        console.error('Error fetching disbursement:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load disbursement details.',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      // Default: open transaction modal
+      setSelectedTransactionRef(notification.transaction_ref);
+      setIsViewModalOpen(true);
+    }
   };
 
   const handleArchive = async (notificationId: string, e: React.MouseEvent) => {
@@ -197,6 +238,13 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ isOpen, onClose
           transactionRef={selectedTransactionRef}
         />
       )}
+
+      {/* Finance Disbursement View Modal */}
+      <FinanceDisbursementViewModal
+        open={showDisbursementModal}
+        onOpenChange={setShowDisbursementModal}
+        disbursement={selectedDisbursement}
+      />
     </>
   );
 };

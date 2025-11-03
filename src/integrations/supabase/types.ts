@@ -167,6 +167,7 @@ export type Database = {
           invoice_ids: string[]
           program_id: string
           remarks: string | null
+          request_reference: string | null
           status: string
           total_discounted_amount: number
           total_original_amount: number
@@ -183,6 +184,7 @@ export type Database = {
           invoice_ids: string[]
           program_id: string
           remarks?: string | null
+          request_reference?: string | null
           status?: string
           total_discounted_amount: number
           total_original_amount: number
@@ -199,6 +201,7 @@ export type Database = {
           invoice_ids?: string[]
           program_id?: string
           remarks?: string | null
+          request_reference?: string | null
           status?: string
           total_discounted_amount?: number
           total_original_amount?: number
@@ -1685,6 +1688,7 @@ export type Database = {
           id: string
           invoice_ids: string[]
           notes: string | null
+          payment_reference: string | null
           program_id: string
           requested_payment_date: string | null
           status: string
@@ -1698,6 +1702,7 @@ export type Database = {
           id?: string
           invoice_ids: string[]
           notes?: string | null
+          payment_reference?: string | null
           program_id: string
           requested_payment_date?: string | null
           status?: string
@@ -1711,6 +1716,7 @@ export type Database = {
           id?: string
           invoice_ids?: string[]
           notes?: string | null
+          payment_reference?: string | null
           program_id?: string
           requested_payment_date?: string | null
           status?: string
