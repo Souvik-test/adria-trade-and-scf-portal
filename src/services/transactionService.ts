@@ -3,6 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUserAsync, getCustomerName, getAmount, createTransactionRecord } from './database';
 import { getProductAndProcessType } from './processTypeMapping';
 
+// Helper function to convert empty date strings to null for database compatibility
+const sanitizeDateField = (dateValue: string | undefined | null): string | null => {
+  if (!dateValue || dateValue.trim() === '') return null;
+  return dateValue;
+};
+
 // Remove the getUniqueTransactionRef function since we no longer auto-generate refs.
 
 // Save Purchase Order
@@ -155,12 +161,12 @@ export const saveSCFInvoice = async (formData: any) => {
         program_id: formData.programId,
         program_name: formData.programName,
         invoice_number: invoiceNumber,
-        invoice_date: formData.invoiceDate,
-        due_date: formData.dueDate,
-        purchase_order_number: formData.purchaseOrderNumber,
-        purchase_order_currency: formData.purchaseOrderCurrency,
-        purchase_order_amount: formData.purchaseOrderAmount,
-        purchase_order_date: formData.purchaseOrderDate,
+        invoice_date: sanitizeDateField(formData.invoiceDate),
+        due_date: sanitizeDateField(formData.dueDate),
+        purchase_order_number: formData.purchaseOrderNumber || null,
+        purchase_order_currency: formData.purchaseOrderCurrency || null,
+        purchase_order_amount: formData.purchaseOrderAmount || 0,
+        purchase_order_date: sanitizeDateField(formData.purchaseOrderDate),
         buyer_id: formData.buyerId,
         buyer_name: formData.buyerName,
         seller_id: formData.sellerId,
@@ -168,10 +174,10 @@ export const saveSCFInvoice = async (formData: any) => {
         currency: formData.currency,
         subtotal: formData.subtotal,
         tax_amount: formData.taxAmount,
-        discount_amount: formData.discountAmount,
+        discount_amount: formData.discountAmount || 0,
         total_amount: formData.totalAmount,
-        payment_terms: formData.paymentTerms,
-        notes: formData.notes,
+        payment_terms: formData.paymentTerms || null,
+        notes: formData.notes || null,
         status: 'submitted'
       })
       .select()
