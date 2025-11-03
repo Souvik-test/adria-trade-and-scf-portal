@@ -449,9 +449,12 @@ export const validateInvoiceManual = async (
     errors.push(...currencyValidation.errors);
   }
 
-  // 4. Validate seller info is populated
+  // 4. Validate buyer and seller info is populated
   if (!formData.sellerId || !formData.sellerName) {
-    errors.push('Seller information could not be populated from the selected program. Please contact administrator.');
+    errors.push('Seller ID and Name are required. Please enter manually if auto-population failed.');
+  }
+  if (!formData.buyerId || !formData.buyerName) {
+    errors.push('Buyer ID and Name are required. Please enter manually if auto-population failed.');
   }
 
   // 5. Validate amount against limits (skip if override enabled)

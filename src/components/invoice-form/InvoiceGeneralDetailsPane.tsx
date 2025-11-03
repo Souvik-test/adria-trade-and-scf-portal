@@ -511,7 +511,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                 value={formData.buyerId}
                 onChange={(e) => updateField('buyerId', e.target.value)}
                 placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Buyer ID"}
-                readOnly={autoPopulatedSuccess}
+                readOnly={false}
                 className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
@@ -523,7 +523,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                 value={formData.buyerName}
                 onChange={(e) => updateField('buyerName', e.target.value)}
                 placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Buyer Name"}
-                readOnly={autoPopulatedSuccess}
+                readOnly={false}
                 className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
@@ -535,7 +535,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                 value={formData.sellerId}
                 onChange={(e) => updateField('sellerId', e.target.value)}
                 placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Seller ID"}
-                readOnly={autoPopulatedSuccess}
+                readOnly={false}
                 className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>
@@ -547,7 +547,7 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
                 value={formData.sellerName}
                 onChange={(e) => updateField('sellerName', e.target.value)}
                 placeholder={autoPopulatedSuccess ? "Auto-populated" : "Enter Seller Name"}
-                readOnly={autoPopulatedSuccess}
+                readOnly={false}
                 className={autoPopulatedSuccess ? "bg-gray-50 dark:bg-gray-900" : ""}
               />
             </div>

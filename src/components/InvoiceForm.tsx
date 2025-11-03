@@ -179,8 +179,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack, module = 'SC
       });
       onClose();
     } catch (error) {
-      console.error('Error submitting invoice:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('❌ Error submitting invoice:', error);
+      console.error('📋 Form data at time of error:', JSON.stringify(formData, null, 2));
+      console.error('📊 Validation errors:', validationErrors);
+      console.error('🔍 Error details:', JSON.stringify(error, null, 2));
       const errorMessage = error instanceof Error ? error.message : 'There was an error saving your invoice. Please try again.';
       toast({
         title: 'Submission Failed',
