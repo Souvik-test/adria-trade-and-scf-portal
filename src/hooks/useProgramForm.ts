@@ -74,6 +74,12 @@ const programSchema = z.object({
   early_payment_discount_enabled: z.boolean().default(false),
   default_discount_percentage: z.number().min(0).max(100).optional(),
   dynamic_discounting_enabled: z.boolean().default(false),
+  factoring_enabled: z.boolean().default(false),
+  factoring_geography: z.string().optional(),
+  factoring_recourse_type: z.string().optional(),
+  factoring_disclosure: z.string().optional(),
+  factoring_delivery_model: z.string().optional(),
+  factoring_risk_bearer: z.string().optional(),
 });
 
 type ProgramFormValues = z.infer<typeof programSchema>;
@@ -144,6 +150,15 @@ export const useProgramForm = (
       status: "active",
       override_limit_restrictions: false,
       override_tenor_calculation: false,
+      early_payment_discount_enabled: false,
+      default_discount_percentage: 0,
+      dynamic_discounting_enabled: false,
+      factoring_enabled: false,
+      factoring_geography: "",
+      factoring_recourse_type: "",
+      factoring_disclosure: "",
+      factoring_delivery_model: "",
+      factoring_risk_bearer: "",
     },
   });
 
@@ -299,6 +314,12 @@ export const useProgramForm = (
       appropriation_sequence_before_due: data.appropriation_sequence_before_due,
       override_limit_restrictions: data.override_limit_restrictions,
       override_tenor_calculation: data.override_tenor_calculation,
+      factoring_enabled: data.factoring_enabled || false,
+      factoring_geography: data.factoring_geography || null,
+      factoring_recourse_type: data.factoring_recourse_type || null,
+      factoring_disclosure: data.factoring_disclosure || null,
+      factoring_delivery_model: data.factoring_delivery_model || null,
+      factoring_risk_bearer: data.factoring_risk_bearer || null,
     };
   };
 
@@ -371,6 +392,34 @@ export const useProgramForm = (
         });
       }
       return;
+    }
+    
+    // Validate factoring fields if factoring is enabled
+    if (data.factoring_enabled) {
+      const factoringErrors: string[] = [];
+      
+      if (!data.factoring_geography) {
+        factoringErrors.push("Geography is required when Factoring is enabled");
+      }
+      if (!data.factoring_recourse_type) {
+        factoringErrors.push("Recourse Type is required when Factoring is enabled");
+      }
+      if (!data.factoring_disclosure) {
+        factoringErrors.push("Disclosure is required when Factoring is enabled");
+      }
+      
+      if (factoringErrors.length > 0) {
+        if (onValidationError) {
+          onValidationError(factoringErrors);
+        } else {
+          toast({
+            title: "Factoring Validation Failed",
+            description: factoringErrors.join("; "),
+            variant: "destructive",
+          });
+        }
+        return;
+      }
     }
     
     try {

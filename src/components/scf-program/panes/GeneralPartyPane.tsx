@@ -1124,6 +1124,185 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
               )}
             />
           )}
+
+          {/* Factoring */}
+          <FormField
+            control={form.control}
+            name="factoring_enabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      if (checked && form.getValues("factoring_recourse_type") === "Recourse") {
+                        form.setValue("factoring_risk_bearer", "Clients");
+                      }
+                    }}
+                    disabled={isReadOnly}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Factoring</FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Conditional Factoring Fields */}
+          {form.watch("factoring_enabled") && (
+            <>
+              <FormField
+                control={form.control}
+                name="factoring_geography"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Select Geography <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select geography" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Domestic">Domestic</SelectItem>
+                          <SelectItem value="Export">Export</SelectItem>
+                          <SelectItem value="Import">Import</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="factoring_recourse_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Recourse Type <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          if (value === "Recourse") {
+                            form.setValue("factoring_risk_bearer", "Clients");
+                          }
+                        }}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select recourse type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Recourse">Recourse</SelectItem>
+                          <SelectItem value="Non-Recourse">Non-Recourse</SelectItem>
+                          <SelectItem value="Maturity">Maturity</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="factoring_disclosure"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Disclosure <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select disclosure" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Disclosed">Disclosed</SelectItem>
+                          <SelectItem value="Undisclosed">Undisclosed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="factoring_delivery_model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Delivery Model (Optional)</FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select delivery model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Direct">Direct</SelectItem>
+                          <SelectItem value="Two Factor">Two Factor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="factoring_risk_bearer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Risk Bearer (Optional)</FormLabel>
+                    <FormControl>
+                      <Select
+                        disabled={isReadOnly || form.watch("factoring_recourse_type") === "Recourse"}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select risk bearer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Factors">Factors</SelectItem>
+                          <SelectItem value="Clients">Clients</SelectItem>
+                          <SelectItem value="Insurer">Insurer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                    {form.watch("factoring_recourse_type") === "Recourse" && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Defaulted to "Clients" when Recourse Type is "Recourse"
+                      </p>
+                    )}
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
       </Card>
 

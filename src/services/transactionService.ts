@@ -178,6 +178,7 @@ export const saveSCFInvoice = async (formData: any) => {
         total_amount: formData.totalAmount,
         payment_terms: formData.paymentTerms || null,
         notes: formData.notes || null,
+        buyers_acceptance_required: formData.buyersAcceptanceRequired || false,
         status: 'submitted'
       })
       .select()

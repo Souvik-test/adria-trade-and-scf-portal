@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InvoiceFormData } from '@/hooks/useInvoiceForm';
 import { Search, RefreshCw, AlertCircle } from 'lucide-react';
@@ -560,7 +561,28 @@ const InvoiceGeneralDetailsPane: React.FC<InvoiceGeneralDetailsPaneProps> = ({
         <CardHeader>
           <CardTitle>Payment Terms</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Buyer's Acceptance Required Checkbox */}
+          <div className="flex items-start space-x-3 space-y-0 border rounded-lg p-4 bg-primary/5">
+            <Checkbox
+              id="buyersAcceptanceRequired"
+              checked={formData.buyersAcceptanceRequired}
+              onCheckedChange={(checked) => updateField('buyersAcceptanceRequired', checked)}
+            />
+            <div className="space-y-1 leading-none">
+              <Label 
+                htmlFor="buyersAcceptanceRequired" 
+                className="font-semibold cursor-pointer"
+              >
+                Buyer's Acceptance Required
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Check this if buyer's acceptance is required before invoice processing
+              </p>
+            </div>
+          </div>
+          
+          {/* Payment Terms Textarea */}
           <div>
             <Label htmlFor="paymentTerms">Payment Terms</Label>
             <Textarea

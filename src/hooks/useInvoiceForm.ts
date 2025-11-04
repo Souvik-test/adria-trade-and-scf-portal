@@ -32,6 +32,7 @@ export interface InvoiceFormData {
   totalAmount: number;
   paymentTerms: string;
   notes: string;
+  buyersAcceptanceRequired: boolean;
   // Validation-related fields
   programCurrency?: string;
   minTenorDays?: number;
@@ -69,6 +70,7 @@ const useInvoiceForm = () => {
     totalAmount: 0,
     paymentTerms: '',
     notes: '',
+    buyersAcceptanceRequired: false,
     programCurrency: '',
     minTenorDays: 0,
     maxTenorDays: 365,

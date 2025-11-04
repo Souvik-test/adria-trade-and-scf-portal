@@ -2032,6 +2032,7 @@ export type Database = {
         Row: {
           buyer_id: string
           buyer_name: string
+          buyers_acceptance_required: boolean | null
           created_at: string
           currency: string | null
           discount_amount: number | null
@@ -2060,6 +2061,7 @@ export type Database = {
         Insert: {
           buyer_id: string
           buyer_name: string
+          buyers_acceptance_required?: boolean | null
           created_at?: string
           currency?: string | null
           discount_amount?: number | null
@@ -2088,6 +2090,7 @@ export type Database = {
         Update: {
           buyer_id?: string
           buyer_name?: string
+          buyers_acceptance_required?: boolean | null
           created_at?: string
           currency?: string | null
           discount_amount?: number | null
@@ -2202,6 +2205,12 @@ export type Database = {
           early_payment_discount_enabled: boolean | null
           effective_date: string
           expiry_date: string
+          factoring_delivery_model: string | null
+          factoring_disclosure: string | null
+          factoring_enabled: boolean | null
+          factoring_geography: string | null
+          factoring_recourse_type: string | null
+          factoring_risk_bearer: string | null
           fee_catalogue: Json | null
           finance_percentage: number | null
           finance_tenor: number | null
@@ -2279,6 +2288,12 @@ export type Database = {
           early_payment_discount_enabled?: boolean | null
           effective_date: string
           expiry_date: string
+          factoring_delivery_model?: string | null
+          factoring_disclosure?: string | null
+          factoring_enabled?: boolean | null
+          factoring_geography?: string | null
+          factoring_recourse_type?: string | null
+          factoring_risk_bearer?: string | null
           fee_catalogue?: Json | null
           finance_percentage?: number | null
           finance_tenor?: number | null
@@ -2356,6 +2371,12 @@ export type Database = {
           early_payment_discount_enabled?: boolean | null
           effective_date?: string
           expiry_date?: string
+          factoring_delivery_model?: string | null
+          factoring_disclosure?: string | null
+          factoring_enabled?: boolean | null
+          factoring_geography?: string | null
+          factoring_recourse_type?: string | null
+          factoring_risk_bearer?: string | null
           fee_catalogue?: Json | null
           finance_percentage?: number | null
           finance_tenor?: number | null
