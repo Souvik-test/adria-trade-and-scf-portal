@@ -127,6 +127,7 @@ export type Database = {
           password_hash: string
           product_linkage: Database["public"]["Enums"]["product_type"][] | null
           role_type: Database["public"]["Enums"]["user_role_type"] | null
+          scf_role: Database["public"]["Enums"]["scf_user_role"] | null
           updated_at: string | null
           user_id: string
           user_login_id: string
@@ -139,6 +140,7 @@ export type Database = {
           password_hash: string
           product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          scf_role?: Database["public"]["Enums"]["scf_user_role"] | null
           updated_at?: string | null
           user_id: string
           user_login_id: string
@@ -151,6 +153,7 @@ export type Database = {
           password_hash?: string
           product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role_type?: Database["public"]["Enums"]["user_role_type"] | null
+          scf_role?: Database["public"]["Enums"]["scf_user_role"] | null
           updated_at?: string | null
           user_id?: string
           user_login_id?: string
@@ -2574,9 +2577,11 @@ export type Database = {
           user_login_id: string
         }[]
       }
-      notify_scf_users: {
+      notify_scf_users_by_role: {
         Args: {
+          p_exclude_user_id?: string
           p_message: string
+          p_notify_roles: Database["public"]["Enums"]["scf_user_role"][]
           p_transaction_ref: string
           p_transaction_type: string
         }
@@ -2598,6 +2603,7 @@ export type Database = {
         | "Shipping Guarantee"
         | "Import Loan"
         | "Export Loan"
+      scf_user_role: "Supplier" | "Buyer" | "Bank" | "Admin"
       user_role_type: "Maker" | "Checker" | "Viewer" | "All"
     }
     CompositeTypes: {
@@ -2737,6 +2743,7 @@ export const Constants = {
         "Import Loan",
         "Export Loan",
       ],
+      scf_user_role: ["Supplier", "Buyer", "Bank", "Admin"],
       user_role_type: ["Maker", "Checker", "Viewer", "All"],
     },
   },
