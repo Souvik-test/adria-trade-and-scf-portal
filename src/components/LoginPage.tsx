@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Edit2, Check, X } from 'lucide-react';
+import { customAuth } from '@/services/customAuth';
 
 const LoginPage: React.FC = () => {
   const { signIn, signUp } = useAuth();
@@ -91,6 +92,19 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
+      // Try custom auth first
+      const customResult = await customAuth.signIn(loginForm.email, loginForm.password);
+      
+      if (customResult.session) {
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back!'
+        });
+        navigate('/');
+        return;
+      }
+
+      // Fall back to Supabase Auth
       const { error } = await signIn(loginForm.email, loginForm.password);
       
       if (error) {

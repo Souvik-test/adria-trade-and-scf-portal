@@ -1,8 +1,16 @@
 // All database service methods now use Supabase Auth for user identification.
 import { supabase } from '@/integrations/supabase/client';
+import { customAuth } from './customAuth';
 
 // --- User/session and helper functions ---
 const getCurrentUser = () => {
+  // Try custom auth first
+  const customSession = customAuth.getSession();
+  if (customSession && customSession.user) {
+    return { id: customSession.user.id, email: customSession.user.user_id };
+  }
+
+  // Fall back to Supabase Auth
   const user =
     supabase.auth.getUser &&
     typeof supabase.auth.getUser === 'function'
@@ -15,6 +23,13 @@ const getCurrentUser = () => {
 };
 
 const getCurrentUserAsync = async () => {
+  // Try custom auth first
+  const customSession = customAuth.getSession();
+  if (customSession && customSession.user) {
+    return { id: customSession.user.id, email: customSession.user.user_id };
+  }
+
+  // Fall back to Supabase Auth
   const { data, error } = await supabase.auth.getSession();
   if (error || !data || !data.session || !data.session.user) return null;
   return data.session.user;

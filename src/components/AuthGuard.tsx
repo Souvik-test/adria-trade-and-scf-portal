@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import { customAuth } from '@/services/customAuth';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -8,6 +9,9 @@ interface AuthGuardProps {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { user, loading } = useAuth();
+
+  // Check custom auth session first
+  const customSession = customAuth.getSession();
 
   if (loading) {
     return (
@@ -23,7 +27,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     );
   }
 
-  if (!user) {
+  // Allow access if either custom auth or Supabase auth is active
+  if (!customSession && !user) {
     return <Navigate to="/auth" replace />;
   }
 
