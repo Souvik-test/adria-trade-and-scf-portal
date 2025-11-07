@@ -65,14 +65,24 @@ export const RequestPaymentModal = ({
       }
 
       // Update invoice statuses to 'paid'
-      const { error: updateError } = await supabase
+      const invoiceIds = selectedInvoices.map(inv => inv.id);
+      console.log('Updating invoice statuses for IDs:', invoiceIds);
+      
+      const { data: updatedInvoices, error: updateError } = await supabase
         .from('scf_invoices')
         .update({ status: 'paid' })
-        .in('id', selectedInvoices.map(inv => inv.id));
+        .in('id', invoiceIds)
+        .select('id, invoice_number, status');
 
       if (updateError) {
         console.error('Error updating invoice statuses:', updateError);
-        // Don't throw - request was created successfully
+        toast({
+          title: "Warning",
+          description: "Payment request created but invoice status update failed. Please contact support.",
+          variant: "destructive",
+        });
+      } else {
+        console.log('Successfully updated invoices to paid:', updatedInvoices);
       }
 
       toast({
