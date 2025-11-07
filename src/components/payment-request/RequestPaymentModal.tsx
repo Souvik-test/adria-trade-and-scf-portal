@@ -46,23 +46,35 @@ export const RequestPaymentModal = ({
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('payment_requests')
+      console.log('Creating payment request for invoices:', selectedInvoices.map(inv => ({
+        id: inv.id,
+        transactionReference: inv.transactionReference
+      })));
+
+      // Create payment request
+      const paymentReference = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const { data: paymentRequest, error: paymentError } = await supabase
+        .from('scf_payment_requests' as any)
         .insert({
           user_id: user.id,
           program_id: programId,
-          invoice_ids: selectedInvoices.map(inv => inv.id),
+          payment_reference: paymentReference,
+          invoice_references: selectedInvoices.map(inv => inv.transactionReference),
           total_amount: totalAmount,
           currency,
           requested_payment_date: requestedPaymentDate || null,
-          notes,
-          status: 'pending',
-        });
+          notes: notes || null,
+          status: 'submitted'
+        })
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Payment request error:', error);
-        throw error;
+      if (paymentError) {
+        console.error('Payment request error:', paymentError);
+        throw paymentError;
       }
+
+      console.log('Payment request created:', paymentRequest);
 
       // Update invoice statuses to 'paid'
       const invoiceIds = selectedInvoices.map(inv => inv.id);
@@ -79,6 +91,13 @@ export const RequestPaymentModal = ({
         toast({
           title: "Warning",
           description: "Payment request created but invoice status update failed. Please contact support.",
+          variant: "destructive",
+        });
+      } else if (!updatedInvoices || updatedInvoices.length === 0) {
+        console.warn('No invoices were updated. Invoice IDs may not exist:', invoiceIds);
+        toast({
+          title: "Warning",
+          description: "Payment request created but no invoice statuses were updated.",
           variant: "destructive",
         });
       } else {
