@@ -44,47 +44,118 @@ export const RequestPaymentModal = ({
       return;
     }
 
+    // Pre-flight validation
+    if (!selectedInvoices || selectedInvoices.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "No invoices selected. Please select at least one invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate all invoices have valid IDs
+    const invalidInvoices = selectedInvoices.filter(inv => !inv.id || typeof inv.id !== 'string');
+    if (invalidInvoices.length > 0) {
+      console.error('Invalid invoice IDs found:', invalidInvoices);
+      toast({
+        title: "Validation Error",
+        description: "Some invoices have invalid IDs. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate programId exists
+    if (!programId || programId.trim() === '') {
+      console.error('Missing program ID');
+      toast({
+        title: "Validation Error",
+        description: "Program ID is missing. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const invoiceIds = selectedInvoices.map(inv => inv.id);
-      console.log('Creating payment request for invoices:', invoiceIds);
+      
+      // Detailed logging for debugging
+      console.log('=== Payment Request Submission ===');
+      console.log('User ID:', user.id);
+      console.log('Program ID:', programId);
+      console.log('Invoice IDs:', invoiceIds);
+      console.log('Total Amount:', totalAmount);
+      console.log('Currency:', currency);
+      console.log('Requested Payment Date:', requestedPaymentDate);
+      console.log('Notes:', notes);
 
       // Create payment request using correct table and schema
       const paymentReference = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const insertData = {
+        user_id: user.id,
+        program_id: programId,
+        payment_reference: paymentReference,
+        invoice_ids: invoiceIds,
+        total_amount: totalAmount,
+        currency,
+        requested_payment_date: requestedPaymentDate || null,
+        notes: notes || null,
+        status: 'pending' // Match database default
+      };
+      
+      console.log('Insert data:', JSON.stringify(insertData, null, 2));
+
       const { data: paymentRequest, error: paymentError } = await supabase
         .from('payment_requests')
-        .insert({
-          user_id: user.id,
-          program_id: programId,
-          payment_reference: paymentReference,
-          invoice_ids: invoiceIds, // Use invoice_ids array of UUIDs
-          total_amount: totalAmount,
-          currency,
-          requested_payment_date: requestedPaymentDate || null,
-          notes: notes || null,
-          status: 'submitted'
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (paymentError) {
-        console.error('Payment request error:', paymentError);
-        throw paymentError;
+        console.error('=== Payment Request Error ===');
+        console.error('Error message:', paymentError.message);
+        console.error('Error details:', paymentError.details);
+        console.error('Error hint:', paymentError.hint);
+        console.error('Error code:', paymentError.code);
+        console.error('Full error object:', JSON.stringify(paymentError, null, 2));
+        
+        // Show more specific error message based on error type
+        let errorDescription = "Failed to submit payment request.";
+        if (paymentError.message.includes('violates')) {
+          errorDescription = "Database constraint violation. Please check the data and try again.";
+        } else if (paymentError.message.includes('permission')) {
+          errorDescription = "Permission denied. Please check your access rights.";
+        } else if (paymentError.message.includes('unique')) {
+          errorDescription = "Duplicate payment reference. Please try again.";
+        } else {
+          errorDescription = `Error: ${paymentError.message}`;
+        }
+        
+        toast({
+          title: "Error",
+          description: errorDescription,
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Payment request created:', paymentRequest);
+      console.log('✓ Payment request created successfully:', paymentRequest);
 
-      // Update invoice statuses to 'paid'
-      console.log('Updating invoice statuses to paid for IDs:', invoiceIds);
+      // Update invoice statuses to 'payment_requested' (intermediate status)
+      console.log('Updating invoice statuses to payment_requested for IDs:', invoiceIds);
       
       const { data: updatedInvoices, error: updateError } = await supabase
         .from('scf_invoices')
-        .update({ status: 'paid' })
+        .update({ status: 'payment_requested' })
         .in('id', invoiceIds)
         .select('id, invoice_number, status');
 
       if (updateError) {
-        console.error('Error updating invoice statuses to paid:', updateError);
+        console.error('Error updating invoice statuses:', updateError);
+        console.error('Update error details:', JSON.stringify(updateError, null, 2));
         toast({
           title: "Warning",
           description: "Payment request created but invoice status update failed. Please contact support.",
@@ -98,7 +169,7 @@ export const RequestPaymentModal = ({
           variant: "destructive",
         });
       } else {
-        console.log('Successfully updated invoices to paid:', updatedInvoices);
+        console.log('✓ Successfully updated invoices:', updatedInvoices);
       }
 
       toast({
@@ -108,11 +179,16 @@ export const RequestPaymentModal = ({
 
       onSuccess();
       onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting payment request:", error);
+    } catch (error: any) {
+      console.error("=== Unexpected Error ===");
+      console.error("Error type:", typeof error);
+      console.error("Error object:", error);
+      console.error("Error message:", error?.message);
+      console.error("Error stack:", error?.stack);
+      
       toast({
         title: "Error",
-        description: "Failed to submit payment request.",
+        description: error?.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
