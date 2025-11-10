@@ -46,20 +46,18 @@ export const RequestPaymentModal = ({
 
     setLoading(true);
     try {
-      console.log('Creating payment request for invoices:', selectedInvoices.map(inv => ({
-        id: inv.id,
-        transactionReference: inv.transactionReference
-      })));
+      const invoiceIds = selectedInvoices.map(inv => inv.id);
+      console.log('Creating payment request for invoices:', invoiceIds);
 
-      // Create payment request
+      // Create payment request using correct table and schema
       const paymentReference = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const { data: paymentRequest, error: paymentError } = await supabase
-        .from('scf_payment_requests' as any)
+        .from('payment_requests')
         .insert({
           user_id: user.id,
           program_id: programId,
           payment_reference: paymentReference,
-          invoice_references: selectedInvoices.map(inv => inv.transactionReference),
+          invoice_ids: invoiceIds, // Use invoice_ids array of UUIDs
           total_amount: totalAmount,
           currency,
           requested_payment_date: requestedPaymentDate || null,
@@ -77,8 +75,7 @@ export const RequestPaymentModal = ({
       console.log('Payment request created:', paymentRequest);
 
       // Update invoice statuses to 'paid'
-      const invoiceIds = selectedInvoices.map(inv => inv.id);
-      console.log('Updating invoice statuses for IDs:', invoiceIds);
+      console.log('Updating invoice statuses to paid for IDs:', invoiceIds);
       
       const { data: updatedInvoices, error: updateError } = await supabase
         .from('scf_invoices')
@@ -87,7 +84,7 @@ export const RequestPaymentModal = ({
         .select('id, invoice_number, status');
 
       if (updateError) {
-        console.error('Error updating invoice statuses:', updateError);
+        console.error('Error updating invoice statuses to paid:', updateError);
         toast({
           title: "Warning",
           description: "Payment request created but invoice status update failed. Please contact support.",

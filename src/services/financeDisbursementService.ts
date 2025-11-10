@@ -299,15 +299,23 @@ export const createFinanceDisbursement = async (
 
     // Update selected invoices to 'financed' status
     const invoiceIds = data.selectedInvoices.map(inv => inv.invoice_id);
+    console.log('Attempting to update invoice statuses to financed for IDs:', invoiceIds);
+    
     if (invoiceIds.length > 0) {
-      const { error: updateError } = await supabase
+      const { data: updatedInvoices, error: updateError } = await supabase
         .from('scf_invoices')
         .update({ status: 'financed' })
-        .in('id', invoiceIds);
+        .in('id', invoiceIds)
+        .select('id, invoice_number, status');
 
       if (updateError) {
         console.error('Error updating invoice statuses to financed:', updateError);
+        console.error('Update error details:', { message: updateError.message, details: updateError.details, hint: updateError.hint });
         // Don't throw - disbursement was created successfully
+      } else if (!updatedInvoices || updatedInvoices.length === 0) {
+        console.warn('No invoices were updated to financed status. Invoice IDs may not exist:', invoiceIds);
+      } else {
+        console.log('Successfully updated invoices to financed:', updatedInvoices);
       }
     }
 
