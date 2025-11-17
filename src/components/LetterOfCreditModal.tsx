@@ -181,7 +181,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
         <div className="text-center py-8">
           <p className="text-gray-600 dark:text-gray-400">
             {selectedMethod === 'upload' ? 'Upload functionality coming soon...' : 
-             selectedMethod === 'assistance' ? 'Contextual assistance coming soon...' : 
+             selectedMethod === 'assistance' ? 'GPTrade coming soon...' : 
              'Feature not implemented yet'}
           </p>
           <button

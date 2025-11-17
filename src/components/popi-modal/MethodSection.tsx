@@ -45,9 +45,9 @@ const MethodSection: React.FC<MethodSectionProps> = ({
         />
 
         <MethodCard
-          title="Contextual Assistance"
+          title="GPTrade"
           description={selectedAction 
-            ? 'Use AI-powered interactive assistant'
+            ? 'Use GPTrade AI-powered assistant'
             : 'Select an action above to enable methods'
           }
           icon={MessageSquare}

@@ -292,13 +292,13 @@ const BillsModal: React.FC<BillsModalProps> = ({ onClose, onBack, type }) => {
                         <MessageSquare className="w-8 h-8 text-gray-400" />
                       </div>
                       <CardTitle className="text-lg font-semibold text-gray-500 dark:text-gray-500">
-                        Contextual Assistance
+                        GPTrade
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="text-center">
                       <p className="text-gray-500 dark:text-gray-500 text-sm">
                         {selectedAction 
-                          ? 'Use AI-powered interactive assistant'
+                          ? 'Use GPTrade AI-powered assistant'
                           : 'Select an action above to enable methods'
                         }
                       </p>
