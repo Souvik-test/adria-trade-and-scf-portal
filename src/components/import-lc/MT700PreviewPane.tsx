@@ -54,11 +54,28 @@ ${formData.beneficiaryAddress}
           <head>
             <title>MT 700 Preview - ${formData.corporateReference}</title>
             <style>
-              body { font-family: 'Courier New', monospace; padding: 20px; }
+              body { 
+                font-family: 'Courier New', monospace; 
+                padding: 20px; 
+                position: relative;
+              }
               pre { white-space: pre-wrap; }
+              .watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 120px;
+                font-weight: bold;
+                color: rgba(0, 0, 0, 0.08);
+                pointer-events: none;
+                z-index: 1000;
+                user-select: none;
+              }
             </style>
           </head>
           <body>
+            <div class="watermark">DRAFT</div>
             <h2>SWIFT MT 700 - Documentary Credit Preview</h2>
             <pre>${content}</pre>
           </body>
@@ -91,13 +108,20 @@ ${formData.beneficiaryAddress}
 
   return (
     <div className="space-y-6 max-h-[calc(75vh-200px)] overflow-y-auto pr-2">
-      <Card className="border border-gray-200 dark:border-gray-600">
-        <CardHeader>
+      <Card className="border border-gray-200 dark:border-gray-600 relative overflow-hidden">
+        {/* Watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="text-[120px] font-bold text-muted/[0.08] transform -rotate-45 select-none">
+            DRAFT
+          </div>
+        </div>
+        
+        <CardHeader className="relative z-20">
           <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-400">
             MT 700 Draft Preview
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 relative z-20">
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Review your draft MT 700 before final submission. You can view, download, or email the draft.
