@@ -1,10 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 import { ImportLCFormData } from '@/types/importLC';
 import POPISearchSection from './POPISearchSection';
 import SwiftTagLabel from './SwiftTagLabel';
@@ -18,8 +22,153 @@ const BasicLCInformationPane: React.FC<BasicLCInformationPaneProps> = ({
   formData,
   updateField
 }) => {
+  const [acceleratorType, setAcceleratorType] = useState<string>('');
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
+  const [templateId, setTemplateId] = useState('');
+  const [templateName, setTemplateName] = useState('');
+  const [transactionId, setTransactionId] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const handleAcceleratorChange = (value: string) => {
+    setAcceleratorType(value);
+    if (value === 'template') {
+      setTemplateDialogOpen(true);
+    } else if (value === 'transaction') {
+      setTransactionDialogOpen(true);
+    }
+  };
+
+  const handleTemplateSearch = () => {
+    // TODO: Implement template search logic
+    console.log('Searching template:', { templateId, templateName });
+    // Mock data population
+    setTemplateDialogOpen(false);
+  };
+
+  const handleTransactionSearch = () => {
+    // TODO: Implement transaction search logic
+    console.log('Searching transaction:', { transactionId, dateFrom, dateTo });
+    // Mock data population
+    setTransactionDialogOpen(false);
+  };
+
   return (
     <div className="max-h-[calc(100vh-300px)] overflow-y-auto space-y-6 pr-2">
+      {/* Data Entry Accelerators Section */}
+      <Card className="border border-gray-200 dark:border-gray-600">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-500 dark:text-corporate-teal-400">
+            Data Entry Accelerators
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup value={acceleratorType} onValueChange={handleAcceleratorChange}>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="template" id="template" />
+                <Label htmlFor="template" className="cursor-pointer">Use Template</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="transaction" id="transaction" />
+                <Label htmlFor="transaction" className="cursor-pointer">Copy Existing Transaction</Label>
+              </div>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Template Search Dialog */}
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Search Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="templateId">Template ID</Label>
+              <Input
+                id="templateId"
+                placeholder="Enter Template ID"
+                value={templateId}
+                onChange={(e) => setTemplateId(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="templateName">Template Name</Label>
+              <Input
+                id="templateName"
+                placeholder="Enter Template Name"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTemplateSearch}>
+              <Search className="mr-2 h-4 w-4" />
+              Search
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Search Dialog */}
+      <Dialog open={transactionDialogOpen} onOpenChange={setTransactionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Search Existing Transaction</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="transactionId">Transaction ID</Label>
+              <Input
+                id="transactionId"
+                placeholder="Enter Transaction ID"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Issuance Date Range</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="dateFrom" className="text-sm text-muted-foreground">From</Label>
+                  <Input
+                    id="dateFrom"
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dateTo" className="text-sm text-muted-foreground">To</Label>
+                  <Input
+                    id="dateTo"
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransactionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTransactionSearch}>
+              <Search className="mr-2 h-4 w-4" />
+              Search
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <POPISearchSection formData={formData} updateField={updateField} />
       
       <Card className="border border-gray-200 dark:border-gray-600">
