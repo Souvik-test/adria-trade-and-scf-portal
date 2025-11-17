@@ -59,7 +59,7 @@ const ExportLCModalContent: React.FC<ExportLCModalContentProps> = ({
             ? "Manual method for this process coming soon..."
             : selectedMethod === "upload"
             ? "Upload functionality coming soon..."
-            : "Contextual assistance coming soon..."}
+            : "GPTrade coming soon..."}
         </p>
         <Button
           variant="link"

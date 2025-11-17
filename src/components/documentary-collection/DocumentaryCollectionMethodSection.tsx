@@ -25,7 +25,7 @@ const DocumentaryCollectionMethodSection: React.FC<DocumentaryCollectionMethodSe
       case 'upload':
         return 'Upload bill documents and auto-extract data';
       case 'assistance':
-        return 'Use AI-powered interactive assistant';
+        return 'Use GPTrade AI-powered assistant';
       default:
         return '';
     }
@@ -56,7 +56,7 @@ const DocumentaryCollectionMethodSection: React.FC<DocumentaryCollectionMethodSe
         />
 
         <MethodCard
-          title="Contextual Assistance"
+          title="GPTrade"
           description={getMethodDescription('assistance')}
           icon={MessageSquare}
           isEnabled={!!selectedAction}

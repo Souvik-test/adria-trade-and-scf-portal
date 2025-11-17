@@ -45,8 +45,8 @@ const InwardDocumentaryCollectionMethodSection: React.FC<InwardDocumentaryCollec
         />
 
         <MethodCard
-          title="Contextual Assistance"
-          description={getMethodDescription('Use AI-powered interactive assistant')}
+          title="GPTrade"
+          description={getMethodDescription('Use GPTrade AI-powered assistant')}
           icon={MessageSquare}
           isEnabled={!!selectedAction}
           isComingSoon={true}

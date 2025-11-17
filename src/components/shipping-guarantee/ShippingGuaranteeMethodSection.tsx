@@ -56,9 +56,9 @@ const ShippingGuaranteeMethodSection: React.FC<ShippingGuaranteeMethodSectionPro
         />
 
         <MethodCard
-          title="Contextual Assistance"
+          title="GPTrade"
           description={selectedAction 
-            ? `Use AI-powered assistant for ${getActionText()}`
+            ? `Use GPTrade AI-powered assistant for ${getActionText()}`
             : 'Select an action above to enable methods'
           }
           icon={MessageSquare}

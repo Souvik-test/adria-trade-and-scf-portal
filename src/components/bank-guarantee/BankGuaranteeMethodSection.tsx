@@ -26,8 +26,8 @@ const BankGuaranteeMethodSection: React.FC<BankGuaranteeMethodSectionProps> = ({
       comingSoon: true
     },
     {
-      title: 'Contextual Assistance',
-      description: 'Use AI-powered assistant (coming soon)',
+      title: 'GPTrade',
+      description: 'Use GPTrade AI-powered assistant (coming soon)',
       icon: MessageSquare,
       comingSoon: true
     }
