@@ -750,6 +750,51 @@ export type Database = {
           },
         ]
       }
+      import_lc_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          product_name: string
+          source_transaction_ref: string | null
+          tags: string[] | null
+          template_data: Json
+          template_description: string | null
+          template_id: string
+          template_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_name?: string
+          source_transaction_ref?: string | null
+          tags?: string[] | null
+          template_data: Json
+          template_description?: string | null
+          template_id: string
+          template_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_name?: string
+          source_transaction_ref?: string | null
+          tags?: string[] | null
+          template_data?: Json
+          template_description?: string | null
+          template_id?: string
+          template_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoice_disbursements: {
         Row: {
           accounting_entry_ref: string | null
