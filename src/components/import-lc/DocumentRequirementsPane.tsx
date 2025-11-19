@@ -7,9 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import { FilePlus } from "lucide-react";
 import ImportLCSupportingDocumentUpload from './ImportLCSupportingDocumentUpload';
+import SaveTemplateDialog from './SaveTemplateDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentRequirementsPaneProps {
   formData: ImportLCFormData;
@@ -42,6 +44,25 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   const savedDocs = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
   const initialSet = new Set([...COMMON_DOC_TYPES, ...savedDocs]);
   const [docTypes, setDocTypes] = useState<string[]>(Array.from(initialSet));
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+
+  // Get user ID on mount
+  React.useEffect(() => {
+    const fetchUserId = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) return;
+      
+      const { data: userData } = await supabase
+        .from('custom_users')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .single();
+      
+      if (userData) setUserId(userData.id);
+    };
+    fetchUserId();
+  }, []);
 
   const selectedDocs: string[] = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
 
@@ -186,6 +207,36 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
             </div>
           </div>
 
+          {/* Save as Template Button */}
+          <div className="pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setSaveTemplateOpen(true)}
+              className="w-full sm:w-auto gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Save as Template
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Template Dialog */}
+      <SaveTemplateDialog
+        open={saveTemplateOpen}
+        onOpenChange={setSaveTemplateOpen}
+        formData={formData}
+        userId={userId}
+      />
+
+      {/* Presentation Period Card */}
+      <Card className="border border-corporate-teal-100 dark:border-corporate-teal-800 shadow">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-corporate-teal-600 dark:text-corporate-teal-300">
+            Presentation Period & Additional Conditions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {/* Presentation Period */}
           <div>
             <SwiftTagLabel tag=":48:" label="Presentation Period" />

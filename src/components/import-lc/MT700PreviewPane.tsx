@@ -67,7 +67,7 @@ ${formData.beneficiaryAddress}
                 transform: translate(-50%, -50%) rotate(-45deg);
                 font-size: 120px;
                 font-weight: bold;
-                color: rgba(0, 0, 0, 0.08);
+                color: rgba(128, 128, 128, 0.15);
                 pointer-events: none;
                 z-index: 1000;
                 user-select: none;
@@ -111,7 +111,7 @@ ${formData.beneficiaryAddress}
       <Card className="border border-gray-200 dark:border-gray-600 relative overflow-hidden">
         {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="text-[120px] font-bold text-muted/[0.08] transform -rotate-45 select-none">
+          <div className="text-[120px] font-bold text-gray-900/10 dark:text-white/10 transform -rotate-45 select-none">
             DRAFT
           </div>
         </div>
