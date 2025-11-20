@@ -52,7 +52,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
   };
 
   const downloadMT700 = () => {
-    const content = generateMT700Content();
+    const content = `*** DRAFT - FOR REVIEW ONLY ***\n\n${generateMT700Content()}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -102,9 +102,9 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
           </DialogTrigger>
           <DialogContent className="relative max-w-4xl max-h-[80vh] overflow-hidden">
             {/* Draft watermark overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
               <span className="text-[120px] font-bold uppercase tracking-[0.25em] text-corporate-teal-600/25 dark:text-corporate-teal-300/30 -rotate-45 drop-shadow-lg">
-                Draft
+                DRAFT
               </span>
             </div>
             <DialogHeader>
