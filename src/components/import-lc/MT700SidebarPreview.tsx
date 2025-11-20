@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Eye, Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 interface MT700SidebarPreviewProps {
   formData: ImportLCFormData;
@@ -67,11 +68,16 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
   return (
     <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
       <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Eye className="h-5 w-5" />
-          MT 700 Preview
-        </h3>
-        <p className="text-corporate-teal-100 text-sm mt-1">Live preview of your LC message</p>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            MT 700 Preview
+          </h3>
+          <Badge variant="outline" className="border-white/60 text-white/80 bg-white/5 uppercase tracking-[0.15em]">
+            Draft
+          </Badge>
+        </div>
+        <p className="text-corporate-teal-100 text-sm mt-1">Live preview of your draft MT 700 message</p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
@@ -109,7 +115,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
             </div>
             <DialogHeader>
               <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
-                MT 700 - Documentary Credit Issuance
+                MT 700 - Documentary Credit Issuance (Draft)
               </DialogTitle>
             </DialogHeader>
             <div className="flex justify-end mb-4 relative z-10">
