@@ -67,7 +67,8 @@ ${formData.beneficiaryAddress}
                 transform: translate(-50%, -50%) rotate(-45deg);
                 font-size: 120px;
                 font-weight: bold;
-                color: rgba(220, 220, 220, 0.25);
+                color: rgba(255, 255, 255, 0.4);
+                text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
                 pointer-events: none;
                 z-index: 1000;
                 user-select: none;
@@ -111,7 +112,7 @@ ${formData.beneficiaryAddress}
       <Card className="border border-gray-200 dark:border-gray-600 relative overflow-hidden">
         {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="text-[120px] font-bold text-gray-900/15 dark:text-white/20 transform -rotate-45 select-none">
+          <div className="text-[120px] font-bold text-gray-900/30 dark:text-white/40 transform -rotate-45 select-none" style={{ textShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
             DRAFT
           </div>
         </div>
