@@ -87,7 +87,7 @@ ${formData.beneficiaryAddress}
   };
 
   const handleDownload = () => {
-    const content = generateMT700Content();
+    const content = `*** DRAFT - FOR REVIEW ONLY ***\n\n${generateMT700Content()}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -111,7 +111,7 @@ ${formData.beneficiaryAddress}
     <div className="space-y-6 max-h-[calc(75vh-200px)] overflow-y-auto pr-2">
       <Card className="border border-gray-200 dark:border-gray-600 relative overflow-hidden">
         {/* Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
           <div className="text-[120px] font-bold text-gray-900/30 dark:text-white/40 transform -rotate-45 select-none" style={{ textShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}>
             DRAFT
           </div>
