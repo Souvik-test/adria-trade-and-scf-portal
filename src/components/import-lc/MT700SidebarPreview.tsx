@@ -100,13 +100,19 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               View Full Preview
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogContent className="relative max-w-4xl max-h-[80vh] overflow-hidden">
+            {/* Draft watermark overlay */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="text-[120px] font-bold uppercase tracking-[0.25em] text-corporate-teal-600/25 dark:text-corporate-teal-300/30 -rotate-45 drop-shadow-lg">
+                Draft
+              </span>
+            </div>
             <DialogHeader>
               <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
                 MT 700 - Documentary Credit Issuance
               </DialogTitle>
             </DialogHeader>
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 relative z-10">
               <Button 
                 onClick={downloadMT700}
                 className="bg-corporate-blue hover:bg-corporate-blue/90 text-white"
@@ -115,7 +121,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
                 Download MT 700
               </Button>
             </div>
-            <ScrollArea className="h-[60vh]">
+            <ScrollArea className="h-[60vh] relative z-10">
               <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
                 {generateMT700Content()}
               </pre>
