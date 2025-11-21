@@ -82,7 +82,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="text-xs font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words leading-relaxed">
+            <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-words leading-relaxed">
               {generateMT700Content()}
             </pre>
           </CardContent>
@@ -123,7 +123,13 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               </div>
               
               <ScrollArea className="h-full w-full">
-                
+                <Card className="bg-card border-border">
+                  <CardContent className="p-6">
+                    <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                      {generateMT700Content()}
+                    </pre>
+                  </CardContent>
+                </Card>
               </ScrollArea>
             </div>
           </DialogContent>
