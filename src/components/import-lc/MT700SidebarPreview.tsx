@@ -106,7 +106,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               View Full Preview
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+          <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
                 MT 700 - Documentary Credit Issuance (Draft)
@@ -126,7 +126,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               </Button>
             </div>
             
-            <div className="relative flex-1 min-h-0">
+            <div className="relative flex-1 overflow-hidden">
               {/* Draft watermark overlay */}
               <div className="pointer-events-none absolute top-4 right-6 z-10">
                 <span className="inline-flex items-center rounded-full border border-corporate-teal-500/40 bg-corporate-teal-900/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
@@ -134,7 +134,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
                 </span>
               </div>
               
-              <ScrollArea className="h-full">
+              <ScrollArea className="h-full w-full">
                 <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
                   {generateMT700Content()}
                 </pre>
