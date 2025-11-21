@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ImportLCFormData } from '@/types/importLC';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,18 +6,16 @@ import { Download, Eye, Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-
 interface MT700SidebarPreviewProps {
   formData: ImportLCFormData;
 }
-
-const MT700SidebarPreview: React.FC<MT700SidebarPreviewProps> = ({ formData }) => {
+const MT700SidebarPreview: React.FC<MT700SidebarPreviewProps> = ({
+  formData
+}) => {
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
-
   const generateMT700Content = () => {
     const applicant = formData.parties.find(p => p.role === 'applicant');
     const beneficiary = formData.parties.find(p => p.role === 'beneficiary');
-    
     return `{1:F01TESTBANKAXXX0000000000}
 {2:I700RECEIVERXXXXN}
 {3:{108:MT700-${formData.corporateReference}}}
@@ -42,19 +39,18 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
 :44A:${formData.portOfLoading}
 :44B:${formData.portOfDischarge}
 :45A:${formData.descriptionOfGoods}
-:46A:${formData.documentRequirements.map(doc => 
-  `${doc.name} - ${doc.original} ORIGINAL${doc.original > 1 ? 'S' : ''}, ${doc.copies} COP${doc.copies === 1 ? 'Y' : 'IES'}`
-).join('\n')}
+:46A:${formData.documentRequirements.map(doc => `${doc.name} - ${doc.original} ORIGINAL${doc.original > 1 ? 'S' : ''}, ${doc.copies} COP${doc.copies === 1 ? 'Y' : 'IES'}`).join('\n')}
 :47A:${formData.additionalConditions}
 :48:${formData.presentationPeriod}
 :49:${formData.additionalConditions}
 :78:${formData.additionalConditions}
 -}`;
   };
-
   const downloadMT700 = () => {
     const content = `*** DRAFT - FOR REVIEW ONLY ***\n\n${generateMT700Content()}`;
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([content], {
+      type: 'text/plain'
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -64,9 +60,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-
-  return (
-    <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+  return <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
       <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -98,10 +92,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
       <div className="p-4 border-t border-corporate-teal-200 dark:border-corporate-teal-700 bg-white/50 dark:bg-gray-800/50 space-y-2">
         <Dialog open={isFullPreviewOpen} onOpenChange={setIsFullPreviewOpen}>
           <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="w-full border-corporate-teal-300 text-corporate-teal-700 hover:bg-corporate-teal-50 dark:border-corporate-teal-600 dark:text-corporate-teal-300 dark:hover:bg-corporate-teal-900/20"
-            >
+            <Button variant="outline" className="w-full border-corporate-teal-300 text-corporate-teal-700 hover:bg-corporate-teal-50 dark:border-corporate-teal-600 dark:text-corporate-teal-300 dark:hover:bg-corporate-teal-900/20">
               <Maximize2 className="h-4 w-4 mr-2" />
               View Full Preview
             </Button>
@@ -132,24 +123,17 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               </div>
               
               <ScrollArea className="h-full w-full">
-                <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
-                  {generateMT700Content()}
-                </pre>
+                
               </ScrollArea>
             </div>
           </DialogContent>
         </Dialog>
 
-        <Button 
-          onClick={downloadMT700}
-          className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white"
-        >
+        <Button onClick={downloadMT700} className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white">
           <Download className="h-4 w-4 mr-2" />
           Download Draft
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default MT700SidebarPreview;
