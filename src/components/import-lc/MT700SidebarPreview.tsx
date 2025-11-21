@@ -128,9 +128,9 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
             
             <div className="relative flex-1 min-h-0">
               {/* Draft watermark overlay */}
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
-                <span className="text-[120px] font-bold uppercase tracking-[0.25em] text-corporate-teal-600/20 dark:text-corporate-teal-400/20 -rotate-45 select-none">
-                  DRAFT
+              <div className="pointer-events-none absolute top-4 right-6 z-10">
+                <span className="inline-flex items-center rounded-full border border-corporate-teal-500/40 bg-corporate-teal-900/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+                  Draft
                 </span>
               </div>
               
