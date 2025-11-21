@@ -4,7 +4,7 @@ import { ImportLCFormData } from '@/types/importLC';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, Maximize2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
@@ -106,19 +106,17 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
               View Full Preview
             </Button>
           </DialogTrigger>
-          <DialogContent className="relative max-w-4xl max-h-[80vh] overflow-hidden">
-            {/* Draft watermark overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
-              <span className="text-[120px] font-bold uppercase tracking-[0.25em] text-corporate-teal-600/25 dark:text-corporate-teal-300/30 -rotate-45 drop-shadow-lg">
-                DRAFT
-              </span>
-            </div>
+          <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-corporate-teal-700 dark:text-corporate-teal-300">
                 MT 700 - Documentary Credit Issuance (Draft)
               </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Preview of your draft MT 700 message. This is for review purposes only.
+              </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-end mb-4 relative z-10">
+            
+            <div className="flex justify-end mb-4">
               <Button 
                 onClick={downloadMT700}
                 className="bg-corporate-blue hover:bg-corporate-blue/90 text-white"
@@ -127,11 +125,21 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
                 Download MT 700
               </Button>
             </div>
-            <ScrollArea className="h-[60vh] relative z-10">
-              <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
-                {generateMT700Content()}
-              </pre>
-            </ScrollArea>
+            
+            <div className="relative flex-1 min-h-0">
+              {/* Draft watermark overlay */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
+                <span className="text-[120px] font-bold uppercase tracking-[0.25em] text-corporate-teal-600/20 dark:text-corporate-teal-400/20 -rotate-45 select-none">
+                  DRAFT
+                </span>
+              </div>
+              
+              <ScrollArea className="h-full">
+                <pre className="text-sm font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words leading-relaxed">
+                  {generateMT700Content()}
+                </pre>
+              </ScrollArea>
+            </div>
           </DialogContent>
         </Dialog>
 
