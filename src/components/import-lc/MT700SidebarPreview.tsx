@@ -117,10 +117,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
             </DialogHeader>
             
             <div className="flex justify-end mb-4">
-              <Button 
-                onClick={downloadMT700}
-                className="bg-corporate-blue hover:bg-corporate-blue/90 text-white"
-              >
+              <Button onClick={downloadMT700}>
                 <Download className="h-4 w-4 mr-2" />
                 Download MT 700
               </Button>
