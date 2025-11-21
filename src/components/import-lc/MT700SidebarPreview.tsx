@@ -135,7 +135,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
           </DialogContent>
         </Dialog>
 
-        <Button onClick={downloadMT700} className="w-full bg-corporate-blue hover:bg-corporate-blue/90 text-white">
+        <Button onClick={downloadMT700} className="w-full">
           <Download className="h-4 w-4 mr-2" />
           Download Draft
         </Button>
