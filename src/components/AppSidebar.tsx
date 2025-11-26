@@ -329,8 +329,8 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                   <CollapsibleTrigger asChild>
                                     <SidebarMenuSubButton className="cursor-pointer w-full">
                                       <Workflow className="w-4 h-4 flex-shrink-0" />
-                                      {!isCollapsed && <span className="flex-1">NextGen Workflow Configurator</span>}
-                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2">NextGen Workflow Configurator</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
                                     </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                 </TooltipTrigger>
@@ -505,11 +505,11 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <CollapsibleTrigger asChild>
-                                    <SidebarMenuSubButton className="cursor-pointer w-full">
-                                      <UserCog className="w-4 h-4 flex-shrink-0" />
-                                      {!isCollapsed && <span className="flex-1">Administration</span>}
-                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${tfAdministrationOpen ? 'rotate-180' : ''}`} />}
-                                    </SidebarMenuSubButton>
+                                        <SidebarMenuSubButton className="cursor-pointer w-full">
+                                          <UserCog className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2">Administration</span>}
+                                          {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${tfAdministrationOpen ? 'rotate-180' : ''}`} />}
+                                        </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="z-50">
