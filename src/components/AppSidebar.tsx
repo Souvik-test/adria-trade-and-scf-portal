@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar, FileSearch, FolderSearch, MessageSquareText, BarChart3, ShieldCheck, History, FileCheck, HelpCircle, Ticket, BookOpen, GraduationCap } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar, FileSearch, FolderSearch, MessageSquareText, BarChart3, ShieldCheck, History, FileCheck, HelpCircle, Ticket, BookOpen, GraduationCap, Workflow, Grid3x3, CheckCircle, DollarSign, Bell, TrendingUp, UserCog, Building } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModuleType } from './TopRibbon';
@@ -69,6 +69,9 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
   };
   const [controlCenterOpen, setControlCenterOpen] = React.useState(false);
   const [administrationOpen, setAdministrationOpen] = React.useState(false);
+  const [tfControlCenterOpen, setTfControlCenterOpen] = React.useState(false);
+  const [tfNextGenWorkflowOpen, setTfNextGenWorkflowOpen] = React.useState(false);
+  const [tfAdministrationOpen, setTfAdministrationOpen] = React.useState(false);
   const [inquiryOpen, setInquiryOpen] = React.useState(false);
   const [auditComplianceOpen, setAuditComplianceOpen] = React.useState(false);
   const [supportOpen, setSupportOpen] = React.useState(false);
@@ -83,7 +86,7 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
         tooltip: 'View key metrics and performance overview'
       },
       {
-        title: selectedModule === 'supply-chain-finance' ? 'Adria SCF Studio' : 'Product Suite',
+        title: selectedModule === 'supply-chain-finance' ? 'Adria SCF Studio' : selectedModule === 'trade-finance' ? 'Adria Trade Studio' : 'Product Suite',
         icon: Package,
         id: 'product-suite',
         tooltip: 'Access all available trade finance products and services'
@@ -292,6 +295,325 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               )}
                             </React.Fragment>
                           ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                )}
+
+                {/* Control Centre Menu - Only for Trade Finance */}
+                {selectedModule === 'trade-finance' && (
+                  <Collapsible open={tfControlCenterOpen} onOpenChange={setTfControlCenterOpen}>
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          tooltip={isCollapsed ? 'Control Centre' : undefined}
+                          className="cursor-pointer transition-all duration-200 rounded-lg p-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm w-full"
+                        >
+                          <Settings className="w-5 h-5 flex-shrink-0" />
+                          {!isCollapsed && (
+                            <>
+                              <span className="font-medium text-sm tracking-wide flex-1">Control Centre</span>
+                              <ChevronDown className={`w-4 h-4 transition-transform ${tfControlCenterOpen ? 'rotate-180' : ''}`} />
+                            </>
+                          )}
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {/* NextGen Workflow Configurator with sub-menus */}
+                          <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
+                            <SidebarMenuSubItem>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton className="cursor-pointer w-full">
+                                      <Workflow className="w-4 h-4 flex-shrink-0" />
+                                      {!isCollapsed && <span className="flex-1">NextGen Workflow Configurator</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="z-50">
+                                  <p>Configure workflow and interface definitions</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <CollapsibleContent>
+                                <SidebarMenuSub>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'product-field-definition' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('product-field-definition')}
+                                        >
+                                          <Database className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Product Field Definition</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Define product fields and attributes</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'dynamic-interface-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('dynamic-interface-engine')}
+                                        >
+                                          <Grid3x3 className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Dynamic Interface Engine</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Configure dynamic user interfaces</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'workflow-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('workflow-engine')}
+                                        >
+                                          <Workflow className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Workflow Engine</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Define workflow rules and automation</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                              </CollapsibleContent>
+                            </SidebarMenuSubItem>
+                          </Collapsible>
+
+                          {/* Posting Configuration */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'posting-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('posting-configuration')}
+                                >
+                                  <FileText className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Posting Configuration</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Configure accounting posting rules</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Business Validation Engine */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'business-validation-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('business-validation-engine')}
+                                >
+                                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Business Validation Engine</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Configure business validation rules</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Fee Engine */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'fee-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('fee-engine')}
+                                >
+                                  <DollarSign className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Fee Engine</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Configure fee structures and calculations</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Document Template Engine */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'document-template-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('document-template-engine')}
+                                >
+                                  <FileType className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Document Template Engine</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Manage document templates</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Notification Configuration */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'notification-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('notification-configuration')}
+                                >
+                                  <Bell className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Notification Configuration</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Configure notification settings</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Administration with sub-menus */}
+                          <Collapsible open={tfAdministrationOpen} onOpenChange={setTfAdministrationOpen}>
+                            <SidebarMenuSubItem>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton className="cursor-pointer w-full">
+                                      <UserCog className="w-4 h-4 flex-shrink-0" />
+                                      {!isCollapsed && <span className="flex-1">Administration</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 transition-transform ${tfAdministrationOpen ? 'rotate-180' : ''}`} />}
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="z-50">
+                                  <p>System administration settings</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <CollapsibleContent>
+                                <SidebarMenuSub>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'user-access-management' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('user-access-management')}
+                                        >
+                                          <User className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">User Access Management</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage user access and permissions</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'customer-onboarding' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('customer-onboarding')}
+                                        >
+                                          <Building className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Customer On-boarding</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage customer onboarding processes</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'holiday-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('holiday-maintenance')}
+                                        >
+                                          <Calendar className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Holiday Maintenance</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Configure business holidays</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                            activeMenu === 'platform-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                          }`}
+                                          onClick={() => handleMenuClick('platform-configuration')}
+                                        >
+                                          <Cog className="w-4 h-4 flex-shrink-0" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Platform Configuration</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Configure platform settings</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                              </CollapsibleContent>
+                            </SidebarMenuSubItem>
+                          </Collapsible>
+
+                          {/* Exchange Rate Maintenance */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                    activeMenu === 'exchange-rate-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('exchange-rate-maintenance')}
+                                >
+                                  <TrendingUp className="w-4 h-4 flex-shrink-0" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Exchange Rate Maintenance</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Manage exchange rates</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
