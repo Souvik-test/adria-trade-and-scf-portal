@@ -327,10 +327,10 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <CollapsibleTrigger asChild>
-                                    <SidebarMenuSubButton className="cursor-pointer w-full">
-                                      <Workflow className="w-4 h-4 flex-shrink-0" />
-                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2">NextGen Workflow Configurator</span>}
-                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
+                                    <SidebarMenuSubButton className="cursor-pointer w-full h-auto min-h-[2.5rem] py-2">
+                                      <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">NextGen Workflow Configurator</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
                                     </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                 </TooltipTrigger>
@@ -344,13 +344,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'product-field-definition' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('product-field-definition')}
                                         >
-                                          <Database className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Product Field Definition</span>}
+                                          <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Product Field Definition</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -362,13 +362,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'dynamic-interface-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('dynamic-interface-engine')}
                                         >
-                                          <Grid3x3 className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Dynamic Interface Engine</span>}
+                                          <Grid3x3 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Dynamic Interface Engine</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -380,13 +380,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'workflow-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('workflow-engine')}
                                         >
-                                          <Workflow className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Workflow Engine</span>}
+                                          <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Workflow Engine</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -404,13 +404,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                     activeMenu === 'posting-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
                                   onClick={() => handleMenuClick('posting-configuration')}
                                 >
-                                  <FileText className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Posting Configuration</span>}
+                                  <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Posting Configuration</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
@@ -424,13 +424,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                     activeMenu === 'business-validation-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
                                   onClick={() => handleMenuClick('business-validation-engine')}
                                 >
-                                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Business Validation Engine</span>}
+                                  <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Business Validation Engine</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
@@ -444,13 +444,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                     activeMenu === 'fee-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
                                   onClick={() => handleMenuClick('fee-engine')}
                                 >
-                                  <DollarSign className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Fee Engine</span>}
+                                  <DollarSign className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Fee Engine</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
@@ -464,13 +464,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                     activeMenu === 'document-template-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
                                   onClick={() => handleMenuClick('document-template-engine')}
                                 >
-                                  <FileType className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Document Template Engine</span>}
+                                  <FileType className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Document Template Engine</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
@@ -484,13 +484,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                     activeMenu === 'notification-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                   }`}
                                   onClick={() => handleMenuClick('notification-configuration')}
                                 >
-                                  <Bell className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Notification Configuration</span>}
+                                  <Bell className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Notification Configuration</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
@@ -499,17 +499,37 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                             </Tooltip>
                           </SidebarMenuSubItem>
 
-                          {/* Administration with sub-menus */}
+                          {/* Exchange Rate Maintenance */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
+                                    activeMenu === 'exchange-rate-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
+                                  }`}
+                                  onClick={() => handleMenuClick('exchange-rate-maintenance')}
+                                >
+                                  <TrendingUp className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Exchange Rate Maintenance</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Manage exchange rates</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
+                          {/* Administration with sub-menus - Moved to end */}
                           <Collapsible open={tfAdministrationOpen} onOpenChange={setTfAdministrationOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <CollapsibleTrigger asChild>
-                                        <SidebarMenuSubButton className="cursor-pointer w-full">
-                                          <UserCog className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2">Administration</span>}
-                                          {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${tfAdministrationOpen ? 'rotate-180' : ''}`} />}
-                                        </SidebarMenuSubButton>
+                                    <SidebarMenuSubButton className="cursor-pointer w-full h-auto min-h-[2.5rem] py-2">
+                                      <UserCog className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">Administration</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform ${tfAdministrationOpen ? 'rotate-180' : ''}`} />}
+                                    </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="z-50">
@@ -522,13 +542,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'user-access-management' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('user-access-management')}
                                         >
-                                          <User className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">User Access Management</span>}
+                                          <User className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">User Access Management</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -540,13 +560,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'customer-onboarding' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('customer-onboarding')}
                                         >
-                                          <Building className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Customer On-boarding</span>}
+                                          <Building className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Customer On-boarding</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -558,13 +578,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'holiday-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('holiday-maintenance')}
                                         >
-                                          <Calendar className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Holiday Maintenance</span>}
+                                          <Calendar className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Holiday Maintenance</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -576,13 +596,13 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 ${
+                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
                                             activeMenu === 'platform-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                                           }`}
                                           onClick={() => handleMenuClick('platform-configuration')}
                                         >
-                                          <Cog className="w-4 h-4 flex-shrink-0" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Platform Configuration</span>}
+                                          <Cog className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Platform Configuration</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -594,26 +614,6 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
                           </Collapsible>
-
-                          {/* Exchange Rate Maintenance */}
-                          <SidebarMenuSubItem>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SidebarMenuSubButton
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 ${
-                                    activeMenu === 'exchange-rate-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
-                                  }`}
-                                  onClick={() => handleMenuClick('exchange-rate-maintenance')}
-                                >
-                                  <TrendingUp className="w-4 h-4 flex-shrink-0" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere">Exchange Rate Maintenance</span>}
-                                </SidebarMenuSubButton>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="z-50">
-                                <p>Manage exchange rates</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </SidebarMenuSubItem>
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
