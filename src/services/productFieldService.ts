@@ -86,9 +86,12 @@ export const fetchProductFields = async (userId: string) => {
 };
 
 export const createProductField = async (fieldData: ProductField, userId: string) => {
+  // Auto-generate field_id if not provided
+  const fieldId = fieldData.field_id || `FLD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  
   const { data, error } = await supabase
     .from("field_repository")
-    .insert([{ ...fieldData, user_id: userId }])
+    .insert([{ ...fieldData, field_id: fieldId, user_id: userId }])
     .select()
     .single();
 
