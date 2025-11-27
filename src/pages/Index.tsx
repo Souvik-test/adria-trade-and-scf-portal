@@ -13,6 +13,7 @@ import SCFProductDefinition from '@/components/SCFProductDefinition';
 import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
 import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
 import { DocumentInquiry } from '@/components/DocumentInquiry';
+import { ProductFieldDefinition } from '@/components/control-centre/ProductFieldDefinition';
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -104,6 +105,8 @@ const Index = () => {
     switch (activeMenu) {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
+      case 'product-field-definition':
+        return <ProductFieldDefinition onBack={() => setActiveMenu('dashboard')} />;
       case 'document-inquiry':
         return <DocumentInquiry />;
       case 'inquiry':
