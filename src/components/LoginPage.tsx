@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Edit2, Check, X } from 'lucide-react';
@@ -19,6 +20,8 @@ const LoginPage: React.FC = () => {
   const [corporateLogo, setCorporateLogo] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState('');
+
+  const [businessCentre, setBusinessCentre] = useState('Adria TSCF Client');
 
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -227,6 +230,19 @@ const LoginPage: React.FC = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="business-centre">Business Centre</Label>
+                  <Select value={businessCentre} onValueChange={setBusinessCentre}>
+                    <SelectTrigger id="business-centre" className="bg-background">
+                      <SelectValue placeholder="Select Business Centre" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="Adria TSCF Client">Adria TSCF Client</SelectItem>
+                      <SelectItem value="Adria Process Orchestrator">Adria Process Orchestrator</SelectItem>
+                      <SelectItem value="Adria TSCF Bank">Adria TSCF Bank</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -254,6 +270,19 @@ const LoginPage: React.FC = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-business-centre">Business Centre</Label>
+                  <Select value={businessCentre} onValueChange={setBusinessCentre}>
+                    <SelectTrigger id="signup-business-centre" className="bg-background">
+                      <SelectValue placeholder="Select Business Centre" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="Adria TSCF Client">Adria TSCF Client</SelectItem>
+                      <SelectItem value="Adria Process Orchestrator">Adria Process Orchestrator</SelectItem>
+                      <SelectItem value="Adria TSCF Bank">Adria TSCF Bank</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
