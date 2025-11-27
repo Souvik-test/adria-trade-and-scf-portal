@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar, FileSearch, FolderSearch, MessageSquareText, BarChart3, ShieldCheck, History, FileCheck, HelpCircle, Ticket, BookOpen, GraduationCap, Workflow, Grid3x3, CheckCircle, DollarSign, Bell, TrendingUp, UserCog, Building } from 'lucide-react';
+import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, ChevronDown, Sliders, UserPlus, Landmark, Link, FileType, FileText, Cog, Calendar, FileSearch, FolderSearch, MessageSquareText, BarChart3, ShieldCheck, History, FileCheck, HelpCircle, Ticket, BookOpen, GraduationCap, Workflow, CheckCircle, DollarSign, Bell, TrendingUp, UserCog, Building } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModuleType } from './TopRibbon';
@@ -355,24 +355,6 @@ export function AppSidebar({ activeMenu, onMenuClick, selectedModule = 'trade-fi
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
                                         <p>Define product fields and attributes</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </SidebarMenuSubItem>
-                                  <SidebarMenuSubItem>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <SidebarMenuSubButton
-                                          className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${
-                                            activeMenu === 'dynamic-interface-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
-                                          }`}
-                                          onClick={() => handleMenuClick('dynamic-interface-engine')}
-                                        >
-                                          <Grid3x3 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Dynamic Interface Engine</span>}
-                                        </SidebarMenuSubButton>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="top" className="z-50">
-                                        <p>Configure dynamic user interfaces</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </SidebarMenuSubItem>
