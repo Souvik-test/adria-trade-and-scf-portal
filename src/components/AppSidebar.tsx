@@ -199,7 +199,7 @@ export function AppSidebar({
     }]
   }];
   return <TooltipProvider>
-      <Sidebar className={`border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg ${isCollapsed ? 'w-16' : 'w-80'}`} collapsible="icon">
+      <Sidebar className={`border-r border-sidebar-border transition-all duration-300 bg-sidebar shadow-lg ${isCollapsed ? 'w-16' : 'w-96'}`} collapsible="icon">
         <SidebarContent>
           <SidebarGroup>
             <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
