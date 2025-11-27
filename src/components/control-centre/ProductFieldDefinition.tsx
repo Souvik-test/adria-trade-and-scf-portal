@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Edit, Copy, Trash2, Eye, Power } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   fetchProductFields,
   deleteProductField,
@@ -56,17 +57,27 @@ export const ProductFieldDefinition = ({ onBack }: ProductFieldDefinitionProps) 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const loadFields = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to view product fields",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const userId = "temp-user-id"; // TODO: Get from auth context
-      const data = await fetchProductFields(userId);
+      const data = await fetchProductFields(user.id);
       setFields(data);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to load product fields",
         variant: "destructive",
       });
     } finally {
@@ -97,9 +108,17 @@ export const ProductFieldDefinition = ({ onBack }: ProductFieldDefinitionProps) 
   };
 
   const handleCopy = async (field: ProductField) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to perform this action",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const userId = "temp-user-id"; // TODO: Get from auth context
-      await copyProductField(field.id!, userId);
+      await copyProductField(field.id!, user.id);
       toast({
         title: "Success",
         description: "Field copied successfully",
@@ -121,9 +140,18 @@ export const ProductFieldDefinition = ({ onBack }: ProductFieldDefinitionProps) 
 
   const handleDeleteConfirm = async () => {
     if (!fieldToDelete) return;
+    
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to perform this action",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const userId = "temp-user-id"; // TODO: Get from auth context
-      await deleteProductField(fieldToDelete, userId);
+      await deleteProductField(fieldToDelete, user.id);
       toast({
         title: "Success",
         description: "Field deleted successfully",
@@ -142,9 +170,17 @@ export const ProductFieldDefinition = ({ onBack }: ProductFieldDefinitionProps) 
   };
 
   const handleToggleActive = async (field: ProductField) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to perform this action",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const userId = "temp-user-id"; // TODO: Get from auth context
-      await toggleFieldActive(field.id!, !field.is_active_flag, userId);
+      await toggleFieldActive(field.id!, !field.is_active_flag, user.id);
       toast({
         title: "Success",
         description: `Field ${field.is_active_flag ? 'deactivated' : 'activated'} successfully`,

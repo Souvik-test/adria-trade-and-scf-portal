@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { createProductField, updateProductField, ProductField } from "@/services/productFieldService";
 import {
   Select,
@@ -137,6 +138,7 @@ export const ProductFieldFormDialog = ({
   
   const [formData, setFormData] = useState<Partial<ProductField>>(getInitialFormData());
   const { toast } = useToast();
+  const { user } = useAuth();
   const isReadOnly = mode === "view";
 
   useEffect(() => {
@@ -159,7 +161,16 @@ export const ProductFieldFormDialog = ({
         return;
       }
 
-      const userId = "temp-user-id"; // TODO: Get from auth context
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to perform this action",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userId = user.id;
       
       if (mode === "add") {
         await createProductField(formData as ProductField, userId);
