@@ -35,10 +35,20 @@ interface ProductEventMapping {
   updated_at: string;
 }
 
+interface ProductEventDefinition {
+  id: string;
+  module_code: string;
+  product_code: string;
+  product_name: string;
+  event_code: string;
+  event_name: string;
+}
+
 const TARGET_AUDIENCES = ["Corporate", "Bank", "Agent"] as const;
 
 export const ProductEventMapping = () => {
   const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
+  const [definitions, setDefinitions] = useState<ProductEventDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -54,11 +64,63 @@ export const ProductEventMapping = () => {
 
   const handleModuleCodeChange = (value: string) => {
     const moduleName = value === "TF" ? "Trade Finance" : value === "SCF" ? "Supply Chain Finance" : "";
-    setFormData({ ...formData, module_code: value, module_name: moduleName });
+    setFormData({ 
+      ...formData, 
+      module_code: value, 
+      module_name: moduleName,
+      product_code: "",
+      product_name: "",
+      event_code: "",
+      event_name: ""
+    });
   };
+
+  const handleProductCodeChange = (value: string) => {
+    const definition = definitions.find(
+      d => d.module_code === formData.module_code && d.product_code === value
+    );
+    setFormData({
+      ...formData,
+      product_code: value,
+      product_name: definition?.product_name || "",
+      event_code: "",
+      event_name: ""
+    });
+  };
+
+  const handleEventCodeChange = (value: string) => {
+    const definition = definitions.find(
+      d => d.module_code === formData.module_code && 
+           d.product_code === formData.product_code && 
+           d.event_code === value
+    );
+    setFormData({
+      ...formData,
+      event_code: value,
+      event_name: definition?.event_name || ""
+    });
+  };
+
+  // Get unique product codes for selected module
+  const availableProductCodes = Array.from(
+    new Set(
+      definitions
+        .filter(d => d.module_code === formData.module_code)
+        .map(d => d.product_code)
+    )
+  );
+
+  // Get event codes for selected module and product
+  const availableEventCodes = definitions
+    .filter(
+      d => d.module_code === formData.module_code && 
+           d.product_code === formData.product_code
+    )
+    .map(d => ({ code: d.event_code, name: d.event_name }));
 
   useEffect(() => {
     fetchMappings();
+    fetchDefinitions();
   }, []);
 
   const fetchMappings = async () => {
@@ -76,6 +138,22 @@ export const ProductEventMapping = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDefinitions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("product_event_definitions")
+        .select("*")
+        .order("product_code", { ascending: true });
+
+      if (error) throw error;
+      setDefinitions(data || []);
+    } catch (error: any) {
+      toast.error("Failed to load product event definitions", {
+        description: error.message,
+      });
     }
   };
 
@@ -221,14 +299,22 @@ export const ProductEventMapping = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="product_code">Product Code</Label>
-                  <Input
-                    id="product_code"
+                  <Select
                     value={formData.product_code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, product_code: e.target.value })
-                    }
-                    required
-                  />
+                    onValueChange={handleProductCodeChange}
+                    disabled={!formData.module_code}
+                  >
+                    <SelectTrigger id="product_code">
+                      <SelectValue placeholder="Select product code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProductCodes.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          {code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="product_name">Product Name</Label>
@@ -243,14 +329,22 @@ export const ProductEventMapping = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="event_code">Event Code</Label>
-                  <Input
-                    id="event_code"
+                  <Select
                     value={formData.event_code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, event_code: e.target.value })
-                    }
-                    required
-                  />
+                    onValueChange={handleEventCodeChange}
+                    disabled={!formData.product_code}
+                  >
+                    <SelectTrigger id="event_code">
+                      <SelectValue placeholder="Select event code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableEventCodes.map((event) => (
+                        <SelectItem key={event.code} value={event.code}>
+                          {event.code} - {event.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="event_name">Event Name</Label>
