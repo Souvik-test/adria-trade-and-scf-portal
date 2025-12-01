@@ -2093,7 +2093,7 @@ export type Database = {
           module_name: string
           product_code: string
           product_name: string
-          target_audience: Database["public"]["Enums"]["target_audience_type"]
+          target_audience: string[]
           updated_at: string
           user_id: string
         }
@@ -2106,7 +2106,7 @@ export type Database = {
           module_name: string
           product_code: string
           product_name: string
-          target_audience: Database["public"]["Enums"]["target_audience_type"]
+          target_audience: string[]
           updated_at?: string
           user_id: string
         }
@@ -2119,7 +2119,7 @@ export type Database = {
           module_name?: string
           product_code?: string
           product_name?: string
-          target_audience?: Database["public"]["Enums"]["target_audience_type"]
+          target_audience?: string[]
           updated_at?: string
           user_id?: string
         }

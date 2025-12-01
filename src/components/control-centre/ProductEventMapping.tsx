@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -10,6 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -30,7 +36,7 @@ interface ProductEventMapping {
   product_name: string;
   event_code: string;
   event_name: string;
-  target_audience: "Corporate" | "Bank" | "Agent";
+  target_audience: string[];
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +65,7 @@ export const ProductEventMapping = () => {
     product_name: "",
     event_code: "",
     event_name: "",
-    target_audience: "Corporate" as "Corporate" | "Bank" | "Agent",
+    target_audience: [] as string[],
   });
 
   const handleModuleCodeChange = (value: string) => {
@@ -231,10 +237,19 @@ export const ProductEventMapping = () => {
       product_name: "",
       event_code: "",
       event_name: "",
-      target_audience: "Corporate",
+      target_audience: [],
     });
     setEditingId(null);
     setShowForm(false);
+  };
+
+  const toggleAudience = (audience: string) => {
+    setFormData(prev => ({
+      ...prev,
+      target_audience: prev.target_audience.includes(audience)
+        ? prev.target_audience.filter(a => a !== audience)
+        : [...prev.target_audience, audience]
+    }));
   };
 
   if (loading) {
@@ -359,23 +374,37 @@ export const ProductEventMapping = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="target_audience">Target Audience</Label>
-                  <Select
-                    value={formData.target_audience}
-                    onValueChange={(value: any) =>
-                      setFormData({ ...formData, target_audience: value })
-                    }
-                  >
-                    <SelectTrigger id="target_audience">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TARGET_AUDIENCES.map((audience) => (
-                        <SelectItem key={audience} value={audience}>
-                          {audience}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        {formData.target_audience.length > 0
+                          ? formData.target_audience.join(", ")
+                          : "Select target audiences"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-4 bg-background" align="start">
+                      <div className="space-y-2">
+                        {TARGET_AUDIENCES.map((audience) => (
+                          <div key={audience} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`audience-${audience}`}
+                              checked={formData.target_audience.includes(audience)}
+                              onCheckedChange={() => toggleAudience(audience)}
+                            />
+                            <label
+                              htmlFor={`audience-${audience}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {audience}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -429,9 +458,16 @@ export const ProductEventMapping = () => {
                       <TableCell>{mapping.event_code}</TableCell>
                       <TableCell>{mapping.event_name}</TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
-                          {mapping.target_audience}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {mapping.target_audience?.map((audience) => (
+                            <span
+                              key={audience}
+                              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary"
+                            >
+                              {audience}
+                            </span>
+                          ))}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
