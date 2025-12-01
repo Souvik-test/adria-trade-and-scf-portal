@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import useImportLCForm from '@/hooks/useImportLCForm';
 import ImportLCProgressIndicator from './ImportLCProgressIndicator';
 import ImportLCPaneRenderer from './ImportLCPaneRenderer';
 import ImportLCFormActions from './ImportLCFormActions';
 import MT700SidebarPreview from './MT700SidebarPreview';
+import SaveTemplateDialog from './SaveTemplateDialog';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImportLCFormProps {
   onBack: () => void;
@@ -15,6 +17,9 @@ interface ImportLCFormProps {
 
 const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   const { toast } = useToast();
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  
   const {
     formData,
     currentStep,
@@ -27,6 +32,23 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     saveDraft,
     resetForm
   } = useImportLCForm();
+
+  // Get user ID on mount
+  React.useEffect(() => {
+    const fetchUserId = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) return;
+      
+      const { data: userData } = await supabase
+        .from('custom_users')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .single();
+      
+      if (userData) setUserId(userData.id);
+    };
+    fetchUserId();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -117,6 +139,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             onPrevious={previousStep}
             onNext={nextStep}
             onSaveDraft={handleSaveDraft}
+            onSaveTemplate={() => setSaveTemplateOpen(true)}
             onSubmit={handleSubmit}
             onDiscard={handleDiscard}
             onClose={onClose}
@@ -127,6 +150,14 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
 
       {/* MT 700 Sidebar Preview */}
       <MT700SidebarPreview formData={formData} />
+
+      {/* Save Template Dialog */}
+      <SaveTemplateDialog
+        open={saveTemplateOpen}
+        onOpenChange={setSaveTemplateOpen}
+        formData={formData}
+        userId={userId}
+      />
     </div>
   );
 };

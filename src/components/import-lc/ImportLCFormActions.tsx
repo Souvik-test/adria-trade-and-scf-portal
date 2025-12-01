@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ImportLCFormStep } from '@/types/importLC';
+import { Save } from 'lucide-react';
 
 interface ImportLCFormActionsProps {
   currentStep: ImportLCFormStep;
@@ -9,6 +10,7 @@ interface ImportLCFormActionsProps {
   onPrevious: () => void;
   onNext: () => void;
   onSaveDraft: () => void;
+  onSaveTemplate?: () => void;
   onSubmit: () => void;
   onDiscard: () => void;
   onClose: () => void;
@@ -21,6 +23,7 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
   onPrevious,
   onNext,
   onSaveDraft,
+  onSaveTemplate,
   onSubmit,
   onDiscard,
   onClose,
@@ -55,6 +58,17 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
         >
           Discard
         </Button>
+        
+        {onSaveTemplate && currentStep === 'documents' && (
+          <Button
+            onClick={onSaveTemplate}
+            variant="outline"
+            className="border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500 dark:text-blue-400 dark:border-blue-500 dark:hover:bg-blue-900/20 gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save as Template
+          </Button>
+        )}
         
         <Button
           onClick={onSaveDraft}
