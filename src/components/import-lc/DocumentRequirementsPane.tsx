@@ -8,7 +8,6 @@ import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
-import { FilePlus } from "lucide-react";
 import ImportLCSupportingDocumentUpload from './ImportLCSupportingDocumentUpload';
 
 interface DocumentRequirementsPaneProps {
@@ -43,38 +42,55 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
   const initialSet = new Set([...COMMON_DOC_TYPES, ...savedDocs]);
   const [docTypes, setDocTypes] = useState<string[]>(Array.from(initialSet));
 
-  const selectedDocs: string[] = Array.isArray(formData.requiredDocuments) ? formData.requiredDocuments : [];
+  // Document requirements with original/copy counts
+  const documentRequirements = Array.isArray(formData.documentRequirements) ? formData.documentRequirements : [];
 
   const handleCheckboxChange = (docType: string, checked: boolean) => {
-    let updated: string[];
     if (checked) {
-      updated = [...selectedDocs, docType];
+      // Add document with default counts
+      const newDoc = {
+        id: `doc-${Date.now()}`,
+        name: docType,
+        original: 1,
+        copies: 0
+      };
+      updateField('documentRequirements', [...documentRequirements, newDoc]);
     } else {
-      updated = selectedDocs.filter((d) => d !== docType);
+      // Remove document
+      updateField('documentRequirements', documentRequirements.filter(d => d.name !== docType));
     }
-    updateField('requiredDocuments', updated);
+  };
+
+  const handleCountChange = (docType: string, field: 'original' | 'copies', value: number) => {
+    const updated = documentRequirements.map(doc =>
+      doc.name === docType ? { ...doc, [field]: Math.max(0, value) } : doc
+    );
+    updateField('documentRequirements', updated);
   };
 
   const handleAddCustomDoc = () => {
     const trimmed = customDocName.trim();
     if (trimmed && !docTypes.includes(trimmed)) {
       setDocTypes(types => [...types, trimmed]);
-      updateField('requiredDocuments', [...selectedDocs, trimmed]);
+      // Add as document requirement with default counts
+      const newDoc = {
+        id: `doc-${Date.now()}`,
+        name: trimmed,
+        original: 1,
+        copies: 0
+      };
+      updateField('documentRequirements', [...documentRequirements, newDoc]);
     }
     setCustomDocName('');
   };
 
-  // Custom upload state
-  const [customDocUploads, setCustomDocUploads] = useState<{ label: string; key: string }[]>([]);
-  const [customDocUploadName, setCustomDocUploadName] = useState('');
+  const isDocSelected = (docType: string) => {
+    return documentRequirements.some(d => d.name === docType);
+  };
 
-  const handleAddCustomUpload = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = customDocUploadName.trim();
-    if (trimmed && !customDocUploads.some(d => d.label === trimmed)) {
-      setCustomDocUploads(u => [...u, { label: trimmed, key: `custom-${u.length + 1}` }]);
-      setCustomDocUploadName('');
-    }
+  const getDocCounts = (docType: string) => {
+    const doc = documentRequirements.find(d => d.name === docType);
+    return doc ? { original: doc.original, copies: doc.copies } : { original: 1, copies: 0 };
   };
 
   return (
@@ -87,64 +103,123 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
         </CardHeader>
         <CardContent className="space-y-7">
 
-          {/* Required Document Checkboxes */}
+          {/* Required Document Checkboxes with Original/Copy Counts */}
           <div>
             <SwiftTagLabel tag={SWIFT_TAGS.requiredDocuments.tag} label={SWIFT_TAGS.requiredDocuments.label} required={SWIFT_TAGS.requiredDocuments.required} />
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-3">
               Select required presentation documents:
             </Label>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {COMMON_DOC_TYPES.map((docType) => (
-                <div key={docType} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={docType}
-                    checked={Array.isArray(formData.requiredDocuments) && formData.requiredDocuments.includes(docType)}
-                    onCheckedChange={(checked) => {
-                      let updated: string[] = Array.isArray(formData.requiredDocuments) ? [...formData.requiredDocuments] : [];
-                      if (checked) {
-                        updated = [...updated, docType];
-                      } else {
-                        updated = updated.filter((d) => d !== docType);
-                      }
-                      updateField('requiredDocuments', updated);
-                    }}
-                  />
-                  <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                    {docType}
-                  </Label>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {COMMON_DOC_TYPES.map((docType) => {
+                const counts = getDocCounts(docType);
+                const isChecked = isDocSelected(docType);
+                return (
+                  <div key={docType} className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2 min-w-[250px]">
+                      <Checkbox
+                        id={docType}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleCheckboxChange(docType, checked as boolean)}
+                      />
+                      <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                        {docType}
+                      </Label>
+                    </div>
+                    {isChecked && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Original:</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={counts.original}
+                            onChange={(e) => handleCountChange(docType, 'original', parseInt(e.target.value) || 0)}
+                            className="w-16 h-8 text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Copies:</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={counts.copies}
+                            onChange={(e) => handleCountChange(docType, 'copies', parseInt(e.target.value) || 0)}
+                            className="w-16 h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {/* Custom documents */}
+              {docTypes.filter(dt => !COMMON_DOC_TYPES.includes(dt)).map((docType) => {
+                const counts = getDocCounts(docType);
+                const isChecked = isDocSelected(docType);
+                return (
+                  <div key={docType} className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2 min-w-[250px]">
+                      <Checkbox
+                        id={docType}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleCheckboxChange(docType, checked as boolean)}
+                      />
+                      <Label htmlFor={docType} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                        {docType}
+                      </Label>
+                    </div>
+                    {isChecked && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Original:</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={counts.original}
+                            onChange={(e) => handleCountChange(docType, 'original', parseInt(e.target.value) || 0)}
+                            className="w-16 h-8 text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-gray-600 dark:text-gray-400">Copies:</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={counts.copies}
+                            onChange={(e) => handleCountChange(docType, 'copies', parseInt(e.target.value) || 0)}
+                            className="w-16 h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            
             {/* Add Custom Document Type */}
             <div className="flex gap-2 mt-4">
               <Input
-                value={customDocUploadName}
-                onChange={(e) => setCustomDocUploadName(e.target.value)}
+                value={customDocName}
+                onChange={(e) => setCustomDocName(e.target.value)}
                 placeholder="Add custom document type"
                 maxLength={40}
                 className="flex-1"
               />
               <Button
-                onClick={handleAddCustomUpload}
+                onClick={handleAddCustomDoc}
                 className="bg-corporate-teal-500 hover:bg-corporate-teal-600 text-white"
-                disabled={!customDocUploadName.trim()}
+                disabled={!customDocName.trim()}
                 type="button"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add
               </Button>
             </div>
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {customDocUploads.map((c) => (
-                <span key={c.key} className="inline-flex items-center px-2 py-1 rounded bg-corporate-teal-100 text-xs text-corporate-teal-700 gap-1 shadow border border-corporate-teal-200">
-                  <FilePlus className="w-3 h-3 mr-0.5 text-corporate-teal-500" />
-                  {c.label}
-                </span>
-              ))}
-            </div>
           </div>
 
-          {/* Supporting Document Uploads, much more visually attractive, includes custom option */}
+          {/* Supporting Document Uploads - only predefined documents */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <Label className="text-base font-semibold text-corporate-teal-700 dark:text-corporate-teal-200">
@@ -155,7 +230,7 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
               </span>
             </div>
             <div className="text-xs text-gray-600 mb-2 max-w-lg">
-              Attach key files supporting your LC request. Upload the most relevant standard documents below, or add a custom supporting document if needed.
+              Attach key files supporting your LC request. These are standard supporting documents for the issuance process.
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {SUPPORTING_DOC_LABELS.map((doc) => (
@@ -168,21 +243,6 @@ const DocumentRequirementsPane: React.FC<DocumentRequirementsPaneProps> = ({
                   formData={formData}
                 />
               ))}
-              {/* Custom Uploads */}
-              {customDocUploads.map((c) => (
-                <ImportLCSupportingDocumentUpload
-                  key={c.key}
-                  docKey={c.key}
-                  label={c.label}
-                  lcId={formData.corporateReference || ""}
-                  updateField={updateField}
-                  formData={formData}
-                  isCustom
-                />
-              ))}
-            </div>
-            <div className="text-xs text-gray-500 mt-2 leading-snug">
-              <strong>Tip:</strong> Use the &quot;Add custom document type&quot; field above to create a unique upload for less common files (e.g., Insurance Addendum).
             </div>
           </div>
 
