@@ -13,6 +13,7 @@ import SCFProductDefinition from '@/components/SCFProductDefinition';
 import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
 import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
 import { DocumentInquiry } from '@/components/DocumentInquiry';
+import { ProductEventMapping } from '@/components/control-centre/ProductEventMapping';
 
 
 const Index = () => {
@@ -106,16 +107,7 @@ const Index = () => {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
       case 'product-event-mapping':
-        return (
-          <div className="p-8 animate-fade-in">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Product Event Mapping</h2>
-              <div className="bg-card rounded-lg p-6 professional-shadow">
-                <p className="text-muted-foreground text-lg">Product event mapping functionality coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <ProductEventMapping />;
       case 'manage-panes-sections':
         return (
           <div className="p-8 animate-fade-in">
