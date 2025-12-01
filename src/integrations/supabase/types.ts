@@ -2050,6 +2050,39 @@ export type Database = {
           },
         ]
       }
+      product_event_definitions: {
+        Row: {
+          created_at: string
+          event_code: string
+          event_name: string
+          id: string
+          module_code: string
+          product_code: string
+          product_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_code: string
+          event_name: string
+          id?: string
+          module_code: string
+          product_code: string
+          product_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_code?: string
+          event_name?: string
+          id?: string
+          module_code?: string
+          product_code?: string
+          product_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_event_mapping: {
         Row: {
           created_at: string
