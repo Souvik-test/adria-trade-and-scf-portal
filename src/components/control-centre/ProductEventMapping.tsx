@@ -52,6 +52,11 @@ export const ProductEventMapping = () => {
     target_audience: "Corporate" as "Corporate" | "Bank" | "Agent",
   });
 
+  const handleModuleCodeChange = (value: string) => {
+    const moduleName = value === "TF" ? "Trade Finance" : value === "SCF" ? "Supply Chain Finance" : "";
+    setFormData({ ...formData, module_code: value, module_name: moduleName });
+  };
+
   useEffect(() => {
     fetchMappings();
   }, []);
@@ -191,24 +196,27 @@ export const ProductEventMapping = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="module_code">Module Code</Label>
-                  <Input
-                    id="module_code"
+                  <Select
                     value={formData.module_code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, module_code: e.target.value })
-                    }
-                    required
-                  />
+                    onValueChange={handleModuleCodeChange}
+                  >
+                    <SelectTrigger id="module_code">
+                      <SelectValue placeholder="Select module code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TF">TF</SelectItem>
+                      <SelectItem value="SCF">SCF</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module_name">Module Name</Label>
                   <Input
                     id="module_name"
                     value={formData.module_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, module_name: e.target.value })
-                    }
-                    required
+                    readOnly
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
                 <div className="space-y-2">
