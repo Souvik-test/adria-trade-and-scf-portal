@@ -13,7 +13,7 @@ import SCFProductDefinition from '@/components/SCFProductDefinition';
 import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConfiguration';
 import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
 import { DocumentInquiry } from '@/components/DocumentInquiry';
-import { ProductFieldDefinition } from '@/components/control-centre/ProductFieldDefinition';
+
 
 const Index = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -105,8 +105,50 @@ const Index = () => {
     switch (activeMenu) {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
-      case 'product-field-definition':
-        return <ProductFieldDefinition onBack={() => setActiveMenu('dashboard')} />;
+      case 'product-event-mapping':
+        return (
+          <div className="p-8 animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Product Event Mapping</h2>
+              <div className="bg-card rounded-lg p-6 professional-shadow">
+                <p className="text-muted-foreground text-lg">Product event mapping functionality coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'manage-panes-sections':
+        return (
+          <div className="p-8 animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Manage Panes and Sections</h2>
+              <div className="bg-card rounded-lg p-6 professional-shadow">
+                <p className="text-muted-foreground text-lg">Panes and sections management functionality coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'field-definition':
+        return (
+          <div className="p-8 animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Field Definition</h2>
+              <div className="bg-card rounded-lg p-6 professional-shadow">
+                <p className="text-muted-foreground text-lg">Field definition functionality coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'nextgen-workflow-configurator':
+        return (
+          <div className="p-8 animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-foreground mb-4">NextGen Workflow Configurator</h2>
+              <div className="bg-card rounded-lg p-6 professional-shadow">
+                <p className="text-muted-foreground text-lg">Workflow configurator functionality coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
       case 'document-inquiry':
         return <DocumentInquiry />;
       case 'inquiry':

@@ -308,7 +308,7 @@ export function AppSidebar({
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {/* NextGen Workflow Configurator with sub-menus */}
+                          {/* Dynamic Form Engine with sub-menus */}
                           <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
@@ -316,13 +316,13 @@ export function AppSidebar({
                                   <CollapsibleTrigger asChild>
                                     <SidebarMenuSubButton className="cursor-pointer w-full h-auto min-h-[2.5rem] py-2">
                                       <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">NextGen Workflow Configurator</span>}
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">Dynamic Form Engine</span>}
                                       {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform ${tfNextGenWorkflowOpen ? 'rotate-180' : ''}`} />}
                                     </SidebarMenuSubButton>
                                   </CollapsibleTrigger>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="z-50">
-                                  <p>Configure workflow and interface definitions</p>
+                                  <p>Configure dynamic forms and field definitions</p>
                                 </TooltipContent>
                               </Tooltip>
                               <CollapsibleContent>
@@ -330,27 +330,39 @@ export function AppSidebar({
                                   <SidebarMenuSubItem>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'product-field-definition' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('product-field-definition')}>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'product-event-mapping' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('product-event-mapping')}>
                                           <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Product Field
-Definition</span>}
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Product Event Mapping</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
-                                        <p>Define product fields and attributes</p>
+                                        <p>Map products to events</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </SidebarMenuSubItem>
                                   <SidebarMenuSubItem>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'workflow-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('workflow-engine')}>
-                                          <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Workflow Engine</span>}
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'manage-panes-sections' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('manage-panes-sections')}>
+                                          <Sliders className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Manage Panes and Sections</span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
-                                        <p>Define workflow rules and automation</p>
+                                        <p>Manage form panes and sections</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'field-definition' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('field-definition')}>
+                                          <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Field Definition</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Define and manage form fields</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </SidebarMenuSubItem>
@@ -358,6 +370,21 @@ Definition</span>}
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
                           </Collapsible>
+
+                          {/* NextGen Workflow Configurator - no sub-menus */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'nextgen-workflow-configurator' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('nextgen-workflow-configurator')}>
+                                  <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">NextGen Workflow Configurator</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Configure workflow and process definitions</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
 
                           {/* Posting Configuration */}
                           <SidebarMenuSubItem>
