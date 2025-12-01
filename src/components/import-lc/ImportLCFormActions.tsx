@@ -36,7 +36,7 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
 
   return (
     <div className="flex justify-between items-center pt-6 border-t border-border bg-card">
-      {/* Left side - Only show Go Back button if not on first step */}
+      {/* Left side - Go Back and Discard buttons */}
       <div className="flex gap-3">
         {!isFirstStep && (
           <Button
@@ -47,10 +47,6 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
             Go Back
           </Button>
         )}
-      </div>
-
-      {/* Right side - Actions */}
-      <div className="flex gap-3">
         <Button
           onClick={onDiscard}
           variant="outline"
@@ -58,7 +54,10 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
         >
           Discard
         </Button>
-        
+      </div>
+
+      {/* Right side - Actions */}
+      <div className="flex gap-3">
         {onSaveTemplate && currentStep === 'documents' && (
           <Button
             onClick={onSaveTemplate}
