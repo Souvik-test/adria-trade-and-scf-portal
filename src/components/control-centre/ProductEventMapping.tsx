@@ -1,0 +1,362 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Plus, Edit2, Trash2, X } from "lucide-react";
+
+interface ProductEventMapping {
+  id: string;
+  module_code: string;
+  module_name: string;
+  product_code: string;
+  product_name: string;
+  event_code: string;
+  event_name: string;
+  target_audience: "Corporate" | "Bank" | "Agent";
+  created_at: string;
+  updated_at: string;
+}
+
+const TARGET_AUDIENCES = ["Corporate", "Bank", "Agent"] as const;
+
+export const ProductEventMapping = () => {
+  const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    module_code: "",
+    module_name: "",
+    product_code: "",
+    product_name: "",
+    event_code: "",
+    event_name: "",
+    target_audience: "Corporate" as "Corporate" | "Bank" | "Agent",
+  });
+
+  useEffect(() => {
+    fetchMappings();
+  }, []);
+
+  const fetchMappings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("product_event_mapping")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setMappings(data || []);
+    } catch (error: any) {
+      toast.error("Failed to load product event mappings", {
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      if (editingId) {
+        const { error } = await supabase
+          .from("product_event_mapping")
+          .update(formData)
+          .eq("id", editingId);
+
+        if (error) throw error;
+        toast.success("Product event mapping updated successfully");
+      } else {
+        const { error } = await supabase
+          .from("product_event_mapping")
+          .insert([{ ...formData, user_id: user.id }]);
+
+        if (error) throw error;
+        toast.success("Product event mapping created successfully");
+      }
+
+      resetForm();
+      fetchMappings();
+    } catch (error: any) {
+      toast.error("Failed to save product event mapping", {
+        description: error.message,
+      });
+    }
+  };
+
+  const handleEdit = (mapping: ProductEventMapping) => {
+    setFormData({
+      module_code: mapping.module_code,
+      module_name: mapping.module_name,
+      product_code: mapping.product_code,
+      product_name: mapping.product_name,
+      event_code: mapping.event_code,
+      event_name: mapping.event_name,
+      target_audience: mapping.target_audience,
+    });
+    setEditingId(mapping.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this mapping?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("product_event_mapping")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Product event mapping deleted successfully");
+      fetchMappings();
+    } catch (error: any) {
+      toast.error("Failed to delete product event mapping", {
+        description: error.message,
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      module_code: "",
+      module_name: "",
+      product_code: "",
+      product_name: "",
+      event_code: "",
+      event_name: "",
+      target_audience: "Corporate",
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Product Event Mapping</h1>
+        {!showForm && (
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Mapping
+          </Button>
+        )}
+      </div>
+
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                {editingId ? "Edit" : "Add"} Product Event Mapping
+              </CardTitle>
+              <Button variant="ghost" size="icon" onClick={resetForm}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="module_code">Module Code</Label>
+                  <Input
+                    id="module_code"
+                    value={formData.module_code}
+                    onChange={(e) =>
+                      setFormData({ ...formData, module_code: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="module_name">Module Name</Label>
+                  <Input
+                    id="module_name"
+                    value={formData.module_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, module_name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product_code">Product Code</Label>
+                  <Input
+                    id="product_code"
+                    value={formData.product_code}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_code: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product_name">Product Name</Label>
+                  <Input
+                    id="product_name"
+                    value={formData.product_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event_code">Event Code</Label>
+                  <Input
+                    id="event_code"
+                    value={formData.event_code}
+                    onChange={(e) =>
+                      setFormData({ ...formData, event_code: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="event_name">Event Name</Label>
+                  <Input
+                    id="event_name"
+                    value={formData.event_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, event_name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="target_audience">Target Audience</Label>
+                  <Select
+                    value={formData.target_audience}
+                    onValueChange={(value: any) =>
+                      setFormData({ ...formData, target_audience: value })
+                    }
+                  >
+                    <SelectTrigger id="target_audience">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TARGET_AUDIENCES.map((audience) => (
+                        <SelectItem key={audience} value={audience}>
+                          {audience}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit">
+                  {editingId ? "Update" : "Create"} Mapping
+                </Button>
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Event Mappings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Module Code</TableHead>
+                  <TableHead>Module Name</TableHead>
+                  <TableHead>Product Code</TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Event Code</TableHead>
+                  <TableHead>Event Name</TableHead>
+                  <TableHead>Target Audience</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mappings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      No product event mappings found. Click "Add Mapping" to create one.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  mappings.map((mapping) => (
+                    <TableRow key={mapping.id}>
+                      <TableCell className="font-medium">
+                        {mapping.module_code}
+                      </TableCell>
+                      <TableCell>{mapping.module_name}</TableCell>
+                      <TableCell>{mapping.product_code}</TableCell>
+                      <TableCell>{mapping.product_name}</TableCell>
+                      <TableCell>{mapping.event_code}</TableCell>
+                      <TableCell>{mapping.event_name}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                          {mapping.target_audience}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(mapping)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(mapping.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};

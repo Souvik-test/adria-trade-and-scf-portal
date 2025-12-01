@@ -2050,6 +2050,48 @@ export type Database = {
           },
         ]
       }
+      product_event_mapping: {
+        Row: {
+          created_at: string
+          event_code: string
+          event_name: string
+          id: string
+          module_code: string
+          module_name: string
+          product_code: string
+          product_name: string
+          target_audience: Database["public"]["Enums"]["target_audience_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_code: string
+          event_name: string
+          id?: string
+          module_code: string
+          module_name: string
+          product_code: string
+          product_name: string
+          target_audience: Database["public"]["Enums"]["target_audience_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_code?: string
+          event_name?: string
+          id?: string
+          module_code?: string
+          module_name?: string
+          product_code?: string
+          product_name?: string
+          target_audience?: Database["public"]["Enums"]["target_audience_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       proforma_invoices: {
         Row: {
           bank_details: string | null
@@ -2871,6 +2913,7 @@ export type Database = {
         | "Import Loan"
         | "Export Loan"
       scf_user_role: "Supplier" | "Buyer" | "Bank" | "Admin"
+      target_audience_type: "Corporate" | "Bank" | "Agent"
       user_role_type: "Maker" | "Checker" | "Viewer" | "All"
     }
     CompositeTypes: {
@@ -3011,6 +3054,7 @@ export const Constants = {
         "Export Loan",
       ],
       scf_user_role: ["Supplier", "Buyer", "Bank", "Admin"],
+      target_audience_type: ["Corporate", "Bank", "Agent"],
       user_role_type: ["Maker", "Checker", "Viewer", "All"],
     },
   },
