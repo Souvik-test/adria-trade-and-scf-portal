@@ -41,6 +41,7 @@ const ManagePanesAndSections = () => {
   const [panes, setPanes] = useState<Pane[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hasExistingConfig, setHasExistingConfig] = useState(false);
 
   // Fetch product event mappings
   useEffect(() => {
@@ -148,8 +149,10 @@ const ManagePanesAndSections = () => {
           isOpen: false
         }));
         setPanes(loadedPanes);
+        setHasExistingConfig(true);
       } else {
         setPanes([]);
+        setHasExistingConfig(false);
       }
     } catch (error: any) {
       toast.error('Failed to load pane configuration', {
@@ -467,6 +470,58 @@ const ManagePanesAndSections = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Configuration Dashboard - Display existing configuration */}
+      {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && hasExistingConfig && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Current Configuration
+              <Badge variant="outline" className="ml-auto">
+                {panes.length} Pane{panes.length !== 1 ? 's' : ''}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              Existing panes and sections for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {panes.map((pane) => (
+                <Card key={pane.id} className="bg-muted/50">
+                  <CardHeader className="py-3">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center p-0">
+                        {pane.sequence}
+                      </Badge>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{pane.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {pane.sections.length} section{pane.sections.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {pane.sections.length > 0 && (
+                    <CardContent className="pt-0 pb-3">
+                      <div className="pl-11 space-y-1.5">
+                        {pane.sections.map((section) => (
+                          <div key={section.id} className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="w-6 h-6 rounded flex items-center justify-center p-0 text-xs">
+                              {section.sequence}
+                            </Badge>
+                            <span className="text-muted-foreground">{section.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Panes Section */}
       {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && (
