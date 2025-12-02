@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Map } from "lucide-react";
 
 interface ProductEventMapping {
   id: string;
@@ -54,7 +54,11 @@ interface ProductEventDefinition {
 const TARGET_AUDIENCES = ["Corporate", "Bank", "Agent"] as const;
 const BUSINESS_APPLICATIONS = ["Adria TSCF Client", "Adria Process Orchestrator", "Adria TSCF Bank"] as const;
 
-export const ProductEventMapping = () => {
+interface ProductEventMappingProps {
+  onNavigateToManagePanes?: () => void;
+}
+
+export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMappingProps) => {
   const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
   const [definitions, setDefinitions] = useState<ProductEventDefinition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -264,6 +268,13 @@ export const ProductEventMapping = () => {
         ? prev.business_application.filter(a => a !== app)
         : [...prev.business_application, app]
     }));
+  };
+
+  const handleMapToPanes = (mapping: ProductEventMapping) => {
+    // Navigate to Manage Panes and Sections
+    if (onNavigateToManagePanes) {
+      onNavigateToManagePanes();
+    }
   };
 
   if (loading) {
@@ -532,6 +543,14 @@ export const ProductEventMapping = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleMapToPanes(mapping)}
+                            title="Map to Panes and Sections"
+                          >
+                            <Map className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
