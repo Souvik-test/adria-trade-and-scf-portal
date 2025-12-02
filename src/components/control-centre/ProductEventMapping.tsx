@@ -37,6 +37,7 @@ interface ProductEventMapping {
   event_code: string;
   event_name: string;
   target_audience: string[];
+  business_application: string[];
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +52,7 @@ interface ProductEventDefinition {
 }
 
 const TARGET_AUDIENCES = ["Corporate", "Bank", "Agent"] as const;
+const BUSINESS_APPLICATIONS = ["Adria TSCF Client", "Adria Process Orchestrator", "Adria TSCF Bank"] as const;
 
 export const ProductEventMapping = () => {
   const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
@@ -66,6 +68,7 @@ export const ProductEventMapping = () => {
     event_code: "",
     event_name: "",
     target_audience: [] as string[],
+    business_application: [] as string[],
   });
 
   const handleModuleCodeChange = (value: string) => {
@@ -205,6 +208,7 @@ export const ProductEventMapping = () => {
       event_code: mapping.event_code,
       event_name: mapping.event_name,
       target_audience: mapping.target_audience,
+      business_application: mapping.business_application || [],
     });
     setEditingId(mapping.id);
     setShowForm(true);
@@ -238,6 +242,7 @@ export const ProductEventMapping = () => {
       event_code: "",
       event_name: "",
       target_audience: [],
+      business_application: [],
     });
     setEditingId(null);
     setShowForm(false);
@@ -249,6 +254,15 @@ export const ProductEventMapping = () => {
       target_audience: prev.target_audience.includes(audience)
         ? prev.target_audience.filter(a => a !== audience)
         : [...prev.target_audience, audience]
+    }));
+  };
+
+  const toggleBusinessApplication = (app: string) => {
+    setFormData(prev => ({
+      ...prev,
+      business_application: prev.business_application.includes(app)
+        ? prev.business_application.filter(a => a !== app)
+        : [...prev.business_application, app]
     }));
   };
 
@@ -373,7 +387,7 @@ export const ProductEventMapping = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="target_audience">Target Audience</Label>
+                  <Label htmlFor="customer_segment">Customer Segment</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -382,7 +396,7 @@ export const ProductEventMapping = () => {
                       >
                         {formData.target_audience.length > 0
                           ? formData.target_audience.join(", ")
-                          : "Select target audiences"}
+                          : "Select customer segments"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-4 bg-background" align="start">
@@ -399,6 +413,40 @@ export const ProductEventMapping = () => {
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                             >
                               {audience}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="business_application">Business Application</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        {formData.business_application.length > 0
+                          ? formData.business_application.join(", ")
+                          : "Select business applications"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-4 bg-background" align="start">
+                      <div className="space-y-2">
+                        {BUSINESS_APPLICATIONS.map((app) => (
+                          <div key={app} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`app-${app}`}
+                              checked={formData.business_application.includes(app)}
+                              onCheckedChange={() => toggleBusinessApplication(app)}
+                            />
+                            <label
+                              htmlFor={`app-${app}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {app}
                             </label>
                           </div>
                         ))}
@@ -435,14 +483,15 @@ export const ProductEventMapping = () => {
                   <TableHead>Product Name</TableHead>
                   <TableHead>Event Code</TableHead>
                   <TableHead>Event Name</TableHead>
-                  <TableHead>Target Audience</TableHead>
+                  <TableHead>Customer Segment</TableHead>
+                  <TableHead>Business Application</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {mappings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground">
                       No product event mappings found. Click "Add Mapping" to create one.
                     </TableCell>
                   </TableRow>
@@ -465,6 +514,18 @@ export const ProductEventMapping = () => {
                               className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary"
                             >
                               {audience}
+                            </span>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {mapping.business_application?.map((app) => (
+                            <span
+                              key={app}
+                              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary/10 text-secondary-foreground"
+                            >
+                              {app}
                             </span>
                           ))}
                         </div>

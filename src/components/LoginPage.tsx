@@ -215,9 +215,9 @@ const LoginPage: React.FC = () => {
               </Button>
             </label>
           </div>
-          <CardTitle className="text-center">Trade Finance Portal</CardTitle>
+          <CardTitle className="text-center">Adria Trade and SCF Studio</CardTitle>
           <CardDescription className="text-center">
-            Access your trade finance dashboard
+            Adria Trade and SCF Studio
           </CardDescription>
         </CardHeader>
         <CardContent>

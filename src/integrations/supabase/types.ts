@@ -2085,6 +2085,7 @@ export type Database = {
       }
       product_event_mapping: {
         Row: {
+          business_application: string[] | null
           created_at: string
           event_code: string
           event_name: string
@@ -2098,6 +2099,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          business_application?: string[] | null
           created_at?: string
           event_code: string
           event_name: string
@@ -2111,6 +2113,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          business_application?: string[] | null
           created_at?: string
           event_code?: string
           event_name?: string
