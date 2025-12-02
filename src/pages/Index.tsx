@@ -14,6 +14,7 @@ import { SCFProgramConfiguration } from '@/components/scf-program/SCFProgramConf
 import SCFTransactionInquiry from '@/components/SCFTransactionInquiry';
 import { DocumentInquiry } from '@/components/DocumentInquiry';
 import { ProductEventMapping } from '@/components/control-centre/ProductEventMapping';
+import ManagePanesAndSections from '@/components/control-centre/ManagePanesAndSections';
 
 
 const Index = () => {
@@ -109,16 +110,7 @@ const Index = () => {
       case 'product-event-mapping':
         return <ProductEventMapping />;
       case 'manage-panes-sections':
-        return (
-          <div className="p-8 animate-fade-in">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Manage Panes and Sections</h2>
-              <div className="bg-card rounded-lg p-6 professional-shadow">
-                <p className="text-muted-foreground text-lg">Panes and sections management functionality coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <ManagePanesAndSections />;
       case 'field-definition':
         return (
           <div className="p-8 animate-fade-in">
