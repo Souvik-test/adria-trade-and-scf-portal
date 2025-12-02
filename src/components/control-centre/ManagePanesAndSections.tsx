@@ -31,6 +31,15 @@ interface Pane {
   isOpen: boolean;
 }
 
+interface SavedConfiguration {
+  id: string;
+  product_code: string;
+  event_code: string;
+  business_application: string[];
+  customer_segment: string[];
+  panes: Pane[];
+}
+
 const ManagePanesAndSections = () => {
   const [productMappings, setProductMappings] = useState<ProductEventMapping[]>([]);
   const [selectedBusinessApp, setSelectedBusinessApp] = useState('');
@@ -42,11 +51,30 @@ const ManagePanesAndSections = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasExistingConfig, setHasExistingConfig] = useState(false);
+  const [allConfigurations, setAllConfigurations] = useState<SavedConfiguration[]>([]);
 
   // Fetch product event mappings
   useEffect(() => {
     fetchProductMappings();
+    fetchAllConfigurations();
   }, []);
+
+  const fetchAllConfigurations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pane_section_mappings')
+        .select('*')
+        .order('product_code', { ascending: true })
+        .order('event_code', { ascending: true });
+
+      if (error) throw error;
+      setAllConfigurations((data || []) as unknown as SavedConfiguration[]);
+    } catch (error: any) {
+      toast.error('Failed to load configurations', {
+        description: error.message
+      });
+    }
+  };
 
   const fetchProductMappings = async () => {
     setLoading(true);
@@ -347,6 +375,9 @@ const ManagePanesAndSections = () => {
       if (error) throw error;
 
       toast.success('Pane and section mapping saved successfully');
+      
+      // Refresh all configurations
+      await fetchAllConfigurations();
     } catch (error: any) {
       toast.error('Failed to save mapping', {
         description: error.message
@@ -354,6 +385,16 @@ const ManagePanesAndSections = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const loadConfiguration = (config: SavedConfiguration) => {
+    // Set the selection criteria
+    setSelectedBusinessApp(config.business_application[0]);
+    setSelectedCustomerSegment(config.customer_segment[0]);
+    setSelectedProduct(config.product_code);
+    setSelectedEvent(config.event_code);
+    
+    // The useEffect will handle loading the panes
   };
 
   return (
@@ -366,6 +407,91 @@ const ManagePanesAndSections = () => {
           </p>
         </div>
       </div>
+
+      {/* All Configurations Dashboard */}
+      {allConfigurations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Current Configurations
+              <Badge variant="outline" className="ml-auto">
+                {allConfigurations.length} Configuration{allConfigurations.length !== 1 ? 's' : ''}
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              All existing pane and section configurations across products and events
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {allConfigurations.map((config) => {
+                const panesArray = config.panes as Pane[];
+                const totalSections = panesArray.reduce((sum, pane) => sum + pane.sections.length, 0);
+                
+                return (
+                  <Card 
+                    key={config.id} 
+                    className="cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => loadConfiguration(config)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {config.product_code}
+                            </Badge>
+                            <Badge variant="secondary" className="font-mono text-xs ml-1">
+                              {config.event_code}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className="text-xs">
+                              {panesArray.length} Pane{panesArray.length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">Business App:</span>
+                            <span>{config.business_application[0]}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">Segment:</span>
+                            <span>{config.customer_segment[0]}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {panesArray.slice(0, 2).map((pane) => (
+                          <div key={pane.id} className="text-xs">
+                            <div className="font-medium text-foreground flex items-center gap-2">
+                              <Badge variant="secondary" className="w-5 h-5 rounded-full flex items-center justify-center p-0 text-[10px]">
+                                {pane.sequence}
+                              </Badge>
+                              {pane.name}
+                            </div>
+                            <div className="text-muted-foreground ml-7 mt-0.5">
+                              {pane.sections.length} section{pane.sections.length !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        ))}
+                        {panesArray.length > 2 && (
+                          <div className="text-xs text-muted-foreground ml-7">
+                            + {panesArray.length - 2} more pane{panesArray.length - 2 !== 1 ? 's' : ''}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Header Section - Product and Event Selection */}
       <Card>
@@ -470,58 +596,6 @@ const ManagePanesAndSections = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Configuration Dashboard - Display existing configuration */}
-      {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && hasExistingConfig && (
-        <Card className="border-primary/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Current Configuration
-              <Badge variant="outline" className="ml-auto">
-                {panes.length} Pane{panes.length !== 1 ? 's' : ''}
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              Existing panes and sections for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {panes.map((pane) => (
-                <Card key={pane.id} className="bg-muted/50">
-                  <CardHeader className="py-3">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center p-0">
-                        {pane.sequence}
-                      </Badge>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-foreground">{pane.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {pane.sections.length} section{pane.sections.length !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {pane.sections.length > 0 && (
-                    <CardContent className="pt-0 pb-3">
-                      <div className="pl-11 space-y-1.5">
-                        {pane.sections.map((section) => (
-                          <div key={section.id} className="flex items-center gap-2 text-sm">
-                            <Badge variant="outline" className="w-6 h-6 rounded flex items-center justify-center p-0 text-xs">
-                              {section.sequence}
-                            </Badge>
-                            <span className="text-muted-foreground">{section.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Panes Section */}
       {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && (
