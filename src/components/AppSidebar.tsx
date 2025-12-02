@@ -57,6 +57,10 @@ export function AppSidebar({
   const [auditComplianceOpen, setAuditComplianceOpen] = React.useState(false);
   const [supportOpen, setSupportOpen] = React.useState(false);
 
+  // Get business centre from localStorage
+  const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+  const showControlCentre = businessCentre === 'Adria Process Orchestrator';
+
   // Define menu items based on selected module
   const getMenuItems = () => {
     const baseItems = [{
@@ -294,8 +298,8 @@ export function AppSidebar({
                     </SidebarMenuItem>
                   </Collapsible>}
 
-                {/* Control Centre Menu - Only for Trade Finance */}
-                {selectedModule === 'trade-finance' && <Collapsible open={tfControlCenterOpen} onOpenChange={setTfControlCenterOpen}>
+                {/* Control Centre Menu - Only for Trade Finance and Adria Process Orchestrator */}
+                {selectedModule === 'trade-finance' && showControlCentre && <Collapsible open={tfControlCenterOpen} onOpenChange={setTfControlCenterOpen}>
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton tooltip={isCollapsed ? 'Control Centre' : undefined} className="cursor-pointer transition-all duration-200 rounded-lg p-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-sm w-full">

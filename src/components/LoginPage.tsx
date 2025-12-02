@@ -95,6 +95,9 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
+      // Store business centre selection
+      localStorage.setItem('businessCentre', businessCentre);
+      
       // Try custom auth first
       const customResult = await customAuth.signIn(loginForm.email, loginForm.password);
       
@@ -139,6 +142,9 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
+      // Store business centre selection
+      localStorage.setItem('businessCentre', businessCentre);
+      
       const { error } = await signUp(signupForm.email, signupForm.password, {
         full_name: signupForm.fullName,
         user_login_id: signupForm.userLoginId
