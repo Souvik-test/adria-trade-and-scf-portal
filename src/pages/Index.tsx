@@ -108,7 +108,7 @@ const Index = () => {
       case 'product-suite':
         return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
       case 'product-event-mapping':
-        return <ProductEventMapping />;
+        return <ProductEventMapping onNavigateToManagePanes={() => setActiveMenu('manage-panes-sections')} />;
       case 'manage-panes-sections':
         return <ManagePanesAndSections />;
       case 'field-definition':
