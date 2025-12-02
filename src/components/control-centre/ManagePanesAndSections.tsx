@@ -130,11 +130,14 @@ const ManagePanesAndSections = () => {
       setSelectedMapping(mapping || null);
 
       // Load existing pane/section configuration if any
+      // Filter by all 4 criteria to ensure proper isolation
       const { data, error } = await supabase
         .from('pane_section_mappings')
         .select('*')
         .eq('product_code', selectedProduct)
         .eq('event_code', selectedEvent)
+        .contains('business_application', [selectedBusinessApp])
+        .contains('customer_segment', [selectedCustomerSegment])
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -300,27 +303,43 @@ const ManagePanesAndSections = () => {
 
       const panesData = panes.map(({ isOpen, ...rest }) => rest);
 
-      const insertData: {
-        product_code: string;
-        event_code: string;
-        business_application: string[];
-        customer_segment: string[];
-        panes: any;
-        user_id: string;
-      } = {
+      const recordData = {
         product_code: selectedProduct,
         event_code: selectedEvent,
         business_application: [selectedBusinessApp],
         customer_segment: [selectedCustomerSegment],
-        panes: panesData,
+        panes: panesData as any,
         user_id: userData.user.id
       };
 
-      const { error } = await supabase
+      // Check if record exists for this exact combination
+      const { data: existing, error: selectError } = await supabase
         .from('pane_section_mappings')
-        .upsert(insertData, {
-          onConflict: 'product_code,event_code,user_id'
-        });
+        .select('id')
+        .eq('product_code', selectedProduct)
+        .eq('event_code', selectedEvent)
+        .contains('business_application', [selectedBusinessApp])
+        .contains('customer_segment', [selectedCustomerSegment])
+        .eq('user_id', userData.user.id)
+        .maybeSingle();
+
+      if (selectError && selectError.code !== 'PGRST116') throw selectError;
+
+      let error;
+      if (existing) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('pane_section_mappings')
+          .update(recordData)
+          .eq('id', existing.id);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('pane_section_mappings')
+          .insert(recordData);
+        error = insertError;
+      }
 
       if (error) throw error;
 
