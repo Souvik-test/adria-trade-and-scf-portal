@@ -1951,6 +1951,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pane_section_mappings: {
+        Row: {
+          business_application: string[]
+          created_at: string | null
+          customer_segment: string[]
+          event_code: string
+          id: string
+          panes: Json
+          product_code: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_application?: string[]
+          created_at?: string | null
+          customer_segment?: string[]
+          event_code: string
+          id?: string
+          panes?: Json
+          product_code: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_application?: string[]
+          created_at?: string | null
+          customer_segment?: string[]
+          event_code?: string
+          id?: string
+          panes?: Json
+          product_code?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_requests: {
         Row: {
           created_at: string
