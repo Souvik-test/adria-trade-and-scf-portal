@@ -21,6 +21,8 @@ interface Section {
   id: string;
   name: string;
   sequence: number;
+  rows: number;
+  columns: number;
 }
 
 interface Pane {
@@ -240,9 +242,23 @@ const ManagePanesAndSections = () => {
         const newSection: Section = {
           id: `section-${Date.now()}`,
           name: '',
-          sequence: p.sections.length + 1
+          sequence: p.sections.length + 1,
+          rows: 1,
+          columns: 2
         };
         return { ...p, sections: [...p.sections, newSection] };
+      }
+      return p;
+    }));
+  };
+
+  const updateSectionLayout = (paneId: string, sectionId: string, field: 'rows' | 'columns', value: number) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        return {
+          ...p,
+          sections: p.sections.map(s => s.id === sectionId ? { ...s, [field]: value } : s)
+        };
       }
       return p;
     }));
@@ -701,10 +717,10 @@ const ManagePanesAndSections = () => {
                               No sections. Click "Add Section" to add one.
                             </div>
                           ) : (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {pane.sections.map((section, sectionIndex) => (
-                                <div key={section.id} className="flex items-center gap-2">
-                                  <div className="flex flex-col items-center gap-0.5">
+                                <div key={section.id} className="flex items-start gap-2 p-3 border rounded-md bg-muted/30">
+                                  <div className="flex flex-col items-center gap-0.5 pt-1">
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -727,20 +743,48 @@ const ManagePanesAndSections = () => {
                                       <GripVertical className="w-3 h-3" />
                                     </Button>
                                   </div>
-                                  <Input
-                                    placeholder="Enter section name (e.g., Key Details)"
-                                    value={section.name}
-                                    onChange={(e) => updateSectionName(pane.id, section.id, e.target.value)}
-                                    className="text-sm"
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => deleteSection(pane.id, section.id)}
-                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        placeholder="Enter section name (e.g., Key Details)"
+                                        value={section.name}
+                                        onChange={(e) => updateSectionName(pane.id, section.id, e.target.value)}
+                                        className="text-sm flex-1"
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => deleteSection(pane.id, section.id)}
+                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                      <div className="flex items-center gap-2">
+                                        <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Rows</Label>
+                                        <Input
+                                          type="number"
+                                          min={1}
+                                          max={20}
+                                          value={section.rows || 1}
+                                          onChange={(e) => updateSectionLayout(pane.id, section.id, 'rows', Math.max(1, parseInt(e.target.value) || 1))}
+                                          className="w-16 h-7 text-xs"
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Columns</Label>
+                                        <Input
+                                          type="number"
+                                          min={1}
+                                          max={6}
+                                          value={section.columns || 2}
+                                          onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(6, parseInt(e.target.value) || 2)))}
+                                          className="w-16 h-7 text-xs"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               ))}
                             </div>
