@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,9 +21,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     if (action === "signup") {
+      console.log("Processing signup for user:", userData?.userId);
+      
       // Hash password securely with bcrypt
-      const salt = await bcrypt.genSalt(12);
-      const passwordHash = await bcrypt.hash(userData.password, salt);
+      const salt = bcrypt.genSaltSync(12);
+      const passwordHash = bcrypt.hashSync(userData.password, salt);
 
       // Insert new user with secure hash
       const { data: insertData, error: insertError } = await supabase
@@ -48,6 +50,7 @@ serve(async (req) => {
         );
       }
 
+      console.log("Signup successful for user:", insertData?.user_id);
       return new Response(
         JSON.stringify({ user: insertData }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -55,6 +58,8 @@ serve(async (req) => {
     }
 
     if (action === "signin") {
+      console.log("Processing signin for user:", userId);
+      
       // Get user with password hash for verification
       const { data: users, error: fetchError } = await supabase
         .from("custom_users")
@@ -63,6 +68,7 @@ serve(async (req) => {
         .limit(1);
 
       if (fetchError || !users || users.length === 0) {
+        console.log("User not found:", userId);
         return new Response(
           JSON.stringify({ error: "Invalid credentials" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -72,9 +78,10 @@ serve(async (req) => {
       const user = users[0];
       
       // Verify password with bcrypt
-      const isValid = await bcrypt.compare(password, user.password_hash);
+      const isValid = bcrypt.compareSync(password, user.password_hash);
       
       if (!isValid) {
+        console.log("Invalid password for user:", userId);
         return new Response(
           JSON.stringify({ error: "Invalid credentials" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -119,6 +126,7 @@ serve(async (req) => {
       // Return user data without password hash
       const { password_hash: _, ...safeUser } = user;
 
+      console.log("Signin successful for user:", userId);
       return new Response(
         JSON.stringify({
           user: safeUser,
