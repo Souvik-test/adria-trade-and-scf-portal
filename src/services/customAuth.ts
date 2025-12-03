@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CustomUser {
@@ -18,16 +17,6 @@ export interface CustomSession {
   access_token: string;
 }
 
-// Simple password hashing (in production, use bcrypt or similar)
-const hashPassword = (password: string): string => {
-  // Simple hash for demo - in production use proper bcrypt
-  return btoa(password + 'salt');
-};
-
-const verifyPassword = (password: string, hash: string): boolean => {
-  return hashPassword(password) === hash;
-};
-
 // Store auth state change listeners
 let authStateChangeListeners: ((session: CustomSession | null) => void)[] = [];
 
@@ -43,7 +32,7 @@ const notifyAuthStateChange = (session: CustomSession | null) => {
 };
 
 export const customAuth = {
-  // Sign up new user
+  // Sign up new user - uses secure edge function for password hashing
   signUp: async (userData: {
     userId: string;
     password: string;
@@ -53,74 +42,70 @@ export const customAuth = {
     productLinkage: string[];
   }) => {
     try {
-      const passwordHash = hashPassword(userData.password);
-      
-      // Insert new user (password_hash is write-only)
-      const { error: insertError } = await supabase
-        .from('custom_users')
-        .insert({
-          user_id: userData.userId,
-          password_hash: passwordHash,
-          full_name: userData.fullName,
-          user_login_id: userData.userLoginId,
-          role_type: userData.roleType,
-          product_linkage: userData.productLinkage,
-          corporate_id: 'TC001'
-        } as any);
+      const { data, error } = await supabase.functions.invoke('authenticate-user', {
+        body: {
+          action: 'signup',
+          userData: {
+            userId: userData.userId,
+            password: userData.password,
+            fullName: userData.fullName,
+            userLoginId: userData.userLoginId,
+            roleType: userData.roleType,
+            productLinkage: userData.productLinkage,
+          },
+        },
+      });
 
-      if (insertError) {
-        console.error('Signup error:', insertError);
-        return { user: null, error: insertError.message };
+      if (error) {
+        console.error('Signup error:', error);
+        return { user: null, error: error.message };
       }
 
-      // Retrieve user profile securely (without password_hash)
-      const { data: profileData, error: profileError } = await supabase
-        .rpc('get_custom_user_profile', { input_user_id: userData.userId });
-
-      if (profileError || !profileData || profileData.length === 0) {
-        console.error('Profile retrieval error:', profileError);
-        return { user: null, error: 'Failed to retrieve user profile' };
+      if (data?.error) {
+        return { user: null, error: data.error };
       }
 
-      return { user: profileData[0] as CustomUser, error: null };
+      return { user: data.user as CustomUser, error: null };
     } catch (error) {
       console.error('Signup error:', error);
       return { user: null, error: 'Failed to create account' };
     }
   },
 
-  // Sign in user
+  // Sign in user - uses secure edge function for password verification
   signIn: async (userId: string, password: string) => {
     try {
-      // Use secure function to get user data for authentication
-      const { data, error } = await supabase
-        .rpc('authenticate_custom_user', { input_user_id: userId });
+      const { data, error } = await supabase.functions.invoke('authenticate-user', {
+        body: {
+          action: 'signin',
+          userId,
+          password,
+        },
+      });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
         return { session: null, error: 'Invalid credentials' };
       }
 
-      const userData = data[0];
-      if (!verifyPassword(password, userData.password_hash)) {
-        return { session: null, error: 'Invalid credentials' };
+      if (data?.error) {
+        return { session: null, error: data.error };
       }
 
-      // Create session with properly mapped user data
       const user: CustomUser = {
-        id: userData.id,
-        user_id: userData.user_id,
-        full_name: userData.full_name,
-        user_login_id: userData.user_login_id,
-        corporate_id: userData.corporate_id,
-        role_type: userData.role_type,
-        product_linkage: userData.product_linkage,
-        created_at: userData.created_at,
-        updated_at: userData.updated_at
+        id: data.user.id,
+        user_id: data.user.user_id,
+        full_name: data.user.full_name,
+        user_login_id: data.user.user_login_id,
+        corporate_id: data.user.corporate_id,
+        role_type: data.user.role_type,
+        product_linkage: data.user.product_linkage,
+        created_at: data.user.created_at,
+        updated_at: data.user.updated_at,
       };
 
       const session: CustomSession = {
         user,
-        access_token: btoa(JSON.stringify({ userId, timestamp: Date.now() }))
+        access_token: data.session_token,
       };
 
       // Store session in localStorage
@@ -133,6 +118,26 @@ export const customAuth = {
     } catch (error) {
       console.error('Signin error:', error);
       return { session: null, error: 'Failed to sign in' };
+    }
+  },
+
+  // Verify session token - validates signature server-side
+  verifySession: async (token: string): Promise<{ valid: boolean; userId?: string; dbId?: string }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('authenticate-user', {
+        body: {
+          action: 'verify',
+          password: token, // Token passed via password field
+        },
+      });
+
+      if (error || data?.error || !data?.valid) {
+        return { valid: false };
+      }
+
+      return { valid: true, userId: data.userId, dbId: data.dbId };
+    } catch {
+      return { valid: false };
     }
   },
 
