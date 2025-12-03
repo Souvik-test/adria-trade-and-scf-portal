@@ -2961,6 +2961,27 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_pane_section_mappings: {
+        Args: { p_user_id: string }
+        Returns: {
+          business_application: string[]
+          created_at: string | null
+          customer_segment: string[]
+          event_code: string
+          id: string
+          is_active: boolean
+          panes: Json
+          product_code: string
+          updated_at: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "pane_section_mappings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       notify_scf_users_by_role: {
         Args: {
           p_exclude_user_id?: string
