@@ -401,7 +401,24 @@ const ManagePanesAndSections = () => {
     setSelectedEvent(config.event_code);
     setIsConfigActive(config.is_active !== false);
     
-    // The useEffect will handle loading the panes
+    // Directly load the panes from the configuration to avoid RLS issues
+    const panesArray = config.panes as Pane[];
+    const loadedPanes = panesArray.map(p => ({
+      ...p,
+      isOpen: false
+    }));
+    setPanes(loadedPanes);
+    setHasExistingConfig(true);
+    
+    // Find and set the mapping
+    const mapping = productMappings.find(
+      m =>
+        m.business_application.includes(config.business_application[0]) &&
+        m.target_audience.includes(config.customer_segment[0]) &&
+        m.product_code === config.product_code &&
+        m.event_code === config.event_code
+    );
+    setSelectedMapping(mapping || null);
   };
 
   const toggleConfigActiveStatus = async (configId: string, currentStatus: boolean, e: React.MouseEvent) => {
