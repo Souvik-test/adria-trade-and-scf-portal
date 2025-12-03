@@ -1,1 +1,7 @@
 project_id = "txkejzwremnrpyksizso"
+
+[functions.submit-import-lc]
+verify_jwt = false
+
+[functions.authenticate-user]
+verify_jwt = false
