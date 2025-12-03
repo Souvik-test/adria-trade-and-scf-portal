@@ -10,6 +10,7 @@ import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight } from 'lucide-re
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { customAuth } from '@/services/customAuth';
 
 interface ProductEventMapping {
   product_code: string;
@@ -353,8 +354,10 @@ const ManagePanesAndSections = () => {
 
     setSaving(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) throw new Error('User not authenticated');
+      // Use custom auth to get user ID
+      const customSession = customAuth.getSession();
+      if (!customSession?.user) throw new Error('User not authenticated');
+      const userId = customSession.user.id;
 
       const panesData = panes.map(({ isOpen, ...rest }) => rest);
 
@@ -364,7 +367,7 @@ const ManagePanesAndSections = () => {
         business_application: [selectedBusinessApp],
         customer_segment: [selectedCustomerSegment],
         panes: panesData as any,
-        user_id: userData.user.id,
+        user_id: userId,
         is_active: isConfigActive
       };
 
@@ -376,7 +379,7 @@ const ManagePanesAndSections = () => {
         .eq('event_code', selectedEvent)
         .contains('business_application', [selectedBusinessApp])
         .contains('customer_segment', [selectedCustomerSegment])
-        .eq('user_id', userData.user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (selectError && selectError.code !== 'PGRST116') throw selectError;
