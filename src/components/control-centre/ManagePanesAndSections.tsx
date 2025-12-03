@@ -361,44 +361,16 @@ const ManagePanesAndSections = () => {
 
       const panesData = panes.map(({ isOpen, ...rest }) => rest);
 
-      const recordData = {
-        product_code: selectedProduct,
-        event_code: selectedEvent,
-        business_application: [selectedBusinessApp],
-        customer_segment: [selectedCustomerSegment],
-        panes: panesData as any,
-        user_id: userId,
-        is_active: isConfigActive
-      };
-
-      // Check if record exists for this exact combination
-      const { data: existing, error: selectError } = await supabase
-        .from('pane_section_mappings')
-        .select('id')
-        .eq('product_code', selectedProduct)
-        .eq('event_code', selectedEvent)
-        .contains('business_application', [selectedBusinessApp])
-        .contains('customer_segment', [selectedCustomerSegment])
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (selectError && selectError.code !== 'PGRST116') throw selectError;
-
-      let error;
-      if (existing) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('pane_section_mappings')
-          .update(recordData)
-          .eq('id', existing.id);
-        error = updateError;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('pane_section_mappings')
-          .insert(recordData);
-        error = insertError;
-      }
+      // Use security definer function to bypass RLS
+      const { data, error } = await supabase.rpc('upsert_pane_section_mapping', {
+        p_user_id: userId,
+        p_product_code: selectedProduct,
+        p_event_code: selectedEvent,
+        p_business_application: [selectedBusinessApp],
+        p_customer_segment: [selectedCustomerSegment],
+        p_panes: JSON.parse(JSON.stringify(panesData)),
+        p_is_active: isConfigActive
+      });
 
       if (error) throw error;
 
@@ -429,10 +401,11 @@ const ManagePanesAndSections = () => {
   const toggleConfigActiveStatus = async (configId: string, currentStatus: boolean, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     try {
-      const { error } = await supabase
-        .from('pane_section_mappings')
-        .update({ is_active: !currentStatus })
-        .eq('id', configId);
+      // Use security definer function to bypass RLS
+      const { error } = await supabase.rpc('toggle_pane_section_active', {
+        p_config_id: configId,
+        p_is_active: !currentStatus
+      });
 
       if (error) throw error;
 
