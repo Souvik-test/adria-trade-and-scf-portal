@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import NotificationsPanel from "@/components/NotificationsPanel";
 import { fetchNotifications } from '@/services/notificationService';
+import { customAuth } from '@/services/customAuth';
 
 export type ModuleType = 'trade-finance' | 'supply-chain-finance' | 'corporate-lending' | 'cash-management';
 
@@ -18,6 +20,7 @@ interface TopRibbonProps {
 const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance', onModuleChange }) => {
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [corporateName, setCorporateName] = useState('Client aDria Ltd');
@@ -63,10 +66,17 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
   const handleSignOut = async () => {
     console.log('TopRibbon: Initiating sign out');
     try {
-      await signOut();
+      // Clear custom auth session first
+      customAuth.signOut();
+      // Also try Supabase signOut (ignore errors if no Supabase session)
+      await signOut().catch(() => {});
       console.log('TopRibbon: Sign out successful');
+      // Navigate to auth page
+      navigate('/auth');
     } catch (error) {
       console.error('TopRibbon: Sign out error:', error);
+      // Still navigate to auth even on error
+      navigate('/auth');
     }
   };
 
