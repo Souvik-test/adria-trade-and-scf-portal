@@ -57,6 +57,9 @@ const ManagePanesAndSections = () => {
   const [hasExistingConfig, setHasExistingConfig] = useState(false);
   const [allConfigurations, setAllConfigurations] = useState<SavedConfiguration[]>([]);
   const [isConfigActive, setIsConfigActive] = useState(true);
+  const [isCurrentConfigOpen, setIsCurrentConfigOpen] = useState(true);
+  const [isSelectProductOpen, setIsSelectProductOpen] = useState(true);
+  const [isPanesConfigOpen, setIsPanesConfigOpen] = useState(true);
 
   // Fetch product event mappings
   useEffect(() => {
@@ -452,19 +455,26 @@ const ManagePanesAndSections = () => {
 
       {/* All Configurations Dashboard */}
       {allConfigurations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Current Configurations
-              <Badge variant="outline" className="ml-auto">
-                {allConfigurations.length} Configuration{allConfigurations.length !== 1 ? 's' : ''}
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              All existing pane and section configurations across products and events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Collapsible open={isCurrentConfigOpen} onOpenChange={setIsCurrentConfigOpen}>
+          <Card>
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <div className="flex items-center gap-2 cursor-pointer">
+                  {isCurrentConfigOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                  <CardTitle className="flex items-center gap-2 flex-1">
+                    Current Configurations
+                    <Badge variant="outline" className="ml-auto">
+                      {allConfigurations.length} Configuration{allConfigurations.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </CardTitle>
+                </div>
+              </CollapsibleTrigger>
+              <CardDescription className="ml-7">
+                All existing pane and section configurations across products and events
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {allConfigurations.map((config) => {
                 const panesArray = config.panes as Pane[];
@@ -544,18 +554,27 @@ const ManagePanesAndSections = () => {
               })}
             </div>
           </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {/* Header Section - Product and Event Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Product and Event</CardTitle>
-          <CardDescription>
-            Choose a product-event combination to configure its panes and sections
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Collapsible open={isSelectProductOpen} onOpenChange={setIsSelectProductOpen}>
+        <Card>
+          <CardHeader>
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer">
+                {isSelectProductOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                <CardTitle>Select Product and Event</CardTitle>
+              </div>
+            </CollapsibleTrigger>
+            <CardDescription className="ml-7">
+              Choose a product-event combination to configure its panes and sections
+            </CardDescription>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="businessApp">Business Application</Label>
@@ -649,37 +668,46 @@ const ManagePanesAndSections = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Panes Section */}
       {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && (
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Panes Configuration</CardTitle>
-                <CardDescription>
-                  Add and organize panes for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="config-status" className="text-sm">Status</Label>
-                  <Switch 
-                    id="config-status"
-                    checked={isConfigActive}
-                    onCheckedChange={setIsConfigActive}
-                  />
-                  <span className="text-sm text-muted-foreground">{isConfigActive ? 'Active' : 'Inactive'}</span>
+        <Collapsible open={isPanesConfigOpen} onOpenChange={setIsPanesConfigOpen}>
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CollapsibleTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-pointer flex-1">
+                    {isPanesConfigOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    <div>
+                      <CardTitle>Panes Configuration</CardTitle>
+                      <CardDescription className="ml-0">
+                        Add and organize panes for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="config-status" className="text-sm">Status</Label>
+                    <Switch 
+                      id="config-status"
+                      checked={isConfigActive}
+                      onCheckedChange={setIsConfigActive}
+                    />
+                    <span className="text-sm text-muted-foreground">{isConfigActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                  <Button onClick={addPane} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Pane
+                  </Button>
                 </div>
-                <Button onClick={addPane} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Pane
-                </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
             {panes.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No panes configured. Click "Add Pane" to get started.
@@ -846,7 +874,9 @@ const ManagePanesAndSections = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       {/* Save Button */}
