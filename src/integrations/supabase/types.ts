@@ -2971,9 +2971,25 @@ export type Database = {
         }
         Returns: undefined
       }
+      toggle_pane_section_active: {
+        Args: { p_config_id: string; p_is_active: boolean }
+        Returns: boolean
+      }
       update_user_password: {
         Args: { new_password: string; old_password: string }
         Returns: boolean
+      }
+      upsert_pane_section_mapping: {
+        Args: {
+          p_business_application: string[]
+          p_customer_segment: string[]
+          p_event_code: string
+          p_is_active?: boolean
+          p_panes: Json
+          p_product_code: string
+          p_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
