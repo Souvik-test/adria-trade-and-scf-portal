@@ -59,7 +59,7 @@ export function AppSidebar({
 
   // Get business centre from localStorage
   const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
-  const showControlCentre = businessCentre === 'Adria Process Orchestrator';
+  const showControlCentre = businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank';
 
   // Define menu items based on selected module
   const getMenuItems = () => {
