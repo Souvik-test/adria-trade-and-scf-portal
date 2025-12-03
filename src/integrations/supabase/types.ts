@@ -1958,6 +1958,7 @@ export type Database = {
           customer_segment: string[]
           event_code: string
           id: string
+          is_active: boolean
           panes: Json
           product_code: string
           updated_at: string | null
@@ -1969,6 +1970,7 @@ export type Database = {
           customer_segment?: string[]
           event_code: string
           id?: string
+          is_active?: boolean
           panes?: Json
           product_code: string
           updated_at?: string | null
@@ -1980,6 +1982,7 @@ export type Database = {
           customer_segment?: string[]
           event_code?: string
           id?: string
+          is_active?: boolean
           panes?: Json
           product_code?: string
           updated_at?: string | null

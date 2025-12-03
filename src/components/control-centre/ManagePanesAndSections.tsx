@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,6 +41,7 @@ interface SavedConfiguration {
   business_application: string[];
   customer_segment: string[];
   panes: Pane[];
+  is_active: boolean;
 }
 
 const ManagePanesAndSections = () => {
@@ -54,6 +56,7 @@ const ManagePanesAndSections = () => {
   const [saving, setSaving] = useState(false);
   const [hasExistingConfig, setHasExistingConfig] = useState(false);
   const [allConfigurations, setAllConfigurations] = useState<SavedConfiguration[]>([]);
+  const [isConfigActive, setIsConfigActive] = useState(true);
 
   // Fetch product event mappings
   useEffect(() => {
@@ -180,9 +183,11 @@ const ManagePanesAndSections = () => {
         }));
         setPanes(loadedPanes);
         setHasExistingConfig(true);
+        setIsConfigActive(data.is_active !== false);
       } else {
         setPanes([]);
         setHasExistingConfig(false);
+        setIsConfigActive(true);
       }
     } catch (error: any) {
       toast.error('Failed to load pane configuration', {
@@ -356,7 +361,8 @@ const ManagePanesAndSections = () => {
         business_application: [selectedBusinessApp],
         customer_segment: [selectedCustomerSegment],
         panes: panesData as any,
-        user_id: userData.user.id
+        user_id: userData.user.id,
+        is_active: isConfigActive
       };
 
       // Check if record exists for this exact combination
@@ -409,8 +415,28 @@ const ManagePanesAndSections = () => {
     setSelectedCustomerSegment(config.customer_segment[0]);
     setSelectedProduct(config.product_code);
     setSelectedEvent(config.event_code);
+    setIsConfigActive(config.is_active !== false);
     
     // The useEffect will handle loading the panes
+  };
+
+  const toggleConfigActiveStatus = async (configId: string, currentStatus: boolean, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    try {
+      const { error } = await supabase
+        .from('pane_section_mappings')
+        .update({ is_active: !currentStatus })
+        .eq('id', configId);
+
+      if (error) throw error;
+
+      toast.success(`Configuration ${!currentStatus ? 'activated' : 'deactivated'}`);
+      await fetchAllConfigurations();
+    } catch (error: any) {
+      toast.error('Failed to update status', {
+        description: error.message
+      });
+    }
   };
 
   return (
@@ -447,7 +473,7 @@ const ManagePanesAndSections = () => {
                 return (
                   <Card 
                     key={config.id} 
-                    className="cursor-pointer hover:border-primary transition-colors"
+                    className={`cursor-pointer hover:border-primary transition-colors ${config.is_active === false ? 'opacity-60' : ''}`}
                     onClick={() => loadConfiguration(config)}
                   >
                     <CardHeader className="pb-3">
@@ -461,9 +487,12 @@ const ManagePanesAndSections = () => {
                               {config.event_code}
                             </Badge>
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex flex-col items-end gap-1">
                             <Badge variant="outline" className="text-xs">
                               {panesArray.length} Pane{panesArray.length !== 1 ? 's' : ''}
+                            </Badge>
+                            <Badge variant={config.is_active !== false ? 'default' : 'secondary'} className="text-xs">
+                              {config.is_active !== false ? 'Active' : 'Inactive'}
                             </Badge>
                           </div>
                         </div>
@@ -499,6 +528,15 @@ const ManagePanesAndSections = () => {
                             + {panesArray.length - 2} more pane{panesArray.length - 2 !== 1 ? 's' : ''}
                           </div>
                         )}
+                        <div className="flex items-center justify-between pt-2 border-t mt-2">
+                          <span className="text-xs text-muted-foreground">Status</span>
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Switch 
+                              checked={config.is_active !== false}
+                              onCheckedChange={() => toggleConfigActiveStatus(config.id, config.is_active !== false, { stopPropagation: () => {} } as React.MouseEvent)}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -624,10 +662,21 @@ const ManagePanesAndSections = () => {
                   Add and organize panes for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
                 </CardDescription>
               </div>
-              <Button onClick={addPane} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Pane
-              </Button>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="config-status" className="text-sm">Status</Label>
+                  <Switch 
+                    id="config-status"
+                    checked={isConfigActive}
+                    onCheckedChange={setIsConfigActive}
+                  />
+                  <span className="text-sm text-muted-foreground">{isConfigActive ? 'Active' : 'Inactive'}</span>
+                </div>
+                <Button onClick={addPane} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Pane
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
