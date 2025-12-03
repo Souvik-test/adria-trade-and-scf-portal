@@ -1,11 +1,53 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Verify custom session token
+async function verifyCustomToken(token: string, secretKey: string): Promise<{ valid: boolean; userId?: string; dbId?: string }> {
+  try {
+    const tokenData = JSON.parse(atob(token));
+    const { payload, signature } = tokenData;
+    
+    // Check expiry
+    if (payload.exp < Date.now()) {
+      return { valid: false };
+    }
+    
+    // Verify HMAC signature
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secretKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    
+    const signatureBytes = new Uint8Array(
+      signature.match(/.{1,2}/g)!.map((byte: string) => parseInt(byte, 16))
+    );
+    
+    const isValid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signatureBytes,
+      encoder.encode(JSON.stringify(payload))
+    );
+    
+    if (!isValid) {
+      return { valid: false };
+    }
+    
+    return { valid: true, userId: payload.userId, dbId: payload.dbId };
+  } catch {
+    return { valid: false };
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -13,35 +55,59 @@ serve(async (req) => {
   }
 
   try {
-    const debugLogs: any = {};
+    const debugLogs: Record<string, unknown> = {};
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    // Get Authorization header for JWT verification
+    const authHeader = req.headers.get("Authorization");
+    let verifiedUserId: string | null = null;
+    let verifiedDbId: string | null = null;
+
+    // Try Supabase JWT first
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      
+      // Try to verify as Supabase JWT
+      const supabaseClient = createClient(supabaseUrl, supabaseKey);
+      const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+      
+      if (user && !error) {
+        verifiedUserId = user.id;
+        verifiedDbId = user.id;
+        debugLogs.auth_method = "supabase_jwt";
+      }
+    }
+
+    // Parse request body
     const { session, formData, status } = await req.json();
 
-    // Accept either session.user.id or session.user.user_id for compatibility
-    const sessionUserId = session?.user?.user_id || session?.user?.id || null;
+    // If no Supabase auth, try custom token verification
+    if (!verifiedUserId && session?.access_token) {
+      const verification = await verifyCustomToken(session.access_token, supabaseKey);
+      if (verification.valid) {
+        verifiedUserId = verification.userId!;
+        verifiedDbId = verification.dbId!;
+        debugLogs.auth_method = "custom_token";
+      }
+    }
 
-    debugLogs.session_present = !!session;
-    debugLogs.session_user = !!session?.user;
-    debugLogs.session_user_id = sessionUserId;
-    debugLogs.session_token_short = session?.access_token ? `${session.access_token.slice(0, 10)}...` : null;
+    // Require verified authentication
+    if (!verifiedUserId || !verifiedDbId) {
+      console.log("DEBUG: Authentication failed - no valid token");
+      return new Response(
+        JSON.stringify({ error: "Authentication required. Please sign in again.", debug: debugLogs }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    debugLogs.verified_user_id = verifiedUserId;
     debugLogs.status = status;
     debugLogs.formData_keys = formData ? Object.keys(formData) : null;
 
-    // Validate minimal session info
-    if (!session || !session.user || !sessionUserId) {
-      console.log("DEBUG: Invalid session info:", debugLogs);
-      return new Response(JSON.stringify({ error: "Missing or invalid session.", debug: debugLogs }), {
-        status: 401,
-        headers: corsHeaders,
-      });
-    }
-
-    // Use service role to access user_profiles (instead of custom_users)
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    // Step 1: find the user (get UUID to insert as user_id foreign key)
+    // Use service role to access user_profiles
     const userResp = await fetch(
-      `${supabaseUrl}/rest/v1/user_profiles?id=eq.${encodeURIComponent(sessionUserId)}`,
+      `${supabaseUrl}/rest/v1/user_profiles?id=eq.${encodeURIComponent(verifiedDbId)}`,
       {
         headers: {
           apikey: supabaseKey,
@@ -52,15 +118,31 @@ serve(async (req) => {
     const users = await userResp.json();
     debugLogs.num_user_profiles_found = Array.isArray(users) ? users.length : null;
 
-    if (!Array.isArray(users) || !users[0] || !users[0].id) {
-      console.log("DEBUG: User fetch failure:", debugLogs);
-      return new Response(JSON.stringify({ error: "User record not found.", debug: debugLogs }), {
-        status: 401,
-        headers: corsHeaders,
-      });
+    // If user profile not found, try custom_users table
+    let dbUserId = verifiedDbId;
+    let userFullName = "";
+    
+    if (Array.isArray(users) && users[0]) {
+      dbUserId = users[0].id;
+      userFullName = users[0].full_name || "";
+    } else {
+      // Try custom_users table
+      const customUserResp = await fetch(
+        `${supabaseUrl}/rest/v1/custom_users?id=eq.${encodeURIComponent(verifiedDbId)}`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        }
+      );
+      const customUsers = await customUserResp.json();
+      
+      if (Array.isArray(customUsers) && customUsers[0]) {
+        dbUserId = customUsers[0].id;
+        userFullName = customUsers[0].full_name || "";
+      }
     }
-    const dbUserId = users[0].id;
-    const userFullName = users[0].full_name || "";
 
     // Prepare row to insert
     const insertData = {
@@ -72,7 +154,7 @@ serve(async (req) => {
     // Defensive clean-up and type fixes
     insertData.lc_amount = Number(insertData.lc_amount ?? 0);
     insertData.required_documents = Array.isArray(insertData.required_documents)
-      ? insertData.required_documents.filter((doc: any) => typeof doc === "string")
+      ? insertData.required_documents.filter((doc: unknown) => typeof doc === "string")
       : [];
     insertData.issue_date = insertData.issue_date || null;
     insertData.expiry_date = insertData.expiry_date || null;
@@ -96,28 +178,24 @@ serve(async (req) => {
 
     debugLogs.lcResp_ok = lcResp.ok;
     debugLogs.lcResp_status = lcResp.status;
-    debugLogs.lcResp_result = lcResult && typeof lcResult === "object" ? Object.keys(lcResult) : null;
 
     if (!lcResp.ok) {
       console.log("DEBUG: Insert failed:", debugLogs);
-      return new Response(JSON.stringify({ error: lcResult?.message ?? "Insert failed.", debug: debugLogs }), {
-        status: 400,
-        headers: corsHeaders,
-      });
+      return new Response(
+        JSON.stringify({ error: lcResult?.message ?? "Insert failed.", debug: debugLogs }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // ---- INSERT INTO TRANSACTIONS (for dashboard + notification) ----
-    // Only do this for 'submitted' status, not drafts
+    // INSERT INTO TRANSACTIONS (for dashboard + notification) - only for 'submitted' status
     if ((status || "submitted") === "submitted") {
-      const lcRow = Array.isArray(lcResult) ? lcResult[0] : lcResult[0] || lcResult.data?.[0] || lcResult.data;
-
       const transactionInsertData = {
         user_id: dbUserId,
         transaction_ref: formData.corporate_reference || "",
         product_type: "Import LC",
         process_type: "Request Issuance",
         status: "Submitted",
-        customer_name: formData.applicant_name || "",  // Fix: Ensure customer name is captured
+        customer_name: formData.applicant_name || "",
         amount: Number(formData.lc_amount ?? 0),
         currency: formData.currency || "USD",
         created_by: userFullName,
@@ -139,24 +217,22 @@ serve(async (req) => {
       );
       const txnResult = await txnResp.json();
       debugLogs.txnResp_ok = txnResp.ok;
-      debugLogs.txnResp_status = txnResp.status;
-      debugLogs.txnResp_result = txnResult;
       if (!txnResp.ok) {
-        // Log but do not fail the LC request if this fails, it's a secondary action
         debugLogs.txn_error = txnResult?.message ?? "Insert failed.";
       }
     }
 
-    // Notification is auto-generated from transactions trigger
-
     console.log("DEBUG: Success!", debugLogs);
-    return new Response(JSON.stringify({ data: lcResult, debug: debugLogs }), { headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ data: lcResult, debug: debugLogs }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("DEBUG: Error in function:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
