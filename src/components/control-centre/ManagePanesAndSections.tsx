@@ -70,11 +70,17 @@ const ManagePanesAndSections = () => {
 
   const fetchAllConfigurations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('pane_section_mappings')
-        .select('*')
-        .order('product_code', { ascending: true })
-        .order('event_code', { ascending: true });
+      // Use custom auth to get user ID
+      const customSession = customAuth.getSession();
+      if (!customSession?.user) {
+        setAllConfigurations([]);
+        return;
+      }
+      
+      // Use security definer function to bypass RLS
+      const { data, error } = await supabase.rpc('get_pane_section_mappings', {
+        p_user_id: customSession.user.id
+      });
 
       if (error) throw error;
       setAllConfigurations((data || []) as unknown as SavedConfiguration[]);
