@@ -76,9 +76,23 @@ serve(async (req) => {
       }
 
       const user = users[0];
+      let isValid = false;
+      let needsHashUpgrade = false;
       
-      // Verify password with bcrypt
-      const isValid = bcrypt.compareSync(password, user.password_hash);
+      // Check if password_hash is a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+      const isBcryptHash = user.password_hash && user.password_hash.startsWith("$2");
+      
+      if (isBcryptHash) {
+        // Verify password with bcrypt
+        isValid = bcrypt.compareSync(password, user.password_hash);
+      } else {
+        // Legacy: plain text or simple hash comparison
+        isValid = user.password_hash === password;
+        if (isValid) {
+          needsHashUpgrade = true;
+          console.log("Legacy password detected for user:", userId, "- will upgrade to bcrypt");
+        }
+      }
       
       if (!isValid) {
         console.log("Invalid password for user:", userId);
@@ -86,6 +100,17 @@ serve(async (req) => {
           JSON.stringify({ error: "Invalid credentials" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+      
+      // Upgrade legacy password to bcrypt hash
+      if (needsHashUpgrade) {
+        const salt = bcrypt.genSaltSync(12);
+        const newHash = bcrypt.hashSync(password, salt);
+        await supabase
+          .from("custom_users")
+          .update({ password_hash: newHash })
+          .eq("id", user.id);
+        console.log("Password upgraded to bcrypt for user:", userId);
       }
 
       // Generate a secure session token (signed with timestamp and user id)
