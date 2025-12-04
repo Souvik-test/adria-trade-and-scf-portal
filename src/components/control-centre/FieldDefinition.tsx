@@ -59,62 +59,55 @@ interface FieldData {
   pane_code: string;
   section_code: string;
   field_display_sequence: number;
+  field_row: number;
+  field_column: number;
   ui_display_type: string;
   data_type: string;
   lookup_code: string;
+  dropdown_values: string;
   length_min: number;
   length_max: number;
   decimal_places: number;
+  default_value: string;
+  size_standard_source: string;
   is_mandatory_portal: boolean;
   is_mandatory_mo: boolean;
   is_mandatory_bo: boolean;
-  input_allowed_flag: boolean;
-  edit_allowed_flag: boolean;
-  view_allowed_flag: boolean;
-  read_only_flag: boolean;
-  default_value: string;
+  conditional_visibility_expr: string;
+  conditional_mandatory_expr: string;
+  channel_customer_portal_flag: boolean;
+  channel_middle_office_flag: boolean;
+  channel_back_office_flag: boolean;
   swift_mt_type: string;
   swift_sequence: string;
   swift_tag: string;
   swift_subfield_qualifier: string;
-  swift_tag_required_flag: boolean;
   swift_tag_display_flag: boolean;
   swift_format_pattern: string;
   sanction_check_required_flag: boolean;
-  sanction_field_category: string;
-  sanction_party_role: string;
   sanction_engine_field_map: string;
   limit_check_required_flag: boolean;
-  limit_dimension_type: string;
-  validation_rule_set_id: string;
-  conditional_visibility_expr: string;
-  conditional_mandatory_expr: string;
-  computed_expression: string;
   error_message_key: string;
+  help_content_type: string;
+  iso20022_element_code: string;
+  iso_data_format_pattern: string;
+  ai_mapping_key: string;
   is_active_flag: boolean;
   effective_from_date: string;
 }
 
 const UI_DISPLAY_TYPES = [
   'TEXTBOX', 'TEXTAREA', 'DROPDOWN', 'DATEPICKER', 'NUMBER', 
-  'CHECKBOX', 'RADIO', 'FILE_UPLOAD', 'CURRENCY', 'AMOUNT'
+  'CHECKBOX', 'RADIO', 'FILE_UPLOAD', 'GRID'
 ];
 
 const DATA_TYPES = [
-  'STRING', 'NUMERIC', 'DATE', 'BOOLEAN', 'CURRENCY', 'PERCENT', 'ENUM', 'DECIMAL'
+  'STRING', 'NUMERIC', 'DATE', 'BOOLEAN', 'CURRENCY', 'PERCENT', 'ENUM'
 ];
 
-const SANCTION_CATEGORIES = [
-  'PARTY_NAME', 'PARTY_ADDRESS', 'COUNTRY', 'AMOUNT', 'VESSEL', 'GOODS', 'BIC'
-];
+const SIZE_STANDARD_SOURCES = ['SWIFT', 'CUSTOM', 'ISO'];
 
-const PARTY_ROLES = [
-  'APPLICANT', 'BENEFICIARY', 'APPLICANT_BANK', 'ADVISING_BANK', 'ISSUING_BANK', 'CONFIRMING_BANK'
-];
-
-const LIMIT_DIMENSION_TYPES = [
-  'AMOUNT', 'TENOR', 'COUNTRY', 'COUNTERPARTY', 'PRODUCT', 'CURRENCY'
-];
+const HELP_CONTENT_TYPES = ['INLINE_TEXT', 'LINK', 'DOC_ID'];
 
 const getInitialFieldData = (): FieldData => ({
   field_id: '',
@@ -126,38 +119,39 @@ const getInitialFieldData = (): FieldData => ({
   pane_code: '',
   section_code: '',
   field_display_sequence: 1,
+  field_row: 1,
+  field_column: 1,
   ui_display_type: 'TEXTBOX',
   data_type: 'STRING',
   lookup_code: '',
+  dropdown_values: '',
   length_min: 0,
   length_max: 255,
   decimal_places: 0,
+  default_value: '',
+  size_standard_source: 'CUSTOM',
   is_mandatory_portal: false,
   is_mandatory_mo: false,
   is_mandatory_bo: false,
-  input_allowed_flag: true,
-  edit_allowed_flag: true,
-  view_allowed_flag: true,
-  read_only_flag: false,
-  default_value: '',
+  conditional_visibility_expr: '',
+  conditional_mandatory_expr: '',
+  channel_customer_portal_flag: true,
+  channel_middle_office_flag: true,
+  channel_back_office_flag: true,
   swift_mt_type: '',
   swift_sequence: '',
   swift_tag: '',
   swift_subfield_qualifier: '',
-  swift_tag_required_flag: false,
   swift_tag_display_flag: false,
   swift_format_pattern: '',
   sanction_check_required_flag: false,
-  sanction_field_category: '',
-  sanction_party_role: '',
   sanction_engine_field_map: '',
   limit_check_required_flag: false,
-  limit_dimension_type: '',
-  validation_rule_set_id: '',
-  conditional_visibility_expr: '',
-  conditional_mandatory_expr: '',
-  computed_expression: '',
   error_message_key: '',
+  help_content_type: 'INLINE_TEXT',
+  iso20022_element_code: '',
+  iso_data_format_pattern: '',
+  ai_mapping_key: '',
   is_active_flag: true,
   effective_from_date: new Date().toISOString().split('T')[0],
 });
@@ -727,40 +721,54 @@ const FieldDefinition = () => {
               {/* Field Signature Tab */}
               <TabsContent value="signature" className="space-y-6 mt-4">
                 <div className="grid grid-cols-3 gap-4">
+                  {/* 1. Field Name */}
                   <div className="space-y-2">
-                    <Label>Field Code *</Label>
-                    <Input
-                      value={fieldData.field_code}
-                      onChange={(e) => updateFieldData('field_code', e.target.value)}
-                      placeholder="e.g., APPLICANT_NAME"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Field Label Key *</Label>
+                    <Label tooltip="Unique label name for the field">Field Name *</Label>
                     <Input
                       value={fieldData.field_label_key}
                       onChange={(e) => updateFieldData('field_label_key', e.target.value)}
-                      placeholder="e.g., lbl.applicantName"
+                      placeholder="e.g., Applicant Name"
                     />
                   </div>
+                  
+                  {/* 2. Field Tooltip Text */}
                   <div className="space-y-2">
-                    <Label>Field Tooltip Key</Label>
+                    <Label tooltip="Help/tooltip text to understand what this field is about">Field Tooltip Text</Label>
                     <Input
                       value={fieldData.field_tooltip_key}
                       onChange={(e) => updateFieldData('field_tooltip_key', e.target.value)}
-                      placeholder="e.g., tip.applicantName"
+                      placeholder="e.g., Enter the applicant's full name"
                     />
                   </div>
+                  
+                  {/* 3. Field Coordinates */}
                   <div className="space-y-2">
-                    <Label>Display Sequence</Label>
-                    <Input
-                      type="number"
-                      value={fieldData.field_display_sequence}
-                      onChange={(e) => updateFieldData('field_display_sequence', parseInt(e.target.value) || 1)}
-                    />
+                    <Label tooltip="Order of field inside section based on Row and Column numbers (e.g., R1C1, R2C1)">Field Coordinates</Label>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Input
+                          type="number"
+                          value={fieldData.field_row}
+                          onChange={(e) => updateFieldData('field_row', parseInt(e.target.value) || 1)}
+                          placeholder="Row"
+                          min={1}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          type="number"
+                          value={fieldData.field_column}
+                          onChange={(e) => updateFieldData('field_column', parseInt(e.target.value) || 1)}
+                          placeholder="Col"
+                          min={1}
+                        />
+                      </div>
+                    </div>
                   </div>
+                  
+                  {/* 4. UI Display Type */}
                   <div className="space-y-2">
-                    <Label>UI Display Type</Label>
+                    <Label tooltip="UI control type for this field">UI Display Type</Label>
                     <Select 
                       value={fieldData.ui_display_type} 
                       onValueChange={(v) => updateFieldData('ui_display_type', v)}
@@ -775,8 +783,10 @@ const FieldDefinition = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* 5. Data Type */}
                   <div className="space-y-2">
-                    <Label>Data Type</Label>
+                    <Label tooltip="Underlying data type for the field value">Data Type</Label>
                     <Select 
                       value={fieldData.data_type} 
                       onValueChange={(v) => updateFieldData('data_type', v)}
@@ -791,114 +801,183 @@ const FieldDefinition = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* 6. Lookup Code */}
                   <div className="space-y-2">
-                    <Label>Lookup Code</Label>
+                    <Label tooltip="Reference/lookup list code if DROPDOWN/RADIO type">Lookup Code</Label>
                     <Input
                       value={fieldData.lookup_code}
                       onChange={(e) => updateFieldData('lookup_code', e.target.value)}
-                      placeholder="e.g., COUNTRY_LIST"
+                      placeholder="e.g., COUNTRY_LIST, CURRENCY_LIST"
                     />
                   </div>
+                  
+                  {/* 7. Dropdown Values */}
                   <div className="space-y-2">
-                    <Label>Min Length</Label>
+                    <Label tooltip="Optional if Lookup_Code is not available. Enter comma-separated values">Dropdown Values</Label>
+                    <Input
+                      value={fieldData.dropdown_values}
+                      onChange={(e) => updateFieldData('dropdown_values', e.target.value)}
+                      placeholder="e.g., Irrevocable, Irrevocable Transferable"
+                    />
+                  </div>
+                  
+                  {/* 8. Length Min */}
+                  <div className="space-y-2">
+                    <Label tooltip="Minimum allowable length (characters) or digits">Length Min</Label>
                     <Input
                       type="number"
                       value={fieldData.length_min}
                       onChange={(e) => updateFieldData('length_min', parseInt(e.target.value) || 0)}
                     />
                   </div>
+                  
+                  {/* 9. Length Max */}
                   <div className="space-y-2">
-                    <Label>Max Length</Label>
+                    <Label tooltip="Maximum allowable length (aligned with SWIFT or internal rule)">Length Max</Label>
                     <Input
                       type="number"
                       value={fieldData.length_max}
                       onChange={(e) => updateFieldData('length_max', parseInt(e.target.value) || 255)}
                     />
                   </div>
+                  
+                  {/* 10. Decimal Places */}
                   <div className="space-y-2">
-                    <Label>Decimal Places</Label>
+                    <Label tooltip="Number of decimal places for numeric/amount fields">Decimal Places</Label>
                     <Input
                       type="number"
                       value={fieldData.decimal_places}
                       onChange={(e) => updateFieldData('decimal_places', parseInt(e.target.value) || 0)}
                     />
                   </div>
+                  
+                  {/* 11. Default Value */}
                   <div className="space-y-2">
-                    <Label>Default Value</Label>
+                    <Label tooltip="Default value to populate in the text field">Default Value</Label>
                     <Input
                       value={fieldData.default_value}
                       onChange={(e) => updateFieldData('default_value', e.target.value)}
                     />
                   </div>
+                  
+                  {/* 12. Size Standard Source */}
                   <div className="space-y-2">
-                    <Label>Effective From Date</Label>
-                    <Input
-                      type="date"
-                      value={fieldData.effective_from_date}
-                      onChange={(e) => updateFieldData('effective_from_date', e.target.value)}
-                    />
+                    <Label tooltip="Whether size is from SWIFT, Custom, or ISO 20022">Size Standard Source</Label>
+                    <Select 
+                      value={fieldData.size_standard_source} 
+                      onValueChange={(v) => updateFieldData('size_standard_source', v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SIZE_STANDARD_SOURCES.map(source => (
+                          <SelectItem key={source} value={source}>{source}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                {/* Flags Section */}
+                {/* Mandatory Flags */}
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-4">Field Flags</h4>
-                  <div className="grid grid-cols-4 gap-4">
+                  <h4 className="font-medium mb-4">Mandatory Settings</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* 13. Is Mandatory Portal */}
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.is_mandatory_portal}
                         onCheckedChange={(v) => updateFieldData('is_mandatory_portal', v)}
                       />
-                      <Label>Mandatory (Portal)</Label>
+                      <Label tooltip="Y/N – mandatory in Corporate Portal for this event + stage">Is Mandatory (Portal)</Label>
                     </div>
+                    
+                    {/* 14. Is Mandatory MO */}
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.is_mandatory_mo}
                         onCheckedChange={(v) => updateFieldData('is_mandatory_mo', v)}
                       />
-                      <Label>Mandatory (MO)</Label>
+                      <Label tooltip="Y/N – mandatory in Middle Office">Is Mandatory (MO)</Label>
                     </div>
+                    
+                    {/* 15. Is Mandatory BO */}
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.is_mandatory_bo}
                         onCheckedChange={(v) => updateFieldData('is_mandatory_bo', v)}
                       />
-                      <Label>Mandatory (BO)</Label>
+                      <Label tooltip="Y/N – mandatory in Back Office">Is Mandatory (BO)</Label>
                     </div>
+                  </div>
+                </div>
+
+                {/* Conditional Expressions */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-4">Conditional Expressions</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* 16. Conditional Visibility Expression */}
+                    <div className="space-y-2">
+                      <Label tooltip="Expression for dynamic show/hide based on other fields">Conditional Visibility Expr</Label>
+                      <Textarea
+                        value={fieldData.conditional_visibility_expr}
+                        onChange={(e) => updateFieldData('conditional_visibility_expr', e.target.value)}
+                        placeholder="e.g., IF(SHIPMENT_PARTIAL='Y')"
+                        rows={2}
+                      />
+                    </div>
+                    
+                    {/* 17. Conditional Mandatory Expression */}
+                    <div className="space-y-2">
+                      <Label tooltip="Expression to dynamically make field mandatory">Conditional Mandatory Expr</Label>
+                      <Textarea
+                        value={fieldData.conditional_mandatory_expr}
+                        onChange={(e) => updateFieldData('conditional_mandatory_expr', e.target.value)}
+                        placeholder="e.g., IF(LC_TYPE='REVOLVING')"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visibility Flags */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-4">Visibility Settings</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* 18. Is Visible FO (Portal) */}
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={fieldData.input_allowed_flag}
-                        onCheckedChange={(v) => updateFieldData('input_allowed_flag', v)}
+                        checked={fieldData.channel_customer_portal_flag}
+                        onCheckedChange={(v) => updateFieldData('channel_customer_portal_flag', v)}
                       />
-                      <Label>Input Allowed</Label>
+                      <Label tooltip="Y/N – whether field should be made visible in Portal">Is Visible (Portal)</Label>
                     </div>
+                    
+                    {/* 19. Is Visible MO */}
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={fieldData.edit_allowed_flag}
-                        onCheckedChange={(v) => updateFieldData('edit_allowed_flag', v)}
+                        checked={fieldData.channel_middle_office_flag}
+                        onCheckedChange={(v) => updateFieldData('channel_middle_office_flag', v)}
                       />
-                      <Label>Edit Allowed</Label>
+                      <Label tooltip="Y/N – whether field should be made visible in Middle Office">Is Visible (MO)</Label>
                     </div>
+                    
+                    {/* 20. Is Visible BO */}
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={fieldData.view_allowed_flag}
-                        onCheckedChange={(v) => updateFieldData('view_allowed_flag', v)}
+                        checked={fieldData.channel_back_office_flag}
+                        onCheckedChange={(v) => updateFieldData('channel_back_office_flag', v)}
                       />
-                      <Label>View Allowed</Label>
+                      <Label tooltip="Y/N – whether field should be made visible in Back Office">Is Visible (BO)</Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={fieldData.read_only_flag}
-                        onCheckedChange={(v) => updateFieldData('read_only_flag', v)}
-                      />
-                      <Label>Read Only</Label>
-                    </div>
+
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.is_active_flag}
                         onCheckedChange={(v) => updateFieldData('is_active_flag', v)}
                       />
-                      <Label>Active</Label>
+                      <Label tooltip="Whether this field configuration is active">Active</Label>
                     </div>
                   </div>
                 </div>
@@ -907,117 +986,88 @@ const FieldDefinition = () => {
               {/* SWIFT Details Tab */}
               <TabsContent value="swift" className="space-y-6 mt-4">
                 <div className="grid grid-cols-3 gap-4">
+                  {/* 21. SWIFT MT Type */}
                   <div className="space-y-2">
-                    <Label>SWIFT MT Type</Label>
+                    <Label tooltip="Related MT type(s) for mapping (e.g., MT700, MT707)">SWIFT MT Type</Label>
                     <Input
                       value={fieldData.swift_mt_type}
                       onChange={(e) => updateFieldData('swift_mt_type', e.target.value)}
                       placeholder="e.g., MT700, MT707"
                     />
                   </div>
+                  
+                  {/* 22. SWIFT Sequence */}
                   <div className="space-y-2">
-                    <Label>SWIFT Sequence</Label>
+                    <Label tooltip="SWIFT sequence (A/B/C etc.) if applicable">SWIFT Sequence</Label>
                     <Input
                       value={fieldData.swift_sequence}
                       onChange={(e) => updateFieldData('swift_sequence', e.target.value)}
                       placeholder="e.g., A, B, C"
                     />
                   </div>
+                  
+                  {/* 23. SWIFT Tag */}
                   <div className="space-y-2">
-                    <Label>SWIFT Tag</Label>
+                    <Label tooltip="SWIFT tag number for mapping">SWIFT Tag</Label>
                     <Input
                       value={fieldData.swift_tag}
                       onChange={(e) => updateFieldData('swift_tag', e.target.value)}
                       placeholder="e.g., 50, 59, 32B"
                     />
                   </div>
+                  
+                  {/* 24. SWIFT Subfield Qualifier */}
                   <div className="space-y-2">
-                    <Label>Subfield Qualifier</Label>
+                    <Label tooltip="Qualifier/sub-field within the tag">SWIFT Subfield Qualifier</Label>
                     <Input
                       value={fieldData.swift_subfield_qualifier}
                       onChange={(e) => updateFieldData('swift_subfield_qualifier', e.target.value)}
-                      placeholder="e.g., NAME, ADDRESS"
+                      placeholder="e.g., NAME, ADDRESS, CURRENCY"
                     />
                   </div>
+                  
+                  {/* 25. SWIFT Tag Display Flag */}
                   <div className="space-y-2">
-                    <Label>SWIFT Format Pattern</Label>
+                    <Label>&nbsp;</Label>
+                    <div className="flex items-center space-x-2 pt-2">
+                      <Switch
+                        checked={fieldData.swift_tag_display_flag}
+                        onCheckedChange={(v) => updateFieldData('swift_tag_display_flag', v)}
+                      />
+                      <Label tooltip="Y/N – whether to show SWIFT tag near label in UI">SWIFT Tag Display Flag</Label>
+                    </div>
+                  </div>
+                  
+                  {/* 26. SWIFT Format Pattern */}
+                  <div className="space-y-2">
+                    <Label tooltip="Pattern as per SWIFT (e.g., 3!a15d)">SWIFT Format Pattern</Label>
                     <Input
                       value={fieldData.swift_format_pattern}
                       onChange={(e) => updateFieldData('swift_format_pattern', e.target.value)}
                       placeholder="e.g., 3!a15d"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>&nbsp;</Label>
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={fieldData.swift_tag_required_flag}
-                          onCheckedChange={(v) => updateFieldData('swift_tag_required_flag', v)}
-                        />
-                        <Label>SWIFT Required</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={fieldData.swift_tag_display_flag}
-                          onCheckedChange={(v) => updateFieldData('swift_tag_display_flag', v)}
-                        />
-                        <Label>Display Tag</Label>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </TabsContent>
 
               {/* Other Details Tab */}
               <TabsContent value="other" className="space-y-6 mt-4">
-                {/* Sanction Details */}
+                {/* Sanction & Limit Checks */}
                 <div>
-                  <h4 className="font-medium mb-4">Sanction Check Configuration</h4>
+                  <h4 className="font-medium mb-4">Sanction & Limit Configuration</h4>
                   <div className="grid grid-cols-3 gap-4">
+                    {/* 27. Sanction Check Required Flag */}
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.sanction_check_required_flag}
                         onCheckedChange={(v) => updateFieldData('sanction_check_required_flag', v)}
                       />
-                      <Label>Sanction Check Required</Label>
+                      <Label tooltip="Y/N – this field feeds sanction screening">Sanction Check Required</Label>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Sanction Field Category</Label>
-                      <Select 
-                        value={fieldData.sanction_field_category} 
-                        onValueChange={(v) => updateFieldData('sanction_field_category', v)}
-                        disabled={!fieldData.sanction_check_required_flag}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SANCTION_CATEGORIES.map(cat => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sanction Party Role</Label>
-                      <Select 
-                        value={fieldData.sanction_party_role} 
-                        onValueChange={(v) => updateFieldData('sanction_party_role', v)}
-                        disabled={!fieldData.sanction_check_required_flag}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PARTY_ROLES.map(role => (
-                            <SelectItem key={role} value={role}>{role}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2 col-span-3">
-                      <Label>Sanction Engine Field Map</Label>
+                    
+                    {/* 28. Sanction Engine Field Map */}
+                    <div className="space-y-2 col-span-2">
+                      <Label tooltip="Mapping key used in sanction engine payload">Sanction Engine Field Map</Label>
                       <Input
                         value={fieldData.sanction_engine_field_map}
                         onChange={(e) => updateFieldData('sanction_engine_field_map', e.target.value)}
@@ -1025,85 +1075,77 @@ const FieldDefinition = () => {
                         disabled={!fieldData.sanction_check_required_flag}
                       />
                     </div>
-                  </div>
-                </div>
-
-                {/* Limit Check */}
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-4">Limit Check Configuration</h4>
-                  <div className="grid grid-cols-3 gap-4">
+                    
+                    {/* 29. Limit Check Required Flag */}
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={fieldData.limit_check_required_flag}
                         onCheckedChange={(v) => updateFieldData('limit_check_required_flag', v)}
                       />
-                      <Label>Limit Check Required</Label>
+                      <Label tooltip="Y/N – field used for limit exposure calculation">Limit Check Required</Label>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Limit Dimension Type</Label>
-                      <Select 
-                        value={fieldData.limit_dimension_type} 
-                        onValueChange={(v) => updateFieldData('limit_dimension_type', v)}
-                        disabled={!fieldData.limit_check_required_flag}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {LIMIT_DIMENSION_TYPES.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Validation & Expressions */}
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-4">Validation & Expressions</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Validation Rule Set ID</Label>
-                      <Input
-                        value={fieldData.validation_rule_set_id}
-                        onChange={(e) => updateFieldData('validation_rule_set_id', e.target.value)}
-                        placeholder="e.g., VAL_ILC_APPLICANT"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Error Message Key</Label>
+                    
+                    {/* 30. Error Message Key */}
+                    <div className="space-y-2 col-span-2">
+                      <Label tooltip="Default validation error message key">Error Message Key</Label>
                       <Input
                         value={fieldData.error_message_key}
                         onChange={(e) => updateFieldData('error_message_key', e.target.value)}
                         placeholder="e.g., err.applicantName.required"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Additional Mappings */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-4">Additional Mappings</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* 31. Help Content Type */}
                     <div className="space-y-2">
-                      <Label>Conditional Visibility Expression</Label>
-                      <Textarea
-                        value={fieldData.conditional_visibility_expr}
-                        onChange={(e) => updateFieldData('conditional_visibility_expr', e.target.value)}
-                        placeholder="e.g., IF(SHIPMENT_PARTIAL='Y')"
-                        rows={2}
+                      <Label tooltip="Type of help content: INLINE_TEXT, LINK, or DOC_ID">Help Content Type</Label>
+                      <Select 
+                        value={fieldData.help_content_type} 
+                        onValueChange={(v) => updateFieldData('help_content_type', v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HELP_CONTENT_TYPES.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* 32. ISO20022 Element Code */}
+                    <div className="space-y-2">
+                      <Label tooltip="Mapping to camt., trax., tsmt., and Bank's Trade API schemas">ISO20022 Element Code</Label>
+                      <Input
+                        value={fieldData.iso20022_element_code}
+                        onChange={(e) => updateFieldData('iso20022_element_code', e.target.value)}
+                        placeholder="e.g., ApplcntDtls/Nm"
                       />
                     </div>
+                    
+                    {/* 33. ISO Data Format Pattern */}
                     <div className="space-y-2">
-                      <Label>Conditional Mandatory Expression</Label>
-                      <Textarea
-                        value={fieldData.conditional_mandatory_expr}
-                        onChange={(e) => updateFieldData('conditional_mandatory_expr', e.target.value)}
-                        placeholder="e.g., IF(LC_TYPE='REVOLVING')"
-                        rows={2}
+                      <Label tooltip="To validate IBAN, BIC, structured addresses, currency formats, and Party identifiers">ISO Data Format Pattern</Label>
+                      <Input
+                        value={fieldData.iso_data_format_pattern}
+                        onChange={(e) => updateFieldData('iso_data_format_pattern', e.target.value)}
+                        placeholder="e.g., [A-Z]{2}[0-9]{2}..."
                       />
                     </div>
-                    <div className="space-y-2 col-span-2">
-                      <Label>Computed Expression</Label>
-                      <Textarea
-                        value={fieldData.computed_expression}
-                        onChange={(e) => updateFieldData('computed_expression', e.target.value)}
-                        placeholder="e.g., RULE:CALC_EXPIRY_DATE"
-                        rows={2}
+                    
+                    {/* 34. AI Mapping Key */}
+                    <div className="space-y-2">
+                      <Label tooltip="Links field to NLP/OCR token mapping for autonomous extraction">AI Mapping Key</Label>
+                      <Input
+                        value={fieldData.ai_mapping_key}
+                        onChange={(e) => updateFieldData('ai_mapping_key', e.target.value)}
+                        placeholder="e.g., applicant.name"
                       />
                     </div>
                   </div>
