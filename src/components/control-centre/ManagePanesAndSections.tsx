@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,6 +58,7 @@ const ManagePanesAndSections = () => {
   const [hasExistingConfig, setHasExistingConfig] = useState(false);
   const [allConfigurations, setAllConfigurations] = useState<SavedConfiguration[]>([]);
   const [isConfigActive, setIsConfigActive] = useState(true);
+  const isLoadingFromConfigRef = useRef(false);
   const [isCurrentConfigOpen, setIsCurrentConfigOpen] = useState(true);
   const [isSelectProductOpen, setIsSelectProductOpen] = useState(true);
   const [isPanesConfigOpen, setIsPanesConfigOpen] = useState(true);
@@ -152,6 +153,12 @@ const ManagePanesAndSections = () => {
 
   // Load existing pane/section mapping when all selections are made
   useEffect(() => {
+    // Skip if we're loading from a config card (panes already loaded directly)
+    if (isLoadingFromConfigRef.current) {
+      isLoadingFromConfigRef.current = false;
+      return;
+    }
+    
     if (selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent) {
       loadPaneSectionMapping();
     } else {
@@ -394,14 +401,10 @@ const ManagePanesAndSections = () => {
   };
 
   const loadConfiguration = (config: SavedConfiguration) => {
-    // Set the selection criteria
-    setSelectedBusinessApp(config.business_application[0]);
-    setSelectedCustomerSegment(config.customer_segment[0]);
-    setSelectedProduct(config.product_code);
-    setSelectedEvent(config.event_code);
-    setIsConfigActive(config.is_active !== false);
+    // Set flag to prevent useEffect from reloading panes
+    isLoadingFromConfigRef.current = true;
     
-    // Directly load the panes from the configuration to avoid RLS issues
+    // Directly load the panes from the configuration first
     const panesArray = config.panes as Pane[];
     const loadedPanes = panesArray.map(p => ({
       ...p,
@@ -409,6 +412,7 @@ const ManagePanesAndSections = () => {
     }));
     setPanes(loadedPanes);
     setHasExistingConfig(true);
+    setIsConfigActive(config.is_active !== false);
     
     // Find and set the mapping
     const mapping = productMappings.find(
@@ -419,6 +423,12 @@ const ManagePanesAndSections = () => {
         m.event_code === config.event_code
     );
     setSelectedMapping(mapping || null);
+    
+    // Set the selection criteria (this triggers useEffect, but it will be skipped)
+    setSelectedBusinessApp(config.business_application[0]);
+    setSelectedCustomerSegment(config.customer_segment[0]);
+    setSelectedProduct(config.product_code);
+    setSelectedEvent(config.event_code);
   };
 
   const toggleConfigActiveStatus = async (configId: string, currentStatus: boolean, e: React.MouseEvent) => {
