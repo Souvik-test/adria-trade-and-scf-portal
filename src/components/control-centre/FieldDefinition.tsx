@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { Textarea } from '@/components/ui/textarea';
+import { customAuth } from '@/services/customAuth';
 
 interface ProductEventMapping {
   product_code: string;
@@ -215,9 +216,16 @@ const FieldDefinition = () => {
 
   const fetchPaneSectionMappings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('pane_section_mappings')
-        .select('*');
+      const customSession = customAuth.getSession();
+      if (!customSession?.user?.id) {
+        console.warn('No custom session found for fetching pane section mappings');
+        return;
+      }
+
+      // Use security definer function to bypass RLS
+      const { data, error } = await supabase.rpc('get_pane_section_mappings', {
+        p_user_id: customSession.user.id
+      });
 
       if (error) throw error;
       setPaneSectionMappings((data || []) as unknown as PaneSectionMapping[]);
