@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit2, Trash2, Copy, ChevronDown, ChevronRight, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, ChevronDown, ChevronRight, Save, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -181,6 +183,11 @@ const FieldDefinition = () => {
   // Collapsible states
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [isFieldsTableOpen, setIsFieldsTableOpen] = useState(true);
+  
+  // Upload dialog state
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadedFieldData, setUploadedFieldData] = useState<FieldData | null>(null);
+  const [uploadFileName, setUploadFileName] = useState('');
 
   useEffect(() => {
     fetchProductMappings();
@@ -396,6 +403,112 @@ const FieldDefinition = () => {
       field_display_sequence: existingFields.length + 1,
     });
     setShowFieldForm(true);
+  };
+
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadFileName(file.name);
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      try {
+        const data = event.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        
+        if (jsonData.length < 2) {
+          toast.error('Excel file must have at least a header row and one data row');
+          return;
+        }
+
+        const headers = jsonData[0] as string[];
+        const values = jsonData[1] as any[];
+        
+        // Map Excel columns to field data - create a mapping object
+        const excelData: Record<string, any> = {};
+        headers.forEach((header, index) => {
+          if (header && values[index] !== undefined) {
+            excelData[header.toLowerCase().replace(/\s+/g, '_')] = values[index];
+          }
+        });
+
+        // Map to FieldData structure
+        const parsedField: FieldData = {
+          ...getInitialFieldData(),
+          product_code: selectedProduct,
+          event_type: selectedEvent,
+          pane_code: selectedPane,
+          section_code: selectedSection,
+          field_code: excelData['field_code'] || excelData['field_name'] || '',
+          field_label_key: excelData['field_label_key'] || excelData['field_name'] || excelData['label'] || '',
+          field_tooltip_key: excelData['field_tooltip_key'] || excelData['field_tooltip_text'] || excelData['tooltip'] || '',
+          field_row: parseInt(excelData['field_row'] || excelData['row'] || '1'),
+          field_column: parseInt(excelData['field_column'] || excelData['column'] || excelData['col'] || '1'),
+          ui_display_type: excelData['ui_display_type'] || excelData['display_type'] || 'TEXTBOX',
+          data_type: excelData['data_type'] || 'STRING',
+          lookup_code: excelData['lookup_code'] || '',
+          dropdown_values: excelData['dropdown_values'] || '',
+          length_min: parseInt(excelData['length_min'] || excelData['min_length'] || '0'),
+          length_max: parseInt(excelData['length_max'] || excelData['max_length'] || '255'),
+          decimal_places: parseInt(excelData['decimal_places'] || '0'),
+          default_value: excelData['default_value'] || '',
+          size_standard_source: excelData['size_standard_source'] || 'CUSTOM',
+          is_mandatory_portal: excelData['is_mandatory_portal'] === true || excelData['is_mandatory_portal'] === 'Yes' || excelData['mandatory_portal'] === 'Yes',
+          is_mandatory_mo: excelData['is_mandatory_mo'] === true || excelData['is_mandatory_mo'] === 'Yes' || excelData['mandatory_mo'] === 'Yes',
+          is_mandatory_bo: excelData['is_mandatory_bo'] === true || excelData['is_mandatory_bo'] === 'Yes' || excelData['mandatory_bo'] === 'Yes',
+          conditional_visibility_expr: excelData['conditional_visibility_expr'] || excelData['visibility_expression'] || '',
+          conditional_mandatory_expr: excelData['conditional_mandatory_expr'] || excelData['mandatory_expression'] || '',
+          channel_customer_portal_flag: excelData['channel_customer_portal_flag'] !== false && excelData['channel_customer_portal_flag'] !== 'No',
+          channel_middle_office_flag: excelData['channel_middle_office_flag'] !== false && excelData['channel_middle_office_flag'] !== 'No',
+          channel_back_office_flag: excelData['channel_back_office_flag'] !== false && excelData['channel_back_office_flag'] !== 'No',
+          swift_mt_type: excelData['swift_mt_type'] || '',
+          swift_sequence: excelData['swift_sequence'] || '',
+          swift_tag: excelData['swift_tag'] || '',
+          swift_subfield_qualifier: excelData['swift_subfield_qualifier'] || '',
+          swift_tag_display_flag: excelData['swift_tag_display_flag'] === true || excelData['swift_tag_display_flag'] === 'Yes',
+          swift_format_pattern: excelData['swift_format_pattern'] || '',
+          sanction_check_required_flag: excelData['sanction_check_required_flag'] === true || excelData['sanction_check_required'] === 'Yes',
+          sanction_engine_field_map: excelData['sanction_engine_field_map'] || '',
+          limit_check_required_flag: excelData['limit_check_required_flag'] === true || excelData['limit_check_required'] === 'Yes',
+          error_message_key: excelData['error_message_key'] || '',
+          help_content_type: excelData['help_content_type'] || 'INLINE_TEXT',
+          iso20022_element_code: excelData['iso20022_element_code'] || '',
+          iso_data_format_pattern: excelData['iso_data_format_pattern'] || '',
+          ai_mapping_key: excelData['ai_mapping_key'] || '',
+          is_active_flag: excelData['is_active_flag'] !== false && excelData['is_active'] !== 'No',
+          field_display_sequence: existingFields.length + 1,
+        };
+
+        setUploadedFieldData(parsedField);
+        toast.success('Excel file parsed successfully. Please review the data.');
+      } catch (error: any) {
+        toast.error('Failed to parse Excel file', { description: error.message });
+      }
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleConfirmUpload = () => {
+    if (uploadedFieldData) {
+      setFieldData(uploadedFieldData);
+      setEditingField(null);
+      setShowFieldForm(true);
+      setShowUploadDialog(false);
+      setUploadedFieldData(null);
+      setUploadFileName('');
+      toast.info('Field data populated. Please review and save.');
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setShowUploadDialog(false);
+    setUploadedFieldData(null);
+    setUploadFileName('');
   };
 
   const handleSaveField = async () => {
@@ -622,13 +735,23 @@ const FieldDefinition = () => {
                     <CardTitle>Fields</CardTitle>
                     <Badge variant="outline" className="ml-2">{existingFields.length}</Badge>
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={(e) => { e.stopPropagation(); handleAddField(); }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Field
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); setShowUploadDialog(true); }}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={(e) => { e.stopPropagation(); handleAddField(); }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Field
+                    </Button>
+                  </div>
                 </div>
               </CollapsibleTrigger>
             </CardHeader>
@@ -1156,6 +1279,75 @@ const FieldDefinition = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Upload Excel Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Upload Field Definition</DialogTitle>
+            <DialogDescription>
+              Upload an Excel file containing field definition data. The system will auto-populate the form fields.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Select Excel File (.xlsx, .xls)</Label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
+                className="cursor-pointer"
+              />
+              {uploadFileName && (
+                <p className="text-sm text-muted-foreground">Selected: {uploadFileName}</p>
+              )}
+            </div>
+
+            {uploadedFieldData && (
+              <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
+                <h4 className="font-medium text-sm">Parsed Data Preview:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Field Code:</span>
+                    <p className="font-mono">{uploadedFieldData.field_code || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Label:</span>
+                    <p>{uploadedFieldData.field_label_key || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">UI Type:</span>
+                    <p>{uploadedFieldData.ui_display_type}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Data Type:</span>
+                    <p>{uploadedFieldData.data_type}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">SWIFT Tag:</span>
+                    <p>{uploadedFieldData.swift_tag || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Active:</span>
+                    <p>{uploadedFieldData.is_active_flag ? 'Yes' : 'No'}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Review all fields in the form after confirmation.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelUpload}>Cancel</Button>
+            <Button onClick={handleConfirmUpload} disabled={!uploadedFieldData}>
+              Confirm & Populate Form
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
