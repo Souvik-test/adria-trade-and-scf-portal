@@ -56,6 +56,7 @@ export function AppSidebar({
   const [inquiryOpen, setInquiryOpen] = React.useState(false);
   const [auditComplianceOpen, setAuditComplianceOpen] = React.useState(false);
   const [supportOpen, setSupportOpen] = React.useState(false);
+  const [foundationalDataOpen, setFoundationalDataOpen] = React.useState(false);
 
   // Get business centre from localStorage
   const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
@@ -312,23 +313,133 @@ export function AppSidebar({
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {/* Foundational Data Library */}
-                          <SidebarMenuSubItem>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SidebarMenuSubButton 
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'foundational-data-library' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} 
-                                  onClick={() => handleMenuClick('foundational-data-library')}
-                                >
-                                  <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Foundational Data Library</span>}
-                                </SidebarMenuSubButton>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="z-50">
-                                <p>Manage foundational data and master records</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </SidebarMenuSubItem>
+                          {/* Foundational Data Library with sub-menus */}
+                          <Collapsible open={foundationalDataOpen} onOpenChange={setFoundationalDataOpen}>
+                            <SidebarMenuSubItem>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton className="cursor-pointer w-full h-auto min-h-[2.5rem] py-2">
+                                      <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">Foundational Data Library</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform ${foundationalDataOpen ? 'rotate-180' : ''}`} />}
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="z-50">
+                                  <p>Manage foundational data and master records</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <CollapsibleContent>
+                                <SidebarMenuSub>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-country' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-country')}>
+                                          <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Country</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage country master data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-currency' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-currency')}>
+                                          <DollarSign className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Currency</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage currency master data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-bank-directory' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-bank-directory')}>
+                                          <Landmark className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Bank Directory</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage bank directory and SWIFT codes</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-incoterms' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-incoterms')}>
+                                          <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Incoterms</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage international commercial terms</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-goods-commodity' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-goods-commodity')}>
+                                          <Package className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Goods/Commodity</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage goods and commodity codes</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-ports' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-ports')}>
+                                          <Building className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Ports</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage port master data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-predefined-narrations' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-predefined-narrations')}>
+                                          <FileCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Pre-Defined Narrations</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage pre-defined narration templates</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fdl-tax-codes' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fdl-tax-codes')}>
+                                          <TrendingUp className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Tax Codes</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Manage tax code configurations</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                              </CollapsibleContent>
+                            </SidebarMenuSubItem>
+                          </Collapsible>
 
                           {/* Dynamic Form Engine with sub-menus */}
                           <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
