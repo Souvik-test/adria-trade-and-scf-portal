@@ -312,6 +312,24 @@ export function AppSidebar({
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
+                          {/* Foundational Data Library */}
+                          <SidebarMenuSubItem>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SidebarMenuSubButton 
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'foundational-data-library' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} 
+                                  onClick={() => handleMenuClick('foundational-data-library')}
+                                >
+                                  <Database className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Foundational Data Library</span>}
+                                </SidebarMenuSubButton>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="z-50">
+                                <p>Manage foundational data and master records</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SidebarMenuSubItem>
+
                           {/* Dynamic Form Engine with sub-menus */}
                           <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
                             <SidebarMenuSubItem>
