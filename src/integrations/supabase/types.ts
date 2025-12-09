@@ -118,6 +118,57 @@ export type Database = {
           },
         ]
       }
+      country_master: {
+        Row: {
+          country_code_iso2: string
+          country_code_iso3: string
+          country_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          modified_at: string | null
+          modified_by: string | null
+          numeric_code: string | null
+          phone_code: string | null
+          region: string | null
+          status: boolean
+          sub_region: string | null
+          user_id: string
+        }
+        Insert: {
+          country_code_iso2: string
+          country_code_iso3: string
+          country_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          numeric_code?: string | null
+          phone_code?: string | null
+          region?: string | null
+          status?: boolean
+          sub_region?: string | null
+          user_id: string
+        }
+        Update: {
+          country_code_iso2?: string
+          country_code_iso3?: string
+          country_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          numeric_code?: string | null
+          phone_code?: string | null
+          region?: string | null
+          status?: boolean
+          sub_region?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_users: {
         Row: {
           corporate_id: string | null
