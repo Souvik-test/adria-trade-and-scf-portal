@@ -16,6 +16,7 @@ import { DocumentInquiry } from '@/components/DocumentInquiry';
 import { ProductEventMapping } from '@/components/control-centre/ProductEventMapping';
 import ManagePanesAndSections from '@/components/control-centre/ManagePanesAndSections';
 import FieldDefinition from '@/components/control-centre/FieldDefinition';
+import CountryMaster from '@/components/foundational-data/CountryMaster';
 
 
 const Index = () => {
@@ -114,6 +115,8 @@ const Index = () => {
         return <ManagePanesAndSections />;
       case 'field-definition':
         return <FieldDefinition />;
+      case 'fdl-country':
+        return <CountryMaster />;
       case 'nextgen-workflow-configurator':
         return (
           <div className="p-8 animate-fade-in">
