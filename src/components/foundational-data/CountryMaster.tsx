@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Upload, Download, Edit, Trash2, Search, Globe, MapPin, Building } from 'lucide-react';
-
+import { Plus, Upload, Download, Edit, Trash2, Search, Globe, MapPin, Building, ArrowRight } from 'lucide-react';
+import StateMaster from './StateMaster';
+import CityMaster from './CityMaster';
 interface Country {
   id: string;
   country_code_iso2: string;
@@ -75,7 +76,9 @@ const CountryMaster: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CountryFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState<'countries' | 'states' | 'cities'>('countries');
-
+  const [preSelectedCountry, setPreSelectedCountry] = useState<string>('');
+  const [preSelectedState, setPreSelectedState] = useState<string>('');
+  const [preSelectedCountryForCity, setPreSelectedCountryForCity] = useState<string>('');
   useEffect(() => {
     fetchCountries();
   }, []);
@@ -502,17 +505,21 @@ const CountryMaster: React.FC = () => {
           )}
 
           {activeTab === 'states' && (
-            <div className="text-center py-12 text-muted-foreground">
-              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>State Management - Coming Soon</p>
-            </div>
+            <StateMaster 
+              preSelectedCountry={preSelectedCountry}
+              onNavigateToCity={(stateCode, countryCode) => {
+                setPreSelectedState(stateCode);
+                setPreSelectedCountryForCity(countryCode);
+                setActiveTab('cities');
+              }}
+            />
           )}
 
           {activeTab === 'cities' && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>City Management - Coming Soon</p>
-            </div>
+            <CityMaster 
+              preSelectedState={preSelectedState}
+              preSelectedCountry={preSelectedCountryForCity}
+            />
           )}
         </CardContent>
       </Card>
@@ -623,11 +630,13 @@ const CountryMaster: React.FC = () => {
               <Button onClick={handleSubmit}>
                 Save Changes
               </Button>
-              {!isEditing && (
+              {!isEditing && formData.country_code_iso2 && (
                 <Button variant="secondary" onClick={() => {
-                  toast({ title: 'Navigate to State', description: 'Map State functionality - Coming Soon' });
+                  handleSubmit();
+                  setPreSelectedCountry(formData.country_code_iso2.toUpperCase());
+                  setActiveTab('states');
                 }}>
-                  Map State →
+                  Map State <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
             </div>

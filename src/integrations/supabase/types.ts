@@ -118,6 +118,54 @@ export type Database = {
           },
         ]
       }
+      city_master: {
+        Row: {
+          city_code: string
+          city_name: string
+          country_code_iso2: string
+          created_at: string
+          created_by: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          modified_at: string | null
+          modified_by: string | null
+          state_code_iso: string
+          status: boolean
+          user_id: string
+        }
+        Insert: {
+          city_code: string
+          city_name: string
+          country_code_iso2: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          modified_at?: string | null
+          modified_by?: string | null
+          state_code_iso: string
+          status?: boolean
+          user_id: string
+        }
+        Update: {
+          city_code?: string
+          city_name?: string
+          country_code_iso2?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          modified_at?: string | null
+          modified_by?: string | null
+          state_code_iso?: string
+          status?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       country_master: {
         Row: {
           country_code_iso2: string
@@ -2861,6 +2909,45 @@ export type Database = {
           unaccepted_invoice_finance_enabled?: boolean | null
           unaccepted_invoice_percentage?: number | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      state_master: {
+        Row: {
+          country_code_iso2: string
+          created_at: string
+          created_by: string | null
+          id: string
+          modified_at: string | null
+          modified_by: string | null
+          state_code_iso: string
+          state_name: string
+          status: boolean
+          user_id: string
+        }
+        Insert: {
+          country_code_iso2: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          state_code_iso: string
+          state_name: string
+          status?: boolean
+          user_id: string
+        }
+        Update: {
+          country_code_iso2?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          state_code_iso?: string
+          state_name?: string
+          status?: boolean
           user_id?: string
         }
         Relationships: []
