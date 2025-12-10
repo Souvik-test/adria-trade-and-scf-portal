@@ -34,6 +34,8 @@ interface StageFlowBuilderTabProps {
   template: WorkflowTemplate | null;
   onBack: () => void;
   onStageSelect: (stage: WorkflowStage) => void;
+  viewOnly?: boolean;
+  onEnableEdit?: () => void;
 }
 
 const PREDEFINED_STAGES = [
@@ -67,6 +69,7 @@ interface SortableStageCardProps {
   onDeleteStage: (stageId: string) => void;
   onOpenConditionModal: (stage: WorkflowStage) => void;
   onStageSelect: (stage: WorkflowStage) => void;
+  viewOnly?: boolean;
 }
 
 function SortableStageCard({
@@ -77,6 +80,7 @@ function SortableStageCard({
   onDeleteStage,
   onOpenConditionModal,
   onStageSelect,
+  viewOnly = false,
 }: SortableStageCardProps) {
   const {
     attributes,
@@ -97,13 +101,15 @@ function SortableStageCard({
     <Card ref={setNodeRef} style={style} className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <div
-            className="cursor-grab mt-2 active:cursor-grabbing"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="w-5 h-5 text-muted-foreground" />
-          </div>
+          {!viewOnly && (
+            <div
+              className="cursor-grab mt-2 active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="w-5 h-5 text-muted-foreground" />
+            </div>
+          )}
 
           <div className="flex-1 space-y-4">
             <div className="flex items-center justify-between">
@@ -115,6 +121,7 @@ function SortableStageCard({
                   value={stage.stage_name}
                   onChange={(e) => onUpdateStage(stage.id, { stage_name: e.target.value })}
                   className="w-64"
+                  disabled={viewOnly}
                 />
                 <Badge className={ACTOR_COLORS[stage.actor_type] || ACTOR_COLORS.Maker}>
                   {stage.actor_type}
@@ -125,6 +132,7 @@ function SortableStageCard({
                   size="sm"
                   variant="ghost"
                   onClick={() => onOpenConditionModal(stage)}
+                  disabled={viewOnly}
                 >
                   <Settings className="w-4 h-4" />
                 </Button>
@@ -135,14 +143,16 @@ function SortableStageCard({
                 >
                   <FileText className="w-4 h-4" />
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => onDeleteStage(stage.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {!viewOnly && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => onDeleteStage(stage.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -152,6 +162,7 @@ function SortableStageCard({
                 <Select
                   value={stage.actor_type}
                   onValueChange={(val) => onUpdateStage(stage.id, { actor_type: val })}
+                  disabled={viewOnly}
                 >
                   <SelectTrigger className="h-8">
                     <SelectValue />
@@ -171,6 +182,7 @@ function SortableStageCard({
                   value={stage.sla_hours}
                   onChange={(e) => onUpdateStage(stage.id, { sla_hours: parseInt(e.target.value) || 24 })}
                   className="h-8"
+                  disabled={viewOnly}
                 />
               </div>
 
@@ -178,6 +190,7 @@ function SortableStageCard({
                 <Switch
                   checked={stage.is_rejectable}
                   onCheckedChange={(checked) => onUpdateStage(stage.id, { is_rejectable: checked })}
+                  disabled={viewOnly}
                 />
                 <Label className="text-xs">Rejectable</Label>
               </div>
@@ -188,6 +201,7 @@ function SortableStageCard({
                   <Select
                     value={stage.reject_to_stage_id || ''}
                     onValueChange={(val) => onUpdateStage(stage.id, { reject_to_stage_id: val || null })}
+                    disabled={viewOnly}
                   >
                     <SelectTrigger className="h-8">
                       <SelectValue placeholder="Select stage" />
@@ -208,7 +222,7 @@ function SortableStageCard({
   );
 }
 
-export function StageFlowBuilderTab({ template, onBack, onStageSelect }: StageFlowBuilderTabProps) {
+export function StageFlowBuilderTab({ template, onBack, onStageSelect, viewOnly = false, onEnableEdit }: StageFlowBuilderTabProps) {
   const [stages, setStages] = useState<WorkflowStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -341,6 +355,7 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect }: StageFl
 
   const handleSaveWorkflow = async () => {
     toast.success('Workflow configuration saved');
+    onBack(); // Navigate back to templates dashboard
   };
 
   const handleOpenConditionModal = (stage: WorkflowStage) => {
@@ -378,55 +393,65 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect }: StageFl
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {viewOnly && onEnableEdit && (
+            <Button variant="outline" onClick={onEnableEdit}>
+              <Settings className="w-4 h-4 mr-2" />
+              Enable Edit Mode
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setFlowchartModalOpen(true)}>
             <GitBranch className="w-4 h-4 mr-2" />
             View Flowchart
           </Button>
-          <Button onClick={handleSaveWorkflow}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Workflow Configuration
-          </Button>
+          {!viewOnly && (
+            <Button onClick={handleSaveWorkflow}>
+              <Save className="w-4 h-4 mr-2" />
+              Submit Template
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel - Available Stages */}
-        <Card className="w-80 flex-shrink-0 flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg">Available Stages</CardTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search stages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-auto space-y-2">
-            {filteredPredefinedStages.map((stage, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors"
-              >
-                <div>
-                  <p className="font-medium text-sm">{stage.name}</p>
-                  <p className="text-xs text-muted-foreground">{stage.actor}</p>
-                </div>
-                <Button size="sm" variant="ghost" onClick={() => handleAddStage(stage)}>
-                  <Plus className="w-4 h-4" />
-                </Button>
+        {/* Left Panel - Available Stages (hidden in view-only mode) */}
+        {!viewOnly && (
+          <Card className="w-80 flex-shrink-0 flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-lg">Available Stages</CardTitle>
+              <div className="relative mt-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search stages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto space-y-2">
+              {filteredPredefinedStages.map((stage, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{stage.name}</p>
+                    <p className="text-xs text-muted-foreground">{stage.actor}</p>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => handleAddStage(stage)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Right Panel - Workflow Canvas */}
         <div className="flex-1 flex flex-col gap-4 overflow-hidden">
           <div className="text-sm text-muted-foreground">
-            Drag stages to reorder • Click configure to edit stage details
+            {viewOnly ? 'View-only mode - Click "Enable Edit Mode" to make changes' : 'Drag stages to reorder • Click configure to edit stage details'}
           </div>
 
           {loading ? (
@@ -459,6 +484,7 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect }: StageFl
                         onDeleteStage={handleDeleteStage}
                         onOpenConditionModal={handleOpenConditionModal}
                         onStageSelect={onStageSelect}
+                        viewOnly={viewOnly}
                       />
                     ))}
                   </div>
@@ -503,27 +529,35 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect }: StageFl
                 </div>
                 <ArrowDown className="w-5 h-5 text-muted-foreground" />
 
-                {stages.map((stage, index) => (
-                  <React.Fragment key={stage.id}>
-                    <div className="relative w-72">
-                      <div className={`p-4 rounded-lg border-2 ${ACTOR_COLORS[stage.actor_type] || 'bg-card border-border'}`}>
-                        <div className="text-center">
-                          <p className="font-medium text-sm">{stage.stage_name}</p>
-                          <p className="text-xs opacity-75">{stage.actor_type}</p>
-                          <p className="text-xs opacity-50">SLA: {stage.sla_hours}h</p>
+                {stages.map((stage, index) => {
+                  const rejectToStage = stage.is_rejectable && stage.reject_to_stage_id 
+                    ? stages.find(s => s.id === stage.reject_to_stage_id)
+                    : null;
+                  const rejectToIndex = rejectToStage ? stages.findIndex(s => s.id === rejectToStage.id) : -1;
+                  
+                  return (
+                    <React.Fragment key={stage.id}>
+                      <div className="relative w-72">
+                        <div className={`p-4 rounded-lg border-2 ${ACTOR_COLORS[stage.actor_type] || 'bg-card border-border'}`}>
+                          <div className="text-center">
+                            <p className="font-medium text-sm">{stage.stage_name}</p>
+                            <p className="text-xs opacity-75">{stage.actor_type}</p>
+                            <p className="text-xs opacity-50">SLA: {stage.sla_hours}h</p>
+                          </div>
                         </div>
+                        {stage.is_rejectable && rejectToStage && (
+                          <div className="absolute -right-32 top-1/2 flex items-center gap-1 text-xs text-destructive">
+                            <span>Reject →</span>
+                            <span className="font-medium">{rejectToStage.stage_name}</span>
+                          </div>
+                        )}
                       </div>
-                      {stage.is_rejectable && stage.reject_to_stage_id && (
-                        <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-xs text-destructive">
-                          ← Reject
-                        </div>
+                      {index < stages.length - 1 && (
+                        <ArrowDown className="w-5 h-5 text-muted-foreground" />
                       )}
-                    </div>
-                    {index < stages.length - 1 && (
-                      <ArrowDown className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </React.Fragment>
-                ))}
+                    </React.Fragment>
+                  );
+                })}
 
                 <ArrowDown className="w-5 h-5 text-muted-foreground" />
                 {/* End Node */}

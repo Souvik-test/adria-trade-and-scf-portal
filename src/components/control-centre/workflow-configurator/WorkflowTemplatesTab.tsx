@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import type { WorkflowTemplate } from '../NextGenWorkflowConfigurator';
 
 interface WorkflowTemplatesTabProps {
-  onTemplateSelect: (template: WorkflowTemplate) => void;
+  onTemplateSelect: (template: WorkflowTemplate, viewOnly?: boolean) => void;
 }
 
 const MODULE_OPTIONS = [
@@ -44,34 +44,41 @@ const EVENT_OPTIONS: Record<string, { code: string; name: string }[]> = {
     { code: 'ISS', name: 'Issuance' },
     { code: 'AMD', name: 'Amendment' },
     { code: 'CAN', name: 'Cancellation' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   ELC: [
     { code: 'ADV', name: 'Advising' },
     { code: 'TRF', name: 'Transfer' },
     { code: 'ASG', name: 'Assignment' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   IBG: [
     { code: 'RCV', name: 'Receive' },
     { code: 'AMD', name: 'Amendment' },
     { code: 'CLM', name: 'Claim' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   OBG: [
     { code: 'ISS', name: 'Issuance' },
     { code: 'AMD', name: 'Amendment' },
     { code: 'CAN', name: 'Cancellation' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   IDC: [
     { code: 'RCV', name: 'Receive' },
     { code: 'ACC', name: 'Accept' },
     { code: 'PAY', name: 'Payment' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   ODC: [
     { code: 'SUB', name: 'Submission' },
     { code: 'UPD', name: 'Update' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   SHG: [
     { code: 'ISS', name: 'Issuance' },
     { code: 'CAN', name: 'Cancellation' },
+    { code: 'EXP', name: 'Expiry' },
   ],
   RF: [
     { code: 'REQ', name: 'Request' },
@@ -408,11 +415,11 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => onTemplateSelect(template)}
+                        onClick={() => onTemplateSelect(template, false)}
                       >
                         <Settings className="w-4 h-4 mr-1" />
                         Configure
@@ -423,7 +430,7 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => onTemplateSelect(template)}
+                              onClick={() => onTemplateSelect(template, true)}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
