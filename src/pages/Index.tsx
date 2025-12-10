@@ -17,6 +17,7 @@ import { ProductEventMapping } from '@/components/control-centre/ProductEventMap
 import ManagePanesAndSections from '@/components/control-centre/ManagePanesAndSections';
 import FieldDefinition from '@/components/control-centre/FieldDefinition';
 import CountryMaster from '@/components/foundational-data/CountryMaster';
+import { NextGenWorkflowConfigurator } from '@/components/control-centre/NextGenWorkflowConfigurator';
 
 
 const Index = () => {
@@ -118,16 +119,7 @@ const Index = () => {
       case 'fdl-country':
         return <CountryMaster />;
       case 'nextgen-workflow-configurator':
-        return (
-          <div className="p-8 animate-fade-in">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-foreground mb-4">NextGen Workflow Configurator</h2>
-              <div className="bg-card rounded-lg p-6 professional-shadow">
-                <p className="text-muted-foreground text-lg">Workflow configurator functionality coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
+        return <NextGenWorkflowConfigurator />;
       case 'document-inquiry':
         return <DocumentInquiry />;
       case 'inquiry':
