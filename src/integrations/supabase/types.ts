@@ -3057,6 +3057,227 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_conditions: {
+        Row: {
+          compare_field: string | null
+          compare_type: string
+          compare_value: string | null
+          condition_order: number | null
+          created_at: string
+          field_name: string
+          group_name: string
+          group_operator: string
+          id: string
+          operator: string
+          stage_id: string | null
+          template_id: string
+        }
+        Insert: {
+          compare_field?: string | null
+          compare_type?: string
+          compare_value?: string | null
+          condition_order?: number | null
+          created_at?: string
+          field_name: string
+          group_name?: string
+          group_operator?: string
+          id?: string
+          operator?: string
+          stage_id?: string | null
+          template_id: string
+        }
+        Update: {
+          compare_field?: string | null
+          compare_type?: string
+          compare_value?: string | null
+          condition_order?: number | null
+          created_at?: string
+          field_name?: string
+          group_name?: string
+          group_operator?: string
+          id?: string
+          operator?: string
+          stage_id?: string | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_conditions_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_conditions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_stage_fields: {
+        Row: {
+          created_at: string
+          field_id: string
+          field_name: string
+          field_order: number | null
+          id: string
+          is_editable: boolean | null
+          is_mandatory: boolean | null
+          is_visible: boolean | null
+          pane: string | null
+          section: string | null
+          stage_id: string
+          ui_display_type: string | null
+          ui_label: string | null
+        }
+        Insert: {
+          created_at?: string
+          field_id: string
+          field_name: string
+          field_order?: number | null
+          id?: string
+          is_editable?: boolean | null
+          is_mandatory?: boolean | null
+          is_visible?: boolean | null
+          pane?: string | null
+          section?: string | null
+          stage_id: string
+          ui_display_type?: string | null
+          ui_label?: string | null
+        }
+        Update: {
+          created_at?: string
+          field_id?: string
+          field_name?: string
+          field_order?: number | null
+          id?: string
+          is_editable?: boolean | null
+          is_mandatory?: boolean | null
+          is_visible?: boolean | null
+          pane?: string | null
+          section?: string | null
+          stage_id?: string
+          ui_display_type?: string | null
+          ui_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_stage_fields_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_stages: {
+        Row: {
+          actor_type: string
+          created_at: string
+          id: string
+          is_rejectable: boolean | null
+          reject_to_stage_id: string | null
+          sla_hours: number | null
+          stage_name: string
+          stage_order: number
+          stage_type: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          actor_type?: string
+          created_at?: string
+          id?: string
+          is_rejectable?: boolean | null
+          reject_to_stage_id?: string | null
+          sla_hours?: number | null
+          stage_name: string
+          stage_order: number
+          stage_type?: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          actor_type?: string
+          created_at?: string
+          id?: string
+          is_rejectable?: boolean | null
+          reject_to_stage_id?: string | null
+          sla_hours?: number | null
+          stage_name?: string
+          stage_order?: number
+          stage_type?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_stages_reject_to_stage_id_fkey"
+            columns: ["reject_to_stage_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_stages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_templates: {
+        Row: {
+          created_at: string
+          event_code: string
+          event_name: string
+          id: string
+          module_code: string
+          module_name: string
+          product_code: string
+          product_name: string
+          status: string
+          template_name: string
+          trigger_types: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_code: string
+          event_name: string
+          id?: string
+          module_code: string
+          module_name: string
+          product_code: string
+          product_name: string
+          status?: string
+          template_name: string
+          trigger_types?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_code?: string
+          event_name?: string
+          id?: string
+          module_code?: string
+          module_name?: string
+          product_code?: string
+          product_name?: string
+          status?: string
+          template_name?: string
+          trigger_types?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
