@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Settings, Copy, Trash2, Eye, Play } from 'lucide-react';
+import { Search, Plus, Settings, Copy, Trash2, Eye } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { toast } from 'sonner';
@@ -90,7 +91,7 @@ const EVENT_OPTIONS: Record<string, { code: string; name: string }[]> = {
 };
 
 const TRIGGER_TYPES = [
-  { id: 'Manual', label: 'Manual' },
+  { id: 'Manual', label: 'Manual (Middle Office/Back Office)' },
   { id: 'ClientPortal', label: 'Client Portal' },
   { id: 'AutoBatch', label: 'Auto Batch' },
   { id: 'InwardSWIFT', label: 'Inward SWIFT' },
@@ -327,8 +328,17 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
           </div>
 
           <div className="space-y-2">
-            <Label>Trigger Types</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Label className="cursor-help underline decoration-dotted">Trigger Types</Label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Originating Channel and Origination Method</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="grid grid-cols-1 gap-2">
               {TRIGGER_TYPES.map(trigger => (
                 <div key={trigger.id} className="flex items-center space-x-2">
                   <Checkbox
@@ -407,6 +417,22 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                         <Settings className="w-4 h-4 mr-1" />
                         Configure
                       </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onTemplateSelect(template)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>View Template</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <Button
                         size="sm"
                         variant="ghost"
