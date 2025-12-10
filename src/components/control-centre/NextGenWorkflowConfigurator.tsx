@@ -149,6 +149,7 @@ export function NextGenWorkflowConfigurator() {
               stage={selectedStage}
               template={selectedTemplate}
               onBack={() => setActiveTab('stage-flow-builder')}
+              viewOnly={viewOnlyMode}
             />
           </TabsContent>
 
@@ -156,6 +157,7 @@ export function NextGenWorkflowConfigurator() {
             <TemplateLevelConditionsTab 
               template={selectedTemplate}
               onBack={() => setActiveTab('stage-flow-builder')}
+              viewOnly={viewOnlyMode}
             />
           </TabsContent>
         </div>
