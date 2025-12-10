@@ -67,8 +67,11 @@ export function NextGenWorkflowConfigurator() {
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
   const [selectedStage, setSelectedStage] = useState<WorkflowStage | null>(null);
 
-  const handleTemplateSelect = (template: WorkflowTemplate) => {
+  const [viewOnlyMode, setViewOnlyMode] = useState(false);
+
+  const handleTemplateSelect = (template: WorkflowTemplate, viewOnly: boolean = false) => {
     setSelectedTemplate(template);
+    setViewOnlyMode(viewOnly);
     setActiveTab('stage-flow-builder');
   };
 
@@ -80,6 +83,7 @@ export function NextGenWorkflowConfigurator() {
   const handleBackToTemplates = () => {
     setSelectedTemplate(null);
     setSelectedStage(null);
+    setViewOnlyMode(false);
     setActiveTab('workflow-templates');
   };
 
@@ -135,6 +139,8 @@ export function NextGenWorkflowConfigurator() {
               template={selectedTemplate}
               onBack={handleBackToTemplates}
               onStageSelect={handleStageSelect}
+              viewOnly={viewOnlyMode}
+              onEnableEdit={() => setViewOnlyMode(false)}
             />
           </TabsContent>
 
