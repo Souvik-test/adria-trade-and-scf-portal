@@ -439,13 +439,13 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                               size="icon"
                               variant="ghost"
                               onClick={() => onTemplateSelect(template, false)}
-                              disabled={template.status === 'Submitted'}
+                              disabled={template.status.toLowerCase() === 'submitted'}
                             >
                               <Settings className="w-4 h-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{template.status === 'Submitted' ? 'Cannot configure submitted template' : 'Configure Template'}</p>
+                            <p>{template.status.toLowerCase() === 'submitted' ? 'Cannot configure submitted template' : 'Configure Template'}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
