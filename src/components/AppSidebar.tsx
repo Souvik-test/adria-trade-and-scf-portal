@@ -504,20 +504,20 @@ export function AppSidebar({
                             </SidebarMenuSubItem>
                           </Collapsible>
 
-                          {/* NextGen Workflow Configurator - opens external URL */}
+                          {/* NextGen Workflow Configurator - internal navigation */}
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton 
-                                  className="cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2" 
-                                  onClick={() => window.open('https://preview--nextgen-trade-workflow-configurator.lovable.app/', '_blank')}
+                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'nextgen-workflow-configurator' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
+                                  onClick={() => handleMenuClick('nextgen-workflow-configurator')}
                                 >
                                   <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">NextGen Workflow Configurator</span>}
                                 </SidebarMenuSubButton>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="z-50">
-                                <p>Configure workflow and process definitions</p>
+                                <p>Configure workflow templates, stages, and conditions</p>
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
