@@ -13,6 +13,7 @@ interface StageLevelFieldTabProps {
   stage: WorkflowStage | null;
   template: WorkflowTemplate | null;
   onBack: () => void;
+  viewOnly?: boolean;
 }
 
 interface AvailableField {
@@ -24,7 +25,7 @@ interface AvailableField {
   ui_display_type: string;
 }
 
-export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldTabProps) {
+export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }: StageLevelFieldTabProps) {
   const [stageFields, setStageFields] = useState<WorkflowStageField[]>([]);
   const [availableFields, setAvailableFields] = useState<AvailableField[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,86 +248,97 @@ export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldT
             </p>
           </div>
         </div>
-        <Button onClick={handleSave}>
-          <Save className="w-4 h-4 mr-2" />
-          Save Field Configuration
-        </Button>
+        {!viewOnly && (
+          <Button onClick={handleSave}>
+            <Save className="w-4 h-4 mr-2" />
+            Save Field Configuration
+          </Button>
+        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel - Available Fields */}
-        <Card className="w-80 flex-shrink-0 flex flex-col">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Available Fields</CardTitle>
-              <Button size="sm" variant="outline" onClick={handleAddAllFields}>
-                Add All
-              </Button>
-            </div>
-            <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search fields..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-auto space-y-2">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        {/* Left Panel - Available Fields (hidden in view-only mode) */}
+        {!viewOnly && (
+          <Card className="w-80 flex-shrink-0 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Available Fields</CardTitle>
+                <Button size="sm" variant="outline" onClick={handleAddAllFields}>
+                  Add All
+                </Button>
               </div>
-            ) : filteredAvailableFields.length === 0 ? (
-              <div className="text-sm text-muted-foreground text-center py-4">
-                No fields found
+              <div className="relative mt-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search fields..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            ) : (
-              filteredAvailableFields.map((field) => (
-                <div
-                  key={field.field_id}
-                  className={`flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors ${
-                    stageFields.some(sf => sf.field_id === field.field_id) ? 'opacity-50' : ''
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{field.field_code || field.field_id}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {field.pane_code} • {field.section_code}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleAddField(field)}
-                    disabled={stageFields.some(sf => sf.field_id === field.field_id)}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto space-y-2">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ) : filteredAvailableFields.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  No fields found
+                </div>
+              ) : (
+                filteredAvailableFields.map((field) => (
+                  <div
+                    key={field.field_id}
+                    className={`flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors ${
+                      stageFields.some(sf => sf.field_id === field.field_id) ? 'opacity-50' : ''
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{field.field_code || field.field_id}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {field.pane_code} • {field.section_code}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleAddField(field)}
+                      disabled={stageFields.some(sf => sf.field_id === field.field_id)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Right Panel - Field Configuration Table */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Checkbox checked={allVisible} onCheckedChange={handleToggleAllVisible} />
-              <label className="text-sm">All Visible</label>
+          {!viewOnly && (
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={allVisible} onCheckedChange={handleToggleAllVisible} />
+                <label className="text-sm">All Visible</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox checked={allEditable} onCheckedChange={handleToggleAllEditable} />
+                <label className="text-sm">All Editable</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox checked={allMandatory} onCheckedChange={handleToggleAllMandatory} />
+                <label className="text-sm">All Mandatory</label>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox checked={allEditable} onCheckedChange={handleToggleAllEditable} />
-              <label className="text-sm">All Editable</label>
+          )}
+          {viewOnly && (
+            <div className="text-sm text-muted-foreground mb-4">
+              View-only mode - field configuration is read-only
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox checked={allMandatory} onCheckedChange={handleToggleAllMandatory} />
-              <label className="text-sm">All Mandatory</label>
-            </div>
-          </div>
+          )}
 
           <Card className="flex-1 overflow-hidden">
             <div className="overflow-auto h-full">
@@ -359,6 +371,7 @@ export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldT
                             value={field.pane}
                             onChange={(e) => handleUpdateField(field.id, { pane: e.target.value })}
                             className="h-8"
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell>
@@ -366,6 +379,7 @@ export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldT
                             value={field.section}
                             onChange={(e) => handleUpdateField(field.id, { section: e.target.value })}
                             className="h-8"
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell className="font-medium">{field.field_name}</TableCell>
@@ -374,6 +388,7 @@ export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldT
                             value={field.ui_label}
                             onChange={(e) => handleUpdateField(field.id, { ui_label: e.target.value })}
                             className="h-8"
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell>
@@ -381,35 +396,41 @@ export function StageLevelFieldTab({ stage, template, onBack }: StageLevelFieldT
                             value={field.ui_display_type}
                             onChange={(e) => handleUpdateField(field.id, { ui_display_type: e.target.value })}
                             className="h-8"
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_visible}
                             onCheckedChange={(checked) => handleUpdateField(field.id, { is_visible: !!checked })}
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_editable}
                             onCheckedChange={(checked) => handleUpdateField(field.id, { is_editable: !!checked })}
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_mandatory}
                             onCheckedChange={(checked) => handleUpdateField(field.id, { is_mandatory: !!checked })}
+                            disabled={viewOnly}
                           />
                         </TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteField(field.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {!viewOnly && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteField(field.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

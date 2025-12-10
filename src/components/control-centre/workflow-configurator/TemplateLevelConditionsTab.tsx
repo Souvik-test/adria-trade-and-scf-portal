@@ -12,6 +12,7 @@ import type { WorkflowTemplate, WorkflowCondition } from '../NextGenWorkflowConf
 interface TemplateLevelConditionsTabProps {
   template: WorkflowTemplate | null;
   onBack: () => void;
+  viewOnly?: boolean;
 }
 
 const OPERATORS = [
@@ -49,7 +50,7 @@ interface ConditionGroup {
   conditions: WorkflowCondition[];
 }
 
-export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelConditionsTabProps) {
+export function TemplateLevelConditionsTab({ template, onBack, viewOnly = false }: TemplateLevelConditionsTabProps) {
   const [groups, setGroups] = useState<ConditionGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -309,16 +310,18 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleSaveDraft}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Draft
-          </Button>
-          <Button onClick={handleSubmitTemplate}>
-            <Send className="w-4 h-4 mr-2" />
-            Submit Template
-          </Button>
-        </div>
+        {!viewOnly && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleSaveDraft}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Draft
+            </Button>
+            <Button onClick={handleSubmitTemplate}>
+              <Send className="w-4 h-4 mr-2" />
+              Submit Template
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -327,11 +330,18 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
         <div className="flex-1 flex flex-col gap-4 overflow-auto">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Condition Groups</h3>
-            <Button variant="outline" size="sm" onClick={handleAddGroup}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Group
-            </Button>
+            {!viewOnly && (
+              <Button variant="outline" size="sm" onClick={handleAddGroup}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Group
+              </Button>
+            )}
           </div>
+          {viewOnly && (
+            <div className="text-sm text-muted-foreground">
+              View-only mode - conditions are read-only
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -354,6 +364,7 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
                       <Select
                         value={group.operator}
                         onValueChange={(val) => handleUpdateGroupOperator(groupIndex, val as 'AND' | 'OR')}
+                        disabled={viewOnly}
                       >
                         <SelectTrigger className="w-24 h-8">
                           <SelectValue />
@@ -364,20 +375,22 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleAddCondition(groupIndex)}>
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add Condition
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteGroup(groupIndex)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {!viewOnly && (
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => handleAddCondition(groupIndex)}>
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Condition
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteGroup(groupIndex)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -386,63 +399,15 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
                       No conditions in this group
                     </p>
                   ) : (
-                    group.conditions.map((condition, conditionIndex) => (
-                      <div key={condition.id} className="flex items-center gap-3">
-                        <Select
-                          value={condition.field_name}
-                          onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { field_name: val })}
-                        >
-                          <SelectTrigger className="w-48">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SAMPLE_FIELDS.map(field => (
-                              <SelectItem key={field} value={field}>{field}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Select
-                          value={condition.operator}
-                          onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { operator: val })}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {OPERATORS.map(op => (
-                              <SelectItem key={op} value={op}>{op}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Select
-                          value={condition.compare_type}
-                          onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { compare_type: val })}
-                        >
-                          <SelectTrigger className="w-24">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Value">Value</SelectItem>
-                            <SelectItem value="Field">Field</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {condition.compare_type === 'Value' ? (
-                          <Input
-                            placeholder="Enter value"
-                            value={condition.compare_value || ''}
-                            onChange={(e) => handleUpdateCondition(groupIndex, conditionIndex, { compare_value: e.target.value })}
-                            className="flex-1"
-                          />
-                        ) : (
+                      group.conditions.map((condition, conditionIndex) => (
+                        <div key={condition.id} className="flex items-center gap-3">
                           <Select
-                            value={condition.compare_field || ''}
-                            onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { compare_field: val })}
+                            value={condition.field_name}
+                            onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { field_name: val })}
+                            disabled={viewOnly}
                           >
-                            <SelectTrigger className="flex-1">
-                              <SelectValue placeholder="Select field" />
+                            <SelectTrigger className="w-48">
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {SAMPLE_FIELDS.map(field => (
@@ -450,18 +415,73 @@ export function TemplateLevelConditionsTab({ template, onBack }: TemplateLevelCo
                               ))}
                             </SelectContent>
                           </Select>
-                        )}
 
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteCondition(groupIndex, conditionIndex)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))
+                          <Select
+                            value={condition.operator}
+                            onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { operator: val })}
+                            disabled={viewOnly}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {OPERATORS.map(op => (
+                                <SelectItem key={op} value={op}>{op}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Select
+                            value={condition.compare_type}
+                            onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { compare_type: val })}
+                            disabled={viewOnly}
+                          >
+                            <SelectTrigger className="w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Value">Value</SelectItem>
+                              <SelectItem value="Field">Field</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {condition.compare_type === 'Value' ? (
+                            <Input
+                              placeholder="Enter value"
+                              value={condition.compare_value || ''}
+                              onChange={(e) => handleUpdateCondition(groupIndex, conditionIndex, { compare_value: e.target.value })}
+                              className="flex-1"
+                              disabled={viewOnly}
+                            />
+                          ) : (
+                            <Select
+                              value={condition.compare_field || ''}
+                              onValueChange={(val) => handleUpdateCondition(groupIndex, conditionIndex, { compare_field: val })}
+                              disabled={viewOnly}
+                            >
+                              <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="Select field" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SAMPLE_FIELDS.map(field => (
+                                  <SelectItem key={field} value={field}>{field}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {!viewOnly && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteCondition(groupIndex, conditionIndex)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))
                   )}
                 </CardContent>
               </Card>
