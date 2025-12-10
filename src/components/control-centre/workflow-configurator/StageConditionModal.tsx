@@ -15,6 +15,7 @@ interface StageConditionModalProps {
   onOpenChange: (open: boolean) => void;
   stage: WorkflowStage | null;
   templateId: string;
+  viewOnly?: boolean;
 }
 
 const OPERATORS = [
@@ -41,7 +42,7 @@ const SAMPLE_FIELDS = [
   'is_transferable',
 ];
 
-export function StageConditionModal({ open, onOpenChange, stage, templateId }: StageConditionModalProps) {
+export function StageConditionModal({ open, onOpenChange, stage, templateId, viewOnly = false }: StageConditionModalProps) {
   const [conditions, setConditions] = useState<WorkflowCondition[]>([]);
   const [loading, setLoading] = useState(false);
   const [groupOperator, setGroupOperator] = useState<'' | 'AND' | 'OR'>('');
@@ -200,9 +201,11 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Configure Stage Conditions</DialogTitle>
+          <DialogTitle>
+            {viewOnly ? 'View Stage Conditions' : 'Configure Stage Conditions'}
+          </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Stage: {stage.stage_name}
+            Stage: {stage.stage_name} {viewOnly && '(Read-only)'}
           </p>
         </DialogHeader>
 
@@ -215,6 +218,7 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                 <Select 
                   value={groupOperator} 
                   onValueChange={(val) => handleUpdateGroupOperator(val as '' | 'AND' | 'OR')}
+                  disabled={viewOnly}
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Select..." />
@@ -226,10 +230,12 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" size="sm" onClick={handleAddCondition}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Condition
-              </Button>
+              {!viewOnly && (
+                <Button variant="outline" size="sm" onClick={handleAddCondition}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Condition
+                </Button>
+              )}
             </div>
 
             {loading ? (
@@ -247,6 +253,7 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                     <Select
                       value={condition.field_name}
                       onValueChange={(val) => handleUpdateCondition(index, { field_name: val })}
+                      disabled={viewOnly}
                     >
                       <SelectTrigger className="w-40">
                         <SelectValue />
@@ -261,6 +268,7 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                     <Select
                       value={condition.operator}
                       onValueChange={(val) => handleUpdateCondition(index, { operator: val })}
+                      disabled={viewOnly}
                     >
                       <SelectTrigger className="w-36">
                         <SelectValue />
@@ -275,6 +283,7 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                     <Select
                       value={condition.compare_type}
                       onValueChange={(val) => handleUpdateCondition(index, { compare_type: val })}
+                      disabled={viewOnly}
                     >
                       <SelectTrigger className="w-24">
                         <SelectValue />
@@ -291,11 +300,13 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                         value={condition.compare_value || ''}
                         onChange={(e) => handleUpdateCondition(index, { compare_value: e.target.value })}
                         className="flex-1"
+                        disabled={viewOnly}
                       />
                     ) : (
                       <Select
                         value={condition.compare_field || ''}
                         onValueChange={(val) => handleUpdateCondition(index, { compare_field: val })}
+                        disabled={viewOnly}
                       >
                         <SelectTrigger className="flex-1">
                           <SelectValue placeholder="Select field" />
@@ -308,14 +319,16 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
                       </Select>
                     )}
 
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteCondition(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {!viewOnly && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteCondition(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -340,12 +353,14 @@ export function StageConditionModal({ open, onOpenChange, stage, templateId }: S
 
         <div className="flex justify-end gap-2 pt-4 border-t border-border">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {viewOnly ? 'Close' : 'Cancel'}
           </Button>
-          <Button onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
-            Save Conditions
-          </Button>
+          {!viewOnly && (
+            <Button onClick={handleSave}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Conditions
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
