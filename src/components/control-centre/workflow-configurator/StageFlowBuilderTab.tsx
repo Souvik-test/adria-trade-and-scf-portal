@@ -132,7 +132,7 @@ function SortableStageCard({
                   size="sm"
                   variant="ghost"
                   onClick={() => onOpenConditionModal(stage)}
-                  disabled={viewOnly}
+                  title={viewOnly ? "View Conditions" : "Configure Conditions"}
                 >
                   <Settings className="w-4 h-4" />
                 </Button>
@@ -501,6 +501,7 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect, viewOnly 
         onOpenChange={setConditionModalOpen}
         stage={selectedStageForCondition}
         templateId={template.id}
+        viewOnly={viewOnly}
       />
 
       {/* Flowchart Modal */}
