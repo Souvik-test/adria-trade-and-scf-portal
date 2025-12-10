@@ -88,7 +88,7 @@ export function NextGenWorkflowConfigurator() {
       <div className="border-b border-border px-6 py-4">
         <h1 className="text-2xl font-bold text-foreground">NextGen Workflow Configurator</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Configure workflow templates, stages, fields, and conditions for trade finance processes
+          Configure workflow templates, stages, fields, and conditions
         </p>
       </div>
 
