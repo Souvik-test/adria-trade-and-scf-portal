@@ -15,7 +15,7 @@ import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useAuth } from '@/hooks/useAuth';
+
 import { Textarea } from '@/components/ui/textarea';
 import { customAuth } from '@/services/customAuth';
 
@@ -160,7 +160,7 @@ const getInitialFieldData = (): FieldData => ({
 });
 
 const FieldDefinition = () => {
-  const { user } = useAuth();
+  const [customUser, setCustomUser] = useState<any>(null);
   const [productMappings, setProductMappings] = useState<ProductEventMapping[]>([]);
   const [paneSectionMappings, setPaneSectionMappings] = useState<PaneSectionMapping[]>([]);
   const [existingFields, setExistingFields] = useState<FieldData[]>([]);
@@ -186,8 +186,17 @@ const FieldDefinition = () => {
   
   // Upload dialog state
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadedFieldData, setUploadedFieldData] = useState<FieldData | null>(null);
+  const [uploadedFieldsData, setUploadedFieldsData] = useState<FieldData[]>([]);
+  const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [uploadFileName, setUploadFileName] = useState('');
+
+  // Get custom auth user on mount
+  useEffect(() => {
+    const session = customAuth.getSession();
+    if (session?.user) {
+      setCustomUser(session.user);
+    }
+  }, []);
 
   useEffect(() => {
     fetchProductMappings();
@@ -237,7 +246,7 @@ const FieldDefinition = () => {
   };
 
   const fetchExistingFields = async () => {
-    if (!user?.id) return;
+    if (!customUser?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -247,7 +256,6 @@ const FieldDefinition = () => {
         .eq('event_type', selectedEvent)
         .eq('pane_code', selectedPane)
         .eq('section_code', selectedSection)
-        .eq('user_id', user.id)
         .order('field_display_sequence', { ascending: true });
 
       if (error) throw error;
@@ -383,7 +391,7 @@ const FieldDefinition = () => {
         .from('field_repository')
         .delete()
         .eq('id', fieldId)
-        .eq('user_id', user?.id);
+        .eq('user_id', customUser?.id);
 
       if (error) throw error;
       toast.success('Field deleted successfully');
@@ -403,6 +411,77 @@ const FieldDefinition = () => {
       field_display_sequence: existingFields.length + 1,
     });
     setShowFieldForm(true);
+  };
+
+  // Parse a single row from Excel to FieldData
+  const parseExcelRowToField = (headers: string[], values: any[], index: number): FieldData => {
+    const excelData: Record<string, any> = {};
+    headers.forEach((header, idx) => {
+      if (header && values[idx] !== undefined) {
+        excelData[header.toLowerCase().replace(/[\s-]+/g, '_')] = values[idx];
+      }
+    });
+
+    // Parse field coordinates (e.g., "R1C1" -> row 1, col 1)
+    const parseCoordinates = (coord: string): { row: number; col: number } => {
+      const match = coord?.match(/R(\d+)C(\d+)/i);
+      if (match) {
+        return { row: parseInt(match[1]), col: parseInt(match[2]) };
+      }
+      return { row: 1, col: 1 };
+    };
+
+    const coords = parseCoordinates(excelData['field_co-ordinates'] || excelData['field_coordinates'] || '');
+    
+    // Get pane and section from Excel data
+    const pane = excelData['pane'] || selectedPane;
+    const section = excelData['section'] || selectedSection;
+
+    return {
+      ...getInitialFieldData(),
+      product_code: selectedProduct,
+      event_type: selectedEvent,
+      pane_code: pane,
+      section_code: section,
+      field_code: excelData['field_code'] || excelData['field_name'] || '',
+      field_label_key: excelData['field_label_key'] || excelData['field_name'] || excelData['label'] || '',
+      field_tooltip_key: excelData['field_tooltip_key'] || excelData['field_tooltip_text'] || excelData['tooltip'] || '',
+      field_row: coords.row,
+      field_column: coords.col,
+      ui_display_type: excelData['ui_display_type'] || excelData['display_type'] || 'TEXTBOX',
+      data_type: excelData['data_type'] || 'STRING',
+      lookup_code: excelData['lookup_code'] || '',
+      dropdown_values: excelData['dropdown_values'] || '',
+      length_min: parseInt(excelData['length_min'] || excelData['min_length'] || '0') || 0,
+      length_max: parseInt(excelData['length_max'] || excelData['max_length'] || '255') || 255,
+      decimal_places: parseInt(excelData['decimal_places'] || '0') || 0,
+      default_value: excelData['default_value'] || excelData['default_value'] || '',
+      size_standard_source: excelData['size_standard_source'] || 'CUSTOM',
+      is_mandatory_portal: excelData['is_mandatory_portal'] === 'Y' || excelData['is_mandatory_portal'] === 'Yes' || excelData['is_mandatory_portal'] === true,
+      is_mandatory_mo: excelData['is_mandatory_mo'] === 'Y' || excelData['is_mandatory_mo'] === 'Yes' || excelData['is_mandatory_mo'] === true,
+      is_mandatory_bo: excelData['is_mandatory_bo'] === 'Y' || excelData['is_mandatory_bo'] === 'Yes' || excelData['is_mandatory_bo'] === true,
+      conditional_visibility_expr: excelData['conditional_visibility_expr'] || excelData['visibility_expression'] || '',
+      conditional_mandatory_expr: excelData['conditional_mandatory_expr'] || excelData['mandatory_expression'] || '',
+      channel_customer_portal_flag: excelData['is_visible_fo'] === 'Y' || excelData['is_visible_fo'] === 'Yes' || excelData['channel_customer_portal_flag'] !== 'N',
+      channel_middle_office_flag: excelData['is_visible_mo'] === 'Y' || excelData['is_visible_mo'] === 'Yes' || excelData['channel_middle_office_flag'] !== 'N',
+      channel_back_office_flag: excelData['is_visible_bo'] === 'Y' || excelData['is_visible_bo'] === 'Yes' || excelData['channel_back_office_flag'] !== 'N',
+      swift_mt_type: excelData['swift_mt_type'] || '',
+      swift_sequence: excelData['swift_sequence'] || '',
+      swift_tag: excelData['swift_tag'] || '',
+      swift_subfield_qualifier: excelData['swift_subfield_qualifier'] || '',
+      swift_tag_display_flag: excelData['swift_tag_display_flag'] === 'Y' || excelData['swift_tag_display_flag'] === 'Yes' || excelData['swift_tag_display_flag'] === true,
+      swift_format_pattern: excelData['swift_format_pattern'] || '',
+      sanction_check_required_flag: excelData['sanction_check_required_flag'] === 'Y' || excelData['sanction_check_required_flag'] === 'Yes' || excelData['sanction_check_required_flag'] === true,
+      sanction_engine_field_map: excelData['sanction_engine_field_map'] || '',
+      limit_check_required_flag: excelData['limit_check_required_flag'] === 'Y' || excelData['limit_check_required_flag'] === 'Yes' || excelData['limit_check_required_flag'] === true,
+      error_message_key: excelData['error_message_key'] || '',
+      help_content_type: excelData['help_content_type'] || 'INLINE_TEXT',
+      iso20022_element_code: excelData['iso20022_element_code'] || '',
+      iso_data_format_pattern: excelData['iso_data_format_pattern'] || '',
+      ai_mapping_key: excelData['ai_mapping_key'] || '',
+      is_active_flag: excelData['is_active_flag'] !== 'N' && excelData['is_active'] !== 'No',
+      field_display_sequence: existingFields.length + index + 1,
+    };
   };
 
   const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -426,65 +505,26 @@ const FieldDefinition = () => {
         }
 
         const headers = jsonData[0] as string[];
-        const values = jsonData[1] as any[];
         
-        // Map Excel columns to field data - create a mapping object
-        const excelData: Record<string, any> = {};
-        headers.forEach((header, index) => {
-          if (header && values[index] !== undefined) {
-            excelData[header.toLowerCase().replace(/\s+/g, '_')] = values[index];
+        // Parse ALL data rows (starting from row index 1)
+        const parsedFields: FieldData[] = [];
+        for (let i = 1; i < jsonData.length; i++) {
+          const values = jsonData[i] as any[];
+          // Skip empty rows
+          if (values && values.some(v => v !== undefined && v !== null && v !== '')) {
+            const parsedField = parseExcelRowToField(headers, values, i);
+            parsedFields.push(parsedField);
           }
-        });
+        }
 
-        // Map to FieldData structure
-        const parsedField: FieldData = {
-          ...getInitialFieldData(),
-          product_code: selectedProduct,
-          event_type: selectedEvent,
-          pane_code: selectedPane,
-          section_code: selectedSection,
-          field_code: excelData['field_code'] || excelData['field_name'] || '',
-          field_label_key: excelData['field_label_key'] || excelData['field_name'] || excelData['label'] || '',
-          field_tooltip_key: excelData['field_tooltip_key'] || excelData['field_tooltip_text'] || excelData['tooltip'] || '',
-          field_row: parseInt(excelData['field_row'] || excelData['row'] || '1'),
-          field_column: parseInt(excelData['field_column'] || excelData['column'] || excelData['col'] || '1'),
-          ui_display_type: excelData['ui_display_type'] || excelData['display_type'] || 'TEXTBOX',
-          data_type: excelData['data_type'] || 'STRING',
-          lookup_code: excelData['lookup_code'] || '',
-          dropdown_values: excelData['dropdown_values'] || '',
-          length_min: parseInt(excelData['length_min'] || excelData['min_length'] || '0'),
-          length_max: parseInt(excelData['length_max'] || excelData['max_length'] || '255'),
-          decimal_places: parseInt(excelData['decimal_places'] || '0'),
-          default_value: excelData['default_value'] || '',
-          size_standard_source: excelData['size_standard_source'] || 'CUSTOM',
-          is_mandatory_portal: excelData['is_mandatory_portal'] === true || excelData['is_mandatory_portal'] === 'Yes' || excelData['mandatory_portal'] === 'Yes',
-          is_mandatory_mo: excelData['is_mandatory_mo'] === true || excelData['is_mandatory_mo'] === 'Yes' || excelData['mandatory_mo'] === 'Yes',
-          is_mandatory_bo: excelData['is_mandatory_bo'] === true || excelData['is_mandatory_bo'] === 'Yes' || excelData['mandatory_bo'] === 'Yes',
-          conditional_visibility_expr: excelData['conditional_visibility_expr'] || excelData['visibility_expression'] || '',
-          conditional_mandatory_expr: excelData['conditional_mandatory_expr'] || excelData['mandatory_expression'] || '',
-          channel_customer_portal_flag: excelData['channel_customer_portal_flag'] !== false && excelData['channel_customer_portal_flag'] !== 'No',
-          channel_middle_office_flag: excelData['channel_middle_office_flag'] !== false && excelData['channel_middle_office_flag'] !== 'No',
-          channel_back_office_flag: excelData['channel_back_office_flag'] !== false && excelData['channel_back_office_flag'] !== 'No',
-          swift_mt_type: excelData['swift_mt_type'] || '',
-          swift_sequence: excelData['swift_sequence'] || '',
-          swift_tag: excelData['swift_tag'] || '',
-          swift_subfield_qualifier: excelData['swift_subfield_qualifier'] || '',
-          swift_tag_display_flag: excelData['swift_tag_display_flag'] === true || excelData['swift_tag_display_flag'] === 'Yes',
-          swift_format_pattern: excelData['swift_format_pattern'] || '',
-          sanction_check_required_flag: excelData['sanction_check_required_flag'] === true || excelData['sanction_check_required'] === 'Yes',
-          sanction_engine_field_map: excelData['sanction_engine_field_map'] || '',
-          limit_check_required_flag: excelData['limit_check_required_flag'] === true || excelData['limit_check_required'] === 'Yes',
-          error_message_key: excelData['error_message_key'] || '',
-          help_content_type: excelData['help_content_type'] || 'INLINE_TEXT',
-          iso20022_element_code: excelData['iso20022_element_code'] || '',
-          iso_data_format_pattern: excelData['iso_data_format_pattern'] || '',
-          ai_mapping_key: excelData['ai_mapping_key'] || '',
-          is_active_flag: excelData['is_active_flag'] !== false && excelData['is_active'] !== 'No',
-          field_display_sequence: existingFields.length + 1,
-        };
+        if (parsedFields.length === 0) {
+          toast.error('No valid data rows found in Excel file');
+          return;
+        }
 
-        setUploadedFieldData(parsedField);
-        toast.success('Excel file parsed successfully. Please review the data.');
+        setUploadedFieldsData(parsedFields);
+        setCurrentUploadIndex(0);
+        toast.success(`Excel file parsed successfully. Found ${parsedFields.length} fields to import.`);
       } catch (error: any) {
         toast.error('Failed to parse Excel file', { description: error.message });
       }
@@ -494,25 +534,78 @@ const FieldDefinition = () => {
   };
 
   const handleConfirmUpload = () => {
-    if (uploadedFieldData) {
-      setFieldData(uploadedFieldData);
+    if (uploadedFieldsData.length > 0) {
+      // Set the first field for editing
+      setFieldData(uploadedFieldsData[0]);
+      setCurrentUploadIndex(0);
       setEditingField(null);
       setShowFieldForm(true);
       setShowUploadDialog(false);
-      setUploadedFieldData(null);
+      toast.info(`Field 1 of ${uploadedFieldsData.length} loaded. Review and save each field.`);
+    }
+  };
+
+  const handleSaveAndNext = async () => {
+    // Save current field first
+    await handleSaveField();
+    
+    // Move to next field if available
+    if (currentUploadIndex < uploadedFieldsData.length - 1) {
+      const nextIndex = currentUploadIndex + 1;
+      setCurrentUploadIndex(nextIndex);
+      setFieldData(uploadedFieldsData[nextIndex]);
+      setEditingField(null);
+      toast.info(`Field ${nextIndex + 1} of ${uploadedFieldsData.length} loaded.`);
+    } else {
+      // All fields saved
+      setUploadedFieldsData([]);
+      setCurrentUploadIndex(0);
+      toast.success('All fields imported successfully!');
+    }
+  };
+
+  const handleSaveAllFields = async () => {
+    if (!customUser?.id) {
+      toast.error('You must be logged in to save fields');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const fieldsToSave = uploadedFieldsData.map((field, index) => ({
+        ...field,
+        field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        user_id: customUser.id,
+      }));
+
+      const { error } = await supabase
+        .from('field_repository')
+        .insert(fieldsToSave);
+
+      if (error) throw error;
+      
+      toast.success(`${fieldsToSave.length} fields saved successfully!`);
+      setShowFieldForm(false);
+      setUploadedFieldsData([]);
+      setCurrentUploadIndex(0);
       setUploadFileName('');
-      toast.info('Field data populated. Please review and save.');
+      fetchExistingFields();
+    } catch (error: any) {
+      toast.error('Failed to save fields', { description: error.message });
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCancelUpload = () => {
     setShowUploadDialog(false);
-    setUploadedFieldData(null);
+    setUploadedFieldsData([]);
+    setCurrentUploadIndex(0);
     setUploadFileName('');
   };
 
   const handleSaveField = async () => {
-    if (!user?.id) {
+    if (!customUser?.id) {
       toast.error('You must be logged in to save fields');
       return;
     }
@@ -529,7 +622,7 @@ const FieldDefinition = () => {
       const saveData = {
         ...fieldData,
         field_id: fieldId,
-        user_id: user.id,
+        user_id: customUser.id,
       };
 
       if (editingField?.id) {
@@ -537,7 +630,7 @@ const FieldDefinition = () => {
           .from('field_repository')
           .update(saveData)
           .eq('id', editingField.id)
-          .eq('user_id', user.id);
+          .eq('user_id', customUser.id);
 
         if (error) throw error;
         toast.success('Field updated successfully');
@@ -1304,46 +1397,45 @@ const FieldDefinition = () => {
               )}
             </div>
 
-            {uploadedFieldData && (
+            {uploadedFieldsData.length > 0 && (
               <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
-                <h4 className="font-medium text-sm">Parsed Data Preview:</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Field Code:</span>
-                    <p className="font-mono">{uploadedFieldData.field_code || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Label:</span>
-                    <p>{uploadedFieldData.field_label_key || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">UI Type:</span>
-                    <p>{uploadedFieldData.ui_display_type}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Data Type:</span>
-                    <p>{uploadedFieldData.data_type}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">SWIFT Tag:</span>
-                    <p>{uploadedFieldData.swift_tag || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Active:</span>
-                    <p>{uploadedFieldData.is_active_flag ? 'Yes' : 'No'}</p>
-                  </div>
+                <h4 className="font-medium text-sm">Parsed Data Preview ({uploadedFieldsData.length} fields):</h4>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {uploadedFieldsData.map((field, index) => (
+                    <div key={index} className="grid grid-cols-4 gap-2 text-xs border-b pb-2">
+                      <div>
+                        <span className="text-muted-foreground">#{index + 1} Pane:</span>
+                        <p className="font-mono truncate">{field.pane_code || '-'}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Section:</span>
+                        <p className="truncate">{field.section_code || '-'}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Field:</span>
+                        <p className="truncate">{field.field_code || field.field_label_key || '-'}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Type:</span>
+                        <p>{field.ui_display_type}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Review all fields in the form after confirmation.
+                  Click "Save All Fields" to import all fields at once, or "Review One by One" to review each field.
                 </p>
               </div>
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={handleCancelUpload}>Cancel</Button>
-            <Button onClick={handleConfirmUpload} disabled={!uploadedFieldData}>
-              Confirm & Populate Form
+            <Button variant="secondary" onClick={handleConfirmUpload} disabled={uploadedFieldsData.length === 0}>
+              Review One by One
+            </Button>
+            <Button onClick={handleSaveAllFields} disabled={uploadedFieldsData.length === 0 || saving}>
+              {saving ? 'Saving...' : `Save All ${uploadedFieldsData.length} Fields`}
             </Button>
           </DialogFooter>
         </DialogContent>
