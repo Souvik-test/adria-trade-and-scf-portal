@@ -595,9 +595,11 @@ export type Database = {
           error_message_key: string | null
           event_type: string | null
           field_code: string | null
+          field_column: number | null
           field_display_sequence: number | null
           field_id: string
           field_label_key: string | null
+          field_row: number | null
           field_tooltip_key: string | null
           group_id: string | null
           group_repetition_flag: boolean | null
@@ -669,9 +671,11 @@ export type Database = {
           error_message_key?: string | null
           event_type?: string | null
           field_code?: string | null
+          field_column?: number | null
           field_display_sequence?: number | null
           field_id: string
           field_label_key?: string | null
+          field_row?: number | null
           field_tooltip_key?: string | null
           group_id?: string | null
           group_repetition_flag?: boolean | null
@@ -743,9 +747,11 @@ export type Database = {
           error_message_key?: string | null
           event_type?: string | null
           field_code?: string | null
+          field_column?: number | null
           field_display_sequence?: number | null
           field_id?: string
           field_label_key?: string | null
+          field_row?: number | null
           field_tooltip_key?: string | null
           group_id?: string | null
           group_repetition_flag?: boolean | null
