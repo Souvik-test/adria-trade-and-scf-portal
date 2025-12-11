@@ -572,11 +572,18 @@ const FieldDefinition = () => {
 
     setSaving(true);
     try {
-      const fieldsToSave = uploadedFieldsData.map((field, index) => ({
-        ...field,
-        field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        user_id: customUser.id,
-      }));
+      const fieldsToSave = uploadedFieldsData.map((field, index) => {
+        const { id, dropdown_values, ...fieldWithoutIdAndDropdown } = field;
+        return {
+          ...fieldWithoutIdAndDropdown,
+          field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          user_id: customUser.id,
+          // Convert comma-separated string to array for dropdown_values
+          dropdown_values: dropdown_values 
+            ? dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v) 
+            : null,
+        };
+      });
 
       const { error } = await supabase
         .from('field_repository')
@@ -619,10 +626,18 @@ const FieldDefinition = () => {
     try {
       const fieldId = fieldData.field_id || `FLD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
+      // Convert comma-separated string to array for dropdown_values
+      const dropdownValuesArray = fieldData.dropdown_values 
+        ? fieldData.dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v)
+        : null;
+      
+      const { id, dropdown_values, ...fieldDataWithoutIdAndDropdown } = fieldData;
+      
       const saveData = {
-        ...fieldData,
+        ...fieldDataWithoutIdAndDropdown,
         field_id: fieldId,
         user_id: customUser.id,
+        dropdown_values: dropdownValuesArray,
       };
 
       if (editingField?.id) {
