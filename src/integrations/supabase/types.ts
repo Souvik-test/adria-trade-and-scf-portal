@@ -588,6 +588,7 @@ export type Database = {
           data_type: string | null
           decimal_places: number | null
           default_value: string | null
+          dropdown_values: string[] | null
           edit_allowed_flag: boolean | null
           effective_from_date: string
           effective_to_date: string | null
@@ -661,6 +662,7 @@ export type Database = {
           data_type?: string | null
           decimal_places?: number | null
           default_value?: string | null
+          dropdown_values?: string[] | null
           edit_allowed_flag?: boolean | null
           effective_from_date: string
           effective_to_date?: string | null
@@ -734,6 +736,7 @@ export type Database = {
           data_type?: string | null
           decimal_places?: number | null
           default_value?: string | null
+          dropdown_values?: string[] | null
           edit_allowed_flag?: boolean | null
           effective_from_date?: string
           effective_to_date?: string | null
