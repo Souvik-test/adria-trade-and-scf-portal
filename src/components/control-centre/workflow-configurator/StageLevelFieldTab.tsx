@@ -54,13 +54,24 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
       if (fieldsError) throw fieldsError;
       setStageFields((fieldsData || []) as WorkflowStageField[]);
 
-      // Fetch available fields from field_repository
-      const { data: repoData, error: repoError } = await supabase
+      // Fetch available fields from field_repository filtered by template's product and event
+      let query = supabase
         .from('field_repository')
         .select('field_id, field_code, field_label_key, pane_code, section_code, ui_display_type')
-        .limit(100);
+        .eq('is_active_flag', true);
+
+      // Filter by product_code and event_type from the template
+      if (template?.product_code) {
+        query = query.eq('product_code', template.product_code);
+      }
+      if (template?.event_code) {
+        query = query.eq('event_type', template.event_code);
+      }
+
+      const { data: repoData, error: repoError } = await query.limit(500);
 
       if (repoError) throw repoError;
+      console.log('Fetched fields for', template?.product_code, template?.event_code, ':', repoData?.length);
       setAvailableFields((repoData || []) as AvailableField[]);
     } catch (error) {
       console.error('Error fetching data:', error);
