@@ -591,7 +591,7 @@ const FieldDefinition = () => {
       // Use security definer function to bypass RLS
       const { error } = await supabase.rpc('insert_field_repository', {
         p_user_id: customUser.id,
-        p_field_data: fieldsToSave
+        p_fields: fieldsToSave
       });
 
       if (error) throw error;
@@ -658,7 +658,7 @@ const FieldDefinition = () => {
         // Use security definer function to bypass RLS
         const { error } = await supabase.rpc('insert_field_repository', {
           p_user_id: customUser.id,
-          p_field_data: [saveData]
+          p_fields: [saveData]
         });
 
         if (error) throw error;
