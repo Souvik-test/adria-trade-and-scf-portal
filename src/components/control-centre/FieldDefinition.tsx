@@ -385,13 +385,17 @@ const FieldDefinition = () => {
 
   const handleDeleteField = async (fieldId: string) => {
     if (!confirm('Are you sure you want to delete this field?')) return;
+    if (!customUser?.id) {
+      toast.error('You must be logged in to delete fields');
+      return;
+    }
     
     try {
-      const { error } = await supabase
-        .from('field_repository')
-        .delete()
-        .eq('id', fieldId)
-        .eq('user_id', customUser?.id);
+      // Use security definer function to bypass RLS
+      const { error } = await supabase.rpc('delete_field_repository', {
+        p_user_id: customUser.id,
+        p_field_id: fieldId
+      });
 
       if (error) throw error;
       toast.success('Field deleted successfully');
@@ -577,7 +581,6 @@ const FieldDefinition = () => {
         return {
           ...fieldWithoutIdAndDropdown,
           field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-          user_id: customUser.id,
           // Convert comma-separated string to array for dropdown_values
           dropdown_values: dropdown_values 
             ? dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v) 
@@ -585,9 +588,11 @@ const FieldDefinition = () => {
         };
       });
 
-      const { error } = await supabase
-        .from('field_repository')
-        .insert(fieldsToSave);
+      // Use security definer function to bypass RLS
+      const { error } = await supabase.rpc('insert_field_repository', {
+        p_user_id: customUser.id,
+        p_field_data: fieldsToSave
+      });
 
       if (error) throw error;
       
@@ -636,23 +641,25 @@ const FieldDefinition = () => {
       const saveData = {
         ...fieldDataWithoutIdAndDropdown,
         field_id: fieldId,
-        user_id: customUser.id,
         dropdown_values: dropdownValuesArray,
       };
 
       if (editingField?.id) {
-        const { error } = await supabase
-          .from('field_repository')
-          .update(saveData)
-          .eq('id', editingField.id)
-          .eq('user_id', customUser.id);
+        // Use security definer function to bypass RLS
+        const { error } = await supabase.rpc('update_field_repository', {
+          p_user_id: customUser.id,
+          p_field_id: editingField.id,
+          p_field_data: saveData
+        });
 
         if (error) throw error;
         toast.success('Field updated successfully');
       } else {
-        const { error } = await supabase
-          .from('field_repository')
-          .insert([saveData]);
+        // Use security definer function to bypass RLS
+        const { error } = await supabase.rpc('insert_field_repository', {
+          p_user_id: customUser.id,
+          p_field_data: [saveData]
+        });
 
         if (error) throw error;
         toast.success('Field created successfully');
