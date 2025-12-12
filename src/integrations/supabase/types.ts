@@ -3315,6 +3315,16 @@ export type Database = {
         Args: { p_field_id: string; p_user_id: string }
         Returns: boolean
       }
+      delete_fields_by_config: {
+        Args: {
+          p_event_type: string
+          p_pane_code: string
+          p_product_code: string
+          p_section_code: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       generate_assignment_ref: { Args: never; Returns: string }
       generate_documentary_collection_bill_ref: { Args: never; Returns: string }
       generate_export_bill_ref: { Args: never; Returns: string }
