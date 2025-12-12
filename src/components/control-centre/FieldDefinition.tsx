@@ -249,14 +249,14 @@ const FieldDefinition = () => {
     if (!customUser?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('field_repository')
-        .select('*')
-        .eq('product_code', selectedProduct)
-        .eq('event_type', selectedEvent)
-        .eq('pane_code', selectedPane)
-        .eq('section_code', selectedSection)
-        .order('field_display_sequence', { ascending: true });
+      // Use security definer function to bypass RLS
+      const { data, error } = await supabase.rpc('get_fields_by_config', {
+        p_user_id: customUser.id,
+        p_product_code: selectedProduct,
+        p_event_type: selectedEvent,
+        p_pane_code: selectedPane,
+        p_section_code: selectedSection
+      });
 
       if (error) throw error;
       setExistingFields((data || []) as unknown as FieldData[]);
