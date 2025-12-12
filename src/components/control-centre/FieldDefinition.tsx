@@ -199,6 +199,7 @@ const FieldDefinition = () => {
   const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [uploadFileName, setUploadFileName] = useState('');
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const [gridWarnings, setGridWarnings] = useState<string[]>([]);
 
   // Get custom auth user on mount
   useEffect(() => {
@@ -566,9 +567,69 @@ const FieldDefinition = () => {
           return;
         }
 
+        // Validate grid dimensions against pane/section mappings
+        const warnings: string[] = [];
+        
+        // Group fields by pane and section
+        const fieldsByPaneSection = new Map<string, FieldData[]>();
+        parsedFields.forEach(field => {
+          const key = `${field.pane_code}::${field.section_code}`;
+          if (!fieldsByPaneSection.has(key)) {
+            fieldsByPaneSection.set(key, []);
+          }
+          fieldsByPaneSection.get(key)!.push(field);
+        });
+
+        // Check against pane/section mappings
+        fieldsByPaneSection.forEach((fields, key) => {
+          const [paneCode, sectionCode] = key.split('::');
+          
+          // Find the matching pane/section mapping
+          const mapping = paneSectionMappings.find(
+            psm =>
+              psm.product_code === selectedProduct &&
+              psm.event_code === selectedEvent &&
+              psm.business_application?.includes(selectedBusinessApp) &&
+              psm.customer_segment?.includes(selectedCustomerSegment)
+          );
+
+          if (mapping && mapping.panes) {
+            const pane = mapping.panes.find(p => p.name === paneCode);
+            if (pane) {
+              const section = pane.sections?.find(s => s.name === sectionCode);
+              if (section) {
+                const gridCapacity = (section.rows || 1) * (section.columns || 2);
+                const fieldCount = fields.length;
+                
+                // Calculate max grid position used by fields
+                let maxRow = 0;
+                let maxCol = 0;
+                fields.forEach(f => {
+                  const endRow = f.field_row + (f.ui_row_span || 1) - 1;
+                  const endCol = f.field_column + (f.ui_column_span || 1) - 1;
+                  maxRow = Math.max(maxRow, endRow);
+                  maxCol = Math.max(maxCol, endCol);
+                });
+
+                const requiredRows = maxRow;
+                const requiredCols = maxCol;
+                const configuredRows = section.rows || 1;
+                const configuredCols = section.columns || 2;
+
+                if (fieldCount > gridCapacity || requiredRows > configuredRows || requiredCols > configuredCols) {
+                  warnings.push(
+                    `For Pane "${paneCode}" and For Section "${sectionCode}", No. of Rows and No. of Columns are to be updated to match the no. of Fields. (Found ${fieldCount} fields, max position R${requiredRows}C${requiredCols}, but grid is ${configuredRows}x${configuredCols})`
+                  );
+                }
+              }
+            }
+          }
+        });
+
+        setGridWarnings(warnings);
         setUploadedFieldsData(parsedFields);
         setCurrentUploadIndex(0);
-        toast.success(`Excel file parsed successfully. Found ${parsedFields.length} fields to import.`);
+        toast.success(`Excel file parsed successfully. Found ${parsedFields.length} fields to import.${warnings.length > 0 ? ` ${warnings.length} warning(s) detected.` : ''}`);
       } catch (error: any) {
         toast.error('Failed to parse Excel file', { description: error.message });
       }
@@ -665,6 +726,7 @@ const FieldDefinition = () => {
       setCurrentUploadIndex(0);
       setUploadFileName('');
       setReplaceExisting(false);
+      setGridWarnings([]);
       fetchExistingFields();
     } catch (error: any) {
       toast.error('Failed to save fields', { description: error.message });
@@ -679,6 +741,7 @@ const FieldDefinition = () => {
     setCurrentUploadIndex(0);
     setUploadFileName('');
     setReplaceExisting(false);
+    setGridWarnings([]);
   };
 
   const handleSaveField = async () => {
@@ -1477,7 +1540,7 @@ const FieldDefinition = () => {
 
       {/* Upload Excel Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Upload Field Definition</DialogTitle>
             <DialogDescription>
@@ -1518,6 +1581,25 @@ const FieldDefinition = () => {
                 </p>
               </div>
             </div>
+
+            {/* Grid Warnings */}
+            {gridWarnings.length > 0 && (
+              <div className="space-y-2 p-4 border rounded-lg bg-amber-500/10 border-amber-500/30">
+                <h4 className="font-medium text-sm flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                  ⚠️ Grid Configuration Warnings ({gridWarnings.length})
+                </h4>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {gridWarnings.map((warning, index) => (
+                    <div key={index} className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 p-2 rounded">
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Fields will still be uploaded, but you should update the Pane and Section grid dimensions in "Manage Panes and Sections" to match.
+                </p>
+              </div>
+            )}
 
             {uploadedFieldsData.length > 0 && (
               <div className="space-y-3 border rounded-lg p-4 bg-muted/50">

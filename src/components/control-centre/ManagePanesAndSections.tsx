@@ -6,7 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -62,6 +67,12 @@ const ManagePanesAndSections = () => {
   const [isCurrentConfigOpen, setIsCurrentConfigOpen] = useState(true);
   const [isSelectProductOpen, setIsSelectProductOpen] = useState(true);
   const [isPanesConfigOpen, setIsPanesConfigOpen] = useState(true);
+
+  // Upload dialog state
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadedPanesData, setUploadedPanesData] = useState<Pane[]>([]);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [replaceExisting, setReplaceExisting] = useState(false);
 
   // Fetch product event mappings
   useEffect(() => {
@@ -451,6 +462,152 @@ const ManagePanesAndSections = () => {
     }
   };
 
+  // Excel Upload Functions
+  const downloadTemplate = () => {
+    const templateData = [
+      ['Pane Name', 'Pane Sequence', 'Section Name', 'Section Sequence', 'Rows', 'Columns'],
+      ['LC Key Info', '1', 'Data Entry Accelerator', '1', '1', '2'],
+      ['LC Key Info', '1', 'Basic LC Information', '2', '6', '2'],
+      ['Party Details', '2', 'Party Details', '1', '2', '3'],
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pane Section Template');
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 8 }, { wch: 10 }
+    ];
+
+    XLSX.writeFile(workbook, 'pane_section_template.xlsx');
+    toast.success('Template downloaded');
+  };
+
+  const handlePanesExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadFileName(file.name);
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      try {
+        const data = event.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        
+        if (jsonData.length < 2) {
+          toast.error('Excel file must have at least a header row and one data row');
+          return;
+        }
+
+        const headers = jsonData[0] as string[];
+        
+        // Map headers to indices (case-insensitive)
+        const headerMap: Record<string, number> = {};
+        headers.forEach((h, idx) => {
+          if (h) headerMap[h.toLowerCase().replace(/[\s_-]+/g, '')] = idx;
+        });
+
+        // Parse rows into pane-section structure
+        const panesMap = new Map<string, Pane>();
+        
+        for (let i = 1; i < jsonData.length; i++) {
+          const row = jsonData[i] as any[];
+          if (!row || !row.some(v => v !== undefined && v !== null && v !== '')) continue;
+
+          const paneName = row[headerMap['panename']] || '';
+          const paneSeq = parseInt(row[headerMap['panesequence']] || '1') || 1;
+          const sectionName = row[headerMap['sectionname']] || '';
+          const sectionSeq = parseInt(row[headerMap['sectionsequence']] || '1') || 1;
+          const rows = parseInt(row[headerMap['rows']] || '1') || 1;
+          const columns = parseInt(row[headerMap['columns']] || '2') || 2;
+
+          if (!paneName) continue;
+
+          // Get or create pane
+          if (!panesMap.has(paneName)) {
+            panesMap.set(paneName, {
+              id: `pane-${Date.now()}-${panesMap.size}`,
+              name: paneName,
+              sequence: paneSeq,
+              sections: [],
+              isOpen: false,
+            });
+          }
+
+          const pane = panesMap.get(paneName)!;
+          
+          // Add section if sectionName exists
+          if (sectionName) {
+            pane.sections.push({
+              id: `section-${Date.now()}-${pane.sections.length}`,
+              name: sectionName,
+              sequence: sectionSeq,
+              rows: rows,
+              columns: columns,
+            });
+          }
+        }
+
+        // Convert map to array and sort
+        const parsedPanes = Array.from(panesMap.values())
+          .sort((a, b) => a.sequence - b.sequence)
+          .map((pane, idx) => ({
+            ...pane,
+            sequence: idx + 1,
+            sections: pane.sections.sort((a, b) => a.sequence - b.sequence).map((s, sidx) => ({
+              ...s,
+              sequence: sidx + 1
+            })),
+          }));
+
+        if (parsedPanes.length === 0) {
+          toast.error('No valid pane data found in Excel file');
+          return;
+        }
+
+        setUploadedPanesData(parsedPanes);
+        toast.success(`Parsed ${parsedPanes.length} panes with ${parsedPanes.reduce((sum, p) => sum + p.sections.length, 0)} sections`);
+      } catch (error: any) {
+        toast.error('Failed to parse Excel file', { description: error.message });
+      }
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleConfirmPanesUpload = () => {
+    if (replaceExisting) {
+      // Clear & Replace: replace all panes
+      setPanes(uploadedPanesData.map(p => ({ ...p, isOpen: false })));
+    } else {
+      // Add to Existing: merge panes
+      const existingPaneNames = new Set(panes.map(p => p.name));
+      const newPanes = uploadedPanesData.filter(p => !existingPaneNames.has(p.name));
+      const mergedPanes = [...panes, ...newPanes.map(p => ({ ...p, sequence: panes.length + 1 }))];
+      
+      // Re-sequence
+      setPanes(mergedPanes.map((p, idx) => ({ ...p, sequence: idx + 1 })));
+    }
+    
+    setShowUploadDialog(false);
+    setUploadedPanesData([]);
+    setUploadFileName('');
+    setReplaceExisting(false);
+    toast.success('Pane and section data imported');
+  };
+
+  const handleCancelPanesUpload = () => {
+    setShowUploadDialog(false);
+    setUploadedPanesData([]);
+    setUploadFileName('');
+    setReplaceExisting(false);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -708,6 +865,10 @@ const ManagePanesAndSections = () => {
                     />
                     <span className="text-sm text-muted-foreground">{isConfigActive ? 'Active' : 'Inactive'}</span>
                   </div>
+                  <Button onClick={() => setShowUploadDialog(true)} size="sm" variant="outline">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </Button>
                   <Button onClick={addPane} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Pane
@@ -908,6 +1069,108 @@ const ManagePanesAndSections = () => {
           </Button>
         </div>
       )}
+
+      {/* Pane/Section Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Pane and Section Configuration</DialogTitle>
+            <DialogDescription>
+              Upload an Excel file containing pane and section definitions
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Download Template */}
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+              <div>
+                <p className="font-medium">Download Template</p>
+                <p className="text-sm text-muted-foreground">Get the Excel template with sample data</p>
+              </div>
+              <Button variant="outline" onClick={downloadTemplate}>
+                <Download className="w-4 h-4 mr-2" />
+                Download Template
+              </Button>
+            </div>
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="pane-excel-upload">Select Excel File</Label>
+              <Input
+                id="pane-excel-upload"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handlePanesExcelUpload}
+                className="cursor-pointer"
+              />
+              {uploadFileName && (
+                <p className="text-sm text-muted-foreground">Selected: {uploadFileName}</p>
+              )}
+            </div>
+
+            {/* Upload Mode Selection */}
+            {uploadedPanesData.length > 0 && (
+              <div className="flex items-center gap-3 p-3 border rounded-lg">
+                <Checkbox
+                  id="replace-existing-panes"
+                  checked={replaceExisting}
+                  onCheckedChange={(checked) => setReplaceExisting(checked as boolean)}
+                />
+                <Label htmlFor="replace-existing-panes" className="cursor-pointer">
+                  Clear & Replace (remove existing panes before importing)
+                </Label>
+              </div>
+            )}
+
+            {/* Preview Table */}
+            {uploadedPanesData.length > 0 && (
+              <div className="space-y-2">
+                <Label>Preview ({uploadedPanesData.length} panes, {uploadedPanesData.reduce((sum, p) => sum + p.sections.length, 0)} sections)</Label>
+                <div className="max-h-64 overflow-y-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Pane Name</TableHead>
+                        <TableHead>Seq</TableHead>
+                        <TableHead>Sections</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {uploadedPanesData.map((pane) => (
+                        <TableRow key={pane.id}>
+                          <TableCell className="font-medium">{pane.name}</TableCell>
+                          <TableCell>{pane.sequence}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {pane.sections.map((section) => (
+                                <div key={section.id} className="text-xs text-muted-foreground">
+                                  {section.name} ({section.rows}R x {section.columns}C)
+                                </div>
+                              ))}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelPanesUpload}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmPanesUpload}
+              disabled={uploadedPanesData.length === 0}
+            >
+              Import {uploadedPanesData.length} Panes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
