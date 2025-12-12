@@ -635,13 +635,19 @@ const FieldDefinition = () => {
 
       const fieldsToSave = uploadedFieldsData.map((field, index) => {
         const { id, dropdown_values, ...fieldWithoutIdAndDropdown } = field;
+        // Handle dropdown_values - could be string or array
+        let dropdownValuesArray = null;
+        if (dropdown_values) {
+          if (Array.isArray(dropdown_values)) {
+            dropdownValuesArray = dropdown_values;
+          } else if (typeof dropdown_values === 'string') {
+            dropdownValuesArray = dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v);
+          }
+        }
         return {
           ...fieldWithoutIdAndDropdown,
           field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-          // Convert comma-separated string to array for dropdown_values
-          dropdown_values: dropdown_values 
-            ? dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v) 
-            : null,
+          dropdown_values: dropdownValuesArray,
         };
       });
 
@@ -690,10 +696,15 @@ const FieldDefinition = () => {
     try {
       const fieldId = fieldData.field_id || `FLD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      // Convert comma-separated string to array for dropdown_values
-      const dropdownValuesArray = fieldData.dropdown_values 
-        ? fieldData.dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v)
-        : null;
+      // Handle dropdown_values - could be string or array
+      let dropdownValuesArray = null;
+      if (fieldData.dropdown_values) {
+        if (Array.isArray(fieldData.dropdown_values)) {
+          dropdownValuesArray = fieldData.dropdown_values;
+        } else if (typeof fieldData.dropdown_values === 'string') {
+          dropdownValuesArray = fieldData.dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v);
+        }
+      }
       
       const { id, dropdown_values, ...fieldDataWithoutIdAndDropdown } = fieldData;
       
@@ -944,7 +955,6 @@ const FieldDefinition = () => {
                         <TableRow>
                           <TableHead className="w-12">Seq</TableHead>
                           <TableHead>Field Name</TableHead>
-                          <TableHead>Field Code</TableHead>
                           <TableHead>UI Type</TableHead>
                           <TableHead>Data Type</TableHead>
                           <TableHead>SWIFT Tag</TableHead>
@@ -957,7 +967,6 @@ const FieldDefinition = () => {
                           <TableRow key={field.id}>
                             <TableCell>{field.field_display_sequence}</TableCell>
                             <TableCell>{field.field_label_key || '-'}</TableCell>
-                            <TableCell className="font-mono text-sm">{field.field_code}</TableCell>
                             <TableCell><Badge variant="outline">{field.ui_display_type}</Badge></TableCell>
                             <TableCell><Badge variant="secondary">{field.data_type}</Badge></TableCell>
                             <TableCell>{field.swift_tag || '-'}</TableCell>
