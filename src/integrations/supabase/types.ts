@@ -3444,7 +3444,7 @@ export type Database = {
         }
       }
       insert_field_repository: {
-        Args: { p_field_data: Json; p_user_id: string }
+        Args: { p_fields: Json; p_user_id: string }
         Returns: Json
       }
       notify_scf_users_by_role: {
