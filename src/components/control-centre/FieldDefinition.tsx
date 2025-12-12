@@ -884,8 +884,8 @@ const FieldDefinition = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-12">Seq</TableHead>
+                          <TableHead>Field Name</TableHead>
                           <TableHead>Field Code</TableHead>
-                          <TableHead>Label Key</TableHead>
                           <TableHead>UI Type</TableHead>
                           <TableHead>Data Type</TableHead>
                           <TableHead>SWIFT Tag</TableHead>
@@ -897,8 +897,8 @@ const FieldDefinition = () => {
                         {existingFields.map((field) => (
                           <TableRow key={field.id}>
                             <TableCell>{field.field_display_sequence}</TableCell>
+                            <TableCell>{field.field_label_key || '-'}</TableCell>
                             <TableCell className="font-mono text-sm">{field.field_code}</TableCell>
-                            <TableCell>{field.field_label_key}</TableCell>
                             <TableCell><Badge variant="outline">{field.ui_display_type}</Badge></TableCell>
                             <TableCell><Badge variant="secondary">{field.data_type}</Badge></TableCell>
                             <TableCell>{field.swift_tag || '-'}</TableCell>
@@ -982,25 +982,37 @@ const FieldDefinition = () => {
                   
                   {/* 3. Field Coordinates */}
                   <div className="space-y-2">
-                    <Label tooltip="Order of field inside section based on Row and Column numbers (e.g., R1C1, R2C1)">Field Coordinates</Label>
+                    <Label tooltip="Order of field inside section based on Row and Column numbers (e.g., R1, C1)">Field Coordinates</Label>
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <Input
-                          type="number"
-                          value={fieldData.field_row}
-                          onChange={(e) => updateFieldData('field_row', parseInt(e.target.value) || 1)}
-                          placeholder="Row"
-                          min={1}
-                        />
+                        <Select
+                          value={`R${fieldData.field_row}`}
+                          onValueChange={(val) => updateFieldData('field_row', parseInt(val.replace('R', '')) || 1)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Row" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                              <SelectItem key={num} value={`R${num}`}>R{num}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="flex-1">
-                        <Input
-                          type="number"
-                          value={fieldData.field_column}
-                          onChange={(e) => updateFieldData('field_column', parseInt(e.target.value) || 1)}
-                          placeholder="Col"
-                          min={1}
-                        />
+                        <Select
+                          value={`C${fieldData.field_column}`}
+                          onValueChange={(val) => updateFieldData('field_column', parseInt(val.replace('C', '')) || 1)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Column" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                              <SelectItem key={num} value={`C${num}`}>C{num}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
