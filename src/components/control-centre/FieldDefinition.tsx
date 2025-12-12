@@ -65,6 +65,10 @@ interface FieldData {
   field_display_sequence: number;
   field_row: number;
   field_column: number;
+  ui_row_span: number;
+  ui_column_span: number;
+  group_id: string;
+  group_repetition_flag: boolean;
   ui_display_type: string;
   data_type: string;
   lookup_code: string;
@@ -125,6 +129,10 @@ const getInitialFieldData = (): FieldData => ({
   field_display_sequence: 1,
   field_row: 1,
   field_column: 1,
+  ui_row_span: 1,
+  ui_column_span: 1,
+  group_id: '',
+  group_repetition_flag: false,
   ui_display_type: 'TEXTBOX',
   data_type: 'STRING',
   lookup_code: '',
@@ -428,20 +436,46 @@ const FieldDefinition = () => {
       }
     });
 
-    // Parse field coordinates (e.g., "R1C1" -> row 1, col 1)
-    const parseCoordinates = (coord: string): { row: number; col: number } => {
-      const match = coord?.match(/R(\d+)C(\d+)/i);
-      if (match) {
-        return { row: parseInt(match[1]), col: parseInt(match[2]) };
+    // Parse field coordinates with optional group prefix
+    // Supports formats: "PartyGrid.R1C1", "R1C1", "PartyDetails.R2C3"
+    const parseCoordinates = (coord: string): { groupId: string; row: number; col: number; isRepeatable: boolean } => {
+      if (!coord) return { groupId: '', row: 1, col: 1, isRepeatable: false };
+      
+      // Check for group prefix format: "GroupName.R1C1"
+      const groupMatch = coord.match(/^([A-Za-z_][A-Za-z0-9_]*)\.R(\d+)C(\d+)$/i);
+      if (groupMatch) {
+        return { 
+          groupId: groupMatch[1], 
+          row: parseInt(groupMatch[2]), 
+          col: parseInt(groupMatch[3]),
+          isRepeatable: true // Groups are repeatable by default
+        };
       }
-      return { row: 1, col: 1 };
+      
+      // Simple coordinate format: "R1C1"
+      const simpleMatch = coord.match(/^R(\d+)C(\d+)$/i);
+      if (simpleMatch) {
+        return { 
+          groupId: '', 
+          row: parseInt(simpleMatch[1]), 
+          col: parseInt(simpleMatch[2]),
+          isRepeatable: false 
+        };
+      }
+      
+      return { groupId: '', row: 1, col: 1, isRepeatable: false };
     };
 
-    const coords = parseCoordinates(excelData['field_co-ordinates'] || excelData['field_coordinates'] || '');
+    const coordsRaw = excelData['field_co-ordinates'] || excelData['field_coordinates'] || '';
+    const coords = parseCoordinates(coordsRaw);
     
     // Get pane and section from Excel data
     const pane = excelData['pane'] || selectedPane;
     const section = excelData['section'] || selectedSection;
+    
+    // Parse row span and column span (default to 1)
+    const rowSpan = parseInt(excelData['ui_row_span'] || excelData['row_span'] || '1') || 1;
+    const colSpan = parseInt(excelData['ui_column_span'] || excelData['col_span'] || excelData['column_span'] || '1') || 1;
 
     return {
       ...getInitialFieldData(),
@@ -452,8 +486,12 @@ const FieldDefinition = () => {
       field_code: excelData['field_code'] || excelData['field_name'] || '',
       field_label_key: excelData['field_label_key'] || excelData['field_name'] || excelData['label'] || '',
       field_tooltip_key: excelData['field_tooltip_key'] || excelData['field_tooltip_text'] || excelData['tooltip'] || '',
+      group_id: coords.groupId,
+      group_repetition_flag: coords.isRepeatable || excelData['group_repetition_flag'] === 'Y' || excelData['group_repetition_flag'] === 'Yes' || excelData['is_repeatable'] === 'Y',
       field_row: coords.row,
       field_column: coords.col,
+      ui_row_span: rowSpan,
+      ui_column_span: colSpan,
       ui_display_type: excelData['ui_display_type'] || excelData['display_type'] || 'TEXTBOX',
       data_type: excelData['data_type'] || 'STRING',
       lookup_code: excelData['lookup_code'] || '',
