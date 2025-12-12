@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit2, Trash2, Copy, ChevronDown, ChevronRight, Save, Upload } from 'lucide-react';
@@ -189,6 +190,7 @@ const FieldDefinition = () => {
   const [uploadedFieldsData, setUploadedFieldsData] = useState<FieldData[]>([]);
   const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [uploadFileName, setUploadFileName] = useState('');
+  const [replaceExisting, setReplaceExisting] = useState(false);
 
   // Get custom auth user on mount
   useEffect(() => {
@@ -576,6 +578,23 @@ const FieldDefinition = () => {
 
     setSaving(true);
     try {
+      // If "Clear & Replace" is selected, delete existing fields first
+      if (replaceExisting && selectedProduct && selectedEvent && selectedPane && selectedSection) {
+        const { data: deletedCount, error: deleteError } = await supabase.rpc('delete_fields_by_config', {
+          p_user_id: customUser.id,
+          p_product_code: selectedProduct,
+          p_event_type: selectedEvent,
+          p_pane_code: selectedPane,
+          p_section_code: selectedSection
+        });
+
+        if (deleteError) throw deleteError;
+        
+        if (deletedCount > 0) {
+          toast.info(`Cleared ${deletedCount} existing fields`);
+        }
+      }
+
       const fieldsToSave = uploadedFieldsData.map((field, index) => {
         const { id, dropdown_values, ...fieldWithoutIdAndDropdown } = field;
         return {
@@ -601,6 +620,7 @@ const FieldDefinition = () => {
       setUploadedFieldsData([]);
       setCurrentUploadIndex(0);
       setUploadFileName('');
+      setReplaceExisting(false);
       fetchExistingFields();
     } catch (error: any) {
       toast.error('Failed to save fields', { description: error.message });
@@ -614,6 +634,7 @@ const FieldDefinition = () => {
     setUploadedFieldsData([]);
     setCurrentUploadIndex(0);
     setUploadFileName('');
+    setReplaceExisting(false);
   };
 
   const handleSaveField = async () => {
@@ -1429,6 +1450,26 @@ const FieldDefinition = () => {
               {uploadFileName && (
                 <p className="text-sm text-muted-foreground">Selected: {uploadFileName}</p>
               )}
+            </div>
+
+            {/* Clear & Replace Option */}
+            <div className="flex items-center space-x-2 p-3 border rounded-lg bg-muted/30">
+              <Checkbox 
+                id="replaceExisting" 
+                checked={replaceExisting}
+                onCheckedChange={(checked) => setReplaceExisting(checked === true)}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="replaceExisting"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  Clear & Replace Existing Fields
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Delete all existing fields for the selected configuration before importing new ones
+                </p>
+              </div>
             </div>
 
             {uploadedFieldsData.length > 0 && (
