@@ -3337,6 +3337,97 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_fields_by_config: {
+        Args: {
+          p_event_type: string
+          p_pane_code: string
+          p_product_code: string
+          p_section_code: string
+          p_user_id: string
+        }
+        Returns: {
+          ai_mapping_key: string | null
+          audit_track_changes_flag: boolean | null
+          channel_back_office_flag: boolean | null
+          channel_customer_portal_flag: boolean | null
+          channel_middle_office_flag: boolean | null
+          computed_expression: string | null
+          conditional_mandatory_expr: string | null
+          conditional_visibility_expr: string | null
+          config_version: number | null
+          created_at: string | null
+          created_by: string | null
+          data_type: string | null
+          decimal_places: number | null
+          default_value: string | null
+          dropdown_values: string[] | null
+          edit_allowed_flag: boolean | null
+          effective_from_date: string
+          effective_to_date: string | null
+          error_message_key: string | null
+          event_type: string | null
+          field_code: string | null
+          field_column: number | null
+          field_display_sequence: number | null
+          field_id: string
+          field_label_key: string | null
+          field_row: number | null
+          field_tooltip_key: string | null
+          group_id: string | null
+          group_repetition_flag: boolean | null
+          help_content_ref: string | null
+          help_content_type: string | null
+          id: string
+          input_allowed_flag: boolean | null
+          is_active_flag: boolean | null
+          is_attachment_field: boolean | null
+          is_mandatory_bo: boolean | null
+          is_mandatory_mo: boolean | null
+          is_mandatory_portal: boolean | null
+          iso_data_format_pattern: string | null
+          iso20022_element_code: string | null
+          last_updated_by: string | null
+          length_max: number | null
+          length_min: number | null
+          limit_check_required_flag: boolean | null
+          limit_dimension_type: string | null
+          lookup_code: string | null
+          masking_flag: boolean | null
+          pane_code: string | null
+          pane_display_sequence: number | null
+          product_code: string
+          read_only_flag: boolean | null
+          sanction_check_required_flag: boolean | null
+          sanction_engine_field_map: string | null
+          sanction_field_category: string | null
+          sanction_party_role: string | null
+          section_code: string | null
+          section_display_sequence: number | null
+          size_standard_source: string | null
+          stage: string | null
+          swift_format_pattern: string | null
+          swift_mt_type: string | null
+          swift_sequence: string | null
+          swift_subfield_qualifier: string | null
+          swift_tag: string | null
+          swift_tag_display_flag: boolean | null
+          swift_tag_required_flag: boolean | null
+          ui_column_span: number | null
+          ui_display_type: string | null
+          ui_row_span: number | null
+          updated_at: string | null
+          user_id: string
+          validation_rule_set_id: string | null
+          view_allowed_flag: boolean | null
+          workflow_role_access: Json | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "field_repository"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_pane_section_mappings: {
         Args: { p_user_id: string }
         Returns: {
