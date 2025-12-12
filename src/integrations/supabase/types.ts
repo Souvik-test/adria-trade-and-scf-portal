@@ -3438,6 +3438,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_fields_for_workflow: {
+        Args: { p_event_type: string; p_product_code: string }
+        Returns: {
+          field_code: string
+          field_id: string
+          field_label_key: string
+          pane_code: string
+          section_code: string
+          ui_display_type: string
+        }[]
+      }
       get_pane_section_mappings: {
         Args: { p_user_id: string }
         Returns: {
