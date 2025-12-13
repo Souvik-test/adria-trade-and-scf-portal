@@ -433,7 +433,12 @@ const FieldDefinition = () => {
     const excelData: Record<string, any> = {};
     headers.forEach((header, idx) => {
       if (header && values[idx] !== undefined) {
-        excelData[header.toLowerCase().replace(/[\s-]+/g, '_')] = values[idx];
+        // Normalize header: lowercase, replace spaces/hyphens with underscore, collapse multiple underscores
+        const normalizedHeader = header.toLowerCase()
+          .replace(/[\s-]+/g, '_')
+          .replace(/_+/g, '_')  // Collapse multiple underscores to single
+          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+        excelData[normalizedHeader] = values[idx];
       }
     });
 
