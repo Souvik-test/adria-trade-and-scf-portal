@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ImportLCActionSection from './import-lc/ImportLCActionSection';
 import ImportLCMethodSection from './import-lc/ImportLCMethodSection';
@@ -10,6 +10,9 @@ import ReviewPreAdvicedLCForm from "./export-lc/ReviewPreAdvicedLCForm";
 import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
 import RequestLCTransferForm from "./export-lc/RequestLCTransferForm";
 import RequestAssignmentForm from "./export-lc/RequestAssignmentForm";
+import { DynamicTransactionForm } from './dynamic-form';
+import { findWorkflowTemplate } from '@/services/workflowTemplateService';
+import { Loader2 } from 'lucide-react';
 
 interface LetterOfCreditModalProps {
   isOpen: boolean;
@@ -26,6 +29,30 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const [amendmentResponseFullScreen, setAmendmentResponseFullScreen] = useState(false);
   const [transferFullScreen, setTransferFullScreen] = useState(false);
   const [assignmentFullScreen, setAssignmentFullScreen] = useState(false);
+  const [useDynamicForm, setUseDynamicForm] = useState<boolean | null>(null);
+  const [businessApp, setBusinessApp] = useState<string>('');
+
+  // Check for workflow template when manual issuance is selected
+  useEffect(() => {
+    const storedBusinessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+    setBusinessApp(storedBusinessCentre);
+
+    if (selectedMethod === 'manual' && selectedAction === 'issuance') {
+      checkWorkflowTemplate();
+    } else {
+      setUseDynamicForm(null);
+    }
+  }, [selectedMethod, selectedAction]);
+
+  const checkWorkflowTemplate = async () => {
+    try {
+      const template = await findWorkflowTemplate('ILC', 'ISS', 'Manual');
+      setUseDynamicForm(!!template);
+    } catch (error) {
+      console.error('Error checking workflow template:', error);
+      setUseDynamicForm(false);
+    }
+  };
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -150,6 +177,31 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 
   const renderContent = () => {
     if (selectedMethod === 'manual' && selectedAction === 'issuance') {
+      // Show loading state while checking for workflow template
+      if (useDynamicForm === null) {
+        return (
+          <div className="flex items-center justify-center h-full min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        );
+      }
+
+      // Render dynamic form if workflow template exists
+      if (useDynamicForm) {
+        const customerSegment = businessApp === 'Adria TSCF Client' ? 'Corporate' : 'Bank';
+        return (
+          <DynamicTransactionForm
+            productCode="ILC"
+            eventCode="ISS"
+            triggerType="Manual"
+            businessApp={businessApp}
+            customerSegment={customerSegment}
+            onClose={onClose}
+          />
+        );
+      }
+
+      // Fallback to static form
       return (
         <ImportLCForm
           onBack={handleBack}
