@@ -146,10 +146,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             <CardTitle className="text-lg">{currentPane.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Dynamic Fields from Field Repository */}
+            {/* Dynamic Fields from Field Repository - filtered by current pane */}
             <DynamicFormContainer
               productCode={productCode}
               eventType={eventCode}
+              currentPaneCode={currentPane.name}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
                 // Sync with parent state
