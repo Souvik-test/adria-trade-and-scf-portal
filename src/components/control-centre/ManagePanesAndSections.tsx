@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2 } from 'lucide-react';
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -469,6 +469,35 @@ const ManagePanesAndSections = () => {
       }
       return p;
     }));
+  };
+
+  const copyButtonsFromPreviousPane = (currentPaneId: string) => {
+    const currentPaneIndex = panes.findIndex(p => p.id === currentPaneId);
+    if (currentPaneIndex <= 0) {
+      toast.error('No previous pane to copy from');
+      return;
+    }
+
+    const previousPane = panes[currentPaneIndex - 1];
+    if (!previousPane.buttons || previousPane.buttons.length === 0) {
+      toast.error('Previous pane has no buttons to copy');
+      return;
+    }
+
+    const copiedButtons = previousPane.buttons.map((btn, idx) => ({
+      ...btn,
+      id: `btn-${Date.now()}-${idx}`,
+      order: idx + 1
+    }));
+
+    setPanes(panes.map(p => {
+      if (p.id === currentPaneId) {
+        return { ...p, buttons: copiedButtons };
+      }
+      return p;
+    }));
+
+    toast.success(`Copied ${copiedButtons.length} button(s) from "${previousPane.name}"`);
   };
 
   const handleSave = async () => {
@@ -1160,14 +1189,27 @@ const ManagePanesAndSections = () => {
                               <TabsContent value="buttons" className="space-y-3 pl-12">
                                 <div className="flex items-center justify-between">
                                   <Label className="text-sm font-medium">Pane Buttons</Label>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => addButton(pane.id)}
-                                  >
-                                    <Plus className="w-3 h-3 mr-1" />
-                                    Add Button
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    {panes.findIndex(p => p.id === pane.id) > 0 && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => copyButtonsFromPreviousPane(pane.id)}
+                                        title="Copy buttons from previous pane"
+                                      >
+                                        <Copy className="w-3 h-3 mr-1" />
+                                        Copy from Previous
+                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => addButton(pane.id)}
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" />
+                                      Add Button
+                                    </Button>
+                                  </div>
                                 </div>
 
                                 {(!pane.buttons || pane.buttons.length === 0) ? (
