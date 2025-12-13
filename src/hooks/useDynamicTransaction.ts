@@ -32,6 +32,7 @@ interface UseDynamicTransactionReturn {
   error: string | null;
   template: WorkflowTemplateRuntime | null;
   stages: WorkflowStageRuntime[];
+  currentStage: WorkflowStageRuntime | null;
   panes: PaneConfig[];
   currentPaneIndex: number;
   completedPanes: Set<string>;
@@ -271,6 +272,7 @@ export const useDynamicTransaction = ({
     error,
     template,
     stages,
+    currentStage: stages.length > 0 ? stages[0] : null,
     panes,
     currentPaneIndex,
     completedPanes,

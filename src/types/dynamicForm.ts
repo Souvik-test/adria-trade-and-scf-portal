@@ -31,6 +31,14 @@ export interface DynamicFieldDefinition {
   conditional_visibility_expr: string | null;
   conditional_mandatory_expr: string | null;
   is_active_flag: boolean;
+  // SWIFT-related fields
+  swift_tag?: string | null;
+  swift_tag_display_flag?: boolean;
+  swift_mt_type?: string | null;
+  swift_sequence?: string | null;
+  swift_subfield_qualifier?: string | null;
+  swift_tag_required_flag?: boolean;
+  swift_format_pattern?: string | null;
 }
 
 export interface GroupedFields {

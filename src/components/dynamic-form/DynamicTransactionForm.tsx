@@ -6,6 +6,7 @@ import { DynamicFormState } from '@/types/dynamicForm';
 import DynamicProgressIndicator from './DynamicProgressIndicator';
 import DynamicButtonRenderer from './DynamicButtonRenderer';
 import DynamicFormContainer from './DynamicFormContainer';
+import DynamicMT700Sidebar from './DynamicMT700Sidebar';
 
 interface DynamicTransactionFormProps {
   productCode: string;
@@ -14,6 +15,7 @@ interface DynamicTransactionFormProps {
   businessApp?: string;
   customerSegment?: string;
   title?: string;
+  showMT700Sidebar?: boolean;
   onSubmitSuccess?: (data: DynamicFormState) => void;
   onClose?: () => void;
 }
@@ -25,6 +27,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   businessApp,
   customerSegment,
   title,
+  showMT700Sidebar = true,
   onSubmitSuccess,
   onClose,
 }) => {
@@ -32,6 +35,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     loading,
     error,
     template,
+    stages,
     panes,
     currentPaneIndex,
     completedPanes,
@@ -58,6 +62,34 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     onSubmitSuccess,
     onClose,
   });
+
+  // Get product and event display names
+  const getProductName = (code: string) => {
+    const names: Record<string, string> = {
+      'ILC': 'Import Letter of Credit',
+      'ELC': 'Export Letter of Credit',
+      'OBG': 'Outward Bank Guarantee',
+      'IBG': 'Inward Bank Guarantee',
+      'ODC': 'Outward Documentary Collection',
+      'IDC': 'Inward Documentary Collection',
+      'SHG': 'Shipping Guarantee',
+    };
+    return names[code] || code;
+  };
+
+  const getEventName = (code: string) => {
+    const names: Record<string, string> = {
+      'ISS': 'Create LC',
+      'AMD': 'Amendment',
+      'CAN': 'Cancellation',
+      'TRF': 'Transfer',
+      'ASG': 'Assignment',
+    };
+    return names[code] || code;
+  };
+
+  // Get current stage name from workflow
+  const currentStageName = stages.length > 0 ? stages[0]?.stage_name : 'Data Entry';
 
   if (loading) {
     return (
@@ -99,21 +131,25 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   const currentPane = getCurrentPane();
   const currentButtons = getPaneButtons();
 
-  return (
-    <div className="space-y-6">
-      {/* Title */}
-      {(title || template?.template_name) && (
-        <div className="border-b border-border pb-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            {title || template?.template_name}
-          </h2>
+  // Determine if MT700 sidebar should be shown (for ILC/ELC products)
+  const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
+
+  const formContent = (
+    <div className="flex-1 space-y-6">
+      {/* Header with Product • Event • Stage */}
+      <div className="border-b border-border pb-4">
+        <h2 className="text-xl font-semibold text-foreground">
+          {title || `${getProductName(productCode)} • ${getEventName(eventCode)}`}
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+            {currentStageName}
+          </span>
           {template && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {template.product_code} • {template.event_code}
-            </p>
+            <span>Template: {template.template_name}</span>
           )}
-        </div>
-      )}
+        </p>
+      </div>
 
       {/* Progress Indicator */}
       {panes.length > 1 && (
@@ -161,6 +197,21 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             />
           </CardContent>
         </Card>
+      )}
+    </div>
+  );
+
+  return (
+    <div className={`flex ${shouldShowMT700 ? 'gap-0' : ''}`}>
+      {formContent}
+      
+      {/* MT 700 Sidebar */}
+      {shouldShowMT700 && (
+        <DynamicMT700Sidebar
+          formData={formData}
+          productCode={productCode}
+          eventCode={eventCode}
+        />
       )}
     </div>
   );
