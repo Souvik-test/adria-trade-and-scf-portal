@@ -683,19 +683,41 @@ const FieldDefinition = () => {
     setSaving(true);
     try {
       // If "Clear & Replace" is selected, delete existing fields first
-      if (replaceExisting && selectedProduct && selectedEvent && selectedPane && selectedSection) {
-        const { data: deletedCount, error: deleteError } = await supabase.rpc('delete_fields_by_config', {
-          p_user_id: customUser.id,
-          p_product_code: selectedProduct,
-          p_event_type: selectedEvent,
-          p_pane_code: selectedPane,
-          p_section_code: selectedSection
-        });
+      if (replaceExisting && selectedProduct && selectedEvent) {
+        // Detect if upload spans multiple panes/sections
+        const uniquePaneSections = new Set(
+          uploadedFieldsData.map(f => `${f.pane_code}::${f.section_code}`)
+        );
+        const isMultiPaneSectionUpload = uniquePaneSections.size > 1 || !selectedPane || !selectedSection;
 
-        if (deleteError) throw deleteError;
-        
-        if (deletedCount > 0) {
-          toast.info(`Cleared ${deletedCount} existing fields`);
+        if (isMultiPaneSectionUpload) {
+          // Clear ALL fields for this product-event (across all panes/sections)
+          const { data: deletedCount, error: deleteError } = await supabase.rpc('delete_fields_by_product_event', {
+            p_user_id: customUser.id,
+            p_product_code: selectedProduct,
+            p_event_type: selectedEvent
+          });
+
+          if (deleteError) throw deleteError;
+          
+          if (deletedCount && deletedCount > 0) {
+            toast.info(`Cleared ${deletedCount} existing fields for ${selectedProduct}/${selectedEvent}`);
+          }
+        } else if (selectedPane && selectedSection) {
+          // Clear only specific pane-section
+          const { data: deletedCount, error: deleteError } = await supabase.rpc('delete_fields_by_config', {
+            p_user_id: customUser.id,
+            p_product_code: selectedProduct,
+            p_event_type: selectedEvent,
+            p_pane_code: selectedPane,
+            p_section_code: selectedSection
+          });
+
+          if (deleteError) throw deleteError;
+          
+          if (deletedCount && deletedCount > 0) {
+            toast.info(`Cleared ${deletedCount} existing fields`);
+          }
         }
       }
 
@@ -820,6 +842,10 @@ const FieldDefinition = () => {
 
   const isSelectionComplete = selectedBusinessApp && selectedCustomerSegment && 
     selectedProduct && selectedEvent && selectedPane && selectedSection;
+  
+  // New: Check if Product+Event are selected (for bulk upload without Pane/Section)
+  const isProductEventSelected = selectedBusinessApp && selectedCustomerSegment && 
+    selectedProduct && selectedEvent;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -975,6 +1001,34 @@ const FieldDefinition = () => {
           </CollapsibleContent>
         </Card>
       </Collapsible>
+
+      {/* Bulk Upload Section - Available when Product+Event are selected */}
+      {isProductEventSelected && !isSelectionComplete && (
+        <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Bulk Upload for {selectedProduct} - {selectedEvent}
+            </CardTitle>
+            <CardDescription>
+              Upload an Excel file containing fields for all panes and sections of this Product-Event combination.
+              <br />
+              <span className="text-xs text-muted-foreground">
+                (Select a specific Pane and Section above to view/manage individual fields)
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline"
+              onClick={() => setShowUploadDialog(true)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Excel File
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Fields Table */}
       {isSelectionComplete && (
@@ -1554,6 +1608,20 @@ const FieldDefinition = () => {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Upload Scope Information */}
+            <div className="p-3 border rounded-lg bg-muted/50">
+              <h4 className="font-medium text-sm mb-2">Upload Scope</h4>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">{selectedProduct || 'No Product'}</Badge>
+                <Badge variant="outline">{selectedEvent || 'No Event'}</Badge>
+                {selectedPane && <Badge>{selectedPane}</Badge>}
+                {selectedSection && <Badge>{selectedSection}</Badge>}
+                {!selectedPane && !selectedSection && (
+                  <Badge variant="secondary" className="bg-primary/10 text-primary">All Panes & Sections</Badge>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label>Select Excel File (.xlsx, .xls)</Label>
               <Input
@@ -1582,11 +1650,38 @@ const FieldDefinition = () => {
                   Clear & Replace Existing Fields
                 </label>
                 <p className="text-xs text-muted-foreground">
-                  Delete all existing fields for the selected configuration before importing new ones
+                  {(!selectedPane || !selectedSection) 
+                    ? `Delete ALL existing fields for ${selectedProduct}/${selectedEvent} before importing`
+                    : `Delete existing fields for ${selectedPane}/${selectedSection} before importing`
+                  }
                 </p>
               </div>
             </div>
 
+            {/* Multi-pane/section warning when Clear & Replace is selected */}
+            {replaceExisting && uploadedFieldsData.length > 0 && (
+              (() => {
+                const uniquePaneSections = new Set(
+                  uploadedFieldsData.map(f => `${f.pane_code}::${f.section_code}`)
+                );
+                const isMultiPaneSection = uniquePaneSections.size > 1 || !selectedPane || !selectedSection;
+                
+                if (isMultiPaneSection) {
+                  return (
+                    <div className="p-3 border rounded-lg bg-destructive/10 border-destructive/30">
+                      <p className="text-sm text-destructive font-medium">
+                        ⚠️ Bulk Clear Warning
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This upload contains fields for {uniquePaneSections.size} pane-section combination(s). 
+                        Enabling "Clear & Replace" will delete <strong>ALL</strong> existing fields for {selectedProduct}/{selectedEvent} before importing.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()
+            )}
             {/* Grid Warnings */}
             {gridWarnings.length > 0 && (
               <div className="space-y-2 p-4 border rounded-lg bg-amber-500/10 border-amber-500/30">
