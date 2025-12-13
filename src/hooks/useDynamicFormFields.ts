@@ -10,6 +10,7 @@ import {
 interface UseDynamicFormFieldsProps {
   productCode: string;
   eventType: string;
+  paneCode?: string; // Optional: filter to show only this pane's fields
   stageId?: string; // Optional: if provided, filter by workflow stage
 }
 
@@ -129,6 +130,7 @@ const groupFieldsByPane = (fields: DynamicFieldDefinition[]): PaneFields[] => {
 export const useDynamicFormFields = ({
   productCode,
   eventType,
+  paneCode,
   stageId,
 }: UseDynamicFormFieldsProps): UseDynamicFormFieldsReturn => {
   const [panes, setPanes] = useState<PaneFields[]>([]);
@@ -153,7 +155,13 @@ export const useDynamicFormFields = ({
 
       if (fetchError) throw fetchError;
 
-      const fields = (data || []) as unknown as DynamicFieldDefinition[];
+      let fields = (data || []) as unknown as DynamicFieldDefinition[];
+      
+      // Filter by paneCode if provided
+      if (paneCode) {
+        fields = fields.filter(f => f.pane_code === paneCode);
+      }
+      
       const organizedPanes = groupFieldsByPane(fields);
       setPanes(organizedPanes);
     } catch (err: any) {
@@ -162,7 +170,7 @@ export const useDynamicFormFields = ({
     } finally {
       setLoading(false);
     }
-  }, [productCode, eventType, stageId]);
+  }, [productCode, eventType, paneCode, stageId]);
 
   useEffect(() => {
     fetchFields();

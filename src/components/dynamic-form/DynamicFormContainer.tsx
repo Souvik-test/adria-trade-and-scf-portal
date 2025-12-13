@@ -1,12 +1,13 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDynamicFormFields } from '@/hooks/useDynamicFormFields';
 import { DynamicFormData, RepeatableGroupInstance, DynamicFormState } from '@/types/dynamicForm';
-import DynamicPaneRenderer from './DynamicPaneRenderer';
+import DynamicSectionRenderer from './DynamicSectionRenderer';
 
 interface DynamicFormContainerProps {
   productCode: string;
   eventType: string;
+  currentPaneCode?: string; // Filter to show only this pane's sections
   stageId?: string;
   initialData?: DynamicFormState;
   onFormChange?: (formState: DynamicFormState) => void;
@@ -19,6 +20,7 @@ const generateInstanceId = () => `inst_${Date.now()}_${Math.random().toString(36
 const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   productCode,
   eventType,
+  currentPaneCode,
   stageId,
   initialData,
   onFormChange,
@@ -27,6 +29,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   const { panes, loading, error } = useDynamicFormFields({
     productCode,
     eventType,
+    paneCode: currentPaneCode,
     stageId,
   });
 
@@ -157,17 +160,34 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     );
   }
 
+  // Get the current pane (should be only one since we filter by paneCode)
+  const currentPane = panes[0];
+  
+  if (!currentPane) {
+    return (
+      <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+        <p className="text-muted-foreground">No fields configured for this pane.</p>
+      </div>
+    );
+  }
+
+  // Render sections directly (no accordion wrapper since we're showing one pane at a time)
   return (
-    <DynamicPaneRenderer
-      panes={panes}
-      formData={formData}
-      repeatableGroups={repeatableGroups}
-      onFieldChange={handleFieldChange}
-      onRepeatableFieldChange={handleRepeatableFieldChange}
-      onAddRepeatableInstance={handleAddRepeatableInstance}
-      onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
-      disabled={disabled}
-    />
+    <div className="space-y-4">
+      {currentPane.sections.map((section) => (
+        <DynamicSectionRenderer
+          key={section.sectionCode}
+          section={section}
+          formData={formData}
+          repeatableGroups={repeatableGroups}
+          onFieldChange={handleFieldChange}
+          onRepeatableFieldChange={handleRepeatableFieldChange}
+          onAddRepeatableInstance={handleAddRepeatableInstance}
+          onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
+          disabled={disabled}
+        />
+      ))}
+    </div>
   );
 };
 
