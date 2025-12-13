@@ -18,42 +18,65 @@ interface DynamicMT700SidebarProps {
 const SWIFT_TAG_MAPPING: Record<string, { tag: string; label: string }> = {
   corporate_reference: { tag: '20', label: 'Documentary Credit Number' },
   lc_reference: { tag: '20', label: 'Documentary Credit Number' },
+  documentary_credit_number: { tag: '20', label: 'Documentary Credit Number' },
   issue_date: { tag: '31C', label: 'Date of Issue' },
+  date_of_issue: { tag: '31C', label: 'Date of Issue' },
   expiry_date: { tag: '31D', label: 'Date and Place of Expiry' },
   place_of_expiry: { tag: '31D', label: 'Date and Place of Expiry' },
   form_of_documentary_credit: { tag: '40A', label: 'Form of Documentary Credit' },
+  lc_type: { tag: '40A', label: 'Form of Documentary Credit' },
   applicable_rules: { tag: '40E', label: 'Applicable Rules' },
   availability: { tag: '41a', label: 'Available With/By' },
   available_with: { tag: '41a', label: 'Available With' },
   available_by: { tag: '42C', label: 'Drafts at' },
   drafts_at: { tag: '42C', label: 'Drafts at' },
+  tenor: { tag: '42C', label: 'Drafts at' },
   drawee: { tag: '42D', label: 'Drawee' },
   partial_shipments: { tag: '43P', label: 'Partial Shipments' },
+  partial_shipments_allowed: { tag: '43P', label: 'Partial Shipments' },
   transshipment: { tag: '43T', label: 'Transshipment' },
+  transshipment_allowed: { tag: '43T', label: 'Transshipment' },
   port_of_loading: { tag: '44E', label: 'Port of Loading' },
+  loading_port: { tag: '44E', label: 'Port of Loading' },
   port_of_discharge: { tag: '44F', label: 'Port of Discharge' },
+  discharge_port: { tag: '44F', label: 'Port of Discharge' },
   latest_shipment_date: { tag: '44C', label: 'Latest Date of Shipment' },
   shipment_period: { tag: '44D', label: 'Shipment Period' },
   applicant_name: { tag: '50', label: 'Applicant' },
   applicant_address: { tag: '50', label: 'Applicant' },
+  applicant: { tag: '50', label: 'Applicant' },
   beneficiary_name: { tag: '59', label: 'Beneficiary' },
   beneficiary_address: { tag: '59', label: 'Beneficiary' },
+  beneficiary: { tag: '59', label: 'Beneficiary' },
   currency: { tag: '32B', label: 'Currency Code, Amount' },
   lc_amount: { tag: '32B', label: 'Currency Code, Amount' },
   amount: { tag: '32B', label: 'Currency Code, Amount' },
+  lc_currency: { tag: '32B', label: 'Currency Code, Amount' },
   tolerance: { tag: '39A', label: 'Percentage Credit Amount Tolerance' },
+  tolerance_percentage: { tag: '39A', label: 'Percentage Credit Amount Tolerance' },
   additional_amount: { tag: '39B', label: 'Maximum Credit Amount' },
+  max_credit_amount: { tag: '39B', label: 'Maximum Credit Amount' },
   description_of_goods: { tag: '45A', label: 'Description of Goods' },
+  goods_description: { tag: '45A', label: 'Description of Goods' },
   documents_required: { tag: '46A', label: 'Documents Required' },
+  required_documents: { tag: '46A', label: 'Documents Required' },
   additional_conditions: { tag: '47A', label: 'Additional Conditions' },
   special_payment_conditions: { tag: '49G', label: 'Special Payment Conditions' },
   charges: { tag: '71B', label: 'Charges' },
+  bank_charges: { tag: '71B', label: 'Charges' },
   presentation_period: { tag: '48', label: 'Period for Presentation' },
   confirmation_instructions: { tag: '49', label: 'Confirmation Instructions' },
+  confirm_instructions: { tag: '49', label: 'Confirmation Instructions' },
   reimbursing_bank: { tag: '53a', label: 'Reimbursing Bank' },
   instructions_to_paying_bank: { tag: '78', label: 'Instructions to Paying/Accepting/Negotiating Bank' },
   advising_bank: { tag: '57a', label: 'Advise Through Bank' },
+  advising_bank_name: { tag: '57a', label: 'Advise Through Bank' },
+  advising_bank_swift_code: { tag: '57a', label: 'Advise Through Bank' },
   sender_to_receiver_info: { tag: '72Z', label: 'Sender to Receiver Information' },
+  issuing_bank: { tag: '52a', label: 'Issuing Bank' },
+  issuing_bank_name: { tag: '52a', label: 'Issuing Bank' },
+  beneficiary_bank_name: { tag: '57a', label: 'Advise Through Bank' },
+  beneficiary_bank_swift_code: { tag: '57a', label: 'Advise Through Bank' },
 };
 
 const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
@@ -77,6 +100,7 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
     
     // Process form data and map to SWIFT tags
     const processedTags = new Map<string, string[]>();
+    const unmappedFields: { fieldCode: string; value: string }[] = [];
     
     Object.entries(formData).forEach(([fieldCode, value]) => {
       if (!value || value === '') return;
@@ -86,6 +110,9 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
         const existing = processedTags.get(mapping.tag) || [];
         existing.push(String(value));
         processedTags.set(mapping.tag, existing);
+      } else {
+        // Track unmapped fields for display
+        unmappedFields.push({ fieldCode, value: String(value) });
       }
     });
     
@@ -96,8 +123,8 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
     
     // Sort and output tags in order
     const tagOrder = ['20', '23', '31C', '31D', '40A', '40E', '41a', '42C', '42D', '43P', '43T', 
-                      '44E', '44F', '44C', '44D', '50', '59', '32B', '39A', '39B', '45A', '46A', 
-                      '47A', '48', '49', '53a', '57a', '71B', '78', '72Z'];
+                      '44E', '44F', '44C', '44D', '50', '52a', '59', '32B', '39A', '39B', '45A', '46A', 
+                      '47A', '48', '49', '49G', '53a', '57a', '71B', '78', '72Z'];
     
     tagOrder.forEach(tag => {
       const values = processedTags.get(tag);
@@ -106,6 +133,17 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
         lines.push(`:${tag}:${combinedValue}`);
       }
     });
+    
+    // Add unmapped fields at the end with a comment-like format
+    if (unmappedFields.length > 0) {
+      lines.push('');
+      lines.push('// Additional Form Data:');
+      unmappedFields.forEach(({ fieldCode, value }) => {
+        // Convert field_code to readable label
+        const label = fieldCode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        lines.push(`// ${label}: ${value}`);
+      });
+    }
     
     // Close message
     lines.push(`-}`);
