@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, HelpCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -39,11 +40,20 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
   };
 
   const renderLabel = () => (
-    <div className="flex items-center gap-1 mb-1">
+    <div className="flex items-center gap-1.5 mb-1">
       <Label htmlFor={field.field_code} className="text-sm font-medium">
         {field.field_label_key}
         {isMandatory && <span className="text-destructive ml-1">*</span>}
       </Label>
+      {/* SWIFT Tag Badge */}
+      {field.swift_tag_display_flag && field.swift_tag && (
+        <Badge 
+          variant="outline" 
+          className="text-[10px] font-mono px-1.5 py-0 h-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700"
+        >
+          :{field.swift_tag}:
+        </Badge>
+      )}
       {field.field_tooltip_key && (
         <TooltipProvider>
           <Tooltip>
