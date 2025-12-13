@@ -15,6 +15,13 @@ import {
   getStageFields 
 } from '@/services/workflowTemplateService';
 import { getPaneSectionConfig, getDefaultButtons } from '@/services/paneSectionService';
+import { 
+  fetchProductEventMappings, 
+  getProductNameByCode, 
+  getEventNameByCode,
+  defaultProductNames,
+  defaultEventNames 
+} from '@/services/productEventMappingService';
 
 interface UseDynamicTransactionProps {
   productCode: string;
@@ -39,6 +46,10 @@ interface UseDynamicTransactionReturn {
   formData: DynamicFormData;
   repeatableGroups: { [groupId: string]: RepeatableGroupInstance[] };
   stageFields: Map<string, WorkflowStageFieldRuntime[]>;
+  
+  // Product/Event display info from product_event_mapping
+  productName: string;
+  eventName: string;
   
   // Template found status
   hasWorkflowTemplate: boolean;
@@ -88,6 +99,10 @@ export const useDynamicTransaction = ({
   const [formData, setFormData] = useState<DynamicFormData>({});
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>({});
 
+  // Product/Event display names from product_event_mapping
+  const [productName, setProductName] = useState<string>(defaultProductNames[productCode] || productCode);
+  const [eventName, setEventName] = useState<string>(defaultEventNames[productCode]?.[eventCode] || eventCode);
+
   // Fetch workflow configuration
   useEffect(() => {
     const fetchConfig = async () => {
@@ -95,6 +110,16 @@ export const useDynamicTransaction = ({
       setError(null);
 
       try {
+        // Fetch product/event names from product_event_mapping based on business app
+        if (businessApp) {
+          const mappings = await fetchProductEventMappings(businessApp);
+          const fetchedProductName = getProductNameByCode(mappings, productCode);
+          const fetchedEventName = getEventNameByCode(mappings, productCode, eventCode);
+          
+          if (fetchedProductName) setProductName(fetchedProductName);
+          if (fetchedEventName) setEventName(fetchedEventName);
+        }
+
         // Find matching workflow template
         const foundTemplate = await findWorkflowTemplate(productCode, eventCode, triggerType);
         setTemplate(foundTemplate);
@@ -279,6 +304,8 @@ export const useDynamicTransaction = ({
     formData,
     repeatableGroups,
     stageFields,
+    productName,
+    eventName,
     hasWorkflowTemplate: !!template,
     navigateToPane,
     handleFieldChange,
