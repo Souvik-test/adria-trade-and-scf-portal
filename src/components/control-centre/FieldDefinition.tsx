@@ -949,16 +949,17 @@ const FieldDefinition = () => {
 
                 {/* Pane */}
                 <div className="space-y-2">
-                  <Label>Pane</Label>
+                  <Label>Pane <span className="text-xs text-muted-foreground">(optional)</span></Label>
                   <Select 
                     value={selectedPane} 
-                    onValueChange={handlePaneChange}
+                    onValueChange={(value) => handlePaneChange(value === '_none_' ? '' : value)}
                     disabled={!selectedEvent || availablePanes.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="_none_" className="text-muted-foreground italic">-- None (Bulk Upload) --</SelectItem>
                       {availablePanes.map(pane => (
                         <SelectItem key={pane.id} value={pane.name}>{pane.name}</SelectItem>
                       ))}
@@ -968,16 +969,17 @@ const FieldDefinition = () => {
 
                 {/* Section */}
                 <div className="space-y-2">
-                  <Label>Section</Label>
+                  <Label>Section <span className="text-xs text-muted-foreground">(optional)</span></Label>
                   <Select 
                     value={selectedSection} 
-                    onValueChange={setSelectedSection}
+                    onValueChange={(value) => setSelectedSection(value === '_none_' ? '' : value)}
                     disabled={!selectedPane || availableSections.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="_none_" className="text-muted-foreground italic">-- None (Bulk Upload) --</SelectItem>
                       {availableSections.map(sec => (
                         <SelectItem key={sec.id} value={sec.name}>{sec.name}</SelectItem>
                       ))}
