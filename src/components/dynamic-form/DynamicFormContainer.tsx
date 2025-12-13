@@ -4,10 +4,18 @@ import { useDynamicFormFields } from '@/hooks/useDynamicFormFields';
 import { DynamicFormData, RepeatableGroupInstance, DynamicFormState } from '@/types/dynamicForm';
 import DynamicSectionRenderer from './DynamicSectionRenderer';
 
+// Section grid config from pane_section_mappings
+interface SectionGridConfig {
+  name: string;
+  rows: number;
+  columns: number;
+}
+
 interface DynamicFormContainerProps {
   productCode: string;
   eventType: string;
   currentPaneCode?: string; // Filter to show only this pane's sections
+  sectionGridConfigs?: SectionGridConfig[]; // Grid dimensions from pane_section_mappings
   stageId?: string;
   initialData?: DynamicFormState;
   onFormChange?: (formState: DynamicFormState) => void;
@@ -21,6 +29,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   productCode,
   eventType,
   currentPaneCode,
+  sectionGridConfigs,
   stageId,
   initialData,
   onFormChange,
@@ -171,22 +180,35 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     );
   }
 
+  // Helper to get grid config for a section
+  const getSectionGridConfig = (sectionCode: string) => {
+    if (!sectionGridConfigs) return undefined;
+    return sectionGridConfigs.find(
+      cfg => cfg.name.toLowerCase() === sectionCode.toLowerCase()
+    );
+  };
+
   // Render sections directly (no accordion wrapper since we're showing one pane at a time)
   return (
     <div className="space-y-4">
-      {currentPane.sections.map((section) => (
-        <DynamicSectionRenderer
-          key={section.sectionCode}
-          section={section}
-          formData={formData}
-          repeatableGroups={repeatableGroups}
-          onFieldChange={handleFieldChange}
-          onRepeatableFieldChange={handleRepeatableFieldChange}
-          onAddRepeatableInstance={handleAddRepeatableInstance}
-          onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
-          disabled={disabled}
-        />
-      ))}
+      {currentPane.sections.map((section) => {
+        const gridConfig = getSectionGridConfig(section.sectionCode);
+        return (
+          <DynamicSectionRenderer
+            key={section.sectionCode}
+            section={section}
+            formData={formData}
+            repeatableGroups={repeatableGroups}
+            onFieldChange={handleFieldChange}
+            onRepeatableFieldChange={handleRepeatableFieldChange}
+            onAddRepeatableInstance={handleAddRepeatableInstance}
+            onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
+            disabled={disabled}
+            overrideGridRows={gridConfig?.rows}
+            overrideGridColumns={gridConfig?.columns}
+          />
+        );
+      })}
     </div>
   );
 };
