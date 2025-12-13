@@ -3355,6 +3355,45 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_dynamic_form_fields: {
+        Args: { p_event_type: string; p_product_code: string }
+        Returns: {
+          conditional_mandatory_expr: string
+          conditional_visibility_expr: string
+          data_type: string
+          decimal_places: number
+          default_value: string
+          dropdown_values: string[]
+          field_code: string
+          field_column: number
+          field_id: string
+          field_label_key: string
+          field_row: number
+          field_tooltip_key: string
+          group_id: string
+          group_repetition_flag: boolean
+          id: string
+          is_active_flag: boolean
+          is_mandatory_bo: boolean
+          is_mandatory_mo: boolean
+          is_mandatory_portal: boolean
+          length_max: number
+          length_min: number
+          lookup_code: string
+          pane_code: string
+          section_code: string
+          swift_format_pattern: string
+          swift_mt_type: string
+          swift_sequence: string
+          swift_subfield_qualifier: string
+          swift_tag: string
+          swift_tag_display_flag: boolean
+          swift_tag_required_flag: boolean
+          ui_column_span: number
+          ui_display_type: string
+          ui_row_span: number
+        }[]
+      }
       get_fields_by_config: {
         Args: {
           p_event_type: string
