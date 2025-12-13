@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Search, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Save, Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { WorkflowTemplate, WorkflowStage, WorkflowStageField } from '../NextGenWorkflowConfigurator';
@@ -30,9 +31,20 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
   const [availableFields, setAvailableFields] = useState<AvailableField[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterPane, setFilterPane] = useState<string>('all');
+  const [filterSection, setFilterSection] = useState<string>('all');
   const [allVisible, setAllVisible] = useState(false);
   const [allEditable, setAllEditable] = useState(false);
   const [allMandatory, setAllMandatory] = useState(false);
+
+  // Extract unique panes and sections for filter dropdowns
+  const uniquePanes = [...new Set(availableFields.map(f => f.pane_code).filter(Boolean))];
+  const uniqueSections = [...new Set(
+    availableFields
+      .filter(f => filterPane === 'all' || f.pane_code === filterPane)
+      .map(f => f.section_code)
+      .filter(Boolean)
+  )];
 
   useEffect(() => {
     if (stage) {
@@ -222,10 +234,13 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
     toast.success('Field configuration saved');
   };
 
-  const filteredAvailableFields = availableFields.filter(f =>
-    (f.field_code || f.field_id).toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (f.field_label_key || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAvailableFields = availableFields.filter(f => {
+    const matchesSearch = (f.field_code || f.field_id).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.field_label_key || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPane = filterPane === 'all' || f.pane_code === filterPane;
+    const matchesSection = filterSection === 'all' || f.section_code === filterSection;
+    return matchesSearch && matchesPane && matchesSection;
+  });
 
   if (!stage || !template) {
     return (
@@ -280,6 +295,36 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
+              </div>
+              {/* Pane Filter */}
+              <div className="mt-2">
+                <Select value={filterPane} onValueChange={(value) => { setFilterPane(value); setFilterSection('all'); }}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <Filter className="w-3 h-3 mr-1" />
+                    <SelectValue placeholder="Filter by Pane" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Panes</SelectItem>
+                    {uniquePanes.map(pane => (
+                      <SelectItem key={pane} value={pane}>{pane}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Section Filter */}
+              <div className="mt-2">
+                <Select value={filterSection} onValueChange={setFilterSection}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <Filter className="w-3 h-3 mr-1" />
+                    <SelectValue placeholder="Filter by Section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sections</SelectItem>
+                    {uniqueSections.map(section => (
+                      <SelectItem key={section} value={section}>{section}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-auto space-y-2">
