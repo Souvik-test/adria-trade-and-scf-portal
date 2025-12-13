@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Plus, Edit, Link } from 'lucide-react';
 import ActionCard from '../popi-modal/ActionCard';
 import { ShippingGuaranteeActionType } from '@/types/shippingGuarantee';
+import { useProductEventMappings } from '@/hooks/useProductEventMappings';
 
 interface ShippingGuaranteeActionSectionProps {
   selectedAction: ShippingGuaranteeActionType;
@@ -12,34 +13,38 @@ const ShippingGuaranteeActionSection: React.FC<ShippingGuaranteeActionSectionPro
   selectedAction,
   onActionSelect
 }) => {
-  const actionCards = [
+  const { getProductName, getEventName, isClientPortal } = useProductEventMappings();
+
+  const productName = getProductName('SHG');
+
+  const actionCards = useMemo(() => [
     {
       id: 'create',
-      title: 'Create Shipping Guarantee',
-      description: 'Create new shipping guarantee for vessel cargo',
+      title: getEventName('SHG', 'ISS'),
+      description: `${isClientPortal ? 'Create new' : 'Issue new'} ${productName} for vessel cargo`,
       icon: Plus,
       color: 'corporate-teal'
     },
     {
       id: 'update',
-      title: 'Update Shipping Guarantee',
-      description: 'Modify existing shipping guarantee details',
+      title: getEventName('SHG', 'UPD'),
+      description: `Modify existing ${productName} details`,
       icon: Edit,
       color: 'amber'
     },
     {
       id: 'link-delink',
-      title: 'Link/Delink Shipping Guarantee',
-      description: 'Link or delink shipping guarantee with transactions',
+      title: getEventName('SHG', 'LNK'),
+      description: `Link or delink ${productName} with transactions`,
       icon: Link,
       color: 'blue'
     }
-  ];
+  ], [getEventName, productName, isClientPortal]);
 
   return (
     <div>
       <h2 className="text-xl font-semibold text-foreground mb-6">
-        Shipping Guarantee Actions
+        {productName} Actions
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

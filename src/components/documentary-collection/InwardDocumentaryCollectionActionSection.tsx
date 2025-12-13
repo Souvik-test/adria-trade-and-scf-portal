@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CreditCard, CheckCircle, DollarSign } from 'lucide-react';
 import ActionCard from '../popi-modal/ActionCard';
+import { useProductEventMappings } from '@/hooks/useProductEventMappings';
 
 type ActionType = 'payment' | 'acceptance' | 'finance' | null;
 
@@ -13,34 +14,38 @@ const InwardDocumentaryCollectionActionSection: React.FC<InwardDocumentaryCollec
   selectedAction,
   onActionSelect
 }) => {
-  const actionCards = [
+  const { getProductName, getEventName } = useProductEventMappings();
+
+  const productName = getProductName('IDC');
+
+  const actionCards = useMemo(() => [
     {
       id: 'payment',
-      title: 'Bill Payment',
-      description: 'Process payment for inward documentary collection bills',
+      title: getEventName('IDC', 'PAY'),
+      description: `Process payment for ${productName} bills`,
       icon: CreditCard,
       color: 'corporate-teal'
     },
     {
       id: 'acceptance',
-      title: 'Bill Acceptance/Refusal',
-      description: 'Accept or refuse inward documentary collection bills',
+      title: getEventName('IDC', 'ACC'),
+      description: `Accept or refuse ${productName} bills`,
       icon: CheckCircle,
       color: 'amber'
     },
     {
       id: 'finance',
-      title: 'Request Finance',
-      description: 'Request financing for inward documentary collection',
+      title: getEventName('IDC', 'FIN'),
+      description: `Request financing for ${productName}`,
       icon: DollarSign,
       color: 'green'
     }
-  ];
+  ], [getEventName, productName]);
 
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-        Inward Documentary Collection Actions
+        {productName} Actions
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
