@@ -267,7 +267,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     return (
       <>
         {isOpen && (
-          <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 z-50 bg-background overflow-hidden">
             {renderContent()}
           </div>
         )}

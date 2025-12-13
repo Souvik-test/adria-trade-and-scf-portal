@@ -188,11 +188,38 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     );
   };
 
+  // Get sections from pane_section_mappings if available, otherwise use sections from field_repository
+  // This ensures we show all configured sections even if they don't have fields yet
+  const sectionsToRender = sectionGridConfigs && sectionGridConfigs.length > 0
+    ? sectionGridConfigs.map(cfg => {
+        // Find matching section from field_repository data
+        const matchingSection = currentPane.sections.find(
+          s => s.sectionCode.toLowerCase() === cfg.name.toLowerCase()
+        );
+        return {
+          sectionCode: cfg.name,
+          sectionName: cfg.name,
+          groups: matchingSection?.groups || [],
+          gridRows: cfg.rows,
+          gridColumns: cfg.columns,
+        };
+      })
+    : currentPane.sections;
+
   // Render sections directly (no accordion wrapper since we're showing one pane at a time)
   return (
     <div className="space-y-4">
-      {currentPane.sections.map((section) => {
+      {sectionsToRender.map((section) => {
         const gridConfig = getSectionGridConfig(section.sectionCode);
+        // Only render section if it has groups/fields
+        if (!section.groups || section.groups.length === 0) {
+          return (
+            <div key={section.sectionCode} className="border border-dashed border-border rounded-lg p-4">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">{section.sectionName}</h4>
+              <p className="text-xs text-muted-foreground">No fields configured for this section</p>
+            </div>
+          );
+        }
         return (
           <DynamicSectionRenderer
             key={section.sectionCode}
@@ -204,8 +231,8 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
             onAddRepeatableInstance={handleAddRepeatableInstance}
             onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
             disabled={disabled}
-            overrideGridRows={gridConfig?.rows}
-            overrideGridColumns={gridConfig?.columns}
+            overrideGridRows={gridConfig?.rows || section.gridRows}
+            overrideGridColumns={gridConfig?.columns || section.gridColumns}
           />
         );
       })}

@@ -112,7 +112,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
 
   const formContent = (
-    <div className="flex-1 space-y-6">
+    <div className="space-y-6">
       {/* Header with Product • Event • Stage */}
       <div className="border-b border-border pb-4">
         <h2 className="text-xl font-semibold text-foreground">
@@ -168,34 +168,44 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             />
 
             {/* Dynamic Buttons */}
-            <DynamicButtonRenderer
-              buttons={currentButtons}
-              currentPaneIndex={currentPaneIndex}
-              totalPanes={panes.length}
-              onNavigate={navigateToPane}
-              onSave={handleSave}
-              onSubmit={handleSubmit}
-              onDiscard={handleDiscard}
-              onClose={handleClose}
-            />
+            <div className="pt-4 border-t border-border">
+              <DynamicButtonRenderer
+                buttons={currentButtons}
+                currentPaneIndex={currentPaneIndex}
+                totalPanes={panes.length}
+                onNavigate={navigateToPane}
+                onSave={handleSave}
+                onSubmit={handleSubmit}
+                onDiscard={handleDiscard}
+                onClose={handleClose}
+              />
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Bottom padding for scroll */}
+      <div className="h-6" />
     </div>
   );
 
   return (
-    <div className={`flex ${shouldShowMT700 ? 'gap-0' : ''}`}>
-      {formContent}
-      
-      {/* MT 700 Sidebar */}
-      {shouldShowMT700 && (
-        <DynamicMT700Sidebar
-          formData={formData}
-          productCode={productCode}
-          eventCode={eventCode}
-        />
-      )}
+    <div className="flex flex-col h-screen bg-background">
+      <div className={`flex flex-1 overflow-hidden ${shouldShowMT700 ? 'gap-0' : ''}`}>
+        {/* Scrollable form content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {formContent}
+        </div>
+        
+        {/* MT 700 Sidebar */}
+        {shouldShowMT700 && (
+          <DynamicMT700Sidebar
+            formData={formData}
+            productCode={productCode}
+            eventCode={eventCode}
+          />
+        )}
+      </div>
     </div>
   );
 };

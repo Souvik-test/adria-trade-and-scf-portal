@@ -25,7 +25,7 @@ const DynamicProgressIndicator: React.FC<DynamicProgressIndicatorProps> = ({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 bg-background p-4 rounded-lg border border-border">
       <div className="flex items-center justify-between">
         {panes.map((pane, index) => {
           const isCompleted = completedPanes.has(pane.id);
@@ -33,7 +33,7 @@ const DynamicProgressIndicator: React.FC<DynamicProgressIndicatorProps> = ({
           const isPast = index < currentPaneIndex;
 
           return (
-            <React.Fragment key={pane.id}>
+            <div key={pane.id} className="contents">
               {/* Step indicator */}
               <div
                 className={cn(
@@ -78,7 +78,7 @@ const DynamicProgressIndicator: React.FC<DynamicProgressIndicatorProps> = ({
                   )}
                 />
               )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>
