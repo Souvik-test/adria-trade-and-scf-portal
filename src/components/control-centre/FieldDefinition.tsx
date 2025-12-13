@@ -200,6 +200,8 @@ const FieldDefinition = () => {
   const [uploadFileName, setUploadFileName] = useState('');
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [gridWarnings, setGridWarnings] = useState<string[]>([]);
+  const [existingFieldsForDeletion, setExistingFieldsForDeletion] = useState<FieldData[]>([]);
+  const [loadingExistingFields, setLoadingExistingFields] = useState(false);
 
   // Get custom auth user on mount
   useEffect(() => {
@@ -278,7 +280,38 @@ const FieldDefinition = () => {
     }
   };
 
-  // Cascading filter logic
+  // Fetch all existing fields for product-event (for deletion preview)
+  const fetchExistingFieldsForProductEvent = async () => {
+    if (!customUser?.id || !selectedProduct || !selectedEvent) return;
+    
+    setLoadingExistingFields(true);
+    try {
+      // Query all fields for this product-event combination
+      const { data, error } = await supabase
+        .from('field_repository')
+        .select('*')
+        .eq('product_code', selectedProduct)
+        .eq('event_type', selectedEvent);
+
+      if (error) throw error;
+      setExistingFieldsForDeletion((data || []) as unknown as FieldData[]);
+    } catch (error: any) {
+      console.error('Failed to fetch existing fields for deletion preview', error);
+      setExistingFieldsForDeletion([]);
+    } finally {
+      setLoadingExistingFields(false);
+    }
+  };
+
+  // Fetch existing fields when replaceExisting is checked and dialog is open
+  React.useEffect(() => {
+    if (showUploadDialog && replaceExisting && selectedProduct && selectedEvent) {
+      fetchExistingFieldsForProductEvent();
+    } else {
+      setExistingFieldsForDeletion([]);
+    }
+  }, [showUploadDialog, replaceExisting, selectedProduct, selectedEvent]);
+
   const uniqueBusinessApps = Array.from(
     new Set(productMappings.flatMap(m => m.business_application))
   ).sort();
@@ -1661,23 +1694,72 @@ const FieldDefinition = () => {
             </div>
 
             {/* Multi-pane/section warning when Clear & Replace is selected */}
-            {replaceExisting && uploadedFieldsData.length > 0 && (
+            {replaceExisting && (
               (() => {
-                const uniquePaneSections = new Set(
-                  uploadedFieldsData.map(f => `${f.pane_code}::${f.section_code}`)
-                );
+                const uniquePaneSections = uploadedFieldsData.length > 0 
+                  ? new Set(uploadedFieldsData.map(f => `${f.pane_code}::${f.section_code}`))
+                  : new Set<string>();
                 const isMultiPaneSection = uniquePaneSections.size > 1 || !selectedPane || !selectedSection;
                 
-                if (isMultiPaneSection) {
+                // Group existing fields by pane-section for display
+                const existingByPaneSection = existingFieldsForDeletion.reduce((acc, field) => {
+                  const key = `${field.pane_code}::${field.section_code}`;
+                  if (!acc[key]) {
+                    acc[key] = { pane: field.pane_code, section: field.section_code, count: 0, fields: [] as string[] };
+                  }
+                  acc[key].count++;
+                  acc[key].fields.push(field.field_label_key || field.field_code || 'Unnamed');
+                  return acc;
+                }, {} as Record<string, { pane: string; section: string; count: number; fields: string[] }>);
+                
+                const paneSectionGroups = Object.values(existingByPaneSection);
+                
+                if (isMultiPaneSection || existingFieldsForDeletion.length > 0) {
                   return (
-                    <div className="p-3 border rounded-lg bg-destructive/10 border-destructive/30">
+                    <div className="p-3 border rounded-lg bg-destructive/10 border-destructive/30 space-y-3">
                       <p className="text-sm text-destructive font-medium">
                         ⚠️ Bulk Clear Warning
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        This upload contains fields for {uniquePaneSections.size} pane-section combination(s). 
-                        Enabling "Clear & Replace" will delete <strong>ALL</strong> existing fields for {selectedProduct}/{selectedEvent} before importing.
-                      </p>
+                      {uploadedFieldsData.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          This upload contains fields for {uniquePaneSections.size} pane-section combination(s). 
+                          Enabling "Clear & Replace" will delete <strong>ALL</strong> existing fields for {selectedProduct}/{selectedEvent} before importing.
+                        </p>
+                      )}
+                      
+                      {/* Show existing fields that will be deleted */}
+                      {loadingExistingFields ? (
+                        <p className="text-xs text-muted-foreground">Loading existing fields...</p>
+                      ) : existingFieldsForDeletion.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-destructive">
+                            {existingFieldsForDeletion.length} existing field(s) will be deleted:
+                          </p>
+                          <div className="max-h-40 overflow-y-auto space-y-2 bg-background/50 rounded p-2">
+                            {paneSectionGroups.map((group, idx) => (
+                              <div key={idx} className="text-xs border-b border-destructive/20 pb-2 last:border-b-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                    {group.pane}
+                                  </Badge>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                    {group.section}
+                                  </Badge>
+                                  <span className="text-muted-foreground">({group.count} fields)</span>
+                                </div>
+                                <div className="pl-2 text-muted-foreground">
+                                  {group.fields.slice(0, 5).join(', ')}
+                                  {group.fields.length > 5 && ` ... +${group.fields.length - 5} more`}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">
+                          No existing fields found for {selectedProduct}/{selectedEvent}
+                        </p>
+                      )}
                     </div>
                   );
                 }
