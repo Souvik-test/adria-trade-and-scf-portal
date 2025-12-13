@@ -145,17 +145,11 @@ export const useDynamicFormFields = ({
     setError(null);
 
     try {
-      let query = supabase
-        .from('field_repository')
-        .select('*')
-        .eq('product_code', productCode)
-        .eq('event_type', eventType)
-        .eq('is_active_flag', true);
-
-      // If stageId is provided, we could filter by workflow stage fields
-      // This would require joining with workflow_stage_fields table
-
-      const { data, error: fetchError } = await query;
+      // Use RPC function to bypass RLS policies with custom auth
+      const { data, error: fetchError } = await supabase.rpc('get_dynamic_form_fields', {
+        p_product_code: productCode,
+        p_event_type: eventType
+      });
 
       if (fetchError) throw fetchError;
 
