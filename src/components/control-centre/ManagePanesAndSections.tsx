@@ -7,15 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download } from 'lucide-react';
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { customAuth } from '@/services/customAuth';
+import { PaneButtonConfig, ButtonPosition, ButtonVariant, ButtonActionType } from '@/types/dynamicForm';
 
 interface ProductEventMapping {
   product_code: string;
@@ -37,6 +39,7 @@ interface Pane {
   name: string;
   sequence: number;
   sections: Section[];
+  buttons: PaneButtonConfig[];
   isOpen: boolean;
 }
 
@@ -49,6 +52,31 @@ interface SavedConfiguration {
   panes: Pane[];
   is_active: boolean;
 }
+
+// Button action options
+const buttonActionOptions: { value: ButtonActionType; label: string }[] = [
+  { value: 'previous_pane', label: 'Go to Previous Pane' },
+  { value: 'next_pane', label: 'Go to Next Pane' },
+  { value: 'save_draft', label: 'Save as Draft' },
+  { value: 'save_template', label: 'Save as Template' },
+  { value: 'submit', label: 'Submit Form' },
+  { value: 'discard', label: 'Discard Changes' },
+  { value: 'close', label: 'Close Form' },
+  { value: 'custom', label: 'Custom Navigation' },
+];
+
+const buttonVariantOptions: { value: ButtonVariant; label: string }[] = [
+  { value: 'default', label: 'Primary' },
+  { value: 'secondary', label: 'Secondary' },
+  { value: 'outline', label: 'Outline' },
+  { value: 'destructive', label: 'Destructive' },
+  { value: 'ghost', label: 'Ghost' },
+];
+
+const buttonPositionOptions: { value: ButtonPosition; label: string }[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'right', label: 'Right' },
+];
 
 const ManagePanesAndSections = () => {
   const [productMappings, setProductMappings] = useState<ProductEventMapping[]>([]);
@@ -74,6 +102,10 @@ const ManagePanesAndSections = () => {
   const [uploadFileName, setUploadFileName] = useState('');
   const [replaceExisting, setReplaceExisting] = useState(false);
 
+  // Button configuration dialog state
+  const [showButtonDialog, setShowButtonDialog] = useState(false);
+  const [editingPaneId, setEditingPaneId] = useState<string | null>(null);
+
   // Fetch product event mappings
   useEffect(() => {
     fetchProductMappings();
@@ -82,14 +114,12 @@ const ManagePanesAndSections = () => {
 
   const fetchAllConfigurations = async () => {
     try {
-      // Use custom auth to get user ID
       const customSession = customAuth.getSession();
       if (!customSession?.user) {
         setAllConfigurations([]);
         return;
       }
       
-      // Use security definer function to bypass RLS
       const { data, error } = await supabase.rpc('get_pane_section_mappings', {
         p_user_id: customSession.user.id
       });
@@ -164,7 +194,6 @@ const ManagePanesAndSections = () => {
 
   // Load existing pane/section mapping when all selections are made
   useEffect(() => {
-    // Skip if we're loading from a config card (panes already loaded directly)
     if (isLoadingFromConfigRef.current) {
       isLoadingFromConfigRef.current = false;
       return;
@@ -181,7 +210,6 @@ const ManagePanesAndSections = () => {
   const loadPaneSectionMapping = async () => {
     setLoading(true);
     try {
-      // Find the selected mapping
       const mapping = productMappings.find(
         m =>
           m.business_application.includes(selectedBusinessApp) &&
@@ -191,8 +219,6 @@ const ManagePanesAndSections = () => {
       );
       setSelectedMapping(mapping || null);
 
-      // Load existing pane/section configuration if any
-      // Filter by all 4 criteria to ensure proper isolation
       const { data, error } = await supabase
         .from('pane_section_mappings')
         .select('*')
@@ -207,6 +233,7 @@ const ManagePanesAndSections = () => {
       if (data && data.panes) {
         const loadedPanes = (data.panes as any[]).map(p => ({
           ...p,
+          buttons: p.buttons || [],
           isOpen: false
         }));
         setPanes(loadedPanes);
@@ -232,6 +259,7 @@ const ManagePanesAndSections = () => {
       name: '',
       sequence: panes.length + 1,
       sections: [],
+      buttons: [],
       isOpen: true
     };
     setPanes([...panes, newPane]);
@@ -243,7 +271,6 @@ const ManagePanesAndSections = () => {
 
   const deletePane = (paneId: string) => {
     const updatedPanes = panes.filter(p => p.id !== paneId);
-    // Resequence
     setPanes(updatedPanes.map((p, idx) => ({ ...p, sequence: idx + 1 })));
   };
 
@@ -356,19 +383,105 @@ const ManagePanesAndSections = () => {
     }));
   };
 
+  // Button management functions
+  const openButtonDialog = (paneId: string) => {
+    setEditingPaneId(paneId);
+    setShowButtonDialog(true);
+  };
+
+  const addButton = (paneId: string) => {
+    const pane = panes.find(p => p.id === paneId);
+    if (!pane) return;
+
+    const newButton: PaneButtonConfig = {
+      id: `btn-${Date.now()}`,
+      label: 'New Button',
+      position: 'right',
+      variant: 'outline',
+      action: 'custom',
+      targetPaneId: null,
+      isVisible: true,
+      order: (pane.buttons?.length || 0) + 1
+    };
+
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        return { ...p, buttons: [...(p.buttons || []), newButton] };
+      }
+      return p;
+    }));
+  };
+
+  const updateButton = (paneId: string, buttonId: string, updates: Partial<PaneButtonConfig>) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        return {
+          ...p,
+          buttons: (p.buttons || []).map(b => b.id === buttonId ? { ...b, ...updates } : b)
+        };
+      }
+      return p;
+    }));
+  };
+
+  const deleteButton = (paneId: string, buttonId: string) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        const updatedButtons = (p.buttons || []).filter(b => b.id !== buttonId);
+        return {
+          ...p,
+          buttons: updatedButtons.map((b, idx) => ({ ...b, order: idx + 1 }))
+        };
+      }
+      return p;
+    }));
+  };
+
+  const moveButtonUp = (paneId: string, buttonId: string) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        const buttons = [...(p.buttons || [])];
+        const index = buttons.findIndex(b => b.id === buttonId);
+        if (index > 0) {
+          [buttons[index - 1], buttons[index]] = [buttons[index], buttons[index - 1]];
+          return {
+            ...p,
+            buttons: buttons.map((b, idx) => ({ ...b, order: idx + 1 }))
+          };
+        }
+      }
+      return p;
+    }));
+  };
+
+  const moveButtonDown = (paneId: string, buttonId: string) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        const buttons = [...(p.buttons || [])];
+        const index = buttons.findIndex(b => b.id === buttonId);
+        if (index < buttons.length - 1) {
+          [buttons[index], buttons[index + 1]] = [buttons[index + 1], buttons[index]];
+          return {
+            ...p,
+            buttons: buttons.map((b, idx) => ({ ...b, order: idx + 1 }))
+          };
+        }
+      }
+      return p;
+    }));
+  };
+
   const handleSave = async () => {
     if (!selectedBusinessApp || !selectedCustomerSegment || !selectedProduct || !selectedEvent) {
       toast.error('Please select business application, customer segment, product, and event');
       return;
     }
 
-    // Validate that all panes have names
     if (panes.some(p => !p.name.trim())) {
       toast.error('Please provide names for all panes');
       return;
     }
 
-    // Validate that all sections have names
     for (const pane of panes) {
       if (pane.sections.some(s => !s.name.trim())) {
         toast.error(`Please provide names for all sections in "${pane.name}"`);
@@ -378,14 +491,12 @@ const ManagePanesAndSections = () => {
 
     setSaving(true);
     try {
-      // Use custom auth to get user ID
       const customSession = customAuth.getSession();
       if (!customSession?.user) throw new Error('User not authenticated');
       const userId = customSession.user.id;
 
       const panesData = panes.map(({ isOpen, ...rest }) => rest);
 
-      // Use security definer function to bypass RLS
       const { data, error } = await supabase.rpc('upsert_pane_section_mapping', {
         p_user_id: userId,
         p_product_code: selectedProduct,
@@ -399,8 +510,6 @@ const ManagePanesAndSections = () => {
       if (error) throw error;
 
       toast.success('Pane and section mapping saved successfully');
-      
-      // Refresh all configurations
       await fetchAllConfigurations();
     } catch (error: any) {
       toast.error('Failed to save mapping', {
@@ -412,20 +521,18 @@ const ManagePanesAndSections = () => {
   };
 
   const loadConfiguration = (config: SavedConfiguration) => {
-    // Set flag to prevent useEffect from reloading panes
     isLoadingFromConfigRef.current = true;
     
-    // Directly load the panes from the configuration first
     const panesArray = config.panes as Pane[];
     const loadedPanes = panesArray.map(p => ({
       ...p,
+      buttons: p.buttons || [],
       isOpen: false
     }));
     setPanes(loadedPanes);
     setHasExistingConfig(true);
     setIsConfigActive(config.is_active !== false);
     
-    // Find and set the mapping
     const mapping = productMappings.find(
       m =>
         m.business_application.includes(config.business_application[0]) &&
@@ -435,7 +542,6 @@ const ManagePanesAndSections = () => {
     );
     setSelectedMapping(mapping || null);
     
-    // Set the selection criteria (this triggers useEffect, but it will be skipped)
     setSelectedBusinessApp(config.business_application[0]);
     setSelectedCustomerSegment(config.customer_segment[0]);
     setSelectedProduct(config.product_code);
@@ -443,9 +549,8 @@ const ManagePanesAndSections = () => {
   };
 
   const toggleConfigActiveStatus = async (configId: string, currentStatus: boolean, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
+    e.stopPropagation();
     try {
-      // Use security definer function to bypass RLS
       const { error } = await supabase.rpc('toggle_pane_section_active', {
         p_config_id: configId,
         p_is_active: !currentStatus
@@ -475,7 +580,6 @@ const ManagePanesAndSections = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Pane Section Template');
 
-    // Set column widths
     worksheet['!cols'] = [
       { wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 8 }, { wch: 10 }
     ];
@@ -505,14 +609,11 @@ const ManagePanesAndSections = () => {
         }
 
         const headers = jsonData[0] as string[];
-        
-        // Map headers to indices (case-insensitive)
         const headerMap: Record<string, number> = {};
         headers.forEach((h, idx) => {
           if (h) headerMap[h.toLowerCase().replace(/[\s_-]+/g, '')] = idx;
         });
 
-        // Parse rows into pane-section structure
         const panesMap = new Map<string, Pane>();
         
         for (let i = 1; i < jsonData.length; i++) {
@@ -528,20 +629,19 @@ const ManagePanesAndSections = () => {
 
           if (!paneName) continue;
 
-          // Get or create pane
           if (!panesMap.has(paneName)) {
             panesMap.set(paneName, {
               id: `pane-${Date.now()}-${panesMap.size}`,
               name: paneName,
               sequence: paneSeq,
               sections: [],
+              buttons: [],
               isOpen: false,
             });
           }
 
           const pane = panesMap.get(paneName)!;
           
-          // Add section if sectionName exists
           if (sectionName) {
             pane.sections.push({
               id: `section-${Date.now()}-${pane.sections.length}`,
@@ -553,7 +653,6 @@ const ManagePanesAndSections = () => {
           }
         }
 
-        // Convert map to array and sort
         const parsedPanes = Array.from(panesMap.values())
           .sort((a, b) => a.sequence - b.sequence)
           .map((pane, idx) => ({
@@ -582,15 +681,11 @@ const ManagePanesAndSections = () => {
 
   const handleConfirmPanesUpload = () => {
     if (replaceExisting) {
-      // Clear & Replace: replace all panes
       setPanes(uploadedPanesData.map(p => ({ ...p, isOpen: false })));
     } else {
-      // Add to Existing: merge panes
       const existingPaneNames = new Set(panes.map(p => p.name));
       const newPanes = uploadedPanesData.filter(p => !existingPaneNames.has(p.name));
       const mergedPanes = [...panes, ...newPanes.map(p => ({ ...p, sequence: panes.length + 1 }))];
-      
-      // Re-sequence
       setPanes(mergedPanes.map((p, idx) => ({ ...p, sequence: idx + 1 })));
     }
     
@@ -608,13 +703,15 @@ const ManagePanesAndSections = () => {
     setReplaceExisting(false);
   };
 
+  const editingPane = panes.find(p => p.id === editingPaneId);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Manage Panes and Sections</h1>
           <p className="text-muted-foreground mt-2">
-            Configure panes and sections for product events
+            Configure panes, sections, and buttons for product events
           </p>
         </div>
       </div>
@@ -641,85 +738,92 @@ const ManagePanesAndSections = () => {
             </CardHeader>
             <CollapsibleContent>
               <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {allConfigurations.map((config) => {
-                const panesArray = config.panes as Pane[];
-                const totalSections = panesArray.reduce((sum, pane) => sum + pane.sections.length, 0);
-                
-                return (
-                  <Card 
-                    key={config.id} 
-                    className={`cursor-pointer hover:border-primary transition-colors ${config.is_active === false ? 'opacity-60' : ''}`}
-                    onClick={() => loadConfiguration(config)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-1">
-                            <Badge variant="secondary" className="font-mono text-xs">
-                              {config.product_code}
-                            </Badge>
-                            <Badge variant="secondary" className="font-mono text-xs ml-1">
-                              {config.event_code}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <Badge variant="outline" className="text-xs">
-                              {panesArray.length} Pane{panesArray.length !== 1 ? 's' : ''}
-                            </Badge>
-                            <Badge variant={config.is_active !== false ? 'default' : 'secondary'} className="text-xs">
-                              {config.is_active !== false ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Business App:</span>
-                            <span>{config.business_application[0]}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Segment:</span>
-                            <span>{config.customer_segment[0]}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2">
-                        {panesArray.slice(0, 2).map((pane) => (
-                          <div key={pane.id} className="text-xs">
-                            <div className="font-medium text-foreground flex items-center gap-2">
-                              <Badge variant="secondary" className="w-5 h-5 rounded-full flex items-center justify-center p-0 text-[10px]">
-                                {pane.sequence}
-                              </Badge>
-                              {pane.name}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {allConfigurations.map((config) => {
+                    const panesArray = config.panes as Pane[];
+                    const totalSections = panesArray.reduce((sum, pane) => sum + pane.sections.length, 0);
+                    const totalButtons = panesArray.reduce((sum, pane) => sum + (pane.buttons?.length || 0), 0);
+                    
+                    return (
+                      <Card 
+                        key={config.id} 
+                        className={`cursor-pointer hover:border-primary transition-colors ${config.is_active === false ? 'opacity-60' : ''}`}
+                        onClick={() => loadConfiguration(config)}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="space-y-1">
+                                <Badge variant="secondary" className="font-mono text-xs">
+                                  {config.product_code}
+                                </Badge>
+                                <Badge variant="secondary" className="font-mono text-xs ml-1">
+                                  {config.event_code}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {panesArray.length} Pane{panesArray.length !== 1 ? 's' : ''}
+                                </Badge>
+                                <Badge variant={config.is_active !== false ? 'default' : 'secondary'} className="text-xs">
+                                  {config.is_active !== false ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="text-muted-foreground ml-7 mt-0.5">
-                              {pane.sections.length} section{pane.sections.length !== 1 ? 's' : ''}
+                            <div className="space-y-1 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Business App:</span>
+                                <span>{config.business_application[0]}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Segment:</span>
+                                <span>{config.customer_segment[0]}</span>
+                              </div>
+                              {totalButtons > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">Buttons:</span>
+                                  <span>{totalButtons} configured</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        ))}
-                        {panesArray.length > 2 && (
-                          <div className="text-xs text-muted-foreground ml-7">
-                            + {panesArray.length - 2} more pane{panesArray.length - 2 !== 1 ? 's' : ''}
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-2">
+                            {panesArray.slice(0, 2).map((pane) => (
+                              <div key={pane.id} className="text-xs">
+                                <div className="font-medium text-foreground flex items-center gap-2">
+                                  <Badge variant="secondary" className="w-5 h-5 rounded-full flex items-center justify-center p-0 text-[10px]">
+                                    {pane.sequence}
+                                  </Badge>
+                                  {pane.name}
+                                </div>
+                                <div className="text-muted-foreground ml-7 mt-0.5">
+                                  {pane.sections.length} section{pane.sections.length !== 1 ? 's' : ''} • {pane.buttons?.length || 0} button{(pane.buttons?.length || 0) !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                            ))}
+                            {panesArray.length > 2 && (
+                              <div className="text-xs text-muted-foreground ml-7">
+                                + {panesArray.length - 2} more pane{panesArray.length - 2 !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between pt-2 border-t mt-2">
+                              <span className="text-xs text-muted-foreground">Status</span>
+                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <Switch 
+                                  checked={config.is_active !== false}
+                                  onCheckedChange={() => toggleConfigActiveStatus(config.id, config.is_active !== false, { stopPropagation: () => {} } as React.MouseEvent)}
+                                />
+                              </div>
+                            </div>
                           </div>
-                        )}
-                        <div className="flex items-center justify-between pt-2 border-t mt-2">
-                          <span className="text-xs text-muted-foreground">Status</span>
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Switch 
-                              checked={config.is_active !== false}
-                              onCheckedChange={() => toggleConfigActiveStatus(config.id, config.is_active !== false, { stopPropagation: () => {} } as React.MouseEvent)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
             </CollapsibleContent>
           </Card>
         </Collapsible>
@@ -741,99 +845,99 @@ const ManagePanesAndSections = () => {
           </CardHeader>
           <CollapsibleContent>
             <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="businessApp">Business Application</Label>
-              <Select
-                value={selectedBusinessApp}
-                onValueChange={(value) => {
-                  setSelectedBusinessApp(value);
-                  setSelectedCustomerSegment('');
-                  setSelectedProduct('');
-                  setSelectedEvent('');
-                }}
-              >
-                <SelectTrigger id="businessApp">
-                  <SelectValue placeholder="Select business application" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueBusinessApps.map(app => (
-                    <SelectItem key={app} value={app}>
-                      {app}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="businessApp">Business Application</Label>
+                  <Select
+                    value={selectedBusinessApp}
+                    onValueChange={(value) => {
+                      setSelectedBusinessApp(value);
+                      setSelectedCustomerSegment('');
+                      setSelectedProduct('');
+                      setSelectedEvent('');
+                    }}
+                  >
+                    <SelectTrigger id="businessApp">
+                      <SelectValue placeholder="Select business application" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueBusinessApps.map(app => (
+                        <SelectItem key={app} value={app}>
+                          {app}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="customerSegment">Customer Segment</Label>
-              <Select
-                value={selectedCustomerSegment}
-                onValueChange={(value) => {
-                  setSelectedCustomerSegment(value);
-                  setSelectedProduct('');
-                  setSelectedEvent('');
-                }}
-                disabled={!selectedBusinessApp}
-              >
-                <SelectTrigger id="customerSegment">
-                  <SelectValue placeholder="Select customer segment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCustomerSegments.map(segment => (
-                    <SelectItem key={segment} value={segment}>
-                      {segment}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customerSegment">Customer Segment</Label>
+                  <Select
+                    value={selectedCustomerSegment}
+                    onValueChange={(value) => {
+                      setSelectedCustomerSegment(value);
+                      setSelectedProduct('');
+                      setSelectedEvent('');
+                    }}
+                    disabled={!selectedBusinessApp}
+                  >
+                    <SelectTrigger id="customerSegment">
+                      <SelectValue placeholder="Select customer segment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCustomerSegments.map(segment => (
+                        <SelectItem key={segment} value={segment}>
+                          {segment}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="product">Product</Label>
-              <Select
-                value={selectedProduct}
-                onValueChange={(value) => {
-                  setSelectedProduct(value);
-                  setSelectedEvent('');
-                }}
-                disabled={!selectedBusinessApp || !selectedCustomerSegment}
-              >
-                <SelectTrigger id="product">
-                  <SelectValue placeholder="Select product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableProducts.map(product => (
-                    <SelectItem key={product} value={product}>
-                      {product}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product">Product</Label>
+                  <Select
+                    value={selectedProduct}
+                    onValueChange={(value) => {
+                      setSelectedProduct(value);
+                      setSelectedEvent('');
+                    }}
+                    disabled={!selectedBusinessApp || !selectedCustomerSegment}
+                  >
+                    <SelectTrigger id="product">
+                      <SelectValue placeholder="Select product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProducts.map(product => (
+                        <SelectItem key={product} value={product}>
+                          {product}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="event">Event</Label>
-              <Select
-                value={selectedEvent}
-                onValueChange={setSelectedEvent}
-                disabled={!selectedBusinessApp || !selectedCustomerSegment || !selectedProduct}
-              >
-                <SelectTrigger id="event">
-                  <SelectValue placeholder="Select event" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableEvents.map(mapping => (
-                    <SelectItem key={mapping.event_code} value={mapping.event_code}>
-                      {mapping.event_code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="event">Event</Label>
+                  <Select
+                    value={selectedEvent}
+                    onValueChange={setSelectedEvent}
+                    disabled={!selectedBusinessApp || !selectedCustomerSegment || !selectedProduct}
+                  >
+                    <SelectTrigger id="event">
+                      <SelectValue placeholder="Select event" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableEvents.map(mapping => (
+                        <SelectItem key={mapping.event_code} value={mapping.event_code}>
+                          {mapping.event_code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
           </CollapsibleContent>
         </Card>
       </Collapsible>
@@ -878,172 +982,314 @@ const ManagePanesAndSections = () => {
             </CardHeader>
             <CollapsibleContent>
               <CardContent className="space-y-4">
-            {panes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No panes configured. Click "Add Pane" to get started.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {panes.map((pane, paneIndex) => (
-                  <Card key={pane.id} className="border-2">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex flex-col gap-1 pt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => movePaneUp(pane.id)}
-                            disabled={paneIndex === 0}
-                            className="h-6 w-6 p-0"
-                          >
-                            <GripVertical className="w-4 h-4" />
-                          </Button>
-                          <span className="text-xs text-muted-foreground text-center">
-                            {pane.sequence}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => movePaneDown(pane.id)}
-                            disabled={paneIndex === panes.length - 1}
-                            className="h-6 w-6 p-0"
-                          >
-                            <GripVertical className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Input
-                              placeholder="Enter pane name (e.g., LC Basic Details)"
-                              value={pane.name}
-                              onChange={(e) => updatePaneName(pane.id, e.target.value)}
-                              className="font-medium"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => togglePaneOpen(pane.id)}
-                              className="h-9 w-9 p-0"
-                            >
-                              {pane.isOpen ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deletePane(pane.id)}
-                              className="h-9 w-9 p-0 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    {pane.isOpen && (
-                      <CardContent className="pt-0">
-                        <div className="space-y-3 pl-12">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">Sections</Label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addSection(pane.id)}
-                            >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Add Section
-                            </Button>
-                          </div>
-
-                          {pane.sections.length === 0 ? (
-                            <div className="text-sm text-muted-foreground py-4 text-center border-2 border-dashed rounded-md">
-                              No sections. Click "Add Section" to add one.
+                {panes.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No panes configured. Click "Add Pane" to get started.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {panes.map((pane, paneIndex) => (
+                      <Card key={pane.id} className="border-2">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start gap-3">
+                            <div className="flex flex-col gap-1 pt-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => movePaneUp(pane.id)}
+                                disabled={paneIndex === 0}
+                                className="h-6 w-6 p-0"
+                              >
+                                <GripVertical className="w-4 h-4" />
+                              </Button>
+                              <span className="text-xs text-muted-foreground text-center">
+                                {pane.sequence}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => movePaneDown(pane.id)}
+                                disabled={paneIndex === panes.length - 1}
+                                className="h-6 w-6 p-0"
+                              >
+                                <GripVertical className="w-4 h-4" />
+                              </Button>
                             </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {pane.sections.map((section, sectionIndex) => (
-                                <div key={section.id} className="flex items-start gap-2 p-3 border rounded-md bg-muted/30">
-                                  <div className="flex flex-col items-center gap-0.5 pt-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => moveSectionUp(pane.id, section.id)}
-                                      disabled={sectionIndex === 0}
-                                      className="h-5 w-5 p-0"
-                                    >
-                                      <GripVertical className="w-3 h-3" />
-                                    </Button>
-                                    <span className="text-xs text-muted-foreground">
-                                      {section.sequence}
-                                    </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => moveSectionDown(pane.id, section.id)}
-                                      disabled={sectionIndex === pane.sections.length - 1}
-                                      className="h-5 w-5 p-0"
-                                    >
-                                      <GripVertical className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                  <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <Input
-                                        placeholder="Enter section name (e.g., Key Details)"
-                                        value={section.name}
-                                        onChange={(e) => updateSectionName(pane.id, section.id, e.target.value)}
-                                        className="text-sm flex-1"
-                                      />
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => deleteSection(pane.id, section.id)}
-                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                      <div className="flex items-center gap-2">
-                                        <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Rows</Label>
-                                        <Input
-                                          type="number"
-                                          min={1}
-                                          max={20}
-                                          value={section.rows || 1}
-                                          onChange={(e) => updateSectionLayout(pane.id, section.id, 'rows', Math.max(1, parseInt(e.target.value) || 1))}
-                                          className="w-16 h-7 text-xs"
-                                        />
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Columns</Label>
-                                        <Input
-                                          type="number"
-                                          min={1}
-                                          max={6}
-                                          value={section.columns || 2}
-                                          onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(6, parseInt(e.target.value) || 2)))}
-                                          className="w-16 h-7 text-xs"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  placeholder="Enter pane name (e.g., LC Basic Details)"
+                                  value={pane.name}
+                                  onChange={(e) => updatePaneName(pane.id, e.target.value)}
+                                  className="font-medium"
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openButtonDialog(pane.id)}
+                                  className="h-9 px-3"
+                                >
+                                  <Settings2 className="w-4 h-4 mr-1" />
+                                  Buttons ({pane.buttons?.length || 0})
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => togglePaneOpen(pane.id)}
+                                  className="h-9 w-9 p-0"
+                                >
+                                  {pane.isOpen ? (
+                                    <ChevronDown className="w-4 h-4" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deletePane(pane.id)}
+                                  className="h-9 w-9 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+
+                        {pane.isOpen && (
+                          <CardContent className="pt-0">
+                            <Tabs defaultValue="sections" className="w-full">
+                              <TabsList className="ml-12 mb-4">
+                                <TabsTrigger value="sections">Sections</TabsTrigger>
+                                <TabsTrigger value="buttons">Buttons</TabsTrigger>
+                              </TabsList>
+                              
+                              <TabsContent value="sections" className="space-y-3 pl-12">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-sm font-medium">Sections</Label>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addSection(pane.id)}
+                                  >
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Add Section
+                                  </Button>
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
+
+                                {pane.sections.length === 0 ? (
+                                  <div className="text-sm text-muted-foreground py-4 text-center border-2 border-dashed rounded-md">
+                                    No sections. Click "Add Section" to add one.
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {pane.sections.map((section, sectionIndex) => (
+                                      <div key={section.id} className="flex items-start gap-2 p-3 border rounded-md bg-muted/30">
+                                        <div className="flex flex-col items-center gap-0.5 pt-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => moveSectionUp(pane.id, section.id)}
+                                            disabled={sectionIndex === 0}
+                                            className="h-5 w-5 p-0"
+                                          >
+                                            <GripVertical className="w-3 h-3" />
+                                          </Button>
+                                          <span className="text-xs text-muted-foreground">
+                                            {section.sequence}
+                                          </span>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => moveSectionDown(pane.id, section.id)}
+                                            disabled={sectionIndex === pane.sections.length - 1}
+                                            className="h-5 w-5 p-0"
+                                          >
+                                            <GripVertical className="w-3 h-3" />
+                                          </Button>
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                          <div className="flex items-center gap-2">
+                                            <Input
+                                              placeholder="Enter section name (e.g., Key Details)"
+                                              value={section.name}
+                                              onChange={(e) => updateSectionName(pane.id, section.id, e.target.value)}
+                                              className="text-sm flex-1"
+                                            />
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => deleteSection(pane.id, section.id)}
+                                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                          <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                              <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Rows</Label>
+                                              <Input
+                                                type="number"
+                                                min={1}
+                                                max={20}
+                                                value={section.rows || 1}
+                                                onChange={(e) => updateSectionLayout(pane.id, section.id, 'rows', Math.max(1, parseInt(e.target.value) || 1))}
+                                                className="w-16 h-7 text-xs"
+                                              />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Columns</Label>
+                                              <Input
+                                                type="number"
+                                                min={1}
+                                                max={6}
+                                                value={section.columns || 2}
+                                                onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(6, parseInt(e.target.value) || 2)))}
+                                                className="w-16 h-7 text-xs"
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </TabsContent>
+
+                              <TabsContent value="buttons" className="space-y-3 pl-12">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-sm font-medium">Pane Buttons</Label>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addButton(pane.id)}
+                                  >
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Add Button
+                                  </Button>
+                                </div>
+
+                                {(!pane.buttons || pane.buttons.length === 0) ? (
+                                  <div className="text-sm text-muted-foreground py-4 text-center border-2 border-dashed rounded-md">
+                                    No buttons configured. Default buttons will be used at runtime.
+                                  </div>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {pane.buttons.map((button, buttonIndex) => (
+                                      <div key={button.id} className="flex items-start gap-2 p-3 border rounded-md bg-muted/30">
+                                        <div className="flex flex-col items-center gap-0.5 pt-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => moveButtonUp(pane.id, button.id)}
+                                            disabled={buttonIndex === 0}
+                                            className="h-5 w-5 p-0"
+                                          >
+                                            <GripVertical className="w-3 h-3" />
+                                          </Button>
+                                          <span className="text-xs text-muted-foreground">
+                                            {button.order}
+                                          </span>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => moveButtonDown(pane.id, button.id)}
+                                            disabled={buttonIndex === pane.buttons.length - 1}
+                                            className="h-5 w-5 p-0"
+                                          >
+                                            <GripVertical className="w-3 h-3" />
+                                          </Button>
+                                        </div>
+                                        <div className="flex-1 grid grid-cols-5 gap-2">
+                                          <div className="col-span-1">
+                                            <Label className="text-xs text-muted-foreground">Label</Label>
+                                            <Input
+                                              value={button.label}
+                                              onChange={(e) => updateButton(pane.id, button.id, { label: e.target.value })}
+                                              className="h-8 text-sm"
+                                            />
+                                          </div>
+                                          <div className="col-span-1">
+                                            <Label className="text-xs text-muted-foreground">Position</Label>
+                                            <Select
+                                              value={button.position}
+                                              onValueChange={(value) => updateButton(pane.id, button.id, { position: value as ButtonPosition })}
+                                            >
+                                              <SelectTrigger className="h-8 text-sm">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {buttonPositionOptions.map(opt => (
+                                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="col-span-1">
+                                            <Label className="text-xs text-muted-foreground">Variant</Label>
+                                            <Select
+                                              value={button.variant}
+                                              onValueChange={(value) => updateButton(pane.id, button.id, { variant: value as ButtonVariant })}
+                                            >
+                                              <SelectTrigger className="h-8 text-sm">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {buttonVariantOptions.map(opt => (
+                                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="col-span-1">
+                                            <Label className="text-xs text-muted-foreground">Action</Label>
+                                            <Select
+                                              value={button.action}
+                                              onValueChange={(value) => updateButton(pane.id, button.id, { action: value as ButtonActionType })}
+                                            >
+                                              <SelectTrigger className="h-8 text-sm">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {buttonActionOptions.map(opt => (
+                                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="col-span-1 flex items-end gap-2">
+                                            <div className="flex items-center gap-2 flex-1">
+                                              <Checkbox
+                                                id={`btn-visible-${button.id}`}
+                                                checked={button.isVisible}
+                                                onCheckedChange={(checked) => updateButton(pane.id, button.id, { isVisible: checked as boolean })}
+                                              />
+                                              <Label htmlFor={`btn-visible-${button.id}`} className="text-xs">Visible</Label>
+                                            </div>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => deleteButton(pane.id, button.id)}
+                                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </TabsContent>
+                            </Tabs>
+                          </CardContent>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
             </CollapsibleContent>
           </Card>
         </Collapsible>
@@ -1081,7 +1327,6 @@ const ManagePanesAndSections = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Download Template */}
             <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
               <div>
                 <p className="font-medium">Download Template</p>
@@ -1093,7 +1338,6 @@ const ManagePanesAndSections = () => {
               </Button>
             </div>
 
-            {/* File Upload */}
             <div className="space-y-2">
               <Label htmlFor="pane-excel-upload">Select Excel File</Label>
               <Input
@@ -1108,7 +1352,6 @@ const ManagePanesAndSections = () => {
               )}
             </div>
 
-            {/* Upload Mode Selection */}
             {uploadedPanesData.length > 0 && (
               <div className="flex items-center gap-3 p-3 border rounded-lg">
                 <Checkbox
@@ -1122,7 +1365,6 @@ const ManagePanesAndSections = () => {
               </div>
             )}
 
-            {/* Preview Table */}
             {uploadedPanesData.length > 0 && (
               <div className="space-y-2">
                 <Label>Preview ({uploadedPanesData.length} panes, {uploadedPanesData.reduce((sum, p) => sum + p.sections.length, 0)} sections)</Label>

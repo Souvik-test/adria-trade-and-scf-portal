@@ -53,6 +53,7 @@ export interface PaneFields {
   paneCode: string;
   paneName: string;
   sections: SectionFields[];
+  buttons?: PaneButtonConfig[];
 }
 
 export interface DynamicFormData {
@@ -69,4 +70,86 @@ export interface DynamicFormState {
   repeatableGroups: {
     [groupId: string]: RepeatableGroupInstance[];
   };
+}
+
+// Button configuration types for panes
+export type ButtonActionType = 
+  | 'next_pane' 
+  | 'previous_pane' 
+  | 'save_draft' 
+  | 'save_template' 
+  | 'submit' 
+  | 'discard' 
+  | 'close' 
+  | 'custom';
+
+export type ButtonPosition = 'left' | 'right';
+
+export type ButtonVariant = 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost';
+
+export interface PaneButtonConfig {
+  id: string;
+  label: string;
+  position: ButtonPosition;
+  variant: ButtonVariant;
+  action: ButtonActionType;
+  targetPaneId?: string | null;
+  isVisible: boolean;
+  order: number;
+}
+
+// Section configuration with buttons
+export interface SectionConfig {
+  id: string;
+  name: string;
+  sequence: number;
+  rows: number;
+  columns: number;
+}
+
+// Pane configuration with buttons
+export interface PaneConfig {
+  id: string;
+  name: string;
+  sequence: number;
+  sections: SectionConfig[];
+  buttons: PaneButtonConfig[];
+  isOpen?: boolean;
+}
+
+// Workflow runtime types
+export interface WorkflowTemplateRuntime {
+  id: string;
+  template_name: string;
+  product_code: string;
+  event_code: string;
+  trigger_types: string[];
+  status: string;
+}
+
+export interface WorkflowStageRuntime {
+  id: string;
+  template_id: string;
+  stage_name: string;
+  stage_order: number;
+  actor_type: string;
+  sla_hours: number;
+  is_rejectable: boolean;
+  reject_to_stage_id: string | null;
+  stage_type: string;
+}
+
+export interface WorkflowStageFieldRuntime {
+  id: string;
+  stage_id: string;
+  field_id: string;
+  pane: string;
+  section: string;
+  field_name: string;
+  ui_label: string;
+  ui_display_type: string;
+  is_visible: boolean;
+  is_editable: boolean;
+  is_mandatory: boolean;
+  field_order: number;
 }
