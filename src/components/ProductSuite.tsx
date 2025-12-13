@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
@@ -10,6 +10,7 @@ import InwardDocumentaryCollectionModal from './documentary-collection/InwardDoc
 import ShippingGuaranteeModal from './shipping-guarantee/ShippingGuaranteeModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
+import { useProductEventMappings } from '@/hooks/useProductEventMappings';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -29,14 +30,40 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
-  const products = [
+  const { getProductName, loading } = useProductEventMappings();
+
+  // Map display names to internal product codes for click handling
+  const productNameToCodeMap = useMemo(() => ({
+    [getProductName('ILC')]: 'ILC',
+    [getProductName('ELC')]: 'ELC',
+    [getProductName('OBG')]: 'OBG',
+    [getProductName('IBG')]: 'IBG',
+    [getProductName('ODC')]: 'ODC',
+    [getProductName('IDC')]: 'IDC',
+    [getProductName('ILB')]: 'ILB',
+    [getProductName('ELB')]: 'ELB',
+    [getProductName('OSB')]: 'OSB',
+    [getProductName('ISB')]: 'ISB',
+    [getProductName('SHG')]: 'SHG',
+    // Fallback mappings for hardcoded defaults
+    'Import Letter of Credit': 'ILC',
+    'Export Letter of Credit': 'ELC',
+    'Outward Bank Guarantee/SBLC': 'OBG',
+    'Inward Bank Guarantee/SBLC': 'IBG',
+    'Outward Documentary Collection Bills': 'OSB',
+    'Inward Documentary Collection Bills': 'ISB',
+    'Import LC Bills': 'ILB',
+    'Export LC Bills': 'ELB'
+  }), [getProductName]);
+
+  const products = useMemo(() => [
     {
       id: 'lc',
       title: 'Letter of Credit',
       icon: FileText,
       description: 'Manage import and export letters of credit',
       hasFlip: true,
-      flipOptions: ['Import Letter of Credit', 'Export Letter of Credit']
+      flipOptions: [getProductName('ILC'), getProductName('ELC')]
     },
     {
       id: 'guarantee',
@@ -44,7 +71,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       icon: Shield,
       description: 'Handle bank guarantees and standby letters of credit',
       hasFlip: true,
-      flipOptions: ['Outward Bank Guarantee/SBLC', 'Inward Bank Guarantee/SBLC']
+      flipOptions: [getProductName('OBG'), getProductName('IBG')]
     },
     {
       id: 'bills',
@@ -52,11 +79,11 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       icon: Banknote,
       description: 'Process trade bills and collections',
       hasFlip: true,
-      flipOptions: ['Import LC Bills', 'Export LC Bills', 'Outward Documentary Collection Bills', 'Inward Documentary Collection Bills']
+      flipOptions: [getProductName('ILB'), getProductName('ELB'), getProductName('ODC'), getProductName('IDC')]
     },
     {
       id: 'shipping',
-      title: 'Shipping Guarantee',
+      title: getProductName('SHG'),
       icon: Ship,
       description: 'Manage shipping guarantees and delivery orders',
       onClick: () => setShowShippingGuaranteeModal(true)
@@ -83,37 +110,40 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       hasFlip: true,
       flipOptions: ['PO-PI', 'Invoice']
     }
-  ];
+  ], [getProductName]);
 
   const handleBillsClick = (option: string) => {
-    if (option === 'Import LC Bills') {
+    const productCode = productNameToCodeMap[option];
+    if (productCode === 'ILB') {
       setBillsModalType('import');
       setShowBillsModal(true);
-    } else if (option === 'Export LC Bills') {
+    } else if (productCode === 'ELB') {
       setBillsModalType('export');
       setShowBillsModal(true);
-    } else if (option === 'Outward Documentary Collection Bills') {
+    } else if (productCode === 'ODC') {
       setShowDocumentaryCollectionModal(true);
-    } else if (option === 'Inward Documentary Collection Bills') {
+    } else if (productCode === 'IDC') {
       setShowInwardDocumentaryCollectionModal(true);
     }
   };
 
   const handleLcClick = (option: string) => {
-    if (option === 'Import Letter of Credit') {
+    const productCode = productNameToCodeMap[option];
+    if (productCode === 'ILC') {
       setLcModalType('import');
       setShowLcModal(true);
-    } else if (option === 'Export Letter of Credit') {
+    } else if (productCode === 'ELC') {
       setLcModalType('export');
       setShowLcModal(true);
     }
   };
 
   const handleGuaranteeClick = (option: string) => {
-    if (option === 'Outward Bank Guarantee/SBLC') {
+    const productCode = productNameToCodeMap[option];
+    if (productCode === 'OBG') {
       setGuaranteeModalType('outward');
       setShowGuaranteeModal(true);
-    } else if (option === 'Inward Bank Guarantee/SBLC') {
+    } else if (productCode === 'IBG') {
       setGuaranteeModalType('inward');
       setShowGuaranteeModal(true);
     }

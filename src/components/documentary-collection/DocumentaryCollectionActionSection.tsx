@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FileText, Edit, DollarSign } from 'lucide-react';
 import ActionCard from '../popi-modal/ActionCard';
+import { useProductEventMappings } from '@/hooks/useProductEventMappings';
 
 type ActionType = 'submit' | 'update' | 'finance' | null;
 
@@ -14,34 +15,38 @@ const DocumentaryCollectionActionSection: React.FC<DocumentaryCollectionActionSe
   selectedAction,
   onActionSelect
 }) => {
-  const actionCards = [
+  const { getProductName, getEventName, isClientPortal } = useProductEventMappings();
+
+  const productName = getProductName('ODC');
+
+  const actionCards = useMemo(() => [
     {
       id: 'submit',
-      title: 'Submit Bill',
-      description: 'Submit new documentary collection bills',
+      title: getEventName('ODC', 'SUB'),
+      description: `Submit new ${productName} bills`,
       icon: FileText,
       color: 'corporate-teal'
     },
     {
       id: 'update',
-      title: 'Update Bill',
-      description: 'Update existing documentary collection bills',
+      title: getEventName('ODC', 'UPD'),
+      description: `Update existing ${productName} bills`,
       icon: Edit,
       color: 'amber'
     },
     {
       id: 'finance',
-      title: 'Request Discount/Finance',
-      description: 'Request discount or financing for collection bills',
+      title: getEventName('ODC', 'FIN'),
+      description: `Request discount or financing for ${productName} bills`,
       icon: DollarSign,
       color: 'green'
     }
-  ];
+  ], [getEventName, productName]);
 
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-        Documentary Collection Processes
+        {productName} Processes
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
