@@ -3325,6 +3325,14 @@ export type Database = {
         }
         Returns: number
       }
+      delete_fields_by_product_event: {
+        Args: {
+          p_event_type: string
+          p_product_code: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       generate_assignment_ref: { Args: never; Returns: string }
       generate_documentary_collection_bill_ref: { Args: never; Returns: string }
       generate_export_bill_ref: { Args: never; Returns: string }
