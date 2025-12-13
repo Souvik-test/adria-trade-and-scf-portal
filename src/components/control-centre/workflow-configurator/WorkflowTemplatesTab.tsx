@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Settings, Copy, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Settings, Copy, Trash2, Eye, CheckCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
@@ -296,6 +296,25 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
     }
   };
 
+  const handleActivateTemplate = async (template: WorkflowTemplate) => {
+    try {
+      const { error } = await supabase
+        .from('workflow_templates')
+        .update({ status: 'Active' })
+        .eq('id', template.id);
+
+      if (error) throw error;
+
+      toast.success('Template activated successfully');
+      setTemplates(prev => prev.map(t => 
+        t.id === template.id ? { ...t, status: 'Active' } : t
+      ));
+    } catch (error) {
+      console.error('Error activating template:', error);
+      toast.error('Failed to activate template');
+    }
+  };
+
   const handleToggleTrigger = (triggerId: string) => {
     setTriggerTypes(prev =>
       prev.includes(triggerId)
@@ -498,6 +517,26 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                      {/* Activate button - only show for Submitted status */}
+                      {template.status.toLowerCase() === 'submitted' && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                onClick={() => handleActivateTemplate(template)}
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Activate Template</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
