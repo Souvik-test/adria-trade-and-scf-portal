@@ -151,6 +151,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               productCode={productCode}
               eventType={eventCode}
               currentPaneCode={currentPane.name}
+              sectionGridConfigs={currentPane.sections?.map(s => ({
+                name: s.name,
+                rows: s.rows || 2,
+                columns: s.columns || 2,
+              }))}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
                 // Sync with parent state
