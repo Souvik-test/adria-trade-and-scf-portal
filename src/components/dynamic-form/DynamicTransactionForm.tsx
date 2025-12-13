@@ -42,6 +42,8 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     formData,
     repeatableGroups,
     hasWorkflowTemplate,
+    productName,
+    eventName,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
@@ -62,31 +64,6 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     onSubmitSuccess,
     onClose,
   });
-
-  // Get product and event display names
-  const getProductName = (code: string) => {
-    const names: Record<string, string> = {
-      'ILC': 'Import Letter of Credit',
-      'ELC': 'Export Letter of Credit',
-      'OBG': 'Outward Bank Guarantee',
-      'IBG': 'Inward Bank Guarantee',
-      'ODC': 'Outward Documentary Collection',
-      'IDC': 'Inward Documentary Collection',
-      'SHG': 'Shipping Guarantee',
-    };
-    return names[code] || code;
-  };
-
-  const getEventName = (code: string) => {
-    const names: Record<string, string> = {
-      'ISS': 'Create LC',
-      'AMD': 'Amendment',
-      'CAN': 'Cancellation',
-      'TRF': 'Transfer',
-      'ASG': 'Assignment',
-    };
-    return names[code] || code;
-  };
 
   // Get current stage name from workflow
   const currentStageName = stages.length > 0 ? stages[0]?.stage_name : 'Data Entry';
@@ -139,7 +116,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       {/* Header with Product • Event • Stage */}
       <div className="border-b border-border pb-4">
         <h2 className="text-xl font-semibold text-foreground">
-          {title || `${getProductName(productCode)} • ${getEventName(eventCode)}`}
+          {title || `${productName} • ${eventName}`}
         </h2>
         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
