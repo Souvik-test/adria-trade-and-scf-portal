@@ -32,19 +32,28 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const [useDynamicForm, setUseDynamicForm] = useState<boolean | null>(null);
   const [businessApp, setBusinessApp] = useState<string>('');
 
-  // Check for workflow template when manual issuance is selected
+  // Initialize business app from localStorage
   useEffect(() => {
     const storedBusinessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
     setBusinessApp(storedBusinessCentre);
+  }, []);
 
-    if (selectedMethod === 'manual' && selectedAction === 'issuance') {
+  // Check for workflow template when manual issuance is selected (depends on businessApp being set)
+  useEffect(() => {
+    if (selectedMethod === 'manual' && selectedAction === 'issuance' && businessApp) {
       checkWorkflowTemplate();
     } else {
       setUseDynamicForm(null);
     }
-  }, [selectedMethod, selectedAction]);
+  }, [selectedMethod, selectedAction, businessApp]);
 
   const checkWorkflowTemplate = async () => {
+    // Skip dynamic form for TSCF Client - use hardcoded form
+    if (businessApp === 'Adria TSCF Client') {
+      setUseDynamicForm(false);
+      return;
+    }
+    
     try {
       const template = await findWorkflowTemplate('ILC', 'ISS', 'Manual');
       setUseDynamicForm(!!template);
