@@ -28,7 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Edit2, Map, Save, X } from "lucide-react";
+import { Edit2, Map, Save, X, Filter } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ProductEventDefinition {
   id: string;
@@ -78,15 +85,23 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
   const [definitions, setDefinitions] = useState<ProductEventDefinition[]>([]);
   const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedDefinition, setSelectedDefinition] = useState<ProductEventDefinition | null>(null);
+  const [productFilter, setProductFilter] = useState<string>("all");
   const [formData, setFormData] = useState<MappingFormData>({
     product_name: "",
     event_name: "",
     target_audience: [],
     business_application: [],
   });
+
+  // Get unique product codes for filter
+  const uniqueProductCodes = Array.from(new Set(definitions.map(d => d.product_code))).sort();
+
+  // Filter definitions by selected product
+  const filteredDefinitions = productFilter === "all" 
+    ? definitions 
+    : definitions.filter(d => d.product_code === productFilter);
 
   useEffect(() => {
     fetchData();
@@ -236,8 +251,22 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Product Event Mappings</CardTitle>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={productFilter} onValueChange={setProductFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Product" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Products</SelectItem>
+                {uniqueProductCodes.map((code) => (
+                  <SelectItem key={code} value={code}>{code}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -256,7 +285,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {definitions.map((def) => {
+                {filteredDefinitions.map((def) => {
                   const mapping = getMappingForDefinition(def);
                   return (
                     <TableRow key={def.id}>
