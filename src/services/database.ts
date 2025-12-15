@@ -64,12 +64,19 @@ const createTransactionRecord = async (
   productType: string,
   formData: any,
   actualTransactionNumber: string,
-  processType?: string
+  processType?: string,
+  businessApplication?: string
 ) => {
   const user = await getCurrentUserAsync();
   if (!user) {
     throw new Error('User not authenticated');
   }
+  
+  // Get business application from localStorage if not provided
+  const resolvedBusinessApplication = businessApplication || 
+    localStorage.getItem('businessCentre') || 
+    'Adria TSCF Client';
+  
   try {
     // Use RPC function to insert transaction (bypasses RLS for custom auth)
     const { data: transaction, error: transactionError } = await supabase.rpc('insert_transaction', {
@@ -82,7 +89,8 @@ const createTransactionRecord = async (
       p_amount: getAmount(productType, formData),
       p_currency: formData.currency || 'USD',
       p_created_by: user.email || user.id,
-      p_initiating_channel: 'Portal'
+      p_initiating_channel: 'Portal',
+      p_business_application: resolvedBusinessApplication
     });
 
     if (transactionError) throw transactionError;

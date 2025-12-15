@@ -30,6 +30,7 @@ interface Transaction {
   customer_ref: string | null;
   party_form: string | null;
   operations: string | null;
+  business_application: string | null;
 }
 
 interface Props {
@@ -171,7 +172,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     <th className="pb-2">Amount</th>
                     <th className="pb-2">Status</th>
                     <th className="pb-2">Created Date</th>
-                    <th className="pb-2">Created By</th>
+                    <th className="pb-2">Business Application</th>
                     <th className="pb-2">Channel</th>
                   </tr>
                 </thead>
@@ -194,7 +195,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
-                        <td className="py-2">{transaction.created_by}</td>
+                        <td className="py-2">{transaction.business_application || 'Adria TSCF Client'}</td>
                         <td className="py-2">{transaction.initiating_channel}</td>
                       </tr>
                     ))
