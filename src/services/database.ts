@@ -62,19 +62,37 @@ const getAmount = (productType: string, formData: any) => {
 
 // Map stage name to transaction status
 const getStatusFromStage = (stageName: string, isFinalApproval: boolean): string => {
+  // Only return 'Issued' for final approval stage completion
   if (isFinalApproval) return 'Issued';
   
   const normalizedStage = stageName.toLowerCase().trim();
   
+  // Data Entry stage -> Submitted
   if (normalizedStage.includes('data entry') || normalizedStage === 'data entry') {
     return 'Submitted';
-  } else if (normalizedStage.includes('limit') || normalizedStage === 'limit check') {
+  }
+  // Limit Check stage -> Limit Checked
+  else if (normalizedStage.includes('limit') || normalizedStage === 'limit check') {
     return 'Limit Checked';
-  } else if (normalizedStage.includes('approval')) {
+  }
+  // Approval stage (not final) -> Approved
+  else if (normalizedStage.includes('approval')) {
     return 'Approved';
   }
   
   return 'Submitted';
+};
+
+// Get channel based on business application
+const getChannelFromBusinessApp = (businessApplication: string): string => {
+  const normalizedApp = businessApplication.toLowerCase().trim();
+  
+  // For Process Orchestrator or TSCF Bank, channel is "Bank"
+  if (normalizedApp.includes('orchestrator') || normalizedApp.includes('tscf bank')) {
+    return 'Bank';
+  }
+  // For TSCF Client, channel is "Portal"
+  return 'Portal';
 };
 
 const createTransactionRecord = async (
@@ -98,6 +116,9 @@ const createTransactionRecord = async (
   // Use provided status or default to 'Submitted'
   const resolvedStatus = status || 'Submitted';
   
+  // Determine channel based on business application
+  const channel = getChannelFromBusinessApp(resolvedBusinessApplication);
+  
   try {
     // Use RPC function to insert transaction (bypasses RLS for custom auth)
     const { data: transaction, error: transactionError } = await supabase.rpc('insert_transaction', {
@@ -110,7 +131,7 @@ const createTransactionRecord = async (
       p_amount: getAmount(productType, formData),
       p_currency: formData.currency || 'USD',
       p_created_by: user.email || user.id,
-      p_initiating_channel: 'Portal',
+      p_initiating_channel: channel,
       p_business_application: resolvedBusinessApplication
     });
 
