@@ -5,13 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
@@ -25,9 +19,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, X, Map } from "lucide-react";
+import { Edit2, Map, Save, X } from "lucide-react";
+
+interface ProductEventDefinition {
+  id: string;
+  module_code: string;
+  product_code: string;
+  product_name: string;
+  event_code: string;
+  event_name: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface ProductEventMapping {
   id: string;
@@ -43,236 +55,146 @@ interface ProductEventMapping {
   updated_at: string;
 }
 
-interface ProductEventDefinition {
-  id: string;
-  module_code: string;
-  product_code: string;
+interface MappingFormData {
   product_name: string;
-  event_code: string;
   event_name: string;
+  target_audience: string[];
+  business_application: string[];
 }
 
 const TARGET_AUDIENCES = ["Corporate", "Bank", "Agent"] as const;
 const BUSINESS_APPLICATIONS = ["Adria TSCF Client", "Adria Process Orchestrator", "Adria TSCF Bank"] as const;
+
+const MODULE_NAMES: Record<string, string> = {
+  TF: "Trade Finance",
+  SCF: "Supply Chain Finance",
+};
 
 interface ProductEventMappingProps {
   onNavigateToManagePanes?: () => void;
 }
 
 export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMappingProps) => {
-  const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
   const [definitions, setDefinitions] = useState<ProductEventDefinition[]>([]);
+  const [mappings, setMappings] = useState<ProductEventMapping[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    module_code: "",
-    module_name: "",
-    product_code: "",
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedDefinition, setSelectedDefinition] = useState<ProductEventDefinition | null>(null);
+  const [formData, setFormData] = useState<MappingFormData>({
     product_name: "",
-    event_code: "",
     event_name: "",
-    target_audience: [] as string[],
-    business_application: [] as string[],
+    target_audience: [],
+    business_application: [],
   });
 
-  const handleModuleCodeChange = (value: string) => {
-    const moduleName = value === "TF" ? "Trade Finance" : value === "SCF" ? "Supply Chain Finance" : "";
-    setFormData({ 
-      ...formData, 
-      module_code: value, 
-      module_name: moduleName,
-      product_code: "",
-      product_name: "",
-      event_code: "",
-      event_name: ""
-    });
-  };
-
-  const handleProductCodeChange = (value: string) => {
-    const definition = definitions.find(
-      d => d.module_code === formData.module_code && d.product_code === value
-    );
-    setFormData({
-      ...formData,
-      product_code: value,
-      product_name: definition?.product_name || "",
-      event_code: "",
-      event_name: ""
-    });
-  };
-
-  const handleEventCodeChange = (value: string) => {
-    const definition = definitions.find(
-      d => d.module_code === formData.module_code && 
-           d.product_code === formData.product_code && 
-           d.event_code === value
-    );
-    setFormData({
-      ...formData,
-      event_code: value,
-      event_name: definition?.event_name || ""
-    });
-  };
-
-  // Get unique product codes for selected module
-  const availableProductCodes = Array.from(
-    new Set(
-      definitions
-        .filter(d => d.module_code === formData.module_code)
-        .map(d => d.product_code)
-    )
-  );
-
-  // Get event codes for selected module and product
-  const availableEventCodes = definitions
-    .filter(
-      d => d.module_code === formData.module_code && 
-           d.product_code === formData.product_code
-    )
-    .map(d => ({ code: d.event_code, name: d.event_name }));
-
   useEffect(() => {
-    fetchMappings();
-    fetchDefinitions();
+    fetchData();
   }, []);
 
-  const fetchMappings = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
+      // Fetch definitions
+      const { data: defsData, error: defsError } = await supabase
+        .from("product_event_definitions")
+        .select("*")
+        .order("module_code", { ascending: true })
+        .order("product_code", { ascending: true })
+        .order("event_code", { ascending: true });
+
+      if (defsError) throw defsError;
+      setDefinitions(defsData || []);
+
+      // Fetch existing mappings
       const session = customAuth.getSession();
-      if (!session?.user?.id) throw new Error("User not authenticated");
-
-      const { data, error } = await supabase.rpc('get_product_event_mappings', {
-        p_user_id: session.user.id
-      });
-
-      if (error) throw error;
-      setMappings(data || []);
+      if (session?.user?.id) {
+        const { data: mappingsData, error: mappingsError } = await supabase.rpc('get_product_event_mappings', {
+          p_user_id: session.user.id
+        });
+        if (!mappingsError) {
+          setMappings(mappingsData || []);
+        }
+      }
     } catch (error: any) {
-      toast.error("Failed to load product event mappings", {
-        description: error.message,
-      });
+      toast.error("Failed to load data", { description: error.message });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDefinitions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("product_event_definitions")
-        .select("*")
-        .order("product_code", { ascending: true });
-
-      if (error) throw error;
-      setDefinitions(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load product event definitions", {
-        description: error.message,
-      });
-    }
+  // Find mapping for a given definition
+  const getMappingForDefinition = (def: ProductEventDefinition): ProductEventMapping | undefined => {
+    return mappings.find(
+      m => m.module_code === def.module_code && 
+           m.product_code === def.product_code && 
+           m.event_code === def.event_code
+    );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEdit = (def: ProductEventDefinition) => {
+    const existingMapping = getMappingForDefinition(def);
+    setSelectedDefinition(def);
+    setFormData({
+      product_name: existingMapping?.product_name || def.product_name,
+      event_name: existingMapping?.event_name || def.event_name,
+      target_audience: existingMapping?.target_audience || [],
+      business_application: existingMapping?.business_application || [],
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!selectedDefinition) return;
 
     try {
-      // Use custom auth instead of supabase auth
       const session = customAuth.getSession();
       if (!session?.user?.id) throw new Error("User not authenticated");
 
-      if (editingId) {
+      const existingMapping = getMappingForDefinition(selectedDefinition);
+      const moduleName = MODULE_NAMES[selectedDefinition.module_code] || selectedDefinition.module_code;
+
+      if (existingMapping) {
+        // Update existing mapping
         const { error } = await supabase.rpc('update_product_event_mapping', {
           p_user_id: session.user.id,
-          p_mapping_id: editingId,
-          p_module_code: formData.module_code,
-          p_module_name: formData.module_name,
-          p_product_code: formData.product_code,
+          p_mapping_id: existingMapping.id,
+          p_module_code: selectedDefinition.module_code,
+          p_module_name: moduleName,
+          p_product_code: selectedDefinition.product_code,
           p_product_name: formData.product_name,
-          p_event_code: formData.event_code,
+          p_event_code: selectedDefinition.event_code,
           p_event_name: formData.event_name,
           p_target_audience: formData.target_audience,
           p_business_application: formData.business_application
         });
 
         if (error) throw error;
-        toast.success("Product event mapping updated successfully");
+        toast.success("Mapping updated successfully");
       } else {
+        // Create new mapping
         const { error } = await supabase.rpc('insert_product_event_mapping', {
           p_user_id: session.user.id,
-          p_module_code: formData.module_code,
-          p_module_name: formData.module_name,
-          p_product_code: formData.product_code,
+          p_module_code: selectedDefinition.module_code,
+          p_module_name: moduleName,
+          p_product_code: selectedDefinition.product_code,
           p_product_name: formData.product_name,
-          p_event_code: formData.event_code,
+          p_event_code: selectedDefinition.event_code,
           p_event_name: formData.event_name,
           p_target_audience: formData.target_audience,
           p_business_application: formData.business_application
         });
 
         if (error) throw error;
-        toast.success("Product event mapping created successfully");
+        toast.success("Mapping created successfully");
       }
 
-      resetForm();
-      fetchMappings();
+      setEditDialogOpen(false);
+      setSelectedDefinition(null);
+      fetchData();
     } catch (error: any) {
-      toast.error("Failed to save product event mapping", {
-        description: error.message,
-      });
+      toast.error("Failed to save mapping", { description: error.message });
     }
-  };
-
-  const handleEdit = (mapping: ProductEventMapping) => {
-    setFormData({
-      module_code: mapping.module_code,
-      module_name: mapping.module_name,
-      product_code: mapping.product_code,
-      product_name: mapping.product_name,
-      event_code: mapping.event_code,
-      event_name: mapping.event_name,
-      target_audience: mapping.target_audience,
-      business_application: mapping.business_application || [],
-    });
-    setEditingId(mapping.id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this mapping?")) return;
-
-    try {
-      const session = customAuth.getSession();
-      if (!session?.user?.id) throw new Error("User not authenticated");
-
-      const { error } = await supabase.rpc('delete_product_event_mapping', {
-        p_user_id: session.user.id,
-        p_mapping_id: id
-      });
-
-      if (error) throw error;
-      toast.success("Product event mapping deleted successfully");
-      fetchMappings();
-    } catch (error: any) {
-      toast.error("Failed to delete product event mapping", {
-        description: error.message,
-      });
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      module_code: "",
-      module_name: "",
-      product_code: "",
-      product_name: "",
-      event_code: "",
-      event_name: "",
-      target_audience: [],
-      business_application: [],
-    });
-    setEditingId(null);
-    setShowForm(false);
   };
 
   const toggleAudience = (audience: string) => {
@@ -293,8 +215,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     }));
   };
 
-  const handleMapToPanes = (mapping: ProductEventMapping) => {
-    // Navigate to Manage Panes and Sections
+  const handleMapToPanes = (def: ProductEventDefinition) => {
     if (onNavigateToManagePanes) {
       onNavigateToManagePanes();
     }
@@ -312,202 +233,14 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Product Event Mapping</h1>
-        {!showForm && (
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Mapping
-          </Button>
-        )}
       </div>
-
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {editingId ? "Edit" : "Add"} Product Event Mapping
-              </CardTitle>
-              <Button variant="ghost" size="icon" onClick={resetForm}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="module_code">Module Code</Label>
-                  <Select
-                    value={formData.module_code}
-                    onValueChange={handleModuleCodeChange}
-                  >
-                    <SelectTrigger id="module_code">
-                      <SelectValue placeholder="Select module code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TF">TF</SelectItem>
-                      <SelectItem value="SCF">SCF</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="module_name">Module Name</Label>
-                  <Input
-                    id="module_name"
-                    value={formData.module_name}
-                    readOnly
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="product_code">Product Code</Label>
-                  <Select
-                    value={formData.product_code}
-                    onValueChange={handleProductCodeChange}
-                    disabled={!formData.module_code}
-                  >
-                    <SelectTrigger id="product_code">
-                      <SelectValue placeholder="Select product code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProductCodes.map((code) => (
-                        <SelectItem key={code} value={code}>
-                          {code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="product_name">Product Name</Label>
-                  <Input
-                    id="product_name"
-                    value={formData.product_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, product_name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="event_code">Event Code</Label>
-                  <Select
-                    value={formData.event_code}
-                    onValueChange={handleEventCodeChange}
-                    disabled={!formData.product_code}
-                  >
-                    <SelectTrigger id="event_code">
-                      <SelectValue placeholder="Select event code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableEventCodes.map((event) => (
-                        <SelectItem key={event.code} value={event.code}>
-                          {event.code} - {event.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="event_name">Event Name</Label>
-                  <Input
-                    id="event_name"
-                    value={formData.event_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, event_name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customer_segment">Customer Segment</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        {formData.target_audience.length > 0
-                          ? formData.target_audience.join(", ")
-                          : "Select customer segments"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-4 bg-background" align="start">
-                      <div className="space-y-2">
-                        {TARGET_AUDIENCES.map((audience) => (
-                          <div key={audience} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`audience-${audience}`}
-                              checked={formData.target_audience.includes(audience)}
-                              onCheckedChange={() => toggleAudience(audience)}
-                            />
-                            <label
-                              htmlFor={`audience-${audience}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                            >
-                              {audience}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="business_application">Business Application</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        {formData.business_application.length > 0
-                          ? formData.business_application.join(", ")
-                          : "Select business applications"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-4 bg-background" align="start">
-                      <div className="space-y-2">
-                        {BUSINESS_APPLICATIONS.map((app) => (
-                          <div key={app} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`app-${app}`}
-                              checked={formData.business_application.includes(app)}
-                              onCheckedChange={() => toggleBusinessApplication(app)}
-                            />
-                            <label
-                              htmlFor={`app-${app}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                            >
-                              {app}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">
-                  {editingId ? "Update" : "Create"} Mapping
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
           <CardTitle>Product Event Mappings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -523,45 +256,40 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mappings.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground">
-                      No product event mappings found. Click "Add Mapping" to create one.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  mappings.map((mapping) => (
-                    <TableRow key={mapping.id}>
-                      <TableCell className="font-medium">
-                        {mapping.module_code}
-                      </TableCell>
-                      <TableCell>{mapping.module_name}</TableCell>
-                      <TableCell>{mapping.product_code}</TableCell>
-                      <TableCell>{mapping.product_name}</TableCell>
-                      <TableCell>{mapping.event_code}</TableCell>
-                      <TableCell>{mapping.event_name}</TableCell>
+                {definitions.map((def) => {
+                  const mapping = getMappingForDefinition(def);
+                  return (
+                    <TableRow key={def.id}>
+                      <TableCell className="font-medium">{def.module_code}</TableCell>
+                      <TableCell>{MODULE_NAMES[def.module_code] || def.module_code}</TableCell>
+                      <TableCell>{def.product_code}</TableCell>
+                      <TableCell>{mapping?.product_name || def.product_name}</TableCell>
+                      <TableCell>{def.event_code}</TableCell>
+                      <TableCell>{mapping?.event_name || def.event_name}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {mapping.target_audience?.map((audience) => (
-                            <span
-                              key={audience}
-                              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary"
+                          {mapping?.target_audience?.map((audience) => (
+                            <Badge 
+                              key={audience} 
+                              variant="outline" 
+                              className="bg-orange-100 text-orange-700 border-orange-200"
                             >
                               {audience}
-                            </span>
+                            </Badge>
                           ))}
+                          {(!mapping?.target_audience || mapping.target_audience.length === 0) && (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {mapping.business_application?.map((app) => (
-                            <span
-                              key={app}
-                              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary/10 text-secondary-foreground"
-                            >
-                              {app}
-                            </span>
+                        <div className="flex flex-col gap-1 text-sm">
+                          {mapping?.business_application?.map((app) => (
+                            <span key={app}>{app}</span>
                           ))}
+                          {(!mapping?.business_application || mapping.business_application.length === 0) && (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -569,7 +297,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleMapToPanes(mapping)}
+                            onClick={() => handleMapToPanes(def)}
                             title="Map to Panes and Sections"
                           >
                             <Map className="h-4 w-4" />
@@ -577,27 +305,149 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(mapping)}
+                            onClick={() => handleEdit(def)}
+                            title="Edit"
                           >
                             <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(mapping.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Product Event Mapping</DialogTitle>
+          </DialogHeader>
+          {selectedDefinition && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <Label className="text-muted-foreground">Module Code</Label>
+                  <p className="font-medium">{selectedDefinition.module_code}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Module Name</Label>
+                  <p className="font-medium">{MODULE_NAMES[selectedDefinition.module_code]}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Product Code</Label>
+                  <p className="font-medium">{selectedDefinition.product_code}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Event Code</Label>
+                  <p className="font-medium">{selectedDefinition.event_code}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="product_name">Product Name</Label>
+                <Input
+                  id="product_name"
+                  value={formData.product_name}
+                  onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="event_name">Event Name</Label>
+                <Input
+                  id="event_name"
+                  value={formData.event_name}
+                  onChange={(e) => setFormData({ ...formData, event_name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Customer Segment</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      {formData.target_audience.length > 0
+                        ? formData.target_audience.join(", ")
+                        : "Select customer segments"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-4 bg-background" align="start">
+                    <div className="space-y-2">
+                      {TARGET_AUDIENCES.map((audience) => (
+                        <div key={audience} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`audience-${audience}`}
+                            checked={formData.target_audience.includes(audience)}
+                            onCheckedChange={() => toggleAudience(audience)}
+                          />
+                          <label
+                            htmlFor={`audience-${audience}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {audience}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Business Application</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      {formData.business_application.length > 0
+                        ? formData.business_application.join(", ")
+                        : "Select business applications"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-4 bg-background" align="start">
+                    <div className="space-y-2">
+                      {BUSINESS_APPLICATIONS.map((app) => (
+                        <div key={app} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`app-${app}`}
+                            checked={formData.business_application.includes(app)}
+                            onCheckedChange={() => toggleBusinessApplication(app)}
+                          />
+                          <label
+                            htmlFor={`app-${app}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {app}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
