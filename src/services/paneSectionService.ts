@@ -107,6 +107,8 @@ const parseSectionsConfig = (sectionsData: any): SectionConfig[] => {
     sequence: section.sequence || 1,
     rows: section.rows || 1,
     columns: section.columns || 2,
+    isRepeatable: section.isRepeatable || false,
+    groupId: section.groupId || '',
   }));
 };
 
