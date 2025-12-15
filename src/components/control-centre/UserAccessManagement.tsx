@@ -13,7 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Search, Shield, Users, Save, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Search, Shield, Users, Save, Loader2, KeyRound, Layout, Settings } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ManagedUser {
   id: string;
@@ -53,6 +54,45 @@ const BUSINESS_APPLICATIONS = [
 
 const WORKFLOW_STAGES = ['Data Entry', 'Limit Check', 'Approval', '__ALL__'];
 
+// Screen access configuration
+const SCREEN_ACCESS_CONFIG = {
+  dashboard: { label: 'Dashboard', items: ['Home Dashboard', 'Analytics Dashboard'] },
+  controlCentre: { 
+    label: 'Control Centre', 
+    items: [
+      'Dynamic Form Engine',
+      'Product Event Mapping',
+      'Manage Panes and Sections',
+      'Field Definition',
+      'NextGen Workflow Configurator',
+      'Posting Configuration',
+      'Business Validation Engine',
+      'Fee Engine',
+      'Document Template Engine',
+      'Notification Configuration',
+      'Exchange Rate Maintenance'
+    ]
+  },
+  administration: { 
+    label: 'Administration', 
+    items: ['User Access Management', 'Customer On-boarding', 'Holiday Maintenance', 'Platform Configuration']
+  },
+  foundationalData: {
+    label: 'Foundational Data Library',
+    items: ['Country Master', 'State Master', 'City Master', 'Currency', 'Bank Directory', 'Incoterms', 'Goods/Commodity', 'Ports', 'Pre-Defined Narrations', 'Tax Codes']
+  },
+  inquiryReports: { 
+    label: 'Inquiry & Reports', 
+    items: ['Transaction Inquiry', 'Audit Reports', 'User Activity Logs', 'System Reports']
+  }
+};
+
+interface ScreenPermission {
+  category: string;
+  screen: string;
+  can_access: boolean;
+}
+
 const UserAccessManagement: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -79,10 +119,12 @@ const UserAccessManagement: React.FC = () => {
   const [productEvents, setProductEvents] = useState<ProductEventOption[]>([]);
   const [permissions, setPermissions] = useState<PermissionRow[]>([]);
   const [permissionSearchTerm, setPermissionSearchTerm] = useState('');
+  const [screenPermissions, setScreenPermissions] = useState<ScreenPermission[]>([]);
   
   // Collapsible states
   const [userSectionOpen, setUserSectionOpen] = useState(true);
   const [permissionSectionOpen, setPermissionSectionOpen] = useState(true);
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
 
   useEffect(() => {
     initializeData();
@@ -130,7 +172,6 @@ const UserAccessManagement: React.FC = () => {
     const { data, error } = await (supabase
       .from('product_event_mapping') as any)
       .select('module_code, product_code, product_name, event_code, event_name')
-      .eq('is_active', true)
       .order('module_code');
 
     if (error) {
@@ -138,7 +179,22 @@ const UserAccessManagement: React.FC = () => {
       return;
     }
 
+    console.log('Loaded product events:', data);
     setProductEvents(data || []);
+  };
+
+  const initializeScreenPermissions = (user: ManagedUser) => {
+    const permissions: ScreenPermission[] = [];
+    Object.entries(SCREEN_ACCESS_CONFIG).forEach(([category, config]) => {
+      config.items.forEach(screen => {
+        permissions.push({
+          category: config.label,
+          screen,
+          can_access: user.is_super_user || false
+        });
+      });
+    });
+    setScreenPermissions(permissions);
   };
 
   const loadUserPermissions = async (userId: string) => {
@@ -185,7 +241,29 @@ const UserAccessManagement: React.FC = () => {
   const handleUserSelect = async (user: ManagedUser) => {
     setSelectedUser(user);
     await loadUserPermissions(user.id);
+    initializeScreenPermissions(user);
     setPermissionSectionOpen(true);
+  };
+
+  const openPermissionDialog = async (user: ManagedUser) => {
+    setSelectedUser(user);
+    await loadUserPermissions(user.id);
+    initializeScreenPermissions(user);
+    setPermissionDialogOpen(true);
+  };
+
+  const toggleScreenPermission = (index: number) => {
+    if (selectedUser?.is_super_user) return;
+    const updated = [...screenPermissions];
+    updated[index] = { ...updated[index], can_access: !updated[index].can_access };
+    setScreenPermissions(updated);
+  };
+
+  const selectAllScreenCategory = (category: string, value: boolean) => {
+    if (selectedUser?.is_super_user) return;
+    setScreenPermissions(screenPermissions.map(sp => 
+      sp.category === category ? { ...sp, can_access: value } : sp
+    ));
   };
 
   const openCreateUserDialog = () => {
@@ -434,10 +512,18 @@ const UserAccessManagement: React.FC = () => {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditUserDialog(user); }}>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => { e.stopPropagation(); openPermissionDialog(user); }}
+                            title="Manage Permissions"
+                          >
+                            <KeyRound className="h-4 w-4 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditUserDialog(user); }} title="Edit User">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }}>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }} title="Delete User">
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
@@ -458,53 +544,47 @@ const UserAccessManagement: React.FC = () => {
         </Card>
       </Collapsible>
 
-      {/* Section 2: Role Assignment */}
-      {selectedUser && (
-        <Collapsible open={permissionSectionOpen} onOpenChange={setPermissionSectionOpen}>
-          <Card>
-            <CardHeader className="pb-3">
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  {permissionSectionOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  <div>
-                    <CardTitle className="text-lg">Role Assignment for: {selectedUser.full_name}</CardTitle>
-                    <CardDescription>Configure permissions for this user</CardDescription>
-                  </div>
-                </div>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent>
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={selectedUser.is_super_user}
-                        disabled
-                      />
-                      <Label className="text-sm">
-                        Super User {selectedUser.is_super_user && '(All permissions granted)'}
-                      </Label>
-                    </div>
-                  </div>
-                  
-                  {!selectedUser.is_super_user && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Select All:</span>
-                      <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_maker')}>
-                        Maker
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_viewer')}>
-                        Viewer
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_checker')}>
-                        Checker
-                      </Button>
-                    </div>
-                  )}
-                </div>
+      {/* Permission Management Dialog */}
+      <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Manage Permissions: {selectedUser?.full_name}
+            </DialogTitle>
+            <DialogDescription>
+              Configure product-event and screen access permissions for this user
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-center gap-4 py-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={selectedUser?.is_super_user || false}
+                disabled
+              />
+              <Label className="text-sm">
+                Super User {selectedUser?.is_super_user && '(All permissions granted)'}
+              </Label>
+            </div>
+          </div>
 
-                <div className="flex items-center gap-2 mb-4">
+          <Tabs defaultValue="product-events" className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="product-events" className="flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                Product-Event Permissions
+              </TabsTrigger>
+              <TabsTrigger value="screen-access" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Screen Access
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Tab 1: Product-Event Permissions */}
+            <TabsContent value="product-events" className="flex-1 min-h-0 space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by product or event..."
@@ -513,86 +593,163 @@ const UserAccessManagement: React.FC = () => {
                     className="max-w-xs"
                   />
                 </div>
-
-                <ScrollArea className="h-[400px] border rounded-md">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-background z-10">
-                      <TableRow>
-                        <TableHead className="w-[100px]">Module</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Stage</TableHead>
-                        <TableHead className="text-center w-[80px]">Maker</TableHead>
-                        <TableHead className="text-center w-[80px]">Viewer</TableHead>
-                        <TableHead className="text-center w-[80px]">Checker</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPermissions.map((perm, index) => (
-                        <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.stage_name}`}>
-                          <TableCell>
-                            <Badge variant="outline">{perm.module_code}</Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">{perm.product_name}</TableCell>
-                          <TableCell>{perm.event_name}</TableCell>
-                          <TableCell>
-                            <span className={perm.stage_name === '__ALL__' ? 'font-semibold text-primary' : ''}>
-                              {perm.stage_name === '__ALL__' ? 'All Stages' : perm.stage_name}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Checkbox
-                              checked={selectedUser.is_super_user || perm.is_maker}
-                              disabled={selectedUser.is_super_user}
-                              onCheckedChange={() => togglePermission(index, 'is_maker')}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Checkbox
-                              checked={selectedUser.is_super_user || perm.is_viewer}
-                              disabled={selectedUser.is_super_user}
-                              onCheckedChange={() => togglePermission(index, 'is_viewer')}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Checkbox
-                              checked={selectedUser.is_super_user || perm.is_checker}
-                              disabled={selectedUser.is_super_user}
-                              onCheckedChange={() => togglePermission(index, 'is_checker')}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {filteredPermissions.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                            {productEvents.length === 0 
-                              ? 'No product-event mappings configured' 
-                              : 'No matching permissions found'}
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-
-                {!selectedUser.is_super_user && (
-                  <div className="flex justify-end mt-4">
-                    <Button onClick={handleSavePermissions} disabled={savingPermissions}>
-                      {savingPermissions ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-2" />
-                      )}
-                      Save Permissions
+                
+                {!selectedUser?.is_super_user && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Select All:</span>
+                    <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_maker')}>
+                      Maker
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_viewer')}>
+                      Viewer
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => selectAllColumn('is_checker')}>
+                      Checker
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
+              </div>
+
+              <ScrollArea className="h-[350px] border rounded-md">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-[100px]">Module</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Event</TableHead>
+                      <TableHead>Stage</TableHead>
+                      <TableHead className="text-center w-[80px]">Maker</TableHead>
+                      <TableHead className="text-center w-[80px]">Viewer</TableHead>
+                      <TableHead className="text-center w-[80px]">Checker</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPermissions.map((perm, index) => (
+                      <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.stage_name}`}>
+                        <TableCell>
+                          <Badge variant="outline">{perm.module_code}</Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{perm.product_name}</TableCell>
+                        <TableCell>{perm.event_name}</TableCell>
+                        <TableCell>
+                          <span className={perm.stage_name === '__ALL__' ? 'font-semibold text-primary' : ''}>
+                            {perm.stage_name === '__ALL__' ? 'All Stages' : perm.stage_name}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={selectedUser?.is_super_user || perm.is_maker}
+                            disabled={selectedUser?.is_super_user}
+                            onCheckedChange={() => togglePermission(index, 'is_maker')}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={selectedUser?.is_super_user || perm.is_viewer}
+                            disabled={selectedUser?.is_super_user}
+                            onCheckedChange={() => togglePermission(index, 'is_viewer')}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={selectedUser?.is_super_user || perm.is_checker}
+                            disabled={selectedUser?.is_super_user}
+                            onCheckedChange={() => togglePermission(index, 'is_checker')}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredPermissions.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          {productEvents.length === 0 
+                            ? 'No product-event mappings configured' 
+                            : 'No matching permissions found'}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </TabsContent>
+            
+            {/* Tab 2: Screen Access Permissions */}
+            <TabsContent value="screen-access" className="flex-1 min-h-0">
+              <ScrollArea className="h-[400px]">
+                <div className="space-y-6">
+                  {Object.entries(SCREEN_ACCESS_CONFIG).map(([key, config]) => {
+                    const categoryPermissions = screenPermissions.filter(sp => sp.category === config.label);
+                    const allChecked = categoryPermissions.every(sp => sp.can_access);
+                    
+                    return (
+                      <div key={key} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-sm flex items-center gap-2">
+                            {key === 'dashboard' && <Layout className="h-4 w-4" />}
+                            {key === 'controlCentre' && <Settings className="h-4 w-4" />}
+                            {key === 'administration' && <Users className="h-4 w-4" />}
+                            {key === 'foundationalData' && <Shield className="h-4 w-4" />}
+                            {key === 'inquiryReports' && <Search className="h-4 w-4" />}
+                            {config.label}
+                          </h4>
+                          {!selectedUser?.is_super_user && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => selectAllScreenCategory(config.label, !allChecked)}
+                            >
+                              {allChecked ? 'Deselect All' : 'Select All'}
+                            </Button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {config.items.map((screen) => {
+                            const permIndex = screenPermissions.findIndex(
+                              sp => sp.category === config.label && sp.screen === screen
+                            );
+                            const perm = screenPermissions[permIndex];
+                            
+                            return (
+                              <div key={screen} className="flex items-center gap-2 p-2 rounded hover:bg-accent">
+                                <Checkbox
+                                  id={`screen-${key}-${screen}`}
+                                  checked={selectedUser?.is_super_user || perm?.can_access || false}
+                                  disabled={selectedUser?.is_super_user}
+                                  onCheckedChange={() => permIndex >= 0 && toggleScreenPermission(permIndex)}
+                                />
+                                <Label 
+                                  htmlFor={`screen-${key}-${screen}`} 
+                                  className="text-sm font-normal cursor-pointer"
+                                >
+                                  {screen}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => setPermissionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSavePermissions} disabled={savingPermissions || selectedUser?.is_super_user}>
+              {savingPermissions ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Save Permissions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create/Edit User Dialog */}
       <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
