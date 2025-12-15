@@ -90,6 +90,32 @@ interface UseDynamicTransactionReturn {
 
 const generateInstanceId = () => `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+// Field mappings for cross-stage data continuity
+const FIELD_MAPPINGS: Record<string, string[]> = {
+  'Transaction Amount': ['LC Amount', 'LC  Amount', 'lc_amount', 'lcAmount'],
+  'Transaction Currency': ['LC Currency', 'LC  Currency', 'lc_currency', 'lcCurrency'],
+  'Transaction  Amount': ['LC Amount', 'LC  Amount', 'lc_amount', 'lcAmount'],
+  'Transaction  Currency': ['LC Currency', 'LC  Currency', 'lc_currency', 'lcCurrency'],
+};
+
+// Apply field mappings to map values from previous stage fields to current stage fields
+const applyFieldMappings = (data: Record<string, any>): Record<string, any> => {
+  const mappedData = { ...data };
+  
+  Object.entries(FIELD_MAPPINGS).forEach(([targetField, sourceFields]) => {
+    if (!mappedData[targetField] || mappedData[targetField] === '') {
+      for (const sourceField of sourceFields) {
+        if (mappedData[sourceField] !== undefined && mappedData[sourceField] !== '') {
+          mappedData[targetField] = mappedData[sourceField];
+          break;
+        }
+      }
+    }
+  });
+  
+  return mappedData;
+};
+
 export const useDynamicTransaction = ({
   productCode,
   eventCode,
@@ -123,8 +149,10 @@ export const useDynamicTransaction = ({
   // Transaction completion state
   const [isTransactionComplete, setIsTransactionComplete] = useState(false);
 
-  // Form state - initialize with initialFormData if continuing an existing transaction
-  const [formData, setFormData] = useState<DynamicFormData>(initialFormData || {});
+  // Form state - initialize with mapped initialFormData if continuing an existing transaction
+  const [formData, setFormData] = useState<DynamicFormData>(
+    initialFormData ? applyFieldMappings(initialFormData) : {}
+  );
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>({});
   
   // Transaction reference for tracking across stages
@@ -340,9 +368,14 @@ export const useDynamicTransaction = ({
       }
       
       // Create/update transaction record with stage-appropriate status
+      // Merge initialFormData with current formData to preserve all stage data
+      const mergedFormData = initialFormData 
+        ? { ...initialFormData, ...formData }
+        : formData;
+      
       await createTransactionRecord(
         productCode,
-        formData,
+        mergedFormData,
         transactionRefRef.current,
         eventCode === 'ISS' ? 'Issuance' : eventCode,
         businessApp,

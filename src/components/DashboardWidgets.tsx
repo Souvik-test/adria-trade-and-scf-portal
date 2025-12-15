@@ -26,6 +26,7 @@ interface Transaction {
   party_form: string | null;
   operations: string | null;
   business_application: string | null;
+  form_data?: any;
 }
 
 const DashboardWidgets: React.FC = () => {
@@ -98,6 +99,7 @@ const DashboardWidgets: React.FC = () => {
         isLoading={isLoading}
         transactionFilter={transactionFilter}
         setTransactionFilter={setTransactionFilter}
+        onRefresh={loadTransactions}
       />
 
       {/* Small Widgets */}
