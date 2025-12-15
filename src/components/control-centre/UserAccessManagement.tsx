@@ -112,12 +112,7 @@ const UserAccessManagement: React.FC = () => {
       setCurrentUserId(currentUserData.id);
       setIsSuperUser(currentUserData.is_super_user || false);
 
-      if (!currentUserData.is_super_user) {
-        setLoading(false);
-        return;
-      }
-
-      // Load users and product-event mappings
+      // Load users and product-event mappings for all authorized users
       await Promise.all([loadUsers(), loadProductEvents()]);
     } catch (error) {
       console.error('Error initializing:', error);
@@ -381,17 +376,6 @@ const UserAccessManagement: React.FC = () => {
     );
   }
 
-  if (!isSuperUser) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
-          <p className="text-muted-foreground">Super user privileges required to access User Access Management.</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6 p-6">
