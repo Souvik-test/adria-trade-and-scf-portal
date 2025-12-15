@@ -71,22 +71,19 @@ const createTransactionRecord = async (
     throw new Error('User not authenticated');
   }
   try {
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: user.id,
-        transaction_ref: actualTransactionNumber,
-        product_type: productType,
-        process_type: processType || "Create",
-        status: 'Submitted',
-        customer_name: getCustomerName(productType, formData),
-        amount: getAmount(productType, formData),
-        currency: formData.currency || 'USD',
-        created_by: user.email || user.id,
-        initiating_channel: 'Portal'
-      })
-      .select()
-      .single();
+    // Use RPC function to insert transaction (bypasses RLS for custom auth)
+    const { data: transaction, error: transactionError } = await supabase.rpc('insert_transaction', {
+      p_user_id: user.id,
+      p_transaction_ref: actualTransactionNumber,
+      p_product_type: productType,
+      p_process_type: processType || "Create",
+      p_status: 'Submitted',
+      p_customer_name: getCustomerName(productType, formData),
+      p_amount: getAmount(productType, formData),
+      p_currency: formData.currency || 'USD',
+      p_created_by: user.email || user.id,
+      p_initiating_channel: 'Portal'
+    });
 
     if (transactionError) throw transactionError;
     return transaction;

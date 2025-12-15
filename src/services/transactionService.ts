@@ -286,19 +286,19 @@ export const searchPurchaseOrder = async (poNumber: string) => {
   }
 };
 
-// Fetch user transactions
+// Fetch user transactions using security definer function for custom auth
 export const fetchTransactions = async () => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
   try {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    // Use RPC function to bypass RLS issues with custom auth
+    const { data, error } = await supabase.rpc('get_user_transactions', {
+      p_user_id: user.id
+    });
     if (error) throw error;
     return data || [];
   } catch (error) {
+    console.error('Error fetching transactions:', error);
     throw error;
   }
 };
