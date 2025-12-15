@@ -3376,6 +3376,7 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      check_is_super_user: { Args: { p_user_id: string }; Returns: boolean }
       copy_field_repository: {
         Args: { p_field_id: string; p_user_id: string }
         Returns: Json

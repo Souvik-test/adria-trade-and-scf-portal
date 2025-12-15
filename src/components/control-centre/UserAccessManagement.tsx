@@ -93,14 +93,15 @@ const UserAccessManagement: React.FC = () => {
       if (customSession?.user?.id) {
         effectiveUserId = customSession.user.id;
 
-        const { data: userData, error } = await supabase
-          .from('custom_users')
-          .select('is_super_user')
-          .eq('id', customSession.user.id)
-          .single();
+        // Use security definer function to check super user status (bypasses RLS)
+        const { data: isSuperUserData, error } = await supabase.rpc('check_is_super_user', {
+          p_user_id: customSession.user.id
+        });
 
-        if (error) throw error;
-        superUserFlag = !!userData?.is_super_user;
+        if (error) {
+          console.error('Error checking super user status:', error);
+        }
+        superUserFlag = !!isSuperUserData;
       } else {
         // 2) Fallback to Supabase Auth session (email/password login)
         const { data, error } = await supabase.auth.getUser();
