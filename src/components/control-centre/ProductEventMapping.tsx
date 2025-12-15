@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Edit2, Map, Save, X, Filter } from "lucide-react";
+import { Edit2, Map, Plus, Filter, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -62,6 +62,16 @@ interface ProductEventMapping {
   updated_at: string;
 }
 
+// Combined display row - either a definition or a mapping
+interface DisplayRow {
+  type: 'definition' | 'mapping';
+  definition: ProductEventDefinition;
+  mapping?: ProductEventMapping;
+  // For display purposes
+  displayProductName: string;
+  displayEventName: string;
+}
+
 interface MappingFormData {
   product_name: string;
   event_name: string;
@@ -87,6 +97,8 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedDefinition, setSelectedDefinition] = useState<ProductEventDefinition | null>(null);
+  const [selectedMapping, setSelectedMapping] = useState<ProductEventMapping | null>(null);
+  const [isNewMapping, setIsNewMapping] = useState(false);
   const [productFilter, setProductFilter] = useState<string>("all");
   const [formData, setFormData] = useState<MappingFormData>({
     product_name: "",
@@ -98,10 +110,68 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
   // Get unique product codes for filter
   const uniqueProductCodes = Array.from(new Set(definitions.map(d => d.product_code))).sort();
 
-  // Filter definitions by selected product
-  const filteredDefinitions = productFilter === "all" 
-    ? definitions 
-    : definitions.filter(d => d.product_code === productFilter);
+  // Build display rows - show each mapping as a separate row
+  const buildDisplayRows = (): DisplayRow[] => {
+    const rows: DisplayRow[] = [];
+    
+    // Filter definitions by selected product
+    const filteredDefs = productFilter === "all" 
+      ? definitions 
+      : definitions.filter(d => d.product_code === productFilter);
+
+    for (const def of filteredDefs) {
+      // Find all mappings for this definition
+      const defMappings = mappings.filter(
+        m => m.module_code === def.module_code && 
+             m.product_code === def.product_code && 
+             m.event_code === def.event_code
+      );
+
+      if (defMappings.length === 0) {
+        // No mappings - show definition row
+        rows.push({
+          type: 'definition',
+          definition: def,
+          displayProductName: def.product_name,
+          displayEventName: def.event_name,
+        });
+      } else {
+        // Show each mapping as a separate row
+        for (const mapping of defMappings) {
+          rows.push({
+            type: 'mapping',
+            definition: def,
+            mapping: mapping,
+            displayProductName: mapping.product_name,
+            displayEventName: mapping.event_name,
+          });
+        }
+      }
+    }
+
+    return rows;
+  };
+
+  const displayRows = buildDisplayRows();
+
+  // Check how many mappings exist for a definition
+  const getMappingCount = (def: ProductEventDefinition): number => {
+    return mappings.filter(
+      m => m.module_code === def.module_code && 
+           m.product_code === def.product_code && 
+           m.event_code === def.event_code
+    ).length;
+  };
+
+  // Get used business applications for a definition
+  const getUsedBusinessApps = (def: ProductEventDefinition): string[] => {
+    const defMappings = mappings.filter(
+      m => m.module_code === def.module_code && 
+           m.product_code === def.product_code && 
+           m.event_code === def.event_code
+    );
+    return defMappings.flatMap(m => m.business_application || []);
+  };
 
   useEffect(() => {
     fetchData();
@@ -133,23 +203,38 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     }
   };
 
-  // Find mapping for a given definition
-  const getMappingForDefinition = (def: ProductEventDefinition): ProductEventMapping | undefined => {
-    return mappings.find(
-      m => m.module_code === def.module_code && 
-           m.product_code === def.product_code && 
-           m.event_code === def.event_code
-    );
+  const handleEdit = (row: DisplayRow) => {
+    setSelectedDefinition(row.definition);
+    setSelectedMapping(row.mapping || null);
+    setIsNewMapping(false);
+    setFormData({
+      product_name: row.displayProductName,
+      event_name: row.displayEventName,
+      target_audience: row.mapping?.target_audience || [],
+      business_application: row.mapping?.business_application || [],
+    });
+    setEditDialogOpen(true);
   };
 
-  const handleEdit = (def: ProductEventDefinition) => {
-    const existingMapping = getMappingForDefinition(def);
+  const handleAddMapping = (def: ProductEventDefinition) => {
+    const usedApps = getUsedBusinessApps(def);
+    const availableApps = BUSINESS_APPLICATIONS.filter(app => !usedApps.includes(app));
+    
+    if (availableApps.length === 0) {
+      toast.error("Maximum mappings reached", { 
+        description: "All 3 business applications already have mappings for this product-event" 
+      });
+      return;
+    }
+
     setSelectedDefinition(def);
+    setSelectedMapping(null);
+    setIsNewMapping(true);
     setFormData({
-      product_name: existingMapping?.product_name || def.product_name,
-      event_name: existingMapping?.event_name || def.event_name,
-      target_audience: existingMapping?.target_audience || [],
-      business_application: existingMapping?.business_application || [],
+      product_name: def.product_name,
+      event_name: def.event_name,
+      target_audience: [],
+      business_application: [],
     });
     setEditDialogOpen(true);
   };
@@ -157,18 +242,23 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
   const handleSave = async () => {
     if (!selectedDefinition) return;
 
+    // Validate at least one business application selected
+    if (formData.business_application.length === 0) {
+      toast.error("Please select at least one Business Application");
+      return;
+    }
+
     try {
       const session = customAuth.getSession();
       if (!session?.user?.id) throw new Error("User not authenticated");
 
-      const existingMapping = getMappingForDefinition(selectedDefinition);
       const moduleName = MODULE_NAMES[selectedDefinition.module_code] || selectedDefinition.module_code;
 
-      if (existingMapping) {
+      if (selectedMapping && !isNewMapping) {
         // Update existing mapping
         const { error } = await supabase.rpc('update_product_event_mapping', {
           p_user_id: session.user.id,
-          p_mapping_id: existingMapping.id,
+          p_mapping_id: selectedMapping.id,
           p_module_code: selectedDefinition.module_code,
           p_module_name: moduleName,
           p_product_code: selectedDefinition.product_code,
@@ -201,9 +291,28 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
 
       setEditDialogOpen(false);
       setSelectedDefinition(null);
+      setSelectedMapping(null);
+      setIsNewMapping(false);
       fetchData();
     } catch (error: any) {
       toast.error("Failed to save mapping", { description: error.message });
+    }
+  };
+
+  const handleDelete = async (mapping: ProductEventMapping) => {
+    if (!confirm("Are you sure you want to delete this mapping?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('product_event_mapping')
+        .delete()
+        .eq('id', mapping.id);
+
+      if (error) throw error;
+      toast.success("Mapping deleted successfully");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Failed to delete mapping", { description: error.message });
     }
   };
 
@@ -229,6 +338,19 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     if (onNavigateToManagePanes) {
       onNavigateToManagePanes();
     }
+  };
+
+  // Get available business applications for the edit dialog
+  const getAvailableBusinessApps = (): string[] => {
+    if (!selectedDefinition) return [...BUSINESS_APPLICATIONS];
+    
+    const usedApps = getUsedBusinessApps(selectedDefinition);
+    // If editing existing mapping, include its current apps
+    const currentApps = selectedMapping?.business_application || [];
+    
+    return BUSINESS_APPLICATIONS.filter(
+      app => !usedApps.includes(app) || currentApps.includes(app)
+    );
   };
 
   if (loading) {
@@ -268,8 +390,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Module Code</TableHead>
-                  <TableHead>Module Name</TableHead>
+                  <TableHead>Module</TableHead>
                   <TableHead>Product Code</TableHead>
                   <TableHead>Product Name</TableHead>
                   <TableHead>Event Code</TableHead>
@@ -280,48 +401,81 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDefinitions.map((def) => {
-                  const mapping = getMappingForDefinition(def);
+                {displayRows.map((row, index) => {
+                  const mappingCount = getMappingCount(row.definition);
+                  const canAddMore = mappingCount < 3;
+                  const isDefinitionRow = row.type === 'definition';
+                  
                   return (
-                    <TableRow key={def.id}>
-                      <TableCell className="font-medium">{def.module_code}</TableCell>
-                      <TableCell>{MODULE_NAMES[def.module_code] || def.module_code}</TableCell>
-                      <TableCell>{def.product_code}</TableCell>
-                      <TableCell>{mapping?.product_name || def.product_name}</TableCell>
-                      <TableCell>{def.event_code}</TableCell>
-                      <TableCell>{mapping?.event_name || def.event_name}</TableCell>
+                    <TableRow key={`${row.definition.id}-${row.mapping?.id || 'def'}-${index}`}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
+                          <span>{row.definition.module_code}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {MODULE_NAMES[row.definition.module_code]}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{row.definition.product_code}</TableCell>
+                      <TableCell>
+                        <span className={isDefinitionRow ? "text-muted-foreground italic" : ""}>
+                          {row.displayProductName}
+                        </span>
+                      </TableCell>
+                      <TableCell>{row.definition.event_code}</TableCell>
+                      <TableCell>
+                        <span className={isDefinitionRow ? "text-muted-foreground italic" : ""}>
+                          {row.displayEventName}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {mapping?.target_audience?.map((audience) => (
+                          {row.mapping?.target_audience?.map((audience) => (
                             <Badge 
                               key={audience} 
                               variant="outline" 
-                              className="bg-orange-100 text-orange-700 border-orange-200"
+                              className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800"
                             >
                               {audience}
                             </Badge>
                           ))}
-                          {(!mapping?.target_audience || mapping.target_audience.length === 0) && (
+                          {(!row.mapping?.target_audience || row.mapping.target_audience.length === 0) && (
                             <span className="text-muted-foreground text-sm">-</span>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-1 text-sm">
-                          {mapping?.business_application?.map((app) => (
-                            <span key={app}>{app}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {row.mapping?.business_application?.map((app) => (
+                            <Badge 
+                              key={app} 
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {app.replace('Adria ', '')}
+                            </Badge>
                           ))}
-                          {(!mapping?.business_application || mapping.business_application.length === 0) && (
-                            <span className="text-muted-foreground">-</span>
+                          {(!row.mapping?.business_application || row.mapping.business_application.length === 0) && (
+                            <span className="text-muted-foreground text-sm">Not configured</span>
                           )}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
+                          {canAddMore && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleAddMapping(row.definition)}
+                              title="Add new mapping for different Business Application"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleMapToPanes(def)}
+                            onClick={() => handleMapToPanes(row.definition)}
                             title="Map to Panes and Sections"
                           >
                             <Map className="h-4 w-4" />
@@ -329,11 +483,22 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(def)}
+                            onClick={() => handleEdit(row)}
                             title="Edit"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
+                          {row.mapping && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(row.mapping!)}
+                              title="Delete mapping"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -349,7 +514,9 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit Product Event Mapping</DialogTitle>
+            <DialogTitle>
+              {isNewMapping ? "Add New Mapping" : "Edit Product Event Mapping"}
+            </DialogTitle>
           </DialogHeader>
           {selectedDefinition && (
             <div className="space-y-4 py-4">
@@ -378,7 +545,11 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                   id="product_name"
                   value={formData.product_name}
                   onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  placeholder="e.g., Import Documentary Credit"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Customize the product name for this business application
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -387,7 +558,11 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                   id="event_name"
                   value={formData.event_name}
                   onChange={(e) => setFormData({ ...formData, event_name: e.target.value })}
+                  placeholder="e.g., Create Credoc"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Customize the event name for this business application
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -426,7 +601,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
               </div>
 
               <div className="space-y-2">
-                <Label>Business Application</Label>
+                <Label>Business Application <span className="text-destructive">*</span></Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -440,7 +615,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-4 bg-background" align="start">
                     <div className="space-y-2">
-                      {BUSINESS_APPLICATIONS.map((app) => (
+                      {getAvailableBusinessApps().map((app) => (
                         <div key={app} className="flex items-center space-x-2">
                           <Checkbox
                             id={`app-${app}`}
@@ -458,6 +633,9 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
                     </div>
                   </PopoverContent>
                 </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Each business application can have its own product/event naming
+                </p>
               </div>
             </div>
           )}
@@ -466,8 +644,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
               Cancel
             </Button>
             <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save
+              {isNewMapping ? "Create Mapping" : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
