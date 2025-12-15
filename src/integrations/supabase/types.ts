@@ -3866,6 +3866,35 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_transactions: {
+        Args: { p_user_id: string }
+        Returns: {
+          amount: number | null
+          bank_ref: string | null
+          created_at: string
+          created_by: string
+          created_date: string
+          currency: string | null
+          customer_name: string | null
+          customer_ref: string | null
+          id: string
+          initiating_channel: string | null
+          operations: string | null
+          party_form: string | null
+          process_type: string | null
+          product_type: string
+          status: string
+          transaction_ref: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "transactions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_permission: {
         Args: {
           p_event_code: string
@@ -3906,6 +3935,46 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      insert_transaction: {
+        Args: {
+          p_amount?: number
+          p_created_by?: string
+          p_currency?: string
+          p_customer_name?: string
+          p_initiating_channel?: string
+          p_process_type: string
+          p_product_type: string
+          p_status: string
+          p_transaction_ref: string
+          p_user_id: string
+        }
+        Returns: {
+          amount: number | null
+          bank_ref: string | null
+          created_at: string
+          created_by: string
+          created_date: string
+          currency: string | null
+          customer_name: string | null
+          customer_ref: string | null
+          id: string
+          initiating_channel: string | null
+          operations: string | null
+          party_form: string | null
+          process_type: string | null
+          product_type: string
+          status: string
+          transaction_ref: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       notify_scf_users_by_role: {
         Args: {
