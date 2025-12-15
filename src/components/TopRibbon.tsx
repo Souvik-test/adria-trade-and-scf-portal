@@ -19,12 +19,13 @@ interface TopRibbonProps {
 
 const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance', onModuleChange }) => {
   const { theme, setTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [corporateName, setCorporateName] = useState('Client aDria Ltd');
   const [corporateLogo, setCorporateLogo] = useState<string>('');
+  const [currentUserName, setCurrentUserName] = useState<string>('Guest');
 
   useEffect(() => {
     loadUnreadCount();
@@ -39,6 +40,12 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
     const savedLogo = localStorage.getItem('corporateLogo');
     if (savedName) setCorporateName(savedName);
     if (savedLogo) setCorporateLogo(savedLogo);
+    
+    // Load user name from custom auth session
+    const session = customAuth.getSession();
+    if (session?.user?.full_name) {
+      setCurrentUserName(session.user.full_name);
+    }
   }, []);
 
   const loadUnreadCount = async () => {
@@ -191,7 +198,7 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
                   variant="ghost" 
                   size="icon"
                   className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-all duration-200"
-                  title={`User: ${user?.email || 'Guest'}`}
+                  title={`User: ${currentUserName}`}
                 >
                   <User className="h-4 w-4" />
                 </Button>
@@ -202,8 +209,8 @@ const TopRibbon: React.FC<TopRibbonProps> = ({ selectedModule = 'trade-finance',
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">{user?.user_metadata?.full_name || user?.email || 'User'}</span>
-                    <span className="text-xs text-muted-foreground">{user?.email || 'Guest'}</span>
+                    <span className="font-semibold text-foreground">{currentUserName}</span>
+                    <span className="text-xs text-muted-foreground">{customAuth.getSession()?.user?.user_id || 'Guest'}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
