@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Maximize2 } from 'lucide-react';
+import { Download, Eye, Maximize2, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { DynamicFormData } from '@/types/dynamicForm';
+import { cn } from '@/lib/utils';
 
 interface DynamicMT700SidebarProps {
   formData: DynamicFormData;
@@ -86,6 +87,7 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
   referenceField = 'corporate_reference',
 }) => {
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const reference = formData[referenceField] || formData.lc_reference || formData.corporate_reference || 'DRAFT';
 
@@ -164,17 +166,54 @@ const DynamicMT700Sidebar: React.FC<DynamicMT700SidebarProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  // Collapsed state - show only toggle button
+  if (isCollapsed) {
+    return (
+      <div className="w-12 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col items-center py-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(false)}
+          className="text-corporate-teal-700 dark:text-corporate-teal-300 hover:bg-corporate-teal-100 dark:hover:bg-corporate-teal-800"
+          title="Expand MT 700 Preview"
+        >
+          <PanelRightOpen className="h-5 w-5" />
+        </Button>
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <Eye className="h-4 w-4 text-corporate-teal-600 dark:text-corporate-teal-400" />
+          <span className="text-xs font-medium text-corporate-teal-600 dark:text-corporate-teal-400 writing-mode-vertical" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>
+            MT 700
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+    <div className={cn(
+      "bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col transition-all duration-300",
+      "w-80"
+    )}>
       <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Eye className="h-5 w-5" />
             MT 700 Preview
           </h3>
-          <Badge variant="outline" className="border-white/60 text-white/80 bg-white/5 uppercase tracking-[0.15em]">
-            Draft
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="border-white/60 text-white/80 bg-white/5 uppercase tracking-[0.15em]">
+              Draft
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCollapsed(true)}
+              className="text-white/80 hover:text-white hover:bg-white/10 h-8 w-8"
+              title="Collapse sidebar"
+            >
+              <PanelRightClose className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-corporate-teal-100 text-sm mt-1">Live preview of your draft MT 700 message</p>
       </div>
