@@ -57,26 +57,42 @@ const getEventCode = (processType: string | undefined): string => {
 };
 
 // Determine which stage the user should see based on transaction status and permissions
+// Returns null if the transaction's current stage has already been completed
 const getTargetStage = (status: string, accessibleStages: string[]): string | null => {
   const normalizedStatus = status.toLowerCase();
   
-  // Map status to next expected stage
+  // Check each accessible stage and ensure user can only open at appropriate next stage
+  // Prevent reopening a transaction at a stage that's already completed
+  
   if (normalizedStatus === 'submitted') {
-    // After Data Entry, next is Limit Check
+    // Data Entry is already done - user cannot reopen at Data Entry
+    // Next stage is Limit Check or Approval
     if (accessibleStages.some(s => s.toLowerCase().includes('limit'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('limit')) || null;
     }
-    // Or Approval if no limit check stage
     if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
     }
+    // User only has Data Entry access but transaction is already submitted - no access
+    return null;
   }
   
   if (normalizedStatus === 'limit checked') {
-    // After Limit Check, next is Approval
+    // Data Entry AND Limit Check are done - user cannot reopen at those stages
+    // Next stage is Approval only
     if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
     }
+    // User doesn't have Approval access - no access
+    return null;
+  }
+  
+  if (normalizedStatus === 'rejected') {
+    // Rejected transactions go back to Data Entry
+    if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+    }
+    return null;
   }
   
   // For draft or other status, check if user has Data Entry access
@@ -84,8 +100,8 @@ const getTargetStage = (status: string, accessibleStages: string[]): string | nu
     return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
   }
   
-  // Return first accessible stage if none match
-  return accessibleStages[0] || null;
+  // Return null if no appropriate stage found
+  return null;
 };
 
 const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
@@ -185,6 +201,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
           productCode={productCode}
           eventCode={eventCode}
           triggerType="Manual"
+          businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
           showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
           onClose={handleClose}
           transactionRef={transaction.transaction_ref}
