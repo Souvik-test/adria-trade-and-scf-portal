@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit2, Trash2, Copy, ChevronDown, ChevronRight, Save, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, ChevronDown, ChevronRight, Save, Upload, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
@@ -461,7 +461,73 @@ const FieldDefinition = () => {
     setShowFieldForm(true);
   };
 
-  // Parse a single row from Excel to FieldData
+  // Move field up in the sequence
+  const handleMoveFieldUp = async (fieldId: string, currentIndex: number) => {
+    if (currentIndex === 0 || !customUser?.id) return;
+    
+    const fieldsToUpdate = [...existingFields];
+    const currentField = fieldsToUpdate[currentIndex];
+    const previousField = fieldsToUpdate[currentIndex - 1];
+    
+    // Swap sequences
+    const currentSeq = currentField.field_display_sequence;
+    const previousSeq = previousField.field_display_sequence;
+    
+    try {
+      // Update current field
+      await supabase.rpc('update_field_repository', {
+        p_user_id: customUser.id,
+        p_field_id: currentField.id,
+        p_field_data: { field_display_sequence: previousSeq }
+      });
+      
+      // Update previous field
+      await supabase.rpc('update_field_repository', {
+        p_user_id: customUser.id,
+        p_field_id: previousField.id,
+        p_field_data: { field_display_sequence: currentSeq }
+      });
+      
+      fetchExistingFields();
+      toast.success('Field moved up');
+    } catch (error: any) {
+      toast.error('Failed to reorder field', { description: error.message });
+    }
+  };
+
+  // Move field down in the sequence
+  const handleMoveFieldDown = async (fieldId: string, currentIndex: number) => {
+    if (currentIndex >= existingFields.length - 1 || !customUser?.id) return;
+    
+    const fieldsToUpdate = [...existingFields];
+    const currentField = fieldsToUpdate[currentIndex];
+    const nextField = fieldsToUpdate[currentIndex + 1];
+    
+    // Swap sequences
+    const currentSeq = currentField.field_display_sequence;
+    const nextSeq = nextField.field_display_sequence;
+    
+    try {
+      // Update current field
+      await supabase.rpc('update_field_repository', {
+        p_user_id: customUser.id,
+        p_field_id: currentField.id,
+        p_field_data: { field_display_sequence: nextSeq }
+      });
+      
+      // Update next field
+      await supabase.rpc('update_field_repository', {
+        p_user_id: customUser.id,
+        p_field_id: nextField.id,
+        p_field_data: { field_display_sequence: currentSeq }
+      });
+      
+      fetchExistingFields();
+      toast.success('Field moved down');
+    } catch (error: any) {
+      toast.error('Failed to reorder field', { description: error.message });
+    }
+  };
   const parseExcelRowToField = (headers: string[], values: any[], index: number): FieldData => {
     const excelData: Record<string, any> = {};
     headers.forEach((header, idx) => {
@@ -1111,6 +1177,7 @@ const FieldDefinition = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-12">Seq</TableHead>
+                          <TableHead className="w-16">Move</TableHead>
                           <TableHead>Field Name</TableHead>
                           <TableHead>UI Type</TableHead>
                           <TableHead>Data Type</TableHead>
@@ -1120,9 +1187,31 @@ const FieldDefinition = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {existingFields.map((field) => (
+                        {existingFields.map((field, index) => (
                           <TableRow key={field.id}>
                             <TableCell>{field.field_display_sequence}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleMoveFieldUp(field.id!, index)}
+                                  disabled={index === 0}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <ArrowUp className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleMoveFieldDown(field.id!, index)}
+                                  disabled={index === existingFields.length - 1}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <ArrowDown className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
                             <TableCell>{field.field_label_key || '-'}</TableCell>
                             <TableCell><Badge variant="outline">{field.ui_display_type}</Badge></TableCell>
                             <TableCell><Badge variant="secondary">{field.data_type}</Badge></TableCell>

@@ -180,7 +180,10 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
         );
 
       case 'RADIO':
-        const radioOptions = field.dropdown_values || [];
+        // Use dropdown_values if provided, otherwise default to Yes/No
+        const radioOptions = field.dropdown_values && field.dropdown_values.length > 0 
+          ? field.dropdown_values 
+          : ['Yes', 'No'];
         return (
           <div className="flex flex-wrap gap-4">
             {radioOptions.map((option) => (
@@ -193,11 +196,11 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
                   checked={value === option}
                   onChange={(e) => handleChange(e.target.value)}
                   disabled={disabled}
-                  className="h-4 w-4 text-primary"
+                  className="h-4 w-4 text-primary border-border accent-primary"
                 />
                 <label
                   htmlFor={`${field.field_code}_${option}`}
-                  className="text-sm"
+                  className="text-sm cursor-pointer"
                 >
                   {option}
                 </label>
