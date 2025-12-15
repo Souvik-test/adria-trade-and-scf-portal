@@ -423,7 +423,14 @@ const FieldDefinition = () => {
 
   const handleEditField = (field: FieldData) => {
     setEditingField(field);
-    setFieldData(field);
+    // Convert dropdown_values from array to comma-separated string for display
+    const dropdownValuesString = Array.isArray(field.dropdown_values) 
+      ? (field.dropdown_values as unknown as string[]).join(', ')
+      : (field.dropdown_values || '');
+    setFieldData({
+      ...field,
+      dropdown_values: dropdownValuesString
+    });
     setShowFieldForm(true);
   };
 
@@ -451,12 +458,17 @@ const FieldDefinition = () => {
 
   const handleCopyField = (field: FieldData) => {
     setEditingField(null);
+    // Convert dropdown_values from array to comma-separated string for display
+    const dropdownValuesString = Array.isArray(field.dropdown_values) 
+      ? (field.dropdown_values as unknown as string[]).join(', ')
+      : (field.dropdown_values || '');
     setFieldData({
       ...field,
       id: undefined,
       field_id: `${field.field_id}_COPY`,
       field_code: `${field.field_code}_COPY`,
       field_display_sequence: existingFields.length + 1,
+      dropdown_values: dropdownValuesString
     });
     setShowFieldForm(true);
   };
