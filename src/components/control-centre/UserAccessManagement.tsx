@@ -218,10 +218,19 @@ const UserAccessManagement: React.FC = () => {
       return;
     }
 
-    // Build full permission matrix with all product-event-stage combinations
+    // Deduplicate product-event combinations (same product-event may exist for different business apps)
+    const uniqueProductEvents = new Map<string, ProductEventOption>();
+    productEvents.forEach(pe => {
+      const key = `${pe.module_code}|${pe.product_code}|${pe.event_code}`;
+      if (!uniqueProductEvents.has(key)) {
+        uniqueProductEvents.set(key, pe);
+      }
+    });
+
+    // Build full permission matrix with all unique product-event-stage combinations
     const fullMatrix: PermissionRow[] = [];
     
-    productEvents.forEach(pe => {
+    uniqueProductEvents.forEach(pe => {
       WORKFLOW_STAGES.forEach(stage => {
         const existing = data?.find(
           (p: any) => p.product_code === pe.product_code && 
