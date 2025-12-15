@@ -112,17 +112,15 @@ const UserAccessManagement: React.FC = () => {
   };
 
   const loadUsers = async () => {
-    const { data, error } = await supabase
-      .from('custom_users')
-      .select('id, user_id, user_login_id, full_name, business_applications, is_super_user, created_at')
-      .order('full_name');
+    // Use security definer function to bypass RLS
+    const { data, error } = await supabase.rpc('get_all_custom_users');
 
     if (error) {
       console.error('Error loading users:', error);
       return;
     }
 
-    setUsers(data?.map(u => ({
+    setUsers((data as any[])?.map(u => ({
       ...u,
       business_applications: u.business_applications || []
     })) || []);

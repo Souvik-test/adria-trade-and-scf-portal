@@ -3451,6 +3451,18 @@ export type Database = {
         Args: { product_type: string }
         Returns: string
       }
+      get_all_custom_users: {
+        Args: never
+        Returns: {
+          business_applications: string[]
+          created_at: string
+          full_name: string
+          id: string
+          is_super_user: boolean
+          user_id: string
+          user_login_id: string
+        }[]
+      }
       get_all_managed_users: {
         Args: { p_requesting_user_id: string }
         Returns: {
