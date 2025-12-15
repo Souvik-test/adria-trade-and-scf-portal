@@ -266,13 +266,22 @@ export const useDynamicTransaction = ({
     }
   }, [currentPaneIndex, panes]);
 
-  // Generate transaction reference
+  // Generate transaction reference including LC number if available
   const generateTransactionRef = useCallback(() => {
     const prefix = productCode.toUpperCase();
     const timestamp = Date.now();
     const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+    
+    // Try to get LC number from form data (common field names for LC reference)
+    const lcNumber = formData.lc_number || formData.lcNumber || formData.lc_reference || 
+                     formData.lcReference || formData.corporate_reference || formData.corporateReference;
+    
+    if (lcNumber && typeof lcNumber === 'string' && lcNumber.trim()) {
+      return `${prefix}-${lcNumber.trim()}-${random}`;
+    }
+    
     return `${prefix}-${timestamp}-${random}`;
-  }, [productCode]);
+  }, [productCode, formData]);
 
   // Handle stage submit - navigates to next stage or completes transaction
   const handleStageSubmit = useCallback(async () => {
