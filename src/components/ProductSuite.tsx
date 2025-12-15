@@ -11,6 +11,8 @@ import ShippingGuaranteeModal from './shipping-guarantee/ShippingGuaranteeModal'
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 import { useProductEventMappings } from '@/hooks/useProductEventMappings';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { Loader2 } from 'lucide-react';
 
 interface ProductSuiteProps {
   onBack: () => void;
@@ -31,6 +33,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
   const { getProductName, loading } = useProductEventMappings();
+  const { 
+    isSuperUser, 
+    hasProductAccess, 
+    hasAnyProductCardAccess, 
+    getAccessibleFlipOptions,
+    loading: permissionsLoading 
+  } = useUserPermissions();
 
   // Map display names to internal product codes for click handling
   const productNameToCodeMap = useMemo(() => ({
@@ -56,61 +65,117 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
     'Export LC Bills': 'ELB'
   }), [getProductName]);
 
-  const products = useMemo(() => [
-    {
-      id: 'lc',
-      title: 'Letter of Credit',
-      icon: FileText,
-      description: 'Manage import and export letters of credit',
-      hasFlip: true,
-      flipOptions: [getProductName('ILC'), getProductName('ELC')]
-    },
-    {
-      id: 'guarantee',
-      title: 'Bank Guarantee/SBLC',
-      icon: Shield,
-      description: 'Handle bank guarantees and standby letters of credit',
-      hasFlip: true,
-      flipOptions: [getProductName('OBG'), getProductName('IBG')]
-    },
-    {
-      id: 'bills',
-      title: 'Bills',
-      icon: Banknote,
-      description: 'Process trade bills and collections',
-      hasFlip: true,
-      flipOptions: [getProductName('ILB'), getProductName('ELB'), getProductName('ODC'), getProductName('IDC')]
-    },
-    {
-      id: 'shipping',
-      title: getProductName('SHG'),
-      icon: Ship,
-      description: 'Manage shipping guarantees and delivery orders',
-      onClick: () => setShowShippingGuaranteeModal(true)
-    },
-    {
-      id: 'trade-loan',
-      title: 'Trade Loan',
-      icon: DollarSign,
-      description: 'Handle trade financing and loans'
-    },
-    {
-      id: 'e-enablers',
-      title: 'e-Enablers',
-      icon: Globe,
-      description: 'Digital trade enablement solutions',
-      hasFlip: true,
-      flipOptions: ['e-B/L', 'e-Warehouse Receipt (e-W/R)', 'e-Certificate of Origin (e-COO)']
-    },
-    {
-      id: 'underlying-docs',
-      title: 'Underlying PO/PI/Invoice Management',
-      icon: Receipt,
-      description: 'Manage purchase orders, proforma invoices and commercial invoices',
-      hasFlip: true,
-      flipOptions: ['PO-PI', 'Invoice']
-    }
-  ], [getProductName]);
+  // Product code to card ID mapping
+  const productCodeToCard: Record<string, string> = {
+    'ILC': 'lc',
+    'ELC': 'lc',
+    'OBG': 'guarantee',
+    'IBG': 'guarantee',
+    'ILB': 'bills',
+    'ELB': 'bills',
+    'ODC': 'bills',
+    'IDC': 'bills',
+    'SHG': 'shipping',
+  };
+
+  // Filter flip options based on permissions
+  const filterFlipOptions = (cardId: string, allOptions: string[]): string[] => {
+    if (isSuperUser()) return allOptions;
+    
+    return allOptions.filter(option => {
+      const productCode = productNameToCodeMap[option];
+      if (!productCode) return true; // Keep non-product options like e-enablers
+      return hasProductAccess(productCode);
+    });
+  };
+
+  const products = useMemo(() => {
+    const allProducts = [
+      {
+        id: 'lc',
+        title: 'Letter of Credit',
+        icon: FileText,
+        description: 'Manage import and export letters of credit',
+        hasFlip: true,
+        flipOptions: [getProductName('ILC'), getProductName('ELC')]
+      },
+      {
+        id: 'guarantee',
+        title: 'Bank Guarantee/SBLC',
+        icon: Shield,
+        description: 'Handle bank guarantees and standby letters of credit',
+        hasFlip: true,
+        flipOptions: [getProductName('OBG'), getProductName('IBG')]
+      },
+      {
+        id: 'bills',
+        title: 'Bills',
+        icon: Banknote,
+        description: 'Process trade bills and collections',
+        hasFlip: true,
+        flipOptions: [getProductName('ILB'), getProductName('ELB'), getProductName('ODC'), getProductName('IDC')]
+      },
+      {
+        id: 'shipping',
+        title: getProductName('SHG'),
+        icon: Ship,
+        description: 'Manage shipping guarantees and delivery orders',
+        onClick: () => setShowShippingGuaranteeModal(true),
+        productCode: 'SHG'
+      },
+      {
+        id: 'trade-loan',
+        title: 'Trade Loan',
+        icon: DollarSign,
+        description: 'Handle trade financing and loans'
+      },
+      {
+        id: 'e-enablers',
+        title: 'e-Enablers',
+        icon: Globe,
+        description: 'Digital trade enablement solutions',
+        hasFlip: true,
+        flipOptions: ['e-B/L', 'e-Warehouse Receipt (e-W/R)', 'e-Certificate of Origin (e-COO)']
+      },
+      {
+        id: 'underlying-docs',
+        title: 'Underlying PO/PI/Invoice Management',
+        icon: Receipt,
+        description: 'Manage purchase orders, proforma invoices and commercial invoices',
+        hasFlip: true,
+        flipOptions: ['PO-PI', 'Invoice']
+      }
+    ];
+
+    // If super user, show all products
+    if (isSuperUser()) return allProducts;
+
+    // Filter products based on permissions
+    return allProducts.filter(product => {
+      // For products with flip options that map to product codes
+      if (product.id === 'lc') {
+        return hasProductAccess('ILC') || hasProductAccess('ELC');
+      }
+      if (product.id === 'guarantee') {
+        return hasProductAccess('OBG') || hasProductAccess('IBG');
+      }
+      if (product.id === 'bills') {
+        return hasProductAccess('ILB') || hasProductAccess('ELB') || hasProductAccess('ODC') || hasProductAccess('IDC');
+      }
+      if (product.id === 'shipping') {
+        return hasProductAccess('SHG');
+      }
+      // Show other products (trade-loan, e-enablers, underlying-docs) to all for now
+      return true;
+    }).map(product => {
+      // Filter flip options based on permissions
+      if (product.flipOptions && product.hasFlip) {
+        const filteredOptions = filterFlipOptions(product.id, product.flipOptions);
+        return { ...product, flipOptions: filteredOptions };
+      }
+      return product;
+    });
+  }, [getProductName, isSuperUser, hasProductAccess]);
 
   const handleBillsClick = (option: string) => {
     const productCode = productNameToCodeMap[option];
@@ -185,6 +250,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       setShowShippingGuaranteeModal(true);
     }
   };
+
+  if (permissionsLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">

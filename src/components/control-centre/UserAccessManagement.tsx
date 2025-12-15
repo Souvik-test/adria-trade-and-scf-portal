@@ -183,14 +183,22 @@ const UserAccessManagement: React.FC = () => {
     setProductEvents(data || []);
   };
 
-  const initializeScreenPermissions = (user: ManagedUser) => {
+  const initializeScreenPermissions = async (user: ManagedUser) => {
+    // Load existing screen permissions from database
+    const { data: existingPermissions, error } = await supabase.rpc('get_user_screen_permissions', {
+      p_user_id: user.id
+    });
+
     const permissions: ScreenPermission[] = [];
     Object.entries(SCREEN_ACCESS_CONFIG).forEach(([category, config]) => {
       config.items.forEach(screen => {
+        const existing = (existingPermissions as any[])?.find(
+          p => p.category === config.label && p.screen_name === screen
+        );
         permissions.push({
           category: config.label,
           screen,
-          can_access: user.is_super_user || false
+          can_access: user.is_super_user || existing?.can_access || false
         });
       });
     });
@@ -407,7 +415,23 @@ const UserAccessManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Save screen permissions
+      const screenPermissionsData = screenPermissions.map(sp => ({
+        category: sp.category,
+        screen_name: sp.screen,
+        can_access: sp.can_access
+      }));
+
+      const { error: screenError } = await supabase.rpc('upsert_user_screen_permissions', {
+        p_requesting_user_id: currentUserId,
+        p_target_user_id: selectedUser.id,
+        p_permissions: screenPermissionsData
+      });
+
+      if (screenError) throw screenError;
+
       toast({ title: 'Success', description: 'Permissions saved successfully' });
+      setPermissionDialogOpen(false);
     } catch (error: any) {
       console.error('Error saving permissions:', error);
       toast({ title: 'Error', description: error.message || 'Failed to save permissions', variant: 'destructive' });
