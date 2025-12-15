@@ -73,6 +73,8 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
 }) => {
   // Check if current stage is the Approval stage (case-insensitive)
   const isApprovalStage = stageName.toLowerCase().includes('approval');
+  // Check if current stage is Data Entry stage (case-insensitive)
+  const isDataEntryStage = stageName.toLowerCase().includes('data entry');
   const handleButtonClick = (button: PaneButtonConfig) => {
     switch (button.action) {
       case 'next_pane':
@@ -128,8 +130,30 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
     return btn;
   });
 
+  // Add "Save as Template" button for Data Entry stage only (before Save as Draft)
+  let finalButtons = [...transformedButtons];
+  if (isDataEntryStage) {
+    const saveDraftIndex = finalButtons.findIndex(btn => btn.action === 'save_draft');
+    const saveTemplateButton: PaneButtonConfig = {
+      id: 'save_template_auto',
+      label: 'Save as Template',
+      action: 'save_template',
+      variant: 'outline',
+      position: 'right',
+      order: saveDraftIndex >= 0 ? finalButtons[saveDraftIndex].order - 0.5 : 2,
+      isVisible: true,
+    };
+    
+    // Insert before Save as Draft if it exists, otherwise add to the list
+    if (saveDraftIndex >= 0) {
+      finalButtons.splice(saveDraftIndex, 0, saveTemplateButton);
+    } else {
+      finalButtons.push(saveTemplateButton);
+    }
+  }
+
   // Filter visible buttons and sort by order
-  const visibleButtons = transformedButtons
+  const visibleButtons = finalButtons
     .filter(btn => btn.isVisible)
     .sort((a, b) => a.order - b.order);
 
