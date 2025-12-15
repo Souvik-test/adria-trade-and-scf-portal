@@ -50,7 +50,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     initialData?.repeatableGroups || {}
   );
 
-  // Sync formData when initialData changes (important for stage transitions)
+  // Sync formData and repeatableGroups when initialData changes (important for stage transitions)
   React.useEffect(() => {
     if (initialData?.formData) {
       setFormData(prevData => {
@@ -63,7 +63,17 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
         return hasChanges ? { ...prevData, ...mergedData } : prevData;
       });
     }
-  }, [initialData?.formData]);
+    
+    // Also sync repeatableGroups from initialData (for Party Details, Documents Required, etc.)
+    if (initialData?.repeatableGroups && Object.keys(initialData.repeatableGroups).length > 0) {
+      setRepeatableGroups(prevGroups => {
+        const hasChanges = Object.keys(initialData.repeatableGroups).some(
+          key => JSON.stringify(prevGroups[key]) !== JSON.stringify(initialData.repeatableGroups[key])
+        );
+        return hasChanges ? { ...prevGroups, ...initialData.repeatableGroups } : prevGroups;
+      });
+    }
+  }, [initialData?.formData, initialData?.repeatableGroups]);
 
   // Helper to get section config by name
   const getSectionConfig = (sectionName: string): SectionConfig | undefined => {

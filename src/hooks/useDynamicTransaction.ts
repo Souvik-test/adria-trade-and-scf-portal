@@ -148,12 +148,21 @@ export const useDynamicTransaction = ({
   
   // Transaction completion state
   const [isTransactionComplete, setIsTransactionComplete] = useState(false);
+  const [completedStageName, setCompletedStageName] = useState<string>('');
 
   // Form state - initialize with mapped initialFormData if continuing an existing transaction
+  // Extract repeatableGroups from initialFormData if present (stored alongside formData in database)
+  const extractedRepeatableGroups = initialFormData?.repeatableGroups || {};
+  const extractedFormData = initialFormData?.repeatableGroups 
+    ? { ...initialFormData, repeatableGroups: undefined } 
+    : initialFormData || {};
+  
   const [formData, setFormData] = useState<DynamicFormData>(
-    initialFormData ? applyFieldMappings(initialFormData) : {}
+    initialFormData ? applyFieldMappings(extractedFormData) : {}
   );
-  const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>({});
+  const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>(
+    extractedRepeatableGroups
+  );
   
   // Transaction reference for tracking across stages
   const transactionRefRef = useRef<string | null>(existingTransactionRef || null);
@@ -369,9 +378,10 @@ export const useDynamicTransaction = ({
       
       // Create/update transaction record with stage-appropriate status
       // Merge initialFormData with current formData to preserve all stage data
+      // Include repeatableGroups in form_data for cross-stage persistence
       const mergedFormData = initialFormData 
-        ? { ...initialFormData, ...formData }
-        : formData;
+        ? { ...initialFormData, ...formData, repeatableGroups }
+        : { ...formData, repeatableGroups };
       
       await createTransactionRecord(
         productCode,
@@ -386,6 +396,7 @@ export const useDynamicTransaction = ({
         // Final stage - mark transaction as complete
         const allPaneIds = new Set(panes.map(p => p.id));
         setCompletedPanes(allPaneIds);
+        setCompletedStageName('Approval');
         setIsTransactionComplete(true);
         toast.success(`Transaction ${transactionRefRef.current} has been issued`);
       } else if (hasMorePanes) {
@@ -396,9 +407,9 @@ export const useDynamicTransaction = ({
         }
       } else {
         // No more panes but not final approval - stage submitted, waiting for next stage
-        toast.success(`${currentStageName} submitted - Status: ${status}. Awaiting next stage processing.`);
-        // Mark transaction as complete for this user's accessible stages
+        setCompletedStageName(currentStageName);
         setIsTransactionComplete(true);
+        toast.success(`${currentStageName} submitted - Status: ${status}. Awaiting next stage processing.`);
       }
     } catch (err: any) {
       console.error('Error submitting stage:', err);
@@ -546,6 +557,7 @@ export const useDynamicTransaction = ({
     eventName,
     hasWorkflowTemplate: !!template,
     isTransactionComplete,
+    completedStageName,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
