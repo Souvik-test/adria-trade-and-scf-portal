@@ -3696,29 +3696,53 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      get_product_event_mappings: {
-        Args: { p_user_id: string }
-        Returns: {
-          business_application: string[] | null
-          created_at: string
-          event_code: string
-          event_name: string
-          id: string
-          module_code: string
-          module_name: string
-          product_code: string
-          product_name: string
-          target_audience: string[]
-          updated_at: string
-          user_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "product_event_mapping"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
+      get_product_event_mappings:
+        | {
+            Args: never
+            Returns: {
+              business_application: string[] | null
+              created_at: string
+              event_code: string
+              event_name: string
+              id: string
+              module_code: string
+              module_name: string
+              product_code: string
+              product_name: string
+              target_audience: string[]
+              updated_at: string
+              user_id: string
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "product_event_mapping"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              business_application: string[] | null
+              created_at: string
+              event_code: string
+              event_name: string
+              id: string
+              module_code: string
+              module_name: string
+              product_code: string
+              product_name: string
+              target_audience: string[]
+              updated_at: string
+              user_id: string
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "product_event_mapping"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
       get_user_fields: {
         Args: { p_user_id: string }
         Returns: {
