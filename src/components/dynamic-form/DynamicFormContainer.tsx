@@ -4,18 +4,20 @@ import { useDynamicFormFields } from '@/hooks/useDynamicFormFields';
 import { DynamicFormData, RepeatableGroupInstance, DynamicFormState } from '@/types/dynamicForm';
 import DynamicSectionRenderer from './DynamicSectionRenderer';
 
-// Section grid config from pane_section_mappings
-interface SectionGridConfig {
+// Section config from pane_section_mappings
+interface SectionConfig {
   name: string;
   rows: number;
   columns: number;
+  isRepeatable?: boolean;
+  groupId?: string;
 }
 
 interface DynamicFormContainerProps {
   productCode: string;
   eventType: string;
   currentPaneCode?: string; // Filter to show only this pane's sections
-  sectionGridConfigs?: SectionGridConfig[]; // Grid dimensions from pane_section_mappings
+  sectionConfigs?: SectionConfig[]; // Section configs from pane_section_mappings
   stageId?: string;
   initialData?: DynamicFormState;
   onFormChange?: (formState: DynamicFormState) => void;
@@ -29,7 +31,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   productCode,
   eventType,
   currentPaneCode,
-  sectionGridConfigs,
+  sectionConfigs,
   stageId,
   initialData,
   onFormChange,
@@ -48,29 +50,53 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     initialData?.repeatableGroups || {}
   );
 
+  // Helper to get section config by name
+  const getSectionConfig = (sectionName: string): SectionConfig | undefined => {
+    if (!sectionConfigs) return undefined;
+    return sectionConfigs.find(
+      cfg => cfg.name.toLowerCase() === sectionName.toLowerCase()
+    );
+  };
+
   // Initialize repeatable groups with at least one instance when panes load
   React.useEffect(() => {
-    if (panes.length > 0 && Object.keys(repeatableGroups).length === 0) {
-      const initialGroups: { [groupId: string]: RepeatableGroupInstance[] } = {};
+    if (panes.length > 0) {
+      const initialGroups: { [groupId: string]: RepeatableGroupInstance[] } = { ...repeatableGroups };
+      let hasNewGroups = false;
       
       panes.forEach(pane => {
         pane.sections.forEach(section => {
+          // Check if this section is configured as repeatable in pane_section_mappings
+          const sectionConfig = getSectionConfig(section.sectionCode);
+          const isRepeatableSection = sectionConfig?.isRepeatable;
+          const sectionGroupId = sectionConfig?.groupId || section.sectionCode;
+          
+          if (isRepeatableSection && sectionGroupId && !initialGroups[sectionGroupId]) {
+            initialGroups[sectionGroupId] = [{
+              instanceId: generateInstanceId(),
+              data: {},
+            }];
+            hasNewGroups = true;
+          }
+          
+          // Also check for field-level repeatable groups
           section.groups.forEach(group => {
             if (group.isRepeatable && group.groupId && !initialGroups[group.groupId]) {
               initialGroups[group.groupId] = [{
                 instanceId: generateInstanceId(),
                 data: {},
               }];
+              hasNewGroups = true;
             }
           });
         });
       });
 
-      if (Object.keys(initialGroups).length > 0) {
+      if (hasNewGroups) {
         setRepeatableGroups(initialGroups);
       }
     }
-  }, [panes]);
+  }, [panes, sectionConfigs]);
 
   // Notify parent of form changes
   const notifyChange = useCallback((newFormData: DynamicFormData, newRepeatableGroups: { [groupId: string]: RepeatableGroupInstance[] }) => {
@@ -180,28 +206,30 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     );
   }
 
-  // Helper to get grid config for a section
-  const getSectionGridConfig = (sectionCode: string) => {
-    if (!sectionGridConfigs) return undefined;
-    return sectionGridConfigs.find(
-      cfg => cfg.name.toLowerCase() === sectionCode.toLowerCase()
-    );
-  };
-
   // Get sections from pane_section_mappings if available, otherwise use sections from field_repository
-  // This ensures we show all configured sections even if they don't have fields yet
-  const sectionsToRender = sectionGridConfigs && sectionGridConfigs.length > 0
-    ? sectionGridConfigs.map(cfg => {
+  const sectionsToRender = sectionConfigs && sectionConfigs.length > 0
+    ? sectionConfigs.map(cfg => {
         // Find matching section from field_repository data
         const matchingSection = currentPane.sections.find(
           s => s.sectionCode.toLowerCase() === cfg.name.toLowerCase()
         );
+        
+        // Apply repeatable config from pane_section_mappings to the section/groups
+        const groups = matchingSection?.groups.map(group => ({
+          ...group,
+          // Override group's isRepeatable if section is configured as repeatable
+          isRepeatable: cfg.isRepeatable || group.isRepeatable,
+          groupId: cfg.isRepeatable ? (cfg.groupId || cfg.name) : group.groupId,
+        })) || [];
+        
         return {
           sectionCode: cfg.name,
           sectionName: cfg.name,
-          groups: matchingSection?.groups || [],
+          groups,
           gridRows: cfg.rows,
           gridColumns: cfg.columns,
+          isRepeatable: cfg.isRepeatable,
+          groupId: cfg.groupId,
         };
       })
     : currentPane.sections;
@@ -210,7 +238,53 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   return (
     <div className="space-y-4">
       {sectionsToRender.map((section) => {
-        const gridConfig = getSectionGridConfig(section.sectionCode);
+        const sectionConfig = getSectionConfig(section.sectionCode);
+        
+        // If section is repeatable but has no groups with fields, render a placeholder with Add button
+        if (sectionConfig?.isRepeatable && (!section.groups || section.groups.length === 0 || section.groups.every(g => g.fields.length === 0))) {
+          const groupId = sectionConfig.groupId || section.sectionCode;
+          const instances = repeatableGroups[groupId] || [];
+          
+          return (
+            <div key={section.sectionCode} className="border border-dashed border-border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-medium text-muted-foreground">{section.sectionName}</h4>
+                <button
+                  type="button"
+                  onClick={() => handleAddRepeatableInstance(groupId)}
+                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+                  disabled={disabled}
+                >
+                  + Add {section.sectionName}
+                </button>
+              </div>
+              {instances.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No {section.sectionName.toLowerCase()} added yet. Click "Add {section.sectionName}" to add one.
+                </p>
+              )}
+              {instances.map((instance, idx) => (
+                <div key={instance.instanceId} className="border border-border rounded-lg p-3 mb-2 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{section.sectionName} #{idx + 1}</span>
+                    {instances.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRepeatableInstance(groupId, instance.instanceId)}
+                        className="text-destructive hover:text-destructive/80 text-xs"
+                        disabled={disabled}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">No fields configured for this section</p>
+                </div>
+              ))}
+            </div>
+          );
+        }
+        
         // Only render section if it has groups/fields
         if (!section.groups || section.groups.length === 0) {
           return (
@@ -220,6 +294,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
             </div>
           );
         }
+        
         return (
           <DynamicSectionRenderer
             key={section.sectionCode}
@@ -231,8 +306,10 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
             onAddRepeatableInstance={handleAddRepeatableInstance}
             onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
             disabled={disabled}
-            overrideGridRows={gridConfig?.rows || section.gridRows}
-            overrideGridColumns={gridConfig?.columns || section.gridColumns}
+            overrideGridRows={sectionConfig?.rows || section.gridRows}
+            overrideGridColumns={sectionConfig?.columns || section.gridColumns}
+            isRepeatable={sectionConfig?.isRepeatable}
+            repeatableGroupId={sectionConfig?.groupId}
           />
         );
       })}

@@ -113,6 +113,8 @@ export interface SectionConfig {
   sequence: number;
   rows: number;
   columns: number;
+  isRepeatable?: boolean;
+  groupId?: string;
 }
 
 // Pane configuration with buttons
