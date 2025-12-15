@@ -147,7 +147,7 @@ export const useDynamicTransaction = ({
           allowedPaneNames = await getTemplatePaneNames(foundTemplate.id);
         }
 
-        // Fetch pane/section configuration, filtered by workflow template panes
+        // Fetch pane/section configuration, filtered and ordered by workflow template panes
         const paneConfig = await getPaneSectionConfig(
           productCode,
           eventCode,
@@ -156,23 +156,12 @@ export const useDynamicTransaction = ({
           allowedPaneNames
         );
 
-        // Sort panes by workflow stage order if we have allowed pane names
-        let sortedPanes = paneConfig;
-        if (allowedPaneNames && allowedPaneNames.length > 0) {
-          const paneOrderMap = new Map(allowedPaneNames.map((name, idx) => [name, idx]));
-          sortedPanes = [...paneConfig].sort((a, b) => {
-            const orderA = paneOrderMap.get(a.name) ?? 999;
-            const orderB = paneOrderMap.get(b.name) ?? 999;
-            return orderA - orderB;
-          });
-        }
-
         // Add default buttons to panes if not configured
-        const panesWithButtons = sortedPanes.map((pane, index) => ({
+        const panesWithButtons = paneConfig.map((pane, index) => ({
           ...pane,
           buttons: pane.buttons?.length > 0 
             ? pane.buttons 
-            : getDefaultButtons(index === 0, index === sortedPanes.length - 1),
+            : getDefaultButtons(index === 0, index === paneConfig.length - 1),
         }));
 
         setPanes(panesWithButtons);

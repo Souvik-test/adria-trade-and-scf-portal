@@ -49,13 +49,24 @@ export const getPaneSectionConfig = async (
     }
 
     const mapping = data as PaneSectionMappingResponse;
-    let panesConfig = parsePanesConfig(mapping.panes);
+    const panesConfig = parsePanesConfig(mapping.panes);
 
-    // Filter panes if allowedPanes is provided (from workflow template)
+    // Build pane list based on allowedPanes order, allowing duplicates
     if (allowedPanes && allowedPanes.length > 0) {
-      panesConfig = panesConfig.filter(pane => 
-        allowedPanes.includes(pane.name)
-      );
+      const result: PaneConfig[] = [];
+      allowedPanes.forEach((paneName, index) => {
+        const pane = panesConfig.find(p => p.name === paneName);
+        if (pane) {
+          // Clone pane with unique id for each occurrence
+          result.push({ 
+            ...pane, 
+            id: `${pane.id}-${index}`,
+            sections: pane.sections.map(s => ({ ...s, id: `${s.id}-${index}` })),
+            buttons: pane.buttons?.map(b => ({ ...b, id: `${b.id}-${index}` })) || []
+          });
+        }
+      });
+      return result;
     }
 
     return panesConfig;

@@ -136,24 +136,30 @@ export const clearTemplateCache = () => {
 };
 
 /**
- * Get unique pane names from all stage fields for a template
+ * Get pane names from all stage fields for a template, preserving stage order
+ * and allowing the same pane to appear in multiple stages
  */
 export const getTemplatePaneNames = async (
   templateId: string
 ): Promise<string[]> => {
-  const stages = await getTemplateStages(templateId);
-  const paneNames = new Set<string>();
+  const stages = await getTemplateStages(templateId); // Already sorted by stage_order
+  const paneNames: string[] = [];
 
-  await Promise.all(
-    stages.map(async (stage) => {
-      const fields = await getStageFields(stage.id);
-      fields.forEach(field => {
-        if (field.pane) paneNames.add(field.pane);
-      });
-    })
-  );
+  // Process stages SEQUENTIALLY to preserve stage order
+  for (const stage of stages) {
+    const fields = await getStageFields(stage.id);
+    
+    // Get unique panes for THIS stage only (avoid duplicates within same stage)
+    const stagePanes = new Set<string>();
+    fields.forEach(field => {
+      if (field.pane) stagePanes.add(field.pane);
+    });
+    
+    // Add all panes from this stage (allows same pane in different stages)
+    stagePanes.forEach(pane => paneNames.push(pane));
+  }
 
-  return Array.from(paneNames);
+  return paneNames; // e.g., ["LC Key Info", "Limit Check", "LC Key Info"]
 };
 
 export default {
