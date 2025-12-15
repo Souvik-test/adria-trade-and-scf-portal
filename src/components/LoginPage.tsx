@@ -249,10 +249,11 @@ const LoginPage: React.FC = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="login-identifier">User ID or Email</Label>
                   <Input
-                    id="email"
-                    type="email"
+                    id="login-identifier"
+                    type="text"
+                    placeholder="e.g. SUP001 or user@example.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                     required
