@@ -50,6 +50,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     repeatableGroups,
     hasWorkflowTemplate,
     isTransactionComplete,
+    completedStageName,
     productName,
     eventName,
     navigateToPane,
@@ -120,18 +121,41 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     );
   }
 
-  // Transaction completed state
+  // Transaction completed state - stage-specific messages
   if (isTransactionComplete) {
+    // Determine title and message based on completed stage
+    const getCompletionContent = () => {
+      const stageLower = completedStageName.toLowerCase();
+      
+      if (stageLower.includes('approval')) {
+        return {
+          title: 'Transaction has been approved',
+          message: `Your ${productName} - ${eventName} request has been successfully processed.`,
+        };
+      } else if (stageLower.includes('limit')) {
+        return {
+          title: 'Limit Check Completed',
+          message: `Your ${productName} - ${eventName} has passed limit verification and is pending approval.`,
+        };
+      } else {
+        // Data Entry or any other stage
+        return {
+          title: 'Transaction Submitted',
+          message: `Your ${productName} - ${eventName} has been submitted for processing.`,
+        };
+      }
+    };
+    
+    const { title: completionTitle, message: completionMessage } = getCompletionContent();
+    
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6">
         <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
           <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-foreground">Transaction has been approved</h2>
-          <p className="text-muted-foreground">
-            Your {productName} - {eventName} request has been successfully processed.
-          </p>
+          <h2 className="text-2xl font-semibold text-foreground">{completionTitle}</h2>
+          <p className="text-muted-foreground">{completionMessage}</p>
         </div>
         <Button onClick={handleClose} variant="outline" className="mt-4">
           Close
@@ -151,13 +175,26 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Determine if MT700 sidebar should be shown (for ILC/ELC products)
   const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
 
+  // Extract LC Reference Number from form data for header display
+  const lcReferenceNumber = formData['LC Number'] || formData['LC  Number'] || 
+                            formData.lc_number || formData.lcNumber || 
+                            formData['LC Reference'] || formData['Corporate Reference'] ||
+                            formData['Corporate  Reference'] || '';
+
   const formContent = (
     <div className="space-y-6">
-      {/* Header with Product • Event • Stage */}
+      {/* Header with Product • Event • Stage • LC Reference */}
       <div className="border-b border-border pb-4">
-        <h2 className="text-xl font-semibold text-foreground">
-          {title || `${productName} • ${eventName}`}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">
+            {title || `${productName} • ${eventName}`}
+          </h2>
+          {lcReferenceNumber && (
+            <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-secondary text-secondary-foreground border border-border">
+              LC Ref: {lcReferenceNumber}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
             {currentStageName}
