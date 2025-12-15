@@ -223,6 +223,7 @@ export type Database = {
           created_at: string | null
           full_name: string
           id: string
+          is_super_user: boolean | null
           password_hash: string
           product_linkage: Database["public"]["Enums"]["product_type"][] | null
           role_type: Database["public"]["Enums"]["user_role_type"] | null
@@ -236,6 +237,7 @@ export type Database = {
           created_at?: string | null
           full_name: string
           id?: string
+          is_super_user?: boolean | null
           password_hash: string
           product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role_type?: Database["public"]["Enums"]["user_role_type"] | null
@@ -249,6 +251,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string
           id?: string
+          is_super_user?: boolean | null
           password_hash?: string
           product_linkage?: Database["public"]["Enums"]["product_type"][] | null
           role_type?: Database["public"]["Enums"]["user_role_type"] | null
@@ -3024,6 +3027,72 @@ export type Database = {
         }
         Relationships: []
       }
+      user_permissions: {
+        Row: {
+          can_approve: boolean | null
+          can_create: boolean | null
+          can_delete: boolean | null
+          can_edit: boolean | null
+          can_view: boolean | null
+          created_at: string | null
+          created_by: string | null
+          event_code: string
+          id: string
+          module_code: string
+          product_code: string
+          stage_name: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          can_approve?: boolean | null
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          event_code: string
+          id?: string
+          module_code: string
+          product_code: string
+          stage_name?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          can_approve?: boolean | null
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          event_code?: string
+          id?: string
+          module_code?: string
+          product_code?: string
+          stage_name?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "custom_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "custom_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           corporate_id: string | null
@@ -3333,6 +3402,10 @@ export type Database = {
         }
         Returns: number
       }
+      delete_user_permissions: {
+        Args: { p_permission_ids: string[]; p_requesting_user_id: string }
+        Returns: number
+      }
       generate_assignment_ref: { Args: never; Returns: string }
       generate_documentary_collection_bill_ref: { Args: never; Returns: string }
       generate_export_bill_ref: { Args: never; Returns: string }
@@ -3340,6 +3413,20 @@ export type Database = {
       generate_transaction_ref: {
         Args: { product_type: string }
         Returns: string
+      }
+      get_all_managed_users: {
+        Args: { p_requesting_user_id: string }
+        Returns: {
+          corporate_id: string
+          created_at: string
+          full_name: string
+          id: string
+          is_super_user: boolean
+          role_type: Database["public"]["Enums"]["user_role_type"]
+          scf_role: Database["public"]["Enums"]["scf_user_role"]
+          user_id: string
+          user_login_id: string
+        }[]
       }
       get_custom_user_profile: {
         Args: { input_user_id: string }
@@ -3602,6 +3689,33 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_user_permissions: {
+        Args: { p_requesting_user_id: string; p_target_user_id: string }
+        Returns: {
+          can_approve: boolean
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          event_code: string
+          id: string
+          module_code: string
+          product_code: string
+          stage_name: string
+          user_id: string
+        }[]
+      }
+      has_permission: {
+        Args: {
+          p_event_code: string
+          p_module_code: string
+          p_permission_type: string
+          p_product_code: string
+          p_stage_name?: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       insert_field_repository: {
         Args: { p_fields: Json; p_user_id: string }
         Returns: Json
@@ -3628,6 +3742,14 @@ export type Database = {
         Args: { p_field_data: Json; p_field_id: string; p_user_id: string }
         Returns: Json
       }
+      update_super_user_status: {
+        Args: {
+          p_is_super_user: boolean
+          p_requesting_user_id: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
       update_user_password: {
         Args: { new_password: string; old_password: string }
         Returns: boolean
@@ -3641,6 +3763,22 @@ export type Database = {
           p_panes: Json
           p_product_code: string
           p_user_id: string
+        }
+        Returns: string
+      }
+      upsert_user_permission: {
+        Args: {
+          p_can_approve?: boolean
+          p_can_create?: boolean
+          p_can_delete?: boolean
+          p_can_edit?: boolean
+          p_can_view?: boolean
+          p_event_code: string
+          p_module_code: string
+          p_product_code: string
+          p_requesting_user_id: string
+          p_stage_name?: string
+          p_target_user_id: string
         }
         Returns: string
       }
