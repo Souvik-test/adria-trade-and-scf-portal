@@ -36,6 +36,10 @@ interface UseDynamicTransactionProps {
   customerSegment?: string;
   onSubmitSuccess?: (data: DynamicFormState) => void;
   onClose?: () => void;
+  // New props for continuing an existing transaction
+  transactionRef?: string;
+  initialFormData?: Record<string, any>;
+  initialStage?: string;
 }
 
 interface UseDynamicTransactionReturn {
@@ -94,6 +98,9 @@ export const useDynamicTransaction = ({
   customerSegment,
   onSubmitSuccess,
   onClose,
+  transactionRef: existingTransactionRef,
+  initialFormData,
+  initialStage,
 }: UseDynamicTransactionProps): UseDynamicTransactionReturn => {
   // User permissions for stage filtering
   const { isSuperUser, getAccessibleStages, loading: permissionsLoading } = useUserPermissions();
@@ -116,17 +123,21 @@ export const useDynamicTransaction = ({
   // Transaction completion state
   const [isTransactionComplete, setIsTransactionComplete] = useState(false);
 
-  // Form state
-  const [formData, setFormData] = useState<DynamicFormData>({});
+  // Form state - initialize with initialFormData if continuing an existing transaction
+  const [formData, setFormData] = useState<DynamicFormData>(initialFormData || {});
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>({});
   
   // Transaction reference for tracking across stages
-  const transactionRefRef = useRef<string | null>(null);
+  const transactionRefRef = useRef<string | null>(existingTransactionRef || null);
 
-  // Reset transaction reference when hook re-initializes (e.g., opening a new form)
+  // Reset transaction reference when hook re-initializes (only if no existing ref provided)
   useEffect(() => {
-    transactionRefRef.current = null;
-  }, [productCode, eventCode, triggerType]);
+    if (!existingTransactionRef) {
+      transactionRefRef.current = null;
+    } else {
+      transactionRefRef.current = existingTransactionRef;
+    }
+  }, [productCode, eventCode, triggerType, existingTransactionRef]);
 
   // Product/Event display names from product_event_mapping
   const [productName, setProductName] = useState<string>(defaultProductNames[productCode] || productCode);
@@ -225,6 +236,28 @@ export const useDynamicTransaction = ({
       fetchConfig();
     }
   }, [productCode, eventCode, triggerType, businessApp, customerSegment, permissionsLoading, isSuperUser, getAccessibleStages]);
+
+  // Navigate to initial stage when provided (for continuing existing transactions)
+  useEffect(() => {
+    if (!loading && initialStage && stagePaneMapping.length > 0) {
+      // Find the first pane of the initial stage
+      const targetPaneIndex = stagePaneMapping.findIndex(
+        mapping => mapping.stageName.toLowerCase() === initialStage.toLowerCase()
+      );
+      if (targetPaneIndex >= 0 && targetPaneIndex !== currentPaneIndex) {
+        console.log(`Navigating to initial stage: ${initialStage}, pane index: ${targetPaneIndex}`);
+        setCurrentPaneIndex(targetPaneIndex);
+        // Mark all previous panes as completed
+        const completedPaneIds = new Set<string>();
+        for (let i = 0; i < targetPaneIndex; i++) {
+          if (panes[i]) {
+            completedPaneIds.add(panes[i].id);
+          }
+        }
+        setCompletedPanes(completedPaneIds);
+      }
+    }
+  }, [loading, initialStage, stagePaneMapping, panes]);
 
   // Get current stage name based on current pane index
   const getCurrentStageName = useCallback((): string => {

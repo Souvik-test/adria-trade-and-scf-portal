@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink } from "lucide-react";
 import TransactionViewModal from "@/components/TransactionViewModal";
+import TransactionWorkflowModal from "@/components/TransactionWorkflowModal";
 import { useToast } from "@/hooks/use-toast";
 import {
   Pagination,
@@ -31,6 +32,7 @@ interface Transaction {
   party_form: string | null;
   operations: string | null;
   business_application: string | null;
+  form_data?: any;
 }
 
 interface Props {
@@ -38,6 +40,7 @@ interface Props {
   isLoading: boolean;
   transactionFilter: string;
   setTransactionFilter: (val: string) => void;
+  onRefresh?: () => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -77,10 +80,13 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   isLoading,
   transactionFilter,
   setTransactionFilter,
+  onRefresh,
 }) => {
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -115,9 +121,29 @@ const DashboardTransactionsTable: React.FC<Props> = ({
     setCurrentPage(1);
   }, [transactionFilter, transactions.length]);
 
+  // Check if transaction is workflow-eligible (can be continued in workflow)
+  const isWorkflowEligible = (transaction: Transaction): boolean => {
+    const status = transaction.status.toLowerCase();
+    // Only allow workflow for transactions that haven't been fully processed
+    return status !== 'issued' && status !== 'rejected' && status !== 'cancelled';
+  };
+
   const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setIsViewModalOpen(true);
+    
+    // If transaction is workflow-eligible, open workflow modal
+    // Otherwise, open view-only modal
+    if (isWorkflowEligible(transaction)) {
+      setIsWorkflowModalOpen(true);
+    } else {
+      setIsViewModalOpen(true);
+    }
+  };
+
+  const handleTransactionUpdated = () => {
+    // Trigger a refresh of the transactions list
+    setRefreshTrigger(prev => prev + 1);
+    if (onRefresh) onRefresh();
   };
 
   // Handler for changing page
@@ -261,11 +287,19 @@ const DashboardTransactionsTable: React.FC<Props> = ({
         </CardContent>
       </Card>
       {selectedTransaction && (
-        <TransactionViewModal
-          isOpen={isViewModalOpen}
-          onClose={() => setIsViewModalOpen(false)}
-          transaction={selectedTransaction}
-        />
+        <>
+          <TransactionViewModal
+            isOpen={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+            transaction={selectedTransaction}
+          />
+          <TransactionWorkflowModal
+            isOpen={isWorkflowModalOpen}
+            onClose={() => setIsWorkflowModalOpen(false)}
+            transaction={selectedTransaction}
+            onTransactionUpdated={handleTransactionUpdated}
+          />
+        </>
       )}
     </>
   );
