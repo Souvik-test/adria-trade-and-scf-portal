@@ -87,6 +87,7 @@ export type ButtonActionType =
   | 'save_draft' 
   | 'save_template' 
   | 'submit' 
+  | 'reject'
   | 'discard' 
   | 'close' 
   | 'custom';

@@ -78,6 +78,7 @@ interface UseDynamicTransactionReturn {
   handleSave: (type: 'draft' | 'template') => Promise<void>;
   handleStageSubmit: () => void;
   handleSubmit: () => Promise<void>;
+  handleReject: (reason: string) => Promise<void>;
   handleDiscard: () => void;
   handleClose: () => void;
   
@@ -525,6 +526,42 @@ export const useDynamicTransaction = ({
     toast.info('Changes discarded');
   }, []);
 
+  // Handle rejection - update transaction status to Rejected and close
+  const handleReject = useCallback(async (reason: string) => {
+    try {
+      // Generate transaction reference if not already created
+      if (!transactionRefRef.current) {
+        transactionRefRef.current = generateTransactionRef();
+      }
+
+      // Merge form data with rejection reason
+      const rejectionData = {
+        ...initialFormData,
+        ...formData,
+        repeatableGroups,
+        rejection_reason: reason,
+        rejected_at: new Date().toISOString(),
+      };
+
+      // Create/update transaction with Rejected status
+      await createTransactionRecord(
+        productCode,
+        rejectionData,
+        transactionRefRef.current,
+        eventCode === 'ISS' ? 'Issuance' : eventCode,
+        businessApp,
+        'Rejected'
+      );
+
+      toast.success(`Transaction ${transactionRefRef.current} has been rejected`);
+      setCompletedStageName('Approval');
+      setIsTransactionComplete(true);
+    } catch (err: any) {
+      console.error('Error rejecting transaction:', err);
+      toast.error('Failed to reject transaction', { description: err.message });
+    }
+  }, [formData, repeatableGroups, initialFormData, productCode, eventCode, businessApp, generateTransactionRef]);
+
   const handleClose = useCallback(() => {
     onClose?.();
   }, [onClose]);
@@ -567,6 +604,7 @@ export const useDynamicTransaction = ({
     handleSave,
     handleStageSubmit,
     handleSubmit,
+    handleReject,
     handleDiscard,
     handleClose,
     getCurrentPane,

@@ -55,8 +55,19 @@ const getAmount = (productType: string, formData: any) => {
       return formData.grandTotal;
     case 'Invoice':
       return formData.totalAmount;
+    case 'ILC':
+    case 'ELC':
+    case 'Import LC':
+    case 'Export LC':
+      // Try various field names for LC amount (with and without double spaces from field_repository)
+      return formData['LC Amount'] || formData['LC  Amount'] || 
+             formData.lc_amount || formData.lcAmount ||
+             formData['Transaction Amount'] || formData['Transaction  Amount'] ||
+             formData.amount || null;
     default:
-      return null;
+      // Generic fallback for amount field
+      return formData.amount || formData['LC Amount'] || formData['LC  Amount'] || 
+             formData['Transaction Amount'] || null;
   }
 };
 

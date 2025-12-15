@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
@@ -61,6 +61,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     handleSave,
     handleStageSubmit,
     handleSubmit,
+    handleReject,
     handleDiscard,
     handleClose,
     getCurrentPane,
@@ -123,35 +124,55 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Transaction completed state - stage-specific messages
   if (isTransactionComplete) {
+    // Check if this was a rejection (check formData for rejection_reason)
+    const isRejection = formData.rejection_reason || formData['rejection_reason'];
+    
     // Determine title and message based on completed stage
     const getCompletionContent = () => {
       const stageLower = completedStageName.toLowerCase();
       
-      if (stageLower.includes('approval')) {
+      if (isRejection) {
+        return {
+          title: 'Transaction Rejected',
+          message: `The ${productName} - ${eventName} request has been rejected and sent back to Data Entry.`,
+          isError: true,
+        };
+      } else if (stageLower.includes('approval')) {
         return {
           title: 'Transaction has been approved',
           message: `Your ${productName} - ${eventName} request has been successfully processed.`,
+          isError: false,
         };
       } else if (stageLower.includes('limit')) {
         return {
           title: 'Limit Check Completed',
           message: `Your ${productName} - ${eventName} has passed limit verification and is pending approval.`,
+          isError: false,
         };
       } else {
         // Data Entry or any other stage
         return {
           title: 'Transaction Submitted',
           message: `Your ${productName} - ${eventName} has been submitted for processing.`,
+          isError: false,
         };
       }
     };
     
-    const { title: completionTitle, message: completionMessage } = getCompletionContent();
+    const { title: completionTitle, message: completionMessage, isError } = getCompletionContent();
     
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6">
-        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+          isError 
+            ? 'bg-red-100 dark:bg-red-900/30' 
+            : 'bg-green-100 dark:bg-green-900/30'
+        }`}>
+          {isError ? (
+            <XCircle className="h-12 w-12 text-red-600 dark:text-red-400" />
+          ) : (
+            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+          )}
         </div>
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-semibold text-foreground">{completionTitle}</h2>
@@ -262,6 +283,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 onSave={handleSave}
                 onStageSubmit={handleStageSubmit}
                 onSubmit={handleSubmit}
+                onReject={handleReject}
                 onDiscard={handleDiscard}
                 onClose={handleClose}
               />

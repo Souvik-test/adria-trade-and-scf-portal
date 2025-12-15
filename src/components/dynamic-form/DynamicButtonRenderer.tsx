@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { PaneButtonConfig, ButtonVariant } from '@/types/dynamicForm';
-import { ChevronLeft, ChevronRight, Save, Send, X, Trash2, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, Send, X, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 interface DynamicButtonRendererProps {
   buttons: PaneButtonConfig[];
@@ -14,6 +17,7 @@ interface DynamicButtonRendererProps {
   onSave: (type: 'draft' | 'template') => void;
   onStageSubmit?: () => void;
   onSubmit: () => void;
+  onReject?: (reason: string) => Promise<void>;
   onDiscard: () => void;
   onClose: () => void;
   isLoading?: boolean;
@@ -31,6 +35,8 @@ const getButtonIcon = (action: PaneButtonConfig['action'], isApprovalStage?: boo
       return <Save className="w-4 h-4 mr-1" />;
     case 'submit':
       return isApprovalStage ? <CheckCircle className="w-4 h-4 mr-1" /> : <Send className="w-4 h-4 mr-1" />;
+    case 'reject':
+      return <XCircle className="w-4 h-4 mr-1" />;
     case 'discard':
       return <Trash2 className="w-4 h-4 mr-1" />;
     case 'close':
@@ -66,15 +72,22 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   onSave,
   onStageSubmit,
   onSubmit,
+  onReject,
   onDiscard,
   onClose,
   isLoading = false,
   disabled = false,
 }) => {
+  // Reject dialog state
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
+
   // Check if current stage is the Approval stage (case-insensitive)
   const isApprovalStage = stageName.toLowerCase().includes('approval');
   // Check if current stage is Data Entry stage (case-insensitive)
   const isDataEntryStage = stageName.toLowerCase().includes('data entry');
+  
   const handleButtonClick = (button: PaneButtonConfig) => {
     switch (button.action) {
       case 'next_pane':
@@ -101,6 +114,9 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
           onSubmit();
         }
         break;
+      case 'reject':
+        setIsRejectDialogOpen(true);
+        break;
       case 'discard':
         onDiscard();
         break;
@@ -112,6 +128,21 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
           onNavigate('pane', button.targetPaneId);
         }
         break;
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectReason.trim()) return;
+    
+    setIsRejecting(true);
+    try {
+      if (onReject) {
+        await onReject(rejectReason);
+      }
+      setIsRejectDialogOpen(false);
+      setRejectReason('');
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -152,6 +183,27 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
     }
   }
 
+  // Add "Reject" button for Approval stage only (before Approve & Complete)
+  if (isApprovalStage && isLastPaneOfStage && onReject) {
+    const submitIndex = finalButtons.findIndex(btn => btn.action === 'submit');
+    const rejectButton: PaneButtonConfig = {
+      id: 'reject_auto',
+      label: 'Reject',
+      action: 'reject',
+      variant: 'destructive',
+      position: 'right',
+      order: submitIndex >= 0 ? finalButtons[submitIndex].order - 0.5 : 4,
+      isVisible: true,
+    };
+    
+    // Insert before Submit/Approve button if it exists
+    if (submitIndex >= 0) {
+      finalButtons.splice(submitIndex, 0, rejectButton);
+    } else {
+      finalButtons.push(rejectButton);
+    }
+  }
+
   // Filter visible buttons and sort by order
   const visibleButtons = finalButtons
     .filter(btn => btn.isVisible)
@@ -168,39 +220,82 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between pt-6 border-t border-border">
-      {/* Left-aligned buttons */}
-      <div className="flex items-center gap-2">
-        {leftButtons.map((button) => (
-          <Button
-            key={button.id}
-            variant={mapVariant(button.variant)}
-            onClick={() => handleButtonClick(button)}
-            disabled={isButtonDisabled(button)}
-          >
-            {button.action === 'previous_pane' && getButtonIcon(button.action)}
-            {button.label}
-          </Button>
-        ))}
+    <>
+      <div className="flex items-center justify-between pt-6 border-t border-border">
+        {/* Left-aligned buttons */}
+        <div className="flex items-center gap-2">
+          {leftButtons.map((button) => (
+            <Button
+              key={button.id}
+              variant={mapVariant(button.variant)}
+              onClick={() => handleButtonClick(button)}
+              disabled={isButtonDisabled(button)}
+            >
+              {button.action === 'previous_pane' && getButtonIcon(button.action)}
+              {button.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Right-aligned buttons */}
+        <div className="flex items-center gap-2">
+          {rightButtons.map((button) => (
+            <Button
+              key={button.id}
+              variant={button.action === 'submit' ? 'default' : button.action === 'reject' ? 'destructive' : mapVariant(button.variant)}
+              onClick={() => handleButtonClick(button)}
+              disabled={isButtonDisabled(button)}
+              className={button.action === 'submit' && isApprovalStage && isFinalStage ? 'bg-green-600 hover:bg-green-700' : ''}
+            >
+              {button.action !== 'next_pane' && getButtonIcon(button.action, isApprovalStage && isFinalStage)}
+              {button.label}
+              {button.action === 'next_pane' && getButtonIcon(button.action)}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {/* Right-aligned buttons */}
-      <div className="flex items-center gap-2">
-        {rightButtons.map((button) => (
-          <Button
-            key={button.id}
-            variant={button.action === 'submit' ? 'default' : mapVariant(button.variant)}
-            onClick={() => handleButtonClick(button)}
-            disabled={isButtonDisabled(button)}
-            className={button.action === 'submit' && isApprovalStage && isFinalStage ? 'bg-green-600 hover:bg-green-700' : ''}
-          >
-            {button.action !== 'next_pane' && getButtonIcon(button.action, isApprovalStage && isFinalStage)}
-            {button.label}
-            {button.action === 'next_pane' && getButtonIcon(button.action)}
-          </Button>
-        ))}
-      </div>
-    </div>
+      {/* Reject Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Transaction</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reject-reason">Rejection Reason</Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="Please provide a reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRejectDialogOpen(false);
+                setRejectReason('');
+              }}
+              disabled={isRejecting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={!rejectReason.trim() || isRejecting}
+            >
+              {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
