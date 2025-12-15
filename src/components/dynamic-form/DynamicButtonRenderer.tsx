@@ -9,6 +9,7 @@ interface DynamicButtonRendererProps {
   totalPanes: number;
   isLastPaneOfStage?: boolean;
   isFinalStage?: boolean;
+  stageName?: string;
   onNavigate: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   onSave: (type: 'draft' | 'template') => void;
   onStageSubmit?: () => void;
@@ -19,7 +20,7 @@ interface DynamicButtonRendererProps {
   disabled?: boolean;
 }
 
-const getButtonIcon = (action: PaneButtonConfig['action'], isFinalStage?: boolean) => {
+const getButtonIcon = (action: PaneButtonConfig['action'], isApprovalStage?: boolean) => {
   switch (action) {
     case 'previous_pane':
       return <ChevronLeft className="w-4 h-4 mr-1" />;
@@ -29,7 +30,7 @@ const getButtonIcon = (action: PaneButtonConfig['action'], isFinalStage?: boolea
     case 'save_template':
       return <Save className="w-4 h-4 mr-1" />;
     case 'submit':
-      return isFinalStage ? <CheckCircle className="w-4 h-4 mr-1" /> : <Send className="w-4 h-4 mr-1" />;
+      return isApprovalStage ? <CheckCircle className="w-4 h-4 mr-1" /> : <Send className="w-4 h-4 mr-1" />;
     case 'discard':
       return <Trash2 className="w-4 h-4 mr-1" />;
     case 'close':
@@ -60,6 +61,7 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   totalPanes,
   isLastPaneOfStage = false,
   isFinalStage = false,
+  stageName = '',
   onNavigate,
   onSave,
   onStageSubmit,
@@ -69,6 +71,8 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   isLoading = false,
   disabled = false,
 }) => {
+  // Check if current stage is the Approval stage (case-insensitive)
+  const isApprovalStage = stageName.toLowerCase().includes('approval');
   const handleButtonClick = (button: PaneButtonConfig) => {
     switch (button.action) {
       case 'next_pane':
@@ -111,11 +115,13 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
 
   // Transform buttons based on stage position
   const transformedButtons = buttons.map(btn => {
-    // If this is the last pane of a stage and button is "next_pane", show "Submit" instead
+    // If this is the last pane of a stage and button is "next_pane", show appropriate label
     if (btn.action === 'next_pane' && isLastPaneOfStage) {
+      // Only show "Approve & Complete" for Approval stage, "Submit" for all others
+      const label = isApprovalStage && isFinalStage ? 'Approve & Complete' : 'Submit';
       return {
         ...btn,
-        label: isFinalStage ? 'Approve & Complete' : 'Submit',
+        label,
         action: 'submit' as const,
       };
     }
@@ -162,9 +168,9 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
             variant={button.action === 'submit' ? 'default' : mapVariant(button.variant)}
             onClick={() => handleButtonClick(button)}
             disabled={isButtonDisabled(button)}
-            className={button.action === 'submit' && isFinalStage ? 'bg-green-600 hover:bg-green-700' : ''}
+            className={button.action === 'submit' && isApprovalStage && isFinalStage ? 'bg-green-600 hover:bg-green-700' : ''}
           >
-            {button.action !== 'next_pane' && getButtonIcon(button.action, isFinalStage)}
+            {button.action !== 'next_pane' && getButtonIcon(button.action, isApprovalStage && isFinalStage)}
             {button.label}
             {button.action === 'next_pane' && getButtonIcon(button.action)}
           </Button>
