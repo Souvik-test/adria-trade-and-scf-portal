@@ -271,9 +271,12 @@ export const useDynamicTransaction = ({
     const prefix = productCode.toUpperCase();
     const event = eventCode.toUpperCase();
     
-    // Get LC number from form data (common field names for LC reference)
-    const lcNumber = formData.lc_number || formData.lcNumber || formData.lc_reference || 
-                     formData.lcReference || formData.corporate_reference || formData.corporateReference ||
+    // Get LC number from form data - check both with spaces (from field_repository) and without
+    const lcNumber = formData['LC Number'] || formData['LC  Number'] || 
+                     formData.lc_number || formData.lcNumber || 
+                     formData['LC Reference'] || formData.lc_reference || formData.lcReference ||
+                     formData['Corporate Reference'] || formData['Corporate  Reference'] ||
+                     formData.corporate_reference || formData.corporateReference ||
                      formData.lc_no || formData.lcNo || '';
     
     const lcRef = typeof lcNumber === 'string' && lcNumber.trim() ? lcNumber.trim() : `${Date.now()}`;
@@ -293,6 +296,7 @@ export const useDynamicTransaction = ({
       const currentStageName = getCurrentStageName();
       const isApprovalStage = currentStageName.toLowerCase().includes('approval');
       const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
+      const hasMorePanes = currentPaneIndex < panes.length - 1;
       
       // Get appropriate status based on stage
       const status = getStatusFromStage(currentStageName, isFinalApproval);
@@ -318,12 +322,17 @@ export const useDynamicTransaction = ({
         setCompletedPanes(allPaneIds);
         setIsTransactionComplete(true);
         toast.success(`Transaction ${transactionRefRef.current} has been issued`);
-      } else if (isLastPaneOfCurrentStage()) {
-        // Last pane of stage but not final - navigate to next pane (next stage's first pane)
-        if (currentPaneIndex < panes.length - 1) {
-          setCurrentPaneIndex(prev => prev + 1);
+      } else if (hasMorePanes) {
+        // More panes to go - navigate to next pane
+        setCurrentPaneIndex(prev => prev + 1);
+        if (isLastPaneOfCurrentStage()) {
           toast.success(`${currentStageName} stage completed - Status: ${status}`);
         }
+      } else {
+        // No more panes but not final approval - stage submitted, waiting for next stage
+        toast.success(`${currentStageName} submitted - Status: ${status}. Awaiting next stage processing.`);
+        // Mark transaction as complete for this user's accessible stages
+        setIsTransactionComplete(true);
       }
     } catch (err: any) {
       console.error('Error submitting stage:', err);
