@@ -139,10 +139,12 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
 
   const fetchMappings = async () => {
     try {
-      const { data, error } = await supabase
-        .from("product_event_mapping")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const session = customAuth.getSession();
+      if (!session?.user?.id) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase.rpc('get_product_event_mappings', {
+        p_user_id: session.user.id
+      });
 
       if (error) throw error;
       setMappings(data || []);
@@ -180,17 +182,33 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
       if (!session?.user?.id) throw new Error("User not authenticated");
 
       if (editingId) {
-        const { error } = await supabase
-          .from("product_event_mapping")
-          .update(formData)
-          .eq("id", editingId);
+        const { error } = await supabase.rpc('update_product_event_mapping', {
+          p_user_id: session.user.id,
+          p_mapping_id: editingId,
+          p_module_code: formData.module_code,
+          p_module_name: formData.module_name,
+          p_product_code: formData.product_code,
+          p_product_name: formData.product_name,
+          p_event_code: formData.event_code,
+          p_event_name: formData.event_name,
+          p_target_audience: formData.target_audience,
+          p_business_application: formData.business_application
+        });
 
         if (error) throw error;
         toast.success("Product event mapping updated successfully");
       } else {
-        const { error } = await supabase
-          .from("product_event_mapping")
-          .insert([{ ...formData, user_id: session.user.id }]);
+        const { error } = await supabase.rpc('insert_product_event_mapping', {
+          p_user_id: session.user.id,
+          p_module_code: formData.module_code,
+          p_module_name: formData.module_name,
+          p_product_code: formData.product_code,
+          p_product_name: formData.product_name,
+          p_event_code: formData.event_code,
+          p_event_name: formData.event_name,
+          p_target_audience: formData.target_audience,
+          p_business_application: formData.business_application
+        });
 
         if (error) throw error;
         toast.success("Product event mapping created successfully");
@@ -224,10 +242,13 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     if (!confirm("Are you sure you want to delete this mapping?")) return;
 
     try {
-      const { error } = await supabase
-        .from("product_event_mapping")
-        .delete()
-        .eq("id", id);
+      const session = customAuth.getSession();
+      if (!session?.user?.id) throw new Error("User not authenticated");
+
+      const { error } = await supabase.rpc('delete_product_event_mapping', {
+        p_user_id: session.user.id,
+        p_mapping_id: id
+      });
 
       if (error) throw error;
       toast.success("Product event mapping deleted successfully");

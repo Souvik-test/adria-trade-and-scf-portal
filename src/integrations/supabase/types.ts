@@ -3477,6 +3477,10 @@ export type Database = {
         }
         Returns: number
       }
+      delete_product_event_mapping: {
+        Args: { p_mapping_id: string; p_user_id: string }
+        Returns: boolean
+      }
       delete_user_permissions: {
         Args: { p_permission_ids: string[]; p_requesting_user_id: string }
         Returns: number
@@ -3692,6 +3696,29 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_product_event_mappings: {
+        Args: { p_user_id: string }
+        Returns: {
+          business_application: string[] | null
+          created_at: string
+          event_code: string
+          event_name: string
+          id: string
+          module_code: string
+          module_name: string
+          product_code: string
+          product_name: string
+          target_audience: string[]
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "product_event_mapping"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_fields: {
         Args: { p_user_id: string }
         Returns: {
@@ -3842,6 +3869,20 @@ export type Database = {
         Args: { p_fields: Json; p_user_id: string }
         Returns: Json
       }
+      insert_product_event_mapping: {
+        Args: {
+          p_business_application: string[]
+          p_event_code: string
+          p_event_name: string
+          p_module_code: string
+          p_module_name: string
+          p_product_code: string
+          p_product_name: string
+          p_target_audience: string[]
+          p_user_id: string
+        }
+        Returns: string
+      }
       notify_scf_users_by_role: {
         Args: {
           p_exclude_user_id?: string
@@ -3874,6 +3915,21 @@ export type Database = {
       update_field_repository: {
         Args: { p_field_data: Json; p_field_id: string; p_user_id: string }
         Returns: Json
+      }
+      update_product_event_mapping: {
+        Args: {
+          p_business_application: string[]
+          p_event_code: string
+          p_event_name: string
+          p_mapping_id: string
+          p_module_code: string
+          p_module_name: string
+          p_product_code: string
+          p_product_name: string
+          p_target_audience: string[]
+          p_user_id: string
+        }
+        Returns: boolean
       }
       update_super_user_status: {
         Args: {
