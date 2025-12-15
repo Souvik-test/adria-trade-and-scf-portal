@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { 
   PaneConfig, 
@@ -26,6 +26,7 @@ import {
   defaultEventNames 
 } from '@/services/productEventMappingService';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { createTransactionRecord, getStatusFromStage } from '@/services/database';
 
 interface UseDynamicTransactionProps {
   productCode: string;
@@ -118,6 +119,9 @@ export const useDynamicTransaction = ({
   // Form state
   const [formData, setFormData] = useState<DynamicFormData>({});
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>({});
+  
+  // Transaction reference for tracking across stages
+  const transactionRefRef = useRef<string | null>(null);
 
   // Product/Event display names from product_event_mapping
   const [productName, setProductName] = useState<string>(defaultProductNames[productCode] || productCode);
@@ -257,28 +261,62 @@ export const useDynamicTransaction = ({
     }
   }, [currentPaneIndex, panes]);
 
+  // Generate transaction reference
+  const generateTransactionRef = useCallback(() => {
+    const prefix = productCode.toUpperCase();
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+    return `${prefix}-${timestamp}-${random}`;
+  }, [productCode]);
+
   // Handle stage submit - navigates to next stage or completes transaction
-  const handleStageSubmit = useCallback(() => {
-    // Mark current pane as completed
-    const currentPane = panes[currentPaneIndex];
-    if (currentPane) {
-      setCompletedPanes(prev => new Set([...prev, currentPane.id]));
-    }
-    
-    if (isFinalStage() && isLastPaneOfCurrentStage()) {
-      // Final stage - mark transaction as complete
-      const allPaneIds = new Set(panes.map(p => p.id));
-      setCompletedPanes(allPaneIds);
-      setIsTransactionComplete(true);
-      toast.success('Transaction has been approved');
-    } else if (isLastPaneOfCurrentStage()) {
-      // Last pane of stage but not final - navigate to next pane (next stage's first pane)
-      if (currentPaneIndex < panes.length - 1) {
-        setCurrentPaneIndex(prev => prev + 1);
-        toast.success(`${getCurrentStageName()} stage submitted successfully`);
+  const handleStageSubmit = useCallback(async () => {
+    try {
+      // Mark current pane as completed
+      const currentPane = panes[currentPaneIndex];
+      if (currentPane) {
+        setCompletedPanes(prev => new Set([...prev, currentPane.id]));
       }
+      
+      const currentStageName = getCurrentStageName();
+      const isFinalApproval = isFinalStage() && isLastPaneOfCurrentStage();
+      
+      // Get appropriate status based on stage
+      const status = getStatusFromStage(currentStageName, isFinalApproval);
+      
+      // Generate transaction reference if not already created
+      if (!transactionRefRef.current) {
+        transactionRefRef.current = generateTransactionRef();
+      }
+      
+      // Create/update transaction record with stage-appropriate status
+      await createTransactionRecord(
+        productCode,
+        formData,
+        transactionRefRef.current,
+        eventCode === 'ISS' ? 'Issuance' : eventCode,
+        businessApp,
+        status
+      );
+      
+      if (isFinalApproval) {
+        // Final stage - mark transaction as complete
+        const allPaneIds = new Set(panes.map(p => p.id));
+        setCompletedPanes(allPaneIds);
+        setIsTransactionComplete(true);
+        toast.success(`Transaction ${transactionRefRef.current} has been issued`);
+      } else if (isLastPaneOfCurrentStage()) {
+        // Last pane of stage but not final - navigate to next pane (next stage's first pane)
+        if (currentPaneIndex < panes.length - 1) {
+          setCurrentPaneIndex(prev => prev + 1);
+          toast.success(`${currentStageName} stage completed - Status: ${status}`);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error submitting stage:', err);
+      toast.error('Failed to submit stage', { description: err.message });
     }
-  }, [currentPaneIndex, panes, isFinalStage, isLastPaneOfCurrentStage, getCurrentStageName]);
+  }, [currentPaneIndex, panes, isFinalStage, isLastPaneOfCurrentStage, getCurrentStageName, productCode, eventCode, formData, businessApp, generateTransactionRef]);
 
   // Field changes
   const handleFieldChange = useCallback((fieldCode: string, value: any) => {
@@ -348,15 +386,29 @@ export const useDynamicTransaction = ({
       const allPaneIds = new Set(panes.map(p => p.id));
       setCompletedPanes(allPaneIds);
 
-      // TODO: Implement actual submit logic
+      // Generate transaction reference if not already created
+      if (!transactionRefRef.current) {
+        transactionRefRef.current = generateTransactionRef();
+      }
+
+      // Create transaction with 'Issued' status for final submission
+      await createTransactionRecord(
+        productCode,
+        formData,
+        transactionRefRef.current,
+        eventCode === 'ISS' ? 'Issuance' : eventCode,
+        businessApp,
+        'Issued'
+      );
+      
       const formState: DynamicFormState = { formData, repeatableGroups };
       
-      toast.success('Form submitted successfully');
+      toast.success(`Transaction ${transactionRefRef.current} submitted successfully`);
       onSubmitSuccess?.(formState);
     } catch (err: any) {
       toast.error('Failed to submit form', { description: err.message });
     }
-  }, [formData, repeatableGroups, panes, onSubmitSuccess]);
+  }, [formData, repeatableGroups, panes, onSubmitSuccess, productCode, eventCode, businessApp, generateTransactionRef]);
 
   const handleDiscard = useCallback(() => {
     setFormData({});
@@ -364,6 +416,7 @@ export const useDynamicTransaction = ({
     setCurrentPaneIndex(0);
     setCompletedPanes(new Set());
     setIsTransactionComplete(false);
+    transactionRefRef.current = null; // Reset transaction reference
     toast.info('Changes discarded');
   }, []);
 

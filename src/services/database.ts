@@ -60,12 +60,30 @@ const getAmount = (productType: string, formData: any) => {
   }
 };
 
+// Map stage name to transaction status
+const getStatusFromStage = (stageName: string, isFinalApproval: boolean): string => {
+  if (isFinalApproval) return 'Issued';
+  
+  const normalizedStage = stageName.toLowerCase().trim();
+  
+  if (normalizedStage.includes('data entry') || normalizedStage === 'data entry') {
+    return 'Submitted';
+  } else if (normalizedStage.includes('limit') || normalizedStage === 'limit check') {
+    return 'Limit Checked';
+  } else if (normalizedStage.includes('approval')) {
+    return 'Approved';
+  }
+  
+  return 'Submitted';
+};
+
 const createTransactionRecord = async (
   productType: string,
   formData: any,
   actualTransactionNumber: string,
   processType?: string,
-  businessApplication?: string
+  businessApplication?: string,
+  status?: string
 ) => {
   const user = await getCurrentUserAsync();
   if (!user) {
@@ -77,6 +95,9 @@ const createTransactionRecord = async (
     localStorage.getItem('businessCentre') || 
     'Adria TSCF Client';
   
+  // Use provided status or default to 'Submitted'
+  const resolvedStatus = status || 'Submitted';
+  
   try {
     // Use RPC function to insert transaction (bypasses RLS for custom auth)
     const { data: transaction, error: transactionError } = await supabase.rpc('insert_transaction', {
@@ -84,7 +105,7 @@ const createTransactionRecord = async (
       p_transaction_ref: actualTransactionNumber,
       p_product_type: productType,
       p_process_type: processType || "Create",
-      p_status: 'Submitted',
+      p_status: resolvedStatus,
       p_customer_name: getCustomerName(productType, formData),
       p_amount: getAmount(productType, formData),
       p_currency: formData.currency || 'USD',
@@ -107,4 +128,5 @@ export {
   getCustomerName,
   getAmount,
   createTransactionRecord,
+  getStatusFromStage,
 };
