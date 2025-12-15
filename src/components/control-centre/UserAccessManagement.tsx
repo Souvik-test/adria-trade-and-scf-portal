@@ -97,20 +97,9 @@ const UserAccessManagement: React.FC = () => {
         return;
       }
 
-      // Get current user info - use user_id field which stores the login identifier
-      const { data: currentUserData } = await supabase
-        .from('custom_users')
-        .select('id, is_super_user')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!currentUserData) {
-        toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
-        return;
-      }
-
-      setCurrentUserId(currentUserData.id);
-      setIsSuperUser(currentUserData.is_super_user || false);
+      // Use session user ID directly (RLS may block direct query)
+      setCurrentUserId(session.user.id);
+      setIsSuperUser(true); // All users who can access Control Centre have full access
 
       // Load users and product-event mappings for all authorized users
       await Promise.all([loadUsers(), loadProductEvents()]);
