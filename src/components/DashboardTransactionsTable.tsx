@@ -64,6 +64,12 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
+const getChannelLabel = (initiatingChannel: string, businessApplication: string | null) => {
+  const app = (businessApplication || '').toLowerCase();
+  if (app.includes('orchestrator') || app.includes('tscf bank')) return 'Bank';
+  return initiatingChannel || 'Portal';
+};
+
 const PAGE_SIZE = 10;
 
 const DashboardTransactionsTable: React.FC<Props> = ({
@@ -196,7 +202,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
                         <td className="py-2">{transaction.business_application || 'Adria TSCF Client'}</td>
-                        <td className="py-2">{transaction.initiating_channel}</td>
+                        <td className="py-2">{getChannelLabel(transaction.initiating_channel, transaction.business_application)}</td>
                       </tr>
                     ))
                   ) : (

@@ -279,7 +279,8 @@ export const useDynamicTransaction = ({
       }
       
       const currentStageName = getCurrentStageName();
-      const isFinalApproval = isFinalStage() && isLastPaneOfCurrentStage();
+      const isApprovalStage = currentStageName.toLowerCase().includes('approval');
+      const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
       
       // Get appropriate status based on stage
       const status = getStatusFromStage(currentStageName, isFinalApproval);
@@ -391,14 +392,19 @@ export const useDynamicTransaction = ({
         transactionRefRef.current = generateTransactionRef();
       }
 
-      // Create transaction with 'Issued' status for final submission
+      const currentStageName = getCurrentStageName();
+      const isApprovalStage = currentStageName.toLowerCase().includes('approval');
+      const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
+      const finalStatus = getStatusFromStage(currentStageName, isFinalApproval);
+
+      // Create transaction with correct status for current stage
       await createTransactionRecord(
         productCode,
         formData,
         transactionRefRef.current,
         eventCode === 'ISS' ? 'Issuance' : eventCode,
         businessApp,
-        'Issued'
+        finalStatus
       );
       
       const formState: DynamicFormState = { formData, repeatableGroups };
