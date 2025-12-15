@@ -81,32 +81,67 @@ const UserAccessManagement: React.FC = () => {
   }, []);
 
   const initializeData = async () => {
-    const session = customAuth.getSession();
-    if (!session?.user?.id) {
-      toast.error('Please login to access this feature');
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
-    setCurrentUserId(session.user.id);
+    try {
+      let effectiveUserId: string | null = null;
+      let superUserFlag = false;
 
-    // Check if current user is super user
-    const { data: userData } = await supabase
-      .from('custom_users')
-      .select('is_super_user')
-      .eq('id', session.user.id)
-      .single();
+      // 1) Prefer custom auth session (Trade Studio internal auth)
+      const customSession = customAuth.getSession();
 
-    if (userData?.is_super_user) {
+      if (customSession?.user?.id) {
+        effectiveUserId = customSession.user.id;
+
+        const { data: userData, error } = await supabase
+          .from('custom_users')
+          .select('is_super_user')
+          .eq('id', customSession.user.id)
+          .single();
+
+        if (error) throw error;
+        superUserFlag = !!userData?.is_super_user;
+      } else {
+        // 2) Fallback to Supabase Auth session (email/password login)
+        const { data, error } = await supabase.auth.getUser();
+
+        if (!error && data.user?.email) {
+          const { data: customUser, error: customUserError } = await supabase
+            .from('custom_users')
+            .select('id, is_super_user')
+            .eq('user_id', data.user.email)
+            .single();
+
+          if (!customUserError && customUser) {
+            effectiveUserId = customUser.id;
+            superUserFlag = !!customUser.is_super_user;
+          }
+        }
+      }
+
+      if (!effectiveUserId) {
+        toast.error('Please login to access this feature');
+        setIsSuperUser(false);
+        return;
+      }
+
+      setCurrentUserId(effectiveUserId);
+
+      if (!superUserFlag) {
+        setIsSuperUser(false);
+        toast.error('Super user privileges required to access this feature');
+        return;
+      }
+
       setIsSuperUser(true);
-      await loadUsers(session.user.id);
-      await loadProductEvents();
-    } else {
+      await Promise.all([loadUsers(effectiveUserId), loadProductEvents()]);
+    } catch (error) {
+      console.error('Error initializing User Access Management:', error);
+      toast.error('Failed to initialize User Access Management');
       setIsSuperUser(false);
-      toast.error('Super user privileges required to access this feature');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const loadUsers = async (requestingUserId: string) => {
