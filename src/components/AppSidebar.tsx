@@ -4,6 +4,7 @@ import { Package, Search, Shield, Settings, User, LayoutDashboard, Database, Che
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModuleType } from './TopRibbon';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 const menuItems = [{
   title: 'Dashboard',
   icon: LayoutDashboard,
@@ -58,9 +59,15 @@ export function AppSidebar({
   const [supportOpen, setSupportOpen] = React.useState(false);
   const [foundationalDataOpen, setFoundationalDataOpen] = React.useState(false);
 
+  // Get permissions
+  const { hasScreenAccess, isSuperUser, loading: permissionsLoading } = useUserPermissions();
+
   // Get business centre from localStorage
   const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
-  const showControlCentre = businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank';
+  
+  // Show Control Centre only for Process Orchestrator or Bank users with screen access
+  const showControlCentre = (businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank') && 
+    (isSuperUser() || hasScreenAccess('Control Centre'));
 
   // Define menu items based on selected module
   const getMenuItems = () => {

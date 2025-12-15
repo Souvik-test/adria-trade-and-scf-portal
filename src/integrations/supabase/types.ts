@@ -3147,6 +3147,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_screen_permissions: {
+        Row: {
+          can_access: boolean
+          category: string
+          created_at: string
+          id: string
+          screen_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_access?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          screen_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_access?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          screen_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_screen_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "custom_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_conditions: {
         Row: {
           compare_field: string | null
@@ -3477,6 +3515,7 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_all_user_permissions: { Args: { p_user_id: string }; Returns: Json }
       get_custom_user_profile: {
         Args: { input_user_id: string }
         Returns: {
@@ -3766,6 +3805,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_screen_permissions: {
+        Args: { p_user_id: string }
+        Returns: {
+          can_access: boolean
+          category: string
+          id: string
+          screen_name: string
+          user_id: string
+        }[]
+      }
       has_permission: {
         Args: {
           p_event_code: string
@@ -3775,6 +3824,18 @@ export type Database = {
           p_stage_name?: string
           p_user_id: string
         }
+        Returns: boolean
+      }
+      has_product_access: {
+        Args: {
+          p_event_code?: string
+          p_product_code: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      has_screen_access: {
+        Args: { p_screen_name: string; p_user_id: string }
         Returns: boolean
       }
       insert_field_repository: {
@@ -3853,6 +3914,14 @@ export type Database = {
           p_target_user_id: string
         }
         Returns: string
+      }
+      upsert_user_screen_permissions: {
+        Args: {
+          p_permissions: Json
+          p_requesting_user_id: string
+          p_target_user_id: string
+        }
+        Returns: number
       }
     }
     Enums: {
