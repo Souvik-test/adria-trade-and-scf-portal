@@ -18,6 +18,7 @@ import ManagePanesAndSections from '@/components/control-centre/ManagePanesAndSe
 import FieldDefinition from '@/components/control-centre/FieldDefinition';
 import CountryMaster from '@/components/foundational-data/CountryMaster';
 import { NextGenWorkflowConfigurator } from '@/components/control-centre/NextGenWorkflowConfigurator';
+import UserAccessManagement from '@/components/control-centre/UserAccessManagement';
 
 
 const Index = () => {
@@ -120,6 +121,8 @@ const Index = () => {
         return <CountryMaster />;
       case 'nextgen-workflow-configurator':
         return <NextGenWorkflowConfigurator />;
+      case 'user-access-management':
+        return <UserAccessManagement />;
       case 'document-inquiry':
         return <DocumentInquiry />;
       case 'inquiry':
