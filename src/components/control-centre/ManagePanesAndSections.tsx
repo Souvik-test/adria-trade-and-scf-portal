@@ -32,6 +32,8 @@ interface Section {
   sequence: number;
   rows: number;
   columns: number;
+  isRepeatable?: boolean;
+  groupId?: string;
 }
 
 interface Pane {
@@ -304,9 +306,32 @@ const ManagePanesAndSections = () => {
           name: '',
           sequence: p.sections.length + 1,
           rows: 1,
-          columns: 2
+          columns: 2,
+          isRepeatable: false,
+          groupId: ''
         };
         return { ...p, sections: [...p.sections, newSection] };
+      }
+      return p;
+    }));
+  };
+
+  const updateSectionRepeatable = (paneId: string, sectionId: string, isRepeatable: boolean) => {
+    setPanes(panes.map(p => {
+      if (p.id === paneId) {
+        return {
+          ...p,
+          sections: p.sections.map(s => {
+            if (s.id === sectionId) {
+              // Auto-generate groupId based on section name when enabled
+              const groupId = isRepeatable && s.name 
+                ? s.name.replace(/\s+/g, '') 
+                : '';
+              return { ...s, isRepeatable, groupId };
+            }
+            return s;
+          })
+        };
       }
       return p;
     }));
@@ -1155,7 +1180,7 @@ const ManagePanesAndSections = () => {
                                               <Trash2 className="w-3 h-3" />
                                             </Button>
                                           </div>
-                                          <div className="flex items-center gap-4">
+                                          <div className="flex items-center gap-4 flex-wrap">
                                             <div className="flex items-center gap-2">
                                               <Label className="text-xs text-muted-foreground whitespace-nowrap">No. of Rows</Label>
                                               <Input
@@ -1177,6 +1202,24 @@ const ManagePanesAndSections = () => {
                                                 onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(6, parseInt(e.target.value) || 2)))}
                                                 className="w-16 h-7 text-xs"
                                               />
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+                                              <Switch
+                                                id={`repeatable-${section.id}`}
+                                                checked={section.isRepeatable || false}
+                                                onCheckedChange={(checked) => updateSectionRepeatable(pane.id, section.id, checked)}
+                                              />
+                                              <Label 
+                                                htmlFor={`repeatable-${section.id}`}
+                                                className="text-xs text-muted-foreground whitespace-nowrap cursor-pointer"
+                                              >
+                                                Repeatable Section
+                                              </Label>
+                                              {section.isRepeatable && (
+                                                <Badge variant="outline" className="text-[10px] h-5 bg-primary/10 text-primary">
+                                                  +Add
+                                                </Badge>
+                                              )}
                                             </div>
                                           </div>
                                         </div>

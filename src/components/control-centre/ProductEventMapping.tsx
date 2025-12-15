@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { customAuth } from "@/services/customAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -174,8 +175,9 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
     e.preventDefault();
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      // Use custom auth instead of supabase auth
+      const session = customAuth.getSession();
+      if (!session?.user?.id) throw new Error("User not authenticated");
 
       if (editingId) {
         const { error } = await supabase
@@ -188,7 +190,7 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
       } else {
         const { error } = await supabase
           .from("product_event_mapping")
-          .insert([{ ...formData, user_id: user.id }]);
+          .insert([{ ...formData, user_id: session.user.id }]);
 
         if (error) throw error;
         toast.success("Product event mapping created successfully");
