@@ -219,6 +219,7 @@ export type Database = {
       }
       custom_users: {
         Row: {
+          business_applications: string[] | null
           corporate_id: string | null
           created_at: string | null
           full_name: string
@@ -233,6 +234,7 @@ export type Database = {
           user_login_id: string
         }
         Insert: {
+          business_applications?: string[] | null
           corporate_id?: string | null
           created_at?: string | null
           full_name: string
@@ -247,6 +249,7 @@ export type Database = {
           user_login_id: string
         }
         Update: {
+          business_applications?: string[] | null
           corporate_id?: string | null
           created_at?: string | null
           full_name?: string
@@ -3038,6 +3041,9 @@ export type Database = {
           created_by: string | null
           event_code: string
           id: string
+          is_checker: boolean | null
+          is_maker: boolean | null
+          is_viewer: boolean | null
           module_code: string
           product_code: string
           stage_name: string | null
@@ -3054,6 +3060,9 @@ export type Database = {
           created_by?: string | null
           event_code: string
           id?: string
+          is_checker?: boolean | null
+          is_maker?: boolean | null
+          is_viewer?: boolean | null
           module_code: string
           product_code: string
           stage_name?: string | null
@@ -3070,6 +3079,9 @@ export type Database = {
           created_by?: string | null
           event_code?: string
           id?: string
+          is_checker?: boolean | null
+          is_maker?: boolean | null
+          is_viewer?: boolean | null
           module_code?: string
           product_code?: string
           stage_name?: string | null
@@ -3376,10 +3388,34 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      bulk_upsert_user_permissions: {
+        Args: {
+          p_permissions: Json
+          p_requesting_user_id: string
+          p_target_user_id: string
+        }
+        Returns: number
+      }
       check_is_super_user: { Args: { p_user_id: string }; Returns: boolean }
       copy_field_repository: {
         Args: { p_field_id: string; p_user_id: string }
         Returns: Json
+      }
+      create_custom_user: {
+        Args: {
+          p_business_applications: string[]
+          p_full_name: string
+          p_is_super_user?: boolean
+          p_password_hash: string
+          p_requesting_user_id: string
+          p_user_id: string
+          p_user_login_id: string
+        }
+        Returns: string
+      }
+      delete_custom_user: {
+        Args: { p_requesting_user_id: string; p_target_user_id: string }
+        Returns: boolean
       }
       delete_field_repository: {
         Args: { p_field_id: string; p_user_id: string }
@@ -3690,6 +3726,18 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_user_permission_matrix: {
+        Args: { p_requesting_user_id: string; p_target_user_id: string }
+        Returns: {
+          event_code: string
+          is_checker: boolean
+          is_maker: boolean
+          is_viewer: boolean
+          module_code: string
+          product_code: string
+          stage_name: string
+        }[]
+      }
       get_user_permissions: {
         Args: { p_requesting_user_id: string; p_target_user_id: string }
         Returns: {
@@ -3737,6 +3785,17 @@ export type Database = {
       }
       toggle_pane_section_active: {
         Args: { p_config_id: string; p_is_active: boolean }
+        Returns: boolean
+      }
+      update_custom_user: {
+        Args: {
+          p_business_applications?: string[]
+          p_full_name?: string
+          p_is_super_user?: boolean
+          p_password_hash?: string
+          p_requesting_user_id: string
+          p_target_user_id: string
+        }
         Returns: boolean
       }
       update_field_repository: {
