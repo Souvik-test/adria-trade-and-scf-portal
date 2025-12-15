@@ -121,15 +121,10 @@ export const ProductEventMapping = ({ onNavigateToManagePanes }: ProductEventMap
       if (defsError) throw defsError;
       setDefinitions(defsData || []);
 
-      // Fetch existing mappings
-      const session = customAuth.getSession();
-      if (session?.user?.id) {
-        const { data: mappingsData, error: mappingsError } = await supabase.rpc('get_product_event_mappings', {
-          p_user_id: session.user.id
-        });
-        if (!mappingsError) {
-          setMappings(mappingsData || []);
-        }
+      // Fetch existing mappings (shared configurations - no user filtering)
+      const { data: mappingsData, error: mappingsError } = await supabase.rpc('get_product_event_mappings');
+      if (!mappingsError) {
+        setMappings(mappingsData || []);
       }
     } catch (error: any) {
       toast.error("Failed to load data", { description: error.message });
