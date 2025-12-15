@@ -67,6 +67,7 @@ interface UseDynamicTransactionReturn {
   
   // Transaction completion
   isTransactionComplete: boolean;
+  completedStageName: string;
   
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
