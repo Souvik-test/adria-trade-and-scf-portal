@@ -123,6 +123,11 @@ export const useDynamicTransaction = ({
   // Transaction reference for tracking across stages
   const transactionRefRef = useRef<string | null>(null);
 
+  // Reset transaction reference when hook re-initializes (e.g., opening a new form)
+  useEffect(() => {
+    transactionRefRef.current = null;
+  }, [productCode, eventCode, triggerType]);
+
   // Product/Event display names from product_event_mapping
   const [productName, setProductName] = useState<string>(defaultProductNames[productCode] || productCode);
   const [eventName, setEventName] = useState<string>(defaultEventNames[productCode]?.[eventCode] || eventCode);
