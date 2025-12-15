@@ -4088,6 +4088,48 @@ export type Database = {
         }
         Returns: string
       }
+      upsert_transaction: {
+        Args: {
+          p_amount?: number
+          p_business_application?: string
+          p_created_by?: string
+          p_currency?: string
+          p_customer_name?: string
+          p_initiating_channel?: string
+          p_process_type: string
+          p_product_type: string
+          p_status: string
+          p_transaction_ref: string
+          p_user_id: string
+        }
+        Returns: {
+          amount: number | null
+          bank_ref: string | null
+          business_application: string | null
+          created_at: string
+          created_by: string
+          created_date: string
+          currency: string | null
+          customer_name: string | null
+          customer_ref: string | null
+          id: string
+          initiating_channel: string | null
+          operations: string | null
+          party_form: string | null
+          process_type: string | null
+          product_type: string
+          status: string
+          transaction_ref: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       upsert_user_permission: {
         Args: {
           p_can_approve?: boolean
