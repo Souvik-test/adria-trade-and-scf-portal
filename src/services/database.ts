@@ -121,6 +121,7 @@ const createTransactionRecord = async (
   
   try {
     // Use RPC function to upsert transaction (handles duplicates gracefully)
+    // Include form_data to persist data across workflow stages
     const { data: transaction, error: transactionError } = await supabase.rpc('upsert_transaction', {
       p_user_id: user.id,
       p_transaction_ref: actualTransactionNumber,
@@ -132,7 +133,8 @@ const createTransactionRecord = async (
       p_currency: formData.currency || 'USD',
       p_created_by: user.email || user.id,
       p_initiating_channel: channel,
-      p_business_application: resolvedBusinessApplication
+      p_business_application: resolvedBusinessApplication,
+      p_form_data: JSON.stringify(formData)
     });
 
     if (transactionError) throw transactionError;

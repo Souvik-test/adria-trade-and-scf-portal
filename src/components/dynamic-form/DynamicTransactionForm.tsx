@@ -19,6 +19,10 @@ interface DynamicTransactionFormProps {
   showMT700Sidebar?: boolean;
   onSubmitSuccess?: (data: DynamicFormState) => void;
   onClose?: () => void;
+  // New props for continuing an existing transaction
+  transactionRef?: string;
+  initialFormData?: Record<string, any>;
+  initialStage?: string;
 }
 
 const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
@@ -31,6 +35,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   showMT700Sidebar = true,
   onSubmitSuccess,
   onClose,
+  transactionRef,
+  initialFormData,
+  initialStage,
 }) => {
   const {
     loading,
@@ -68,6 +75,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     customerSegment,
     onSubmitSuccess,
     onClose,
+    transactionRef,
+    initialFormData,
+    initialStage,
   });
 
   // Get current stage name dynamically
