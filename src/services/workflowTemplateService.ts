@@ -136,6 +136,20 @@ export const clearTemplateCache = () => {
 };
 
 /**
+ * Stage-pane mapping info for navigation
+ */
+export interface StagePaneInfo {
+  paneIndex: number;
+  paneName: string;
+  stageId: string;
+  stageName: string;
+  stageOrder: number;
+  isFirstPaneOfStage: boolean;
+  isLastPaneOfStage: boolean;
+  isFinalStage: boolean;
+}
+
+/**
  * Get pane names from all stage fields for a template, preserving stage order
  * and allowing the same pane to appear in multiple stages
  */
@@ -162,6 +176,53 @@ export const getTemplatePaneNames = async (
   return paneNames; // e.g., ["LC Key Info", "Limit Check", "LC Key Info"]
 };
 
+/**
+ * Get detailed stage-pane mapping for navigation and dynamic button logic
+ */
+export const getStagePaneMapping = async (
+  templateId: string
+): Promise<StagePaneInfo[]> => {
+  const stages = await getTemplateStages(templateId); // Already sorted by stage_order
+  const mapping: StagePaneInfo[] = [];
+  let paneIndex = 0;
+  const totalStages = stages.length;
+
+  // Process stages SEQUENTIALLY to preserve order
+  for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
+    const stage = stages[stageIdx];
+    const fields = await getStageFields(stage.id);
+    
+    // Get unique panes for THIS stage only
+    const stagePanes: string[] = [];
+    const seenPanes = new Set<string>();
+    fields.forEach(field => {
+      if (field.pane && !seenPanes.has(field.pane)) {
+        seenPanes.add(field.pane);
+        stagePanes.push(field.pane);
+      }
+    });
+    
+    const isFinalStage = stageIdx === totalStages - 1;
+    
+    // Add each pane with stage info
+    stagePanes.forEach((paneName, paneIdxInStage) => {
+      mapping.push({
+        paneIndex,
+        paneName,
+        stageId: stage.id,
+        stageName: stage.stage_name,
+        stageOrder: stage.stage_order,
+        isFirstPaneOfStage: paneIdxInStage === 0,
+        isLastPaneOfStage: paneIdxInStage === stagePanes.length - 1,
+        isFinalStage,
+      });
+      paneIndex++;
+    });
+  }
+
+  return mapping;
+};
+
 export default {
   findWorkflowTemplate,
   getTemplateStages,
@@ -169,4 +230,5 @@ export default {
   getCompleteWorkflowConfig,
   clearTemplateCache,
   getTemplatePaneNames,
+  getStagePaneMapping,
 };

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
 import { DynamicFormState } from '@/types/dynamicForm';
 import DynamicProgressIndicator from './DynamicProgressIndicator';
@@ -35,13 +36,13 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     loading,
     error,
     template,
-    stages,
     panes,
     currentPaneIndex,
     completedPanes,
     formData,
     repeatableGroups,
     hasWorkflowTemplate,
+    isTransactionComplete,
     productName,
     eventName,
     navigateToPane,
@@ -50,11 +51,15 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     handleAddRepeatableInstance,
     handleRemoveRepeatableInstance,
     handleSave,
+    handleStageSubmit,
     handleSubmit,
     handleDiscard,
     handleClose,
     getCurrentPane,
     getPaneButtons,
+    getCurrentStageName,
+    isLastPaneOfCurrentStage,
+    isFinalStage,
   } = useDynamicTransaction({
     productCode,
     eventCode,
@@ -65,8 +70,8 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     onClose,
   });
 
-  // Get current stage name from workflow
-  const currentStageName = stages.length > 0 ? stages[0]?.stage_name : 'Data Entry';
+  // Get current stage name dynamically
+  const currentStageName = getCurrentStageName();
 
   if (loading) {
     return (
@@ -105,8 +110,30 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     );
   }
 
+  // Transaction completed state
+  if (isTransactionComplete) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 space-y-6">
+        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-semibold text-foreground">Transaction has been approved</h2>
+          <p className="text-muted-foreground">
+            Your {productName} - {eventName} request has been successfully processed.
+          </p>
+        </div>
+        <Button onClick={handleClose} variant="outline" className="mt-4">
+          Close
+        </Button>
+      </div>
+    );
+  }
+
   const currentPane = getCurrentPane();
   const currentButtons = getPaneButtons();
+  const isLastPane = isLastPaneOfCurrentStage();
+  const isFinal = isFinalStage();
 
   // Determine if MT700 sidebar should be shown (for ILC/ELC products)
   const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
@@ -119,11 +146,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
           {title || `${productName} • ${eventName}`}
         </h2>
         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
             {currentStageName}
           </span>
           {template && (
-            <span>Template: {template.template_name}</span>
+            <span className="text-xs">Template: {template.template_name}</span>
           )}
         </p>
       </div>
@@ -151,10 +178,12 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               productCode={productCode}
               eventType={eventCode}
               currentPaneCode={currentPane.name}
-              sectionGridConfigs={currentPane.sections?.map(s => ({
+              sectionConfigs={currentPane.sections?.map(s => ({
                 name: s.name,
                 rows: s.rows || 2,
                 columns: s.columns || 2,
+                isRepeatable: s.isRepeatable || false,
+                groupId: s.groupId,
               }))}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
@@ -173,8 +202,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 buttons={currentButtons}
                 currentPaneIndex={currentPaneIndex}
                 totalPanes={panes.length}
+                isLastPaneOfStage={isLastPane}
+                isFinalStage={isFinal}
                 onNavigate={navigateToPane}
                 onSave={handleSave}
+                onStageSubmit={handleStageSubmit}
                 onSubmit={handleSubmit}
                 onDiscard={handleDiscard}
                 onClose={handleClose}

@@ -14,6 +14,8 @@ import {
   getTemplateStages, 
   getStageFields,
   getTemplatePaneNames,
+  getStagePaneMapping,
+  StagePaneInfo,
 } from '@/services/workflowTemplateService';
 import { getPaneSectionConfig, getDefaultButtons } from '@/services/paneSectionService';
 import { 
@@ -40,13 +42,15 @@ interface UseDynamicTransactionReturn {
   error: string | null;
   template: WorkflowTemplateRuntime | null;
   stages: WorkflowStageRuntime[];
-  currentStage: WorkflowStageRuntime | null;
   panes: PaneConfig[];
   currentPaneIndex: number;
   completedPanes: Set<string>;
   formData: DynamicFormData;
   repeatableGroups: { [groupId: string]: RepeatableGroupInstance[] };
   stageFields: Map<string, WorkflowStageFieldRuntime[]>;
+  
+  // Stage-pane mapping for navigation
+  stagePaneMapping: StagePaneInfo[];
   
   // Product/Event display info from product_event_mapping
   productName: string;
@@ -55,6 +59,9 @@ interface UseDynamicTransactionReturn {
   // Template found status
   hasWorkflowTemplate: boolean;
   
+  // Transaction completion
+  isTransactionComplete: boolean;
+  
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   handleFieldChange: (fieldCode: string, value: any) => void;
@@ -62,6 +69,7 @@ interface UseDynamicTransactionReturn {
   handleAddRepeatableInstance: (groupId: string) => void;
   handleRemoveRepeatableInstance: (groupId: string, instanceId: string) => void;
   handleSave: (type: 'draft' | 'template') => Promise<void>;
+  handleStageSubmit: () => void;
   handleSubmit: () => Promise<void>;
   handleDiscard: () => void;
   handleClose: () => void;
@@ -69,6 +77,9 @@ interface UseDynamicTransactionReturn {
   // Helpers
   getCurrentPane: () => PaneConfig | null;
   getPaneButtons: () => PaneConfig['buttons'];
+  getCurrentStageName: () => string;
+  isLastPaneOfCurrentStage: () => boolean;
+  isFinalStage: () => boolean;
 }
 
 const generateInstanceId = () => `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -91,10 +102,14 @@ export const useDynamicTransaction = ({
   const [stages, setStages] = useState<WorkflowStageRuntime[]>([]);
   const [stageFields, setStageFields] = useState<Map<string, WorkflowStageFieldRuntime[]>>(new Map());
   const [panes, setPanes] = useState<PaneConfig[]>([]);
+  const [stagePaneMapping, setStagePaneMapping] = useState<StagePaneInfo[]>([]);
 
   // Navigation state
   const [currentPaneIndex, setCurrentPaneIndex] = useState(0);
   const [completedPanes, setCompletedPanes] = useState<Set<string>>(new Set());
+  
+  // Transaction completion state
+  const [isTransactionComplete, setIsTransactionComplete] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<DynamicFormData>({});
@@ -143,8 +158,10 @@ export const useDynamicTransaction = ({
           );
           setStageFields(fieldsMap);
 
-          // Extract unique pane names from stage fields for filtering
+          // Extract pane names and stage-pane mapping
           allowedPaneNames = await getTemplatePaneNames(foundTemplate.id);
+          const mapping = await getStagePaneMapping(foundTemplate.id);
+          setStagePaneMapping(mapping);
         }
 
         // Fetch pane/section configuration, filtered and ordered by workflow template panes
@@ -178,6 +195,27 @@ export const useDynamicTransaction = ({
     }
   }, [productCode, eventCode, triggerType, businessApp, customerSegment]);
 
+  // Get current stage name based on current pane index
+  const getCurrentStageName = useCallback((): string => {
+    if (stagePaneMapping.length === 0) return 'Data Entry';
+    const currentMapping = stagePaneMapping[currentPaneIndex];
+    return currentMapping?.stageName || 'Data Entry';
+  }, [stagePaneMapping, currentPaneIndex]);
+
+  // Check if current pane is the last pane of its stage
+  const isLastPaneOfCurrentStage = useCallback((): boolean => {
+    if (stagePaneMapping.length === 0) return currentPaneIndex === panes.length - 1;
+    const currentMapping = stagePaneMapping[currentPaneIndex];
+    return currentMapping?.isLastPaneOfStage || false;
+  }, [stagePaneMapping, currentPaneIndex, panes.length]);
+
+  // Check if current stage is the final stage
+  const isFinalStage = useCallback((): boolean => {
+    if (stagePaneMapping.length === 0) return currentPaneIndex === panes.length - 1;
+    const currentMapping = stagePaneMapping[currentPaneIndex];
+    return currentMapping?.isFinalStage || false;
+  }, [stagePaneMapping, currentPaneIndex, panes.length]);
+
   // Navigation
   const navigateToPane = useCallback((direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => {
     if (direction === 'next' && currentPaneIndex < panes.length - 1) {
@@ -196,6 +234,29 @@ export const useDynamicTransaction = ({
       }
     }
   }, [currentPaneIndex, panes]);
+
+  // Handle stage submit - navigates to next stage or completes transaction
+  const handleStageSubmit = useCallback(() => {
+    // Mark current pane as completed
+    const currentPane = panes[currentPaneIndex];
+    if (currentPane) {
+      setCompletedPanes(prev => new Set([...prev, currentPane.id]));
+    }
+    
+    if (isFinalStage() && isLastPaneOfCurrentStage()) {
+      // Final stage - mark transaction as complete
+      const allPaneIds = new Set(panes.map(p => p.id));
+      setCompletedPanes(allPaneIds);
+      setIsTransactionComplete(true);
+      toast.success('Transaction has been approved');
+    } else if (isLastPaneOfCurrentStage()) {
+      // Last pane of stage but not final - navigate to next pane (next stage's first pane)
+      if (currentPaneIndex < panes.length - 1) {
+        setCurrentPaneIndex(prev => prev + 1);
+        toast.success(`${getCurrentStageName()} stage submitted successfully`);
+      }
+    }
+  }, [currentPaneIndex, panes, isFinalStage, isLastPaneOfCurrentStage, getCurrentStageName]);
 
   // Field changes
   const handleFieldChange = useCallback((fieldCode: string, value: any) => {
@@ -280,6 +341,7 @@ export const useDynamicTransaction = ({
     setRepeatableGroups({});
     setCurrentPaneIndex(0);
     setCompletedPanes(new Set());
+    setIsTransactionComplete(false);
     toast.info('Changes discarded');
   }, []);
 
@@ -305,27 +367,32 @@ export const useDynamicTransaction = ({
     error,
     template,
     stages,
-    currentStage: stages.length > 0 ? stages[0] : null,
     panes,
     currentPaneIndex,
     completedPanes,
     formData,
     repeatableGroups,
     stageFields,
+    stagePaneMapping,
     productName,
     eventName,
     hasWorkflowTemplate: !!template,
+    isTransactionComplete,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
     handleAddRepeatableInstance,
     handleRemoveRepeatableInstance,
     handleSave,
+    handleStageSubmit,
     handleSubmit,
     handleDiscard,
     handleClose,
     getCurrentPane,
     getPaneButtons,
+    getCurrentStageName,
+    isLastPaneOfCurrentStage,
+    isFinalStage,
   };
 };
 
