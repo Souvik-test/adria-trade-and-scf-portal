@@ -101,7 +101,7 @@ const UserAccessManagement: React.FC = () => {
       const { data: currentUserData } = await supabase
         .from('custom_users')
         .select('id, is_super_user')
-        .eq('user_id', session.user.id)
+        .eq('id', session.user.id)
         .single();
 
       if (!currentUserData) {
