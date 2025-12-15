@@ -204,6 +204,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 totalPanes={panes.length}
                 isLastPaneOfStage={isLastPane}
                 isFinalStage={isFinal}
+                stageName={currentStageName}
                 onNavigate={navigateToPane}
                 onSave={handleSave}
                 onStageSubmit={handleStageSubmit}
