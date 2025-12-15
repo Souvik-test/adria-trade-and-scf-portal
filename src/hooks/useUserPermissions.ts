@@ -159,6 +159,40 @@ export const useUserPermissions = () => {
       .filter(Boolean);
   }, [permissions, hasProductAccess]);
 
+  // Check if user has access to a specific stage for a product-event
+  const hasStageAccess = useCallback((productCode: string, eventCode: string, stageName: string) => {
+    if (!permissions) return false;
+    if (permissions.is_super_user) return true;
+
+    return permissions.product_permissions.some(p => {
+      const matchesProduct = p.product_code === productCode;
+      const matchesEvent = p.event_code === eventCode;
+      const matchesStage = p.stage_name === stageName || p.stage_name === '__ALL__';
+      const hasAnyPermission = p.can_view || p.can_create || p.can_edit || p.can_approve;
+      return matchesProduct && matchesEvent && matchesStage && hasAnyPermission;
+    });
+  }, [permissions]);
+
+  // Get list of accessible stage names for a product-event
+  const getAccessibleStages = useCallback((productCode: string, eventCode: string): string[] => {
+    if (!permissions) return [];
+    if (permissions.is_super_user) return []; // Empty array signals "all stages" for super user
+
+    const accessibleStages = new Set<string>();
+    
+    permissions.product_permissions.forEach(p => {
+      const matchesProduct = p.product_code === productCode;
+      const matchesEvent = p.event_code === eventCode;
+      const hasAnyPermission = p.can_view || p.can_create || p.can_edit || p.can_approve;
+      
+      if (matchesProduct && matchesEvent && hasAnyPermission) {
+        accessibleStages.add(p.stage_name);
+      }
+    });
+
+    return Array.from(accessibleStages);
+  }, [permissions]);
+
   return {
     permissions,
     loading,
@@ -169,6 +203,8 @@ export const useUserPermissions = () => {
     hasCategoryAccess,
     hasAnyProductCardAccess,
     getAccessibleFlipOptions,
+    hasStageAccess,
+    getAccessibleStages,
     refreshPermissions: loadPermissions,
   };
 };

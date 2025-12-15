@@ -25,6 +25,7 @@ import {
   defaultProductNames,
   defaultEventNames 
 } from '@/services/productEventMappingService';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 
 interface UseDynamicTransactionProps {
   productCode: string;
@@ -93,6 +94,9 @@ export const useDynamicTransaction = ({
   onSubmitSuccess,
   onClose,
 }: UseDynamicTransactionProps): UseDynamicTransactionReturn => {
+  // User permissions for stage filtering
+  const { isSuperUser, getAccessibleStages, loading: permissionsLoading } = useUserPermissions();
+
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +126,9 @@ export const useDynamicTransaction = ({
   // Fetch workflow configuration
   useEffect(() => {
     const fetchConfig = async () => {
+      // Wait for permissions to load before proceeding
+      if (permissionsLoading) return;
+
       setLoading(true);
       setError(null);
 
@@ -140,27 +147,42 @@ export const useDynamicTransaction = ({
         const foundTemplate = await findWorkflowTemplate(productCode, eventCode, triggerType);
         setTemplate(foundTemplate);
 
+        // Get user's accessible stages for this product-event
+        // Empty array from getAccessibleStages means super user (has access to all)
+        const accessibleStages = getAccessibleStages(productCode, eventCode);
+        const isSuper = isSuperUser();
+
         // Get pane names from workflow template stages
         let allowedPaneNames: string[] | undefined;
         
         if (foundTemplate) {
-          // Fetch stages
+          // Fetch all stages first
           const templateStages = await getTemplateStages(foundTemplate.id);
-          setStages(templateStages);
+          
+          // Filter stages based on user permissions (super users see all)
+          const filteredStages = isSuper || accessibleStages.length === 0
+            ? templateStages
+            : templateStages.filter(stage => 
+                accessibleStages.includes(stage.stage_name) || 
+                accessibleStages.includes('__ALL__')
+              );
+          
+          setStages(filteredStages);
 
-          // Fetch fields for all stages
+          // Fetch fields only for accessible stages
           const fieldsMap = new Map<string, WorkflowStageFieldRuntime[]>();
           await Promise.all(
-            templateStages.map(async (stage) => {
+            filteredStages.map(async (stage) => {
               const fields = await getStageFields(stage.id);
               fieldsMap.set(stage.id, fields);
             })
           );
           setStageFields(fieldsMap);
 
-          // Extract pane names and stage-pane mapping
-          allowedPaneNames = await getTemplatePaneNames(foundTemplate.id);
-          const mapping = await getStagePaneMapping(foundTemplate.id);
+          // Extract pane names and stage-pane mapping (filtered by accessible stages)
+          const stageNamesFilter = isSuper ? undefined : accessibleStages;
+          allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, stageNamesFilter);
+          const mapping = await getStagePaneMapping(foundTemplate.id, stageNamesFilter);
           setStagePaneMapping(mapping);
         }
 
@@ -193,7 +215,7 @@ export const useDynamicTransaction = ({
     if (productCode && eventCode && triggerType) {
       fetchConfig();
     }
-  }, [productCode, eventCode, triggerType, businessApp, customerSegment]);
+  }, [productCode, eventCode, triggerType, businessApp, customerSegment, permissionsLoading, isSuperUser, getAccessibleStages]);
 
   // Get current stage name based on current pane index
   const getCurrentStageName = useCallback((): string => {

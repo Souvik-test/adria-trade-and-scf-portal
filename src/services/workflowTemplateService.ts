@@ -151,16 +151,26 @@ export interface StagePaneInfo {
 
 /**
  * Get pane names from all stage fields for a template, preserving stage order
- * and allowing the same pane to appear in multiple stages
+ * and allowing the same pane to appear in multiple stages.
+ * If accessibleStageNames is provided (non-empty), only includes panes from those stages.
  */
 export const getTemplatePaneNames = async (
-  templateId: string
+  templateId: string,
+  accessibleStageNames?: string[]
 ): Promise<string[]> => {
   const stages = await getTemplateStages(templateId); // Already sorted by stage_order
   const paneNames: string[] = [];
 
+  // Filter stages if accessibleStageNames is provided and not empty
+  const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
+    ? stages.filter(stage => 
+        accessibleStageNames.includes(stage.stage_name) || 
+        accessibleStageNames.includes('__ALL__')
+      )
+    : stages;
+
   // Process stages SEQUENTIALLY to preserve stage order
-  for (const stage of stages) {
+  for (const stage of filteredStages) {
     const fields = await getStageFields(stage.id);
     
     // Get unique panes for THIS stage only (avoid duplicates within same stage)
@@ -177,19 +187,30 @@ export const getTemplatePaneNames = async (
 };
 
 /**
- * Get detailed stage-pane mapping for navigation and dynamic button logic
+ * Get detailed stage-pane mapping for navigation and dynamic button logic.
+ * If accessibleStageNames is provided (non-empty), only includes stages the user has access to.
  */
 export const getStagePaneMapping = async (
-  templateId: string
+  templateId: string,
+  accessibleStageNames?: string[]
 ): Promise<StagePaneInfo[]> => {
   const stages = await getTemplateStages(templateId); // Already sorted by stage_order
+  
+  // Filter stages if accessibleStageNames is provided and not empty
+  const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
+    ? stages.filter(stage => 
+        accessibleStageNames.includes(stage.stage_name) || 
+        accessibleStageNames.includes('__ALL__')
+      )
+    : stages;
+
   const mapping: StagePaneInfo[] = [];
   let paneIndex = 0;
-  const totalStages = stages.length;
+  const totalStages = filteredStages.length;
 
   // Process stages SEQUENTIALLY to preserve order
-  for (let stageIdx = 0; stageIdx < stages.length; stageIdx++) {
-    const stage = stages[stageIdx];
+  for (let stageIdx = 0; stageIdx < filteredStages.length; stageIdx++) {
+    const stage = filteredStages[stageIdx];
     const fields = await getStageFields(stage.id);
     
     // Get unique panes for THIS stage only
