@@ -60,14 +60,17 @@ export function AppSidebar({
   const [foundationalDataOpen, setFoundationalDataOpen] = React.useState(false);
 
   // Get permissions
-  const { hasScreenAccess, isSuperUser, loading: permissionsLoading } = useUserPermissions();
+  const { hasScreenAccess, hasCategoryAccess, isSuperUser, loading: permissionsLoading } = useUserPermissions();
 
   // Get business centre from localStorage
   const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
   
-  // Show Control Centre only for Process Orchestrator or Bank users with screen access
+  // Show Control Centre only for Process Orchestrator or Bank users with category access
   const showControlCentre = (businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank') && 
-    (isSuperUser() || hasScreenAccess('Control Centre'));
+    (isSuperUser() || hasCategoryAccess('Control Centre'));
+
+  // Helper to check if a specific menu should be shown
+  const shouldShowMenu = (screenName: string) => isSuperUser() || hasScreenAccess(screenName);
 
   // Define menu items based on selected module
   const getMenuItems = () => {
@@ -321,6 +324,7 @@ export function AppSidebar({
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {/* Foundational Data Library with sub-menus */}
+                          {shouldShowMenu('Foundational Data Library') && (
                           <Collapsible open={foundationalDataOpen} onOpenChange={setFoundationalDataOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
@@ -447,8 +451,10 @@ export function AppSidebar({
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
                           </Collapsible>
+                          )}
 
                           {/* Dynamic Form Engine with sub-menus */}
+                          {shouldShowMenu('Dynamic Form Engine') && (
                           <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
@@ -510,8 +516,10 @@ export function AppSidebar({
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
                           </Collapsible>
+                          )}
 
                           {/* NextGen Workflow Configurator - internal navigation */}
+                          {shouldShowMenu('NextGen Workflow Configurator') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -528,8 +536,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Posting Configuration */}
+                          {shouldShowMenu('Posting Configuration') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -543,8 +553,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Business Validation Engine */}
+                          {shouldShowMenu('Business Validation Engine') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -558,8 +570,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Fee Engine */}
+                          {shouldShowMenu('Fee Engine') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -573,8 +587,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Document Template Engine */}
+                          {shouldShowMenu('Document Template Engine') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -588,8 +604,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Notification Configuration */}
+                          {shouldShowMenu('Notification Configuration') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -603,8 +621,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Exchange Rate Maintenance */}
+                          {shouldShowMenu('Exchange Rate Maintenance') && (
                           <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -618,8 +638,10 @@ export function AppSidebar({
                               </TooltipContent>
                             </Tooltip>
                           </SidebarMenuSubItem>
+                          )}
 
                           {/* Administration with sub-menus - Moved to end */}
+                          {shouldShowMenu('Administration') && (
                           <Collapsible open={tfAdministrationOpen} onOpenChange={setTfAdministrationOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
@@ -694,6 +716,7 @@ export function AppSidebar({
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
                           </Collapsible>
+                          )}
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
