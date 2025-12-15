@@ -145,6 +145,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   const isLastPane = isLastPaneOfCurrentStage();
   const isFinal = isFinalStage();
 
+  // Determine if current stage is Approval - fields should be read-only
+  const isApprovalStage = currentStageName.toLowerCase().includes('approval');
+
   // Determine if MT700 sidebar should be shown (for ILC/ELC products)
   const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
 
@@ -197,13 +200,16 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               }))}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
-                // Sync with parent state
-                Object.entries(state.formData).forEach(([key, value]) => {
-                  if (formData[key] !== value) {
-                    handleFieldChange(key, value);
-                  }
-                });
+                // Sync with parent state (only if not read-only)
+                if (!isApprovalStage) {
+                  Object.entries(state.formData).forEach(([key, value]) => {
+                    if (formData[key] !== value) {
+                      handleFieldChange(key, value);
+                    }
+                  });
+                }
               }}
+              disabled={isApprovalStage}
             />
 
             {/* Dynamic Buttons */}

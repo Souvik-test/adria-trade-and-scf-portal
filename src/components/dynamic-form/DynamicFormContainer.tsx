@@ -44,11 +44,26 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     stageId,
   });
 
-  // Initialize form state
+  // Initialize form state from initialData
   const [formData, setFormData] = useState<DynamicFormData>(initialData?.formData || {});
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>(
     initialData?.repeatableGroups || {}
   );
+
+  // Sync formData when initialData changes (important for stage transitions)
+  React.useEffect(() => {
+    if (initialData?.formData) {
+      setFormData(prevData => {
+        // Merge initial data with current data, preserving any local changes
+        const mergedData = { ...initialData.formData };
+        // Only update if there are actual changes
+        const hasChanges = Object.keys(mergedData).some(
+          key => prevData[key] !== mergedData[key]
+        );
+        return hasChanges ? { ...prevData, ...mergedData } : prevData;
+      });
+    }
+  }, [initialData?.formData]);
 
   // Helper to get section config by name
   const getSectionConfig = (sectionName: string): SectionConfig | undefined => {
