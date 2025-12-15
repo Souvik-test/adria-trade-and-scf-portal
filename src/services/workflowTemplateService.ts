@@ -135,10 +135,32 @@ export const clearTemplateCache = () => {
   templateCache.clear();
 };
 
+/**
+ * Get unique pane names from all stage fields for a template
+ */
+export const getTemplatePaneNames = async (
+  templateId: string
+): Promise<string[]> => {
+  const stages = await getTemplateStages(templateId);
+  const paneNames = new Set<string>();
+
+  await Promise.all(
+    stages.map(async (stage) => {
+      const fields = await getStageFields(stage.id);
+      fields.forEach(field => {
+        if (field.pane) paneNames.add(field.pane);
+      });
+    })
+  );
+
+  return Array.from(paneNames);
+};
+
 export default {
   findWorkflowTemplate,
   getTemplateStages,
   getStageFields,
   getCompleteWorkflowConfig,
   clearTemplateCache,
+  getTemplatePaneNames,
 };

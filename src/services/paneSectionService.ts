@@ -18,7 +18,8 @@ export const getPaneSectionConfig = async (
   productCode: string,
   eventCode: string,
   businessApp?: string,
-  customerSegment?: string
+  customerSegment?: string,
+  allowedPanes?: string[]
 ): Promise<PaneConfig[]> => {
   try {
     let query = supabase
@@ -48,7 +49,16 @@ export const getPaneSectionConfig = async (
     }
 
     const mapping = data as PaneSectionMappingResponse;
-    return parsePanesConfig(mapping.panes);
+    let panesConfig = parsePanesConfig(mapping.panes);
+
+    // Filter panes if allowedPanes is provided (from workflow template)
+    if (allowedPanes && allowedPanes.length > 0) {
+      panesConfig = panesConfig.filter(pane => 
+        allowedPanes.includes(pane.name)
+      );
+    }
+
+    return panesConfig;
   } catch (err) {
     console.error('Exception fetching pane/section config:', err);
     return [];
