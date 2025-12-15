@@ -120,8 +120,8 @@ const createTransactionRecord = async (
   const channel = getChannelFromBusinessApp(resolvedBusinessApplication);
   
   try {
-    // Use RPC function to insert transaction (bypasses RLS for custom auth)
-    const { data: transaction, error: transactionError } = await supabase.rpc('insert_transaction', {
+    // Use RPC function to upsert transaction (handles duplicates gracefully)
+    const { data: transaction, error: transactionError } = await supabase.rpc('upsert_transaction', {
       p_user_id: user.id,
       p_transaction_ref: actualTransactionNumber,
       p_product_type: productType,
