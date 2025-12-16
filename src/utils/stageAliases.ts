@@ -1,21 +1,39 @@
 /**
+ * All stages that represent checker/verification/approval work.
+ * Users with permission to ANY of these stages should have access to ALL of them.
+ */
+export const CHECKER_STAGES = [
+  'Checker Review',
+  'Checker',
+  'Authorization',
+  'Approval',
+  'Final Approval',
+  'Review',
+  'Verification',
+  'Auth',
+  'Authorize',
+];
+
+/**
  * Stage name aliases for flexible permission matching.
  * Different workflows may use different names for equivalent stages.
  */
 export const STAGE_ALIASES: Record<string, string[]> = {
-  // Approval/Authorization are interchangeable for checker/approver users
-  'Authorization': ['Approval', 'Auth', 'Authorize', 'Checker'],
-  'Approval': ['Authorization', 'Auth', 'Authorize', 'Final Approval'],
-  'Final Approval': ['Approval', 'Authorization'],
+  // ALL checker-type stages are interchangeable - users with any checker permission
+  // can access all verification/approval stages
+  'Authorization': CHECKER_STAGES,
+  'Approval': CHECKER_STAGES,
+  'Final Approval': CHECKER_STAGES,
+  'Checker Review': CHECKER_STAGES,
+  'Checker': CHECKER_STAGES,
+  'Review': CHECKER_STAGES,
+  'Verification': CHECKER_STAGES,
   
   // Data Entry variations
   'Data Entry': ['Initiation', 'Create', 'Input'],
   
   // Limit Check variations
   'Limit Check': ['Limit Verification', 'Credit Check'],
-  
-  // Checker variations  
-  'Checker Review': ['Review', 'Verification', 'Checker'],
 };
 
 /**
@@ -31,7 +49,7 @@ export const matchesAccessibleStage = (
     return true;
   }
   
-  // Check if any accessible stage is an alias for the target stage
+  // Check if any accessible stage's aliases include the target stage
   for (const accessible of accessibleStages) {
     const aliases = STAGE_ALIASES[accessible] || [];
     if (aliases.includes(stageName)) {
@@ -39,7 +57,7 @@ export const matchesAccessibleStage = (
     }
   }
   
-  // Check reverse: if target stage has aliases that match accessible stages
+  // Check reverse: if target stage's aliases include any accessible stage
   const targetAliases = STAGE_ALIASES[stageName] || [];
   if (targetAliases.some(alias => accessibleStages.includes(alias))) {
     return true;
