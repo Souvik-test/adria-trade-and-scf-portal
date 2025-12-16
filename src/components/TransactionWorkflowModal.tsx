@@ -87,8 +87,20 @@ const getTargetStage = (status: string, accessibleStages: string[], initiatingCh
   // "Sent to Bank" status - transaction is ready for Bank workflow processing
   // Bank users should start from Data Entry in their workflow
   if (normalizedStatus === 'sent to bank') {
+    // Transaction arrived from Portal - Bank users start from Data Entry in Bank workflow
     if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+    }
+    return null;
+  }
+  
+  // "Bank Processing" status - Bank Data Entry is done, next is Limit Check
+  if (normalizedStatus === 'bank processing') {
+    if (accessibleStages.some(s => s.toLowerCase().includes('limit'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('limit')) || null;
+    }
+    if (accessibleStages.some(s => s.toLowerCase().includes('checker'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('checker')) || null;
     }
     return null;
   }
@@ -97,8 +109,8 @@ const getTargetStage = (status: string, accessibleStages: string[], initiatingCh
   // Prevent reopening a transaction at a stage that's already completed
   
   if (normalizedStatus === 'submitted') {
-    // Data Entry is already done - user cannot reopen at Data Entry
-    // Next stage is Limit Check, Authorization, or Approval
+    // Portal Data Entry is done - user cannot reopen at Data Entry
+    // Next stage is Authorization (Portal) or Limit Check (if any)
     if (accessibleStages.some(s => s.toLowerCase().includes('authorization'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('authorization')) || null;
     }
