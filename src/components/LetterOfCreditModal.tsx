@@ -49,16 +49,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 
   const checkWorkflowTemplate = async () => {
     // Skip dynamic form for TSCF Client - use hardcoded form
-    if (businessApp === 'Adria TSCF Client') {
-      setUseDynamicForm(false);
-      return;
-    }
-    
     // Clear cache to ensure fresh lookup (prevents stale template status)
     clearTemplateCache();
     
+    // Determine trigger type based on business application
+    const triggerType = businessApp === 'Adria TSCF Client' ? 'Client Portal' : 'Manual';
+    
     try {
-      const template = await findWorkflowTemplate('ILC', 'ISS', 'Manual');
+      const template = await findWorkflowTemplate('ILC', 'ISS', triggerType);
       setUseDynamicForm(!!template);
     } catch (error) {
       console.error('Error checking workflow template:', error);
