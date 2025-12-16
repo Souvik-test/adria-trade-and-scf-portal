@@ -11,7 +11,7 @@ import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
 import RequestLCTransferForm from "./export-lc/RequestLCTransferForm";
 import RequestAssignmentForm from "./export-lc/RequestAssignmentForm";
 import { DynamicTransactionForm } from './dynamic-form';
-import { findWorkflowTemplate } from '@/services/workflowTemplateService';
+import { findWorkflowTemplate, clearTemplateCache } from '@/services/workflowTemplateService';
 import { Loader2 } from 'lucide-react';
 
 interface LetterOfCreditModalProps {
@@ -53,6 +53,9 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       setUseDynamicForm(false);
       return;
     }
+    
+    // Clear cache to ensure fresh lookup (prevents stale template status)
+    clearTemplateCache();
     
     try {
       const template = await findWorkflowTemplate('ILC', 'ISS', 'Manual');
