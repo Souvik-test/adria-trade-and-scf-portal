@@ -19,6 +19,7 @@ interface DynamicFormContainerProps {
   currentPaneCode?: string; // Filter to show only this pane's sections
   sectionConfigs?: SectionConfig[]; // Section configs from pane_section_mappings
   stageId?: string;
+  allowedFieldNames?: string[]; // Field names allowed for current stage (from workflow_stage_fields)
   initialData?: DynamicFormState;
   onFormChange?: (formState: DynamicFormState) => void;
   disabled?: boolean;
@@ -33,6 +34,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   currentPaneCode,
   sectionConfigs,
   stageId,
+  allowedFieldNames,
   initialData,
   onFormChange,
   disabled = false,
@@ -232,7 +234,8 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   }
 
   // Get sections from pane_section_mappings if available, otherwise use sections from field_repository
-  const sectionsToRender = sectionConfigs && sectionConfigs.length > 0
+  // Then filter fields based on allowedFieldNames from workflow_stage_fields
+  const sectionsToRender = (sectionConfigs && sectionConfigs.length > 0
     ? sectionConfigs.map(cfg => {
         // Find matching section from field_repository data
         const matchingSection = currentPane.sections.find(
@@ -240,7 +243,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
         );
         
         // Apply repeatable config from pane_section_mappings to the section/groups
-        const groups = matchingSection?.groups.map(group => ({
+        let groups = matchingSection?.groups.map(group => ({
           ...group,
           // Override group's isRepeatable if section is configured as repeatable
           isRepeatable: cfg.isRepeatable || group.isRepeatable,
@@ -257,7 +260,23 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
           groupId: cfg.groupId,
         };
       })
-    : currentPane.sections;
+    : currentPane.sections
+  ).map(section => {
+    // Filter fields within each group based on allowedFieldNames
+    if (allowedFieldNames && allowedFieldNames.length > 0) {
+      return {
+        ...section,
+        groups: section.groups.map(group => ({
+          ...group,
+          fields: group.fields.filter(field => 
+            allowedFieldNames.includes(field.field_label_key) ||
+            allowedFieldNames.includes(field.field_code || '')
+          )
+        })).filter(group => group.fields.length > 0) // Remove empty groups
+      };
+    }
+    return section;
+  });
 
   // Render sections directly (no accordion wrapper since we're showing one pane at a time)
   return (

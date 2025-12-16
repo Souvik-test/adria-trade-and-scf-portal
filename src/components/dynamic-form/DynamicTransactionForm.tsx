@@ -53,6 +53,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     completedStageName,
     productName,
     eventName,
+    currentStageAllowedFields,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
@@ -244,7 +245,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             <CardTitle className="text-lg">{currentPane.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Dynamic Fields from Field Repository - filtered by current pane */}
+            {/* Dynamic Fields from Field Repository - filtered by current pane and stage */}
             <DynamicFormContainer
               productCode={productCode}
               eventType={eventCode}
@@ -256,6 +257,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 isRepeatable: s.isRepeatable || false,
                 groupId: s.groupId,
               }))}
+              allowedFieldNames={currentStageAllowedFields}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
                 // Sync with parent state (only if not read-only)
