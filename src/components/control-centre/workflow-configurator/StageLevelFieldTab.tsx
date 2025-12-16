@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Search, Trash2, Save, Filter } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Save, Filter, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
   const [allVisible, setAllVisible] = useState(false);
   const [allEditable, setAllEditable] = useState(false);
   const [allMandatory, setAllMandatory] = useState(false);
+  const [availableFieldsCollapsed, setAvailableFieldsCollapsed] = useState(false);
 
   // Extract unique panes and sections for filter dropdowns
   const uniquePanes = [...new Set(availableFields.map(f => f.pane_code).filter(Boolean))];
@@ -301,54 +302,71 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
         {/* Left Panel - Available Fields (hidden in view-only mode) */}
         {!viewOnly && (
-          <Card className="w-80 flex-shrink-0 flex flex-col">
-            <CardHeader>
+          <Card className={`flex-shrink-0 flex flex-col transition-all duration-200 ${availableFieldsCollapsed ? 'w-12' : 'w-80'}`}>
+            <CardHeader className={availableFieldsCollapsed ? 'p-2' : ''}>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Available Fields</CardTitle>
-                <Button size="sm" variant="outline" onClick={handleAddAllFields}>
-                  Add All
-                </Button>
+                {!availableFieldsCollapsed && <CardTitle className="text-lg">Available Fields</CardTitle>}
+                <div className="flex items-center gap-1">
+                  {!availableFieldsCollapsed && (
+                    <Button size="sm" variant="outline" onClick={handleAddAllFields}>
+                      Add All
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => setAvailableFieldsCollapsed(!availableFieldsCollapsed)}
+                    title={availableFieldsCollapsed ? 'Expand' : 'Collapse'}
+                  >
+                    {availableFieldsCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  </Button>
+                </div>
               </div>
-              <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search fields..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              {/* Pane Filter */}
-              <div className="mt-2">
-                <Select value={filterPane} onValueChange={(value) => { setFilterPane(value); setFilterSection('all'); }}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <Filter className="w-3 h-3 mr-1" />
-                    <SelectValue placeholder="Filter by Pane" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Panes</SelectItem>
-                    {uniquePanes.map(pane => (
-                      <SelectItem key={pane} value={pane}>{pane}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Section Filter */}
-              <div className="mt-2">
-                <Select value={filterSection} onValueChange={setFilterSection}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <Filter className="w-3 h-3 mr-1" />
-                    <SelectValue placeholder="Filter by Section" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sections</SelectItem>
-                    {uniqueSections.map(section => (
-                      <SelectItem key={section} value={section}>{section}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!availableFieldsCollapsed && (
+                <>
+                  <div className="relative mt-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search fields..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  {/* Pane Filter */}
+                  <div className="mt-2">
+                    <Select value={filterPane} onValueChange={(value) => { setFilterPane(value); setFilterSection('all'); }}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <Filter className="w-3 h-3 mr-1" />
+                        <SelectValue placeholder="Filter by Pane" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Panes</SelectItem>
+                        {uniquePanes.map(pane => (
+                          <SelectItem key={pane} value={pane}>{pane}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Section Filter */}
+                  <div className="mt-2">
+                    <Select value={filterSection} onValueChange={setFilterSection}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <Filter className="w-3 h-3 mr-1" />
+                        <SelectValue placeholder="Filter by Section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sections</SelectItem>
+                        {uniqueSections.map(section => (
+                          <SelectItem key={section} value={section}>{section}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </CardHeader>
+            {!availableFieldsCollapsed && (
             <CardContent className="flex-1 overflow-auto space-y-2">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
@@ -384,6 +402,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                 ))
               )}
             </CardContent>
+            )}
           </Card>
         )}
 
@@ -431,7 +450,6 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                     <TableHead className="w-32">Pane</TableHead>
                     <TableHead className="w-32">Section</TableHead>
                     <TableHead>Field Name</TableHead>
-                    <TableHead className="min-w-[200px]">UI Label</TableHead>
                     <TableHead className="w-20 text-center">Visible</TableHead>
                     <TableHead className="w-20 text-center">Editable</TableHead>
                     <TableHead className="w-20 text-center">Mandatory</TableHead>
@@ -441,7 +459,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                 <TableBody>
                   {stageFields.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                         Add fields from the left panel
                       </TableCell>
                     </TableRow>
@@ -465,14 +483,6 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                           />
                         </TableCell>
                         <TableCell className="font-medium">{field.field_name}</TableCell>
-                        <TableCell>
-                          <Input
-                            value={field.ui_label}
-                            onChange={(e) => handleUpdateField(field.id, { ui_label: e.target.value })}
-                            className="h-8 min-w-[180px]"
-                            disabled={viewOnly}
-                          />
-                        </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_visible}
