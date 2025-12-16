@@ -53,7 +53,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     clearTemplateCache();
     
     // Determine trigger type based on business application
-    const triggerType = businessApp === 'Adria TSCF Client' ? 'Client Portal' : 'Manual';
+    const triggerType = businessApp === 'Adria TSCF Client' ? 'ClientPortal' : 'Manual';
     
     try {
       const template = await findWorkflowTemplate('ILC', 'ISS', triggerType);
