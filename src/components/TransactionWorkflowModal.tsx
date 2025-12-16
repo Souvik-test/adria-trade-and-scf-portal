@@ -114,6 +114,13 @@ const getTargetStageFromWorkflow = async (
     return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
   }
   
+  // Special case: "Sent to Bank" means Portal workflow ended, Bank workflow should START
+  // This is a cross-workflow handoff - Bank Maker starts from Bank's Data Entry
+  if (normalizedStatus === 'sent to bank') {
+    console.log('Cross-workflow handoff: Sent to Bank - starting Bank workflow from Data Entry');
+    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+  }
+  
   // Get which stage was just completed based on status
   const completedStageName = getCompletedStageName(status);
   
