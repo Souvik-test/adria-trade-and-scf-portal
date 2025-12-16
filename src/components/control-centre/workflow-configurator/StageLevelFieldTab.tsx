@@ -447,8 +447,8 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-32">Pane</TableHead>
-                    <TableHead className="w-32">Section</TableHead>
+                    <TableHead className="min-w-[180px]">Pane</TableHead>
+                    <TableHead className="min-w-[180px]">Section</TableHead>
                     <TableHead>Field Name</TableHead>
                     <TableHead className="w-20 text-center">Visible</TableHead>
                     <TableHead className="w-20 text-center">Editable</TableHead>
@@ -466,22 +466,8 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                   ) : (
                     stageFields.map((field) => (
                       <TableRow key={field.id}>
-                        <TableCell>
-                          <Input
-                            value={field.pane}
-                            onChange={(e) => handleUpdateField(field.id, { pane: e.target.value })}
-                            className="h-8"
-                            disabled={viewOnly}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={field.section}
-                            onChange={(e) => handleUpdateField(field.id, { section: e.target.value })}
-                            className="h-8"
-                            disabled={viewOnly}
-                          />
-                        </TableCell>
+                        <TableCell className="text-sm">{field.pane}</TableCell>
+                        <TableCell className="text-sm">{field.section}</TableCell>
                         <TableCell className="font-medium">{field.field_name}</TableCell>
                         <TableCell className="text-center">
                           <Checkbox
