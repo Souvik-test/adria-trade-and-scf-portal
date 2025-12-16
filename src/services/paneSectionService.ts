@@ -58,13 +58,14 @@ export const getPaneSectionConfig = async (
       allowedPanes.forEach((paneName, index) => {
         const pane = panesConfig.find(p => p.name === paneName);
         if (pane) {
-          // Filter sections based on allowedSections if provided
+          // Filter sections based on allowedSections using index key (stage-specific)
           let filteredSections = pane.sections;
           if (allowedSections && allowedSections.size > 0) {
-            const allowedForPane = allowedSections.get(paneName);
-            if (allowedForPane && allowedForPane.length > 0) {
+            // Use index as key for stage-specific section filtering
+            const allowedForThisPane = allowedSections.get(`${index}`);
+            if (allowedForThisPane && allowedForThisPane.length > 0) {
               filteredSections = pane.sections.filter(section => 
-                allowedForPane.includes(section.name)
+                allowedForThisPane.includes(section.name)
               );
             }
           }

@@ -15,7 +15,6 @@ import {
   getStageFields,
   getTemplatePaneNames,
   getStagePaneMapping,
-  getMultiStageSectionMapping,
   StagePaneInfo,
 } from '@/services/workflowTemplateService';
 import { getPaneSectionConfig, getDefaultButtons } from '@/services/paneSectionService';
@@ -246,9 +245,12 @@ export const useDynamicTransaction = ({
           const mapping = await getStagePaneMapping(foundTemplate.id, stageNamesFilter);
           setStagePaneMapping(mapping);
           
-          // Get allowed sections per pane based on workflow_stage_fields for accessible stages
-          const accessibleStageIds = filteredStages.map(s => s.id);
-          allowedSections = await getMultiStageSectionMapping(accessibleStageIds);
+          // Build per-pane-index section mapping from stagePaneMapping (stage-specific sections)
+          allowedSections = new Map<string, string[]>();
+          mapping.forEach((paneInfo, index) => {
+            // Use index as key to ensure each pane occurrence gets its own section filter
+            allowedSections!.set(`${index}`, paneInfo.allowedSections);
+          });
         }
 
         // Fetch pane/section configuration, filtered and ordered by workflow template panes and sections

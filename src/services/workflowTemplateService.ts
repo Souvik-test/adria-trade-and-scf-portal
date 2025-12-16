@@ -147,6 +147,7 @@ export interface StagePaneInfo {
   isFirstPaneOfStage: boolean;
   isLastPaneOfStage: boolean;
   isFinalStage: boolean;
+  allowedSections: string[]; // Sections allowed for THIS specific stage-pane combination
 }
 
 /**
@@ -213,6 +214,9 @@ export const getStagePaneMapping = async (
     const stage = filteredStages[stageIdx];
     const fields = await getStageFields(stage.id);
     
+    // Get stage-specific section mapping for this stage
+    const stageSectionMap = await getStageSectionMapping(stage.id);
+    
     // Get unique panes for THIS stage only
     const stagePanes: string[] = [];
     const seenPanes = new Set<string>();
@@ -225,8 +229,9 @@ export const getStagePaneMapping = async (
     
     const isFinalStage = stageIdx === totalStages - 1;
     
-    // Add each pane with stage info
+    // Add each pane with stage info and its allowed sections
     stagePanes.forEach((paneName, paneIdxInStage) => {
+      const allowedSections = stageSectionMap.get(paneName) || [];
       mapping.push({
         paneIndex,
         paneName,
@@ -236,6 +241,7 @@ export const getStagePaneMapping = async (
         isFirstPaneOfStage: paneIdxInStage === 0,
         isLastPaneOfStage: paneIdxInStage === stagePanes.length - 1,
         isFinalStage,
+        allowedSections,
       });
       paneIndex++;
     });
