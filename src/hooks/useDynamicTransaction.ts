@@ -69,6 +69,9 @@ interface UseDynamicTransactionReturn {
   isTransactionComplete: boolean;
   completedStageName: string;
   
+  // Allowed field names for current stage (for field filtering)
+  currentStageAllowedFields: string[];
+  
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   handleFieldChange: (fieldCode: string, value: any) => void;
@@ -595,6 +598,19 @@ export const useDynamicTransaction = ({
     return currentPane.buttons;
   }, [getCurrentPane, currentPaneIndex, panes.length]);
 
+  // Get allowed field names for current stage from workflow_stage_fields
+  const currentStageAllowedFields = (() => {
+    if (stagePaneMapping.length === 0) return [];
+    const currentMapping = stagePaneMapping[currentPaneIndex];
+    if (!currentMapping) return [];
+    
+    const stageId = currentMapping.stageId;
+    const stageFieldsList = stageFields.get(stageId) || [];
+    
+    // Return unique field names for this stage
+    return stageFieldsList.map(f => f.field_name);
+  })();
+
   return {
     loading,
     error,
@@ -612,6 +628,7 @@ export const useDynamicTransaction = ({
     hasWorkflowTemplate: !!template,
     isTransactionComplete,
     completedStageName,
+    currentStageAllowedFields,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
