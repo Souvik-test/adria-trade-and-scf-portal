@@ -20,6 +20,7 @@ interface DynamicFormContainerProps {
   sectionConfigs?: SectionConfig[]; // Section configs from pane_section_mappings
   stageId?: string;
   allowedFieldNames?: string[]; // Field names allowed for current stage (from workflow_stage_fields)
+  fieldEditabilityMap?: Map<string, boolean>; // Field name -> isEditable from workflow_stage_fields
   initialData?: DynamicFormState;
   onFormChange?: (formState: DynamicFormState) => void;
   disabled?: boolean;
@@ -35,6 +36,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   sectionConfigs,
   stageId,
   allowedFieldNames,
+  fieldEditabilityMap,
   initialData,
   onFormChange,
   disabled = false,
@@ -350,6 +352,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
             onAddRepeatableInstance={handleAddRepeatableInstance}
             onRemoveRepeatableInstance={handleRemoveRepeatableInstance}
             disabled={disabled}
+            fieldEditabilityMap={fieldEditabilityMap}
             overrideGridRows={sectionConfig?.rows || section.gridRows}
             overrideGridColumns={sectionConfig?.columns || section.gridColumns}
             isRepeatable={sectionConfig?.isRepeatable}

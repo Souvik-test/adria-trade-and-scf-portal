@@ -15,6 +15,7 @@ interface DynamicSectionRendererProps {
   onAddRepeatableInstance: (groupId: string) => void;
   onRemoveRepeatableInstance: (groupId: string, instanceId: string) => void;
   disabled?: boolean;
+  fieldEditabilityMap?: Map<string, boolean>; // Per-field editability from workflow_stage_fields
   // Optional overrides from pane_section_mappings
   overrideGridRows?: number;
   overrideGridColumns?: number;
@@ -32,6 +33,7 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
   onAddRepeatableInstance,
   onRemoveRepeatableInstance,
   disabled = false,
+  fieldEditabilityMap,
   overrideGridRows,
   overrideGridColumns,
   isRepeatable = false,
@@ -116,13 +118,18 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
               ? (fieldCode: string, value: any) => onRepeatableFieldChange(sectionGroupId, instanceId, fieldCode, value)
               : onFieldChange;
 
+            // Determine if this specific field is editable based on workflow_stage_fields config
+            // Field is disabled if: global disabled OR field's is_editable is explicitly false
+            const fieldIsEditable = fieldEditabilityMap?.get(field.field_label_key) ?? true;
+            const fieldDisabled = disabled || !fieldIsEditable;
+
             return (
               <div key={field.field_code} style={gridPositionStyle}>
                 <DynamicFieldRenderer
                   field={field}
                   value={fieldValue}
                   onChange={handleChange}
-                  disabled={disabled}
+                  disabled={fieldDisabled}
                 />
               </div>
             );

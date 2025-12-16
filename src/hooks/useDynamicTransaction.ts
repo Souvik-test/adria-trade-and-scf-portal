@@ -71,7 +71,9 @@ interface UseDynamicTransactionReturn {
   
   // Allowed field names for current stage (for field filtering)
   currentStageAllowedFields: string[];
-  
+  // Field editability map for current stage (field_name -> isEditable)
+  currentStageFieldEditability: Map<string, boolean>;
+
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   handleFieldChange: (fieldCode: string, value: any) => void;
@@ -598,17 +600,23 @@ export const useDynamicTransaction = ({
     return currentPane.buttons;
   }, [getCurrentPane, currentPaneIndex, panes.length]);
 
-  // Get allowed field names for current stage from workflow_stage_fields
-  const currentStageAllowedFields = (() => {
-    if (stagePaneMapping.length === 0) return [];
+  // Get allowed field names and editability for current stage from workflow_stage_fields
+  const { currentStageAllowedFields, currentStageFieldEditability } = (() => {
+    if (stagePaneMapping.length === 0) return { currentStageAllowedFields: [], currentStageFieldEditability: new Map<string, boolean>() };
     const currentMapping = stagePaneMapping[currentPaneIndex];
-    if (!currentMapping) return [];
+    if (!currentMapping) return { currentStageAllowedFields: [], currentStageFieldEditability: new Map<string, boolean>() };
     
     const stageId = currentMapping.stageId;
     const stageFieldsList = stageFields.get(stageId) || [];
     
-    // Return unique field names for this stage
-    return stageFieldsList.map(f => f.field_name);
+    // Build field names array and editability map
+    const fieldNames = stageFieldsList.map(f => f.field_name);
+    const editabilityMap = new Map<string, boolean>();
+    stageFieldsList.forEach(f => {
+      editabilityMap.set(f.field_name, f.is_editable !== false); // Default to true if undefined
+    });
+    
+    return { currentStageAllowedFields: fieldNames, currentStageFieldEditability: editabilityMap };
   })();
 
   return {
@@ -629,6 +637,7 @@ export const useDynamicTransaction = ({
     isTransactionComplete,
     completedStageName,
     currentStageAllowedFields,
+    currentStageFieldEditability,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,

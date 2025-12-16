@@ -49,6 +49,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     formData,
     repeatableGroups,
     hasWorkflowTemplate,
+    currentStageFieldEditability,
     isTransactionComplete,
     completedStageName,
     productName,
@@ -258,6 +259,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 groupId: s.groupId,
               }))}
               allowedFieldNames={currentStageAllowedFields}
+              fieldEditabilityMap={currentStageFieldEditability}
               initialData={{ formData, repeatableGroups }}
               onFormChange={(state) => {
                 // Sync with parent state (only if not read-only)
