@@ -1197,9 +1197,9 @@ const ManagePanesAndSections = () => {
                                               <Input
                                                 type="number"
                                                 min={1}
-                                                max={6}
+                                                max={12}
                                                 value={section.columns || 2}
-                                                onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(6, parseInt(e.target.value) || 2)))}
+                                                onChange={(e) => updateSectionLayout(pane.id, section.id, 'columns', Math.max(1, Math.min(12, parseInt(e.target.value) || 2)))}
                                                 className="w-16 h-7 text-xs"
                                               />
                                             </div>
