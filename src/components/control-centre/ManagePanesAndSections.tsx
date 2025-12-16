@@ -82,8 +82,8 @@ const buttonPositionOptions: { value: ButtonPosition; label: string }[] = [
 
 const ManagePanesAndSections = () => {
   const [productMappings, setProductMappings] = useState<ProductEventMapping[]>([]);
-  const [selectedBusinessApp, setSelectedBusinessApp] = useState('');
-  const [selectedCustomerSegment, setSelectedCustomerSegment] = useState('');
+  const [selectedBusinessApps, setSelectedBusinessApps] = useState<string[]>([]);
+  const [selectedCustomerSegments, setSelectedCustomerSegments] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedMapping, setSelectedMapping] = useState<ProductEventMapping | null>(null);
@@ -153,31 +153,25 @@ const ManagePanesAndSections = () => {
     }
   };
 
-  // Get unique business applications
-  const uniqueBusinessApps = Array.from(
-    new Set(productMappings.flatMap(m => m.business_application))
-  ).sort();
+  // Get unique business applications - all available options
+  const allBusinessApps = ['Adria TSCF Client', 'Adria Process Orchestrator', 'Adria TSCF Bank'];
+  
+  // Get unique customer segments - all available options
+  const allCustomerSegments = ['Corporate', 'Bank', 'Agent'];
 
-  // Get unique customer segments for selected business application
-  const availableCustomerSegments = selectedBusinessApp
-    ? Array.from(
-        new Set(
-          productMappings
-            .filter(m => m.business_application.includes(selectedBusinessApp))
-            .flatMap(m => m.target_audience)
-        )
-      ).sort()
-    : [];
+  // For filtering products and events, we use the first selected values
+  const primaryBusinessApp = selectedBusinessApps[0] || '';
+  const primaryCustomerSegment = selectedCustomerSegments[0] || '';
 
   // Get unique products for selected business application and customer segment
-  const availableProducts = selectedBusinessApp && selectedCustomerSegment
+  const availableProducts = primaryBusinessApp && primaryCustomerSegment
     ? Array.from(
         new Set(
           productMappings
             .filter(
               m =>
-                m.business_application.includes(selectedBusinessApp) &&
-                m.target_audience.includes(selectedCustomerSegment)
+                m.business_application.some(ba => selectedBusinessApps.includes(ba)) &&
+                m.target_audience.some(ta => selectedCustomerSegments.includes(ta))
             )
             .map(m => m.product_code)
         )
@@ -185,11 +179,11 @@ const ManagePanesAndSections = () => {
     : [];
 
   // Get events for selected business application, customer segment, and product
-  const availableEvents = selectedBusinessApp && selectedCustomerSegment && selectedProduct
+  const availableEvents = primaryBusinessApp && primaryCustomerSegment && selectedProduct
     ? productMappings.filter(
         m =>
-          m.business_application.includes(selectedBusinessApp) &&
-          m.target_audience.includes(selectedCustomerSegment) &&
+          m.business_application.some(ba => selectedBusinessApps.includes(ba)) &&
+          m.target_audience.some(ta => selectedCustomerSegments.includes(ta)) &&
           m.product_code === selectedProduct
       )
     : [];
@@ -201,21 +195,21 @@ const ManagePanesAndSections = () => {
       return;
     }
     
-    if (selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent) {
+    if (selectedBusinessApps.length > 0 && selectedCustomerSegments.length > 0 && selectedProduct && selectedEvent) {
       loadPaneSectionMapping();
     } else {
       setPanes([]);
       setSelectedMapping(null);
     }
-  }, [selectedBusinessApp, selectedCustomerSegment, selectedProduct, selectedEvent]);
+  }, [selectedBusinessApps, selectedCustomerSegments, selectedProduct, selectedEvent]);
 
   const loadPaneSectionMapping = async () => {
     setLoading(true);
     try {
       const mapping = productMappings.find(
         m =>
-          m.business_application.includes(selectedBusinessApp) &&
-          m.target_audience.includes(selectedCustomerSegment) &&
+          m.business_application.some(ba => selectedBusinessApps.includes(ba)) &&
+          m.target_audience.some(ta => selectedCustomerSegments.includes(ta)) &&
           m.product_code === selectedProduct &&
           m.event_code === selectedEvent
       );
@@ -226,8 +220,8 @@ const ManagePanesAndSections = () => {
         .select('*')
         .eq('product_code', selectedProduct)
         .eq('event_code', selectedEvent)
-        .contains('business_application', [selectedBusinessApp])
-        .contains('customer_segment', [selectedCustomerSegment])
+        .overlaps('business_application', selectedBusinessApps)
+        .overlaps('customer_segment', selectedCustomerSegments)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -526,7 +520,7 @@ const ManagePanesAndSections = () => {
   };
 
   const handleSave = async () => {
-    if (!selectedBusinessApp || !selectedCustomerSegment || !selectedProduct || !selectedEvent) {
+    if (selectedBusinessApps.length === 0 || selectedCustomerSegments.length === 0 || !selectedProduct || !selectedEvent) {
       toast.error('Please select business application, customer segment, product, and event');
       return;
     }
@@ -555,8 +549,8 @@ const ManagePanesAndSections = () => {
         p_user_id: userId,
         p_product_code: selectedProduct,
         p_event_code: selectedEvent,
-        p_business_application: [selectedBusinessApp],
-        p_customer_segment: [selectedCustomerSegment],
+        p_business_application: selectedBusinessApps,
+        p_customer_segment: selectedCustomerSegments,
         p_panes: JSON.parse(JSON.stringify(panesData)),
         p_is_active: isConfigActive
       });
@@ -596,8 +590,8 @@ const ManagePanesAndSections = () => {
     );
     setSelectedMapping(mapping || null);
     
-    setSelectedBusinessApp(config.business_application[0]);
-    setSelectedCustomerSegment(config.customer_segment[0]);
+    setSelectedBusinessApps(config.business_application || []);
+    setSelectedCustomerSegments(config.customer_segment || []);
     setSelectedProduct(config.product_code);
     setSelectedEvent(config.event_code);
   };
@@ -912,51 +906,51 @@ const ManagePanesAndSections = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="businessApp">Business Application</Label>
-                  <Select
-                    value={selectedBusinessApp}
-                    onValueChange={(value) => {
-                      setSelectedBusinessApp(value);
-                      setSelectedCustomerSegment('');
-                      setSelectedProduct('');
-                      setSelectedEvent('');
-                    }}
-                  >
-                    <SelectTrigger id="businessApp">
-                      <SelectValue placeholder="Select business application" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueBusinessApps.map(app => (
-                        <SelectItem key={app} value={app}>
+                  <Label>Business Application (Multi-select)</Label>
+                  <div className="border rounded-md p-3 space-y-2">
+                    {allBusinessApps.map(app => (
+                      <div key={app} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`ba-${app}`}
+                          checked={selectedBusinessApps.includes(app)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedBusinessApps([...selectedBusinessApps, app]);
+                            } else {
+                              setSelectedBusinessApps(selectedBusinessApps.filter(a => a !== app));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`ba-${app}`} className="text-sm font-normal cursor-pointer">
                           {app}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="customerSegment">Customer Segment</Label>
-                  <Select
-                    value={selectedCustomerSegment}
-                    onValueChange={(value) => {
-                      setSelectedCustomerSegment(value);
-                      setSelectedProduct('');
-                      setSelectedEvent('');
-                    }}
-                    disabled={!selectedBusinessApp}
-                  >
-                    <SelectTrigger id="customerSegment">
-                      <SelectValue placeholder="Select customer segment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCustomerSegments.map(segment => (
-                        <SelectItem key={segment} value={segment}>
+                  <Label>Customer Segment (Multi-select)</Label>
+                  <div className="border rounded-md p-3 space-y-2">
+                    {allCustomerSegments.map(segment => (
+                      <div key={segment} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`cs-${segment}`}
+                          checked={selectedCustomerSegments.includes(segment)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCustomerSegments([...selectedCustomerSegments, segment]);
+                            } else {
+                              setSelectedCustomerSegments(selectedCustomerSegments.filter(s => s !== segment));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`cs-${segment}`} className="text-sm font-normal cursor-pointer">
                           {segment}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -967,7 +961,7 @@ const ManagePanesAndSections = () => {
                       setSelectedProduct(value);
                       setSelectedEvent('');
                     }}
-                    disabled={!selectedBusinessApp || !selectedCustomerSegment}
+                    disabled={selectedBusinessApps.length === 0 || selectedCustomerSegments.length === 0}
                   >
                     <SelectTrigger id="product">
                       <SelectValue placeholder="Select product" />
@@ -987,7 +981,7 @@ const ManagePanesAndSections = () => {
                   <Select
                     value={selectedEvent}
                     onValueChange={setSelectedEvent}
-                    disabled={!selectedBusinessApp || !selectedCustomerSegment || !selectedProduct}
+                    disabled={selectedBusinessApps.length === 0 || selectedCustomerSegments.length === 0 || !selectedProduct}
                   >
                     <SelectTrigger id="event">
                       <SelectValue placeholder="Select event" />
@@ -1008,7 +1002,7 @@ const ManagePanesAndSections = () => {
       </Collapsible>
 
       {/* Panes Section */}
-      {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && (
+      {selectedBusinessApps.length > 0 && selectedCustomerSegments.length > 0 && selectedProduct && selectedEvent && (
         <Collapsible open={isPanesConfigOpen} onOpenChange={setIsPanesConfigOpen}>
           <Card>
             <CardHeader>
@@ -1019,7 +1013,7 @@ const ManagePanesAndSections = () => {
                     <div>
                       <CardTitle>Panes Configuration</CardTitle>
                       <CardDescription className="ml-0">
-                        Add and organize panes for {selectedBusinessApp} - {selectedCustomerSegment} - {selectedProduct} - {selectedEvent}
+                        Add and organize panes for {selectedBusinessApps.join(', ')} - {selectedCustomerSegments.join(', ')} - {selectedProduct} - {selectedEvent}
                       </CardDescription>
                     </div>
                   </div>
@@ -1392,13 +1386,13 @@ const ManagePanesAndSections = () => {
       )}
 
       {/* Save Button */}
-      {selectedBusinessApp && selectedCustomerSegment && selectedProduct && selectedEvent && panes.length > 0 && (
+      {selectedBusinessApps.length > 0 && selectedCustomerSegments.length > 0 && selectedProduct && selectedEvent && panes.length > 0 && (
         <div className="flex justify-end gap-3">
           <Button
             variant="outline"
             onClick={() => {
-              setSelectedBusinessApp('');
-              setSelectedCustomerSegment('');
+              setSelectedBusinessApps([]);
+              setSelectedCustomerSegments([]);
               setSelectedProduct('');
               setSelectedEvent('');
               setPanes([]);
