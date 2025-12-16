@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { toast } from 'sonner';
+import { clearTemplateCache } from '@/services/workflowTemplateService';
 import type { WorkflowTemplate } from '../NextGenWorkflowConfigurator';
 
 interface WorkflowTemplatesTabProps {
@@ -305,6 +306,9 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
 
       if (error) throw error;
 
+      // Clear template cache so next lookup fetches fresh data
+      clearTemplateCache();
+
       toast.success('Template activated successfully');
       setTemplates(prev => prev.map(t => 
         t.id === template.id ? { ...t, status: 'Active' } : t
@@ -323,6 +327,9 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
         .eq('id', template.id);
 
       if (error) throw error;
+
+      // Clear template cache so next lookup fetches fresh data
+      clearTemplateCache();
 
       toast.success('Template deactivated successfully');
       setTemplates(prev => prev.map(t => 
