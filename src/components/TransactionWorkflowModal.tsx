@@ -56,17 +56,52 @@ const getEventCode = (processType: string | undefined): string => {
   return mapping[processType || 'Issuance'] || 'ISS';
 };
 
+// Determine trigger type based on transaction context (channel + status)
+// This enables cross-workflow handoff: Portal workflow → Bank workflow
+const getTriggerTypeFromContext = (initiatingChannel: string, status: string): string => {
+  // If initiated from Bank, always use Manual (Bank workflow)
+  if (initiatingChannel === 'Bank') {
+    return 'Manual';
+  }
+  
+  // If initiated from Portal: check status to determine workflow phase
+  if (initiatingChannel === 'Portal') {
+    // Statuses that indicate transaction has moved to Bank phase
+    const bankPhaseStatuses = ['Sent to Bank', 'Bank Processing', 'Limit Checked', 'Checker Reviewed', 'Issued'];
+    
+    if (bankPhaseStatuses.includes(status)) {
+      return 'Manual'; // Switch to Bank workflow
+    }
+    return 'ClientPortal'; // Still in Portal phase
+  }
+  
+  // Default to Manual
+  return 'Manual';
+};
+
 // Determine which stage the user should see based on transaction status and permissions
 // Returns null if the transaction's current stage has already been completed
-const getTargetStage = (status: string, accessibleStages: string[]): string | null => {
+const getTargetStage = (status: string, accessibleStages: string[], initiatingChannel: string): string | null => {
   const normalizedStatus = status.toLowerCase();
+  
+  // "Sent to Bank" status - transaction is ready for Bank workflow processing
+  // Bank users should start from Data Entry in their workflow
+  if (normalizedStatus === 'sent to bank') {
+    if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+    }
+    return null;
+  }
   
   // Check each accessible stage and ensure user can only open at appropriate next stage
   // Prevent reopening a transaction at a stage that's already completed
   
   if (normalizedStatus === 'submitted') {
     // Data Entry is already done - user cannot reopen at Data Entry
-    // Next stage is Limit Check or Approval
+    // Next stage is Limit Check, Authorization, or Approval
+    if (accessibleStages.some(s => s.toLowerCase().includes('authorization'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('authorization')) || null;
+    }
     if (accessibleStages.some(s => s.toLowerCase().includes('limit'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('limit')) || null;
     }
@@ -79,11 +114,22 @@ const getTargetStage = (status: string, accessibleStages: string[]): string | nu
   
   if (normalizedStatus === 'limit checked') {
     // Data Entry AND Limit Check are done - user cannot reopen at those stages
-    // Next stage is Approval only
+    // Next stage is Checker Review or Approval
+    if (accessibleStages.some(s => s.toLowerCase().includes('checker'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('checker')) || null;
+    }
     if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
       return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
     }
-    // User doesn't have Approval access - no access
+    // User doesn't have appropriate access - no access
+    return null;
+  }
+  
+  if (normalizedStatus === 'checker reviewed') {
+    // Up through Checker Review is done - next is Final Approval
+    if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
+      return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
+    }
     return null;
   }
   
@@ -121,19 +167,20 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     if (!permissionsLoading && isOpen) {
       // Get user's accessible stages for this product-event
       const accessibleStages = isSuperUser() 
-        ? ['Data Entry', 'Limit Check', 'Approval'] // Super user has all stages
+        ? ['Data Entry', 'Authorization', 'Limit Check', 'Checker Review', 'Approval'] // Super user has all stages
         : getAccessibleStages(productCode, eventCode);
       
       console.log('Accessible stages for user:', accessibleStages);
       console.log('Transaction status:', transaction.status);
+      console.log('Initiating channel:', transaction.initiating_channel);
       
-      const stage = getTargetStage(transaction.status, accessibleStages);
+      const stage = getTargetStage(transaction.status, accessibleStages, transaction.initiating_channel);
       console.log('Target stage:', stage);
       
       setTargetStage(stage);
       setCanProcess(!!stage);
     }
-  }, [permissionsLoading, isOpen, transaction.status, productCode, eventCode, isSuperUser, getAccessibleStages]);
+  }, [permissionsLoading, isOpen, transaction.status, transaction.initiating_channel, productCode, eventCode, isSuperUser, getAccessibleStages]);
 
   const handleClose = () => {
     if (onTransactionUpdated) {
@@ -194,13 +241,16 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     );
   }
 
+  // Determine trigger type based on transaction context for cross-workflow handoff
+  const triggerType = getTriggerTypeFromContext(transaction.initiating_channel, transaction.status);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
         <DynamicTransactionForm
           productCode={productCode}
           eventCode={eventCode}
-          triggerType="Manual"
+          triggerType={triggerType}
           businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
           showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
           onClose={handleClose}

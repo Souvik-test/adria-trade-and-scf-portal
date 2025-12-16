@@ -72,7 +72,8 @@ const getAmount = (productType: string, formData: any) => {
 };
 
 // Map stage name to transaction status
-const getStatusFromStage = (stageName: string, isFinalApproval: boolean): string => {
+// channel parameter enables Portal Authorization to return "Sent to Bank" for handoff to Bank workflow
+const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel?: string): string => {
   // Only return 'Issued' for final approval stage completion
   if (isFinalApproval) return 'Issued';
   
@@ -82,9 +83,17 @@ const getStatusFromStage = (stageName: string, isFinalApproval: boolean): string
   if (normalizedStage.includes('data entry') || normalizedStage === 'data entry') {
     return 'Submitted';
   }
+  // Authorization stage (Portal workflow) -> Sent to Bank (enables cross-workflow handoff)
+  else if (normalizedStage.includes('authorization') || normalizedStage === 'authorization') {
+    return 'Sent to Bank';
+  }
   // Limit Check stage -> Limit Checked
   else if (normalizedStage.includes('limit') || normalizedStage === 'limit check') {
     return 'Limit Checked';
+  }
+  // Checker Review stage -> Checker Reviewed
+  else if (normalizedStage.includes('checker') || normalizedStage === 'checker review') {
+    return 'Checker Reviewed';
   }
   // Approval stage (not final) -> Approved
   else if (normalizedStage.includes('approval')) {
