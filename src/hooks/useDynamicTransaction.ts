@@ -15,6 +15,7 @@ import {
   getStageFields,
   getTemplatePaneNames,
   getStagePaneMapping,
+  getMultiStageSectionMapping,
   StagePaneInfo,
 } from '@/services/workflowTemplateService';
 import { getPaneSectionConfig, getDefaultButtons } from '@/services/paneSectionService';
@@ -213,6 +214,7 @@ export const useDynamicTransaction = ({
 
         // Get pane names from workflow template stages
         let allowedPaneNames: string[] | undefined;
+        let allowedSections: Map<string, string[]> | undefined;
         
         if (foundTemplate) {
           // Fetch all stages first
@@ -243,15 +245,20 @@ export const useDynamicTransaction = ({
           allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, stageNamesFilter);
           const mapping = await getStagePaneMapping(foundTemplate.id, stageNamesFilter);
           setStagePaneMapping(mapping);
+          
+          // Get allowed sections per pane based on workflow_stage_fields for accessible stages
+          const accessibleStageIds = filteredStages.map(s => s.id);
+          allowedSections = await getMultiStageSectionMapping(accessibleStageIds);
         }
 
-        // Fetch pane/section configuration, filtered and ordered by workflow template panes
+        // Fetch pane/section configuration, filtered and ordered by workflow template panes and sections
         const paneConfig = await getPaneSectionConfig(
           productCode,
           eventCode,
           businessApp,
           customerSegment,
-          allowedPaneNames
+          allowedPaneNames,
+          allowedSections
         );
 
         // Add default buttons to panes if not configured

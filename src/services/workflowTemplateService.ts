@@ -244,6 +244,68 @@ export const getStagePaneMapping = async (
   return mapping;
 };
 
+/**
+ * Get pane-section mapping for a specific stage.
+ * Returns a Map of pane names to their allowed section names based on workflow_stage_fields.
+ */
+export const getStageSectionMapping = async (
+  stageId: string
+): Promise<Map<string, string[]>> => {
+  const fields = await getStageFields(stageId);
+  
+  // Group sections by pane
+  const paneSectionMap = new Map<string, Set<string>>();
+  fields.forEach(field => {
+    if (field.pane && field.section) {
+      if (!paneSectionMap.has(field.pane)) {
+        paneSectionMap.set(field.pane, new Set());
+      }
+      paneSectionMap.get(field.pane)!.add(field.section);
+    }
+  });
+  
+  // Convert Sets to Arrays
+  const result = new Map<string, string[]>();
+  paneSectionMap.forEach((sections, pane) => {
+    result.set(pane, Array.from(sections));
+  });
+  
+  return result;
+};
+
+/**
+ * Get combined pane-section mapping for multiple stages.
+ * Used when a user has access to multiple stages - combines all their allowed sections.
+ */
+export const getMultiStageSectionMapping = async (
+  stageIds: string[]
+): Promise<Map<string, string[]>> => {
+  const combinedMap = new Map<string, Set<string>>();
+  
+  // Fetch section mappings for all stages in parallel
+  const stageMappings = await Promise.all(
+    stageIds.map(stageId => getStageSectionMapping(stageId))
+  );
+  
+  // Combine all mappings
+  stageMappings.forEach(stageMap => {
+    stageMap.forEach((sections, pane) => {
+      if (!combinedMap.has(pane)) {
+        combinedMap.set(pane, new Set());
+      }
+      sections.forEach(section => combinedMap.get(pane)!.add(section));
+    });
+  });
+  
+  // Convert Sets to Arrays
+  const result = new Map<string, string[]>();
+  combinedMap.forEach((sections, pane) => {
+    result.set(pane, Array.from(sections));
+  });
+  
+  return result;
+};
+
 export default {
   findWorkflowTemplate,
   getTemplateStages,
@@ -252,4 +314,6 @@ export default {
   clearTemplateCache,
   getTemplatePaneNames,
   getStagePaneMapping,
+  getStageSectionMapping,
+  getMultiStageSectionMapping,
 };

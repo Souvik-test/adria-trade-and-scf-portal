@@ -19,7 +19,8 @@ export const getPaneSectionConfig = async (
   eventCode: string,
   businessApp?: string,
   customerSegment?: string,
-  allowedPanes?: string[]
+  allowedPanes?: string[],
+  allowedSections?: Map<string, string[]>
 ): Promise<PaneConfig[]> => {
   try {
     let query = supabase
@@ -49,7 +50,7 @@ export const getPaneSectionConfig = async (
     }
 
     const mapping = data as PaneSectionMappingResponse;
-    const panesConfig = parsePanesConfig(mapping.panes);
+    let panesConfig = parsePanesConfig(mapping.panes);
 
     // Build pane list based on allowedPanes order, allowing duplicates
     if (allowedPanes && allowedPanes.length > 0) {
@@ -57,16 +58,43 @@ export const getPaneSectionConfig = async (
       allowedPanes.forEach((paneName, index) => {
         const pane = panesConfig.find(p => p.name === paneName);
         if (pane) {
+          // Filter sections based on allowedSections if provided
+          let filteredSections = pane.sections;
+          if (allowedSections && allowedSections.size > 0) {
+            const allowedForPane = allowedSections.get(paneName);
+            if (allowedForPane && allowedForPane.length > 0) {
+              filteredSections = pane.sections.filter(section => 
+                allowedForPane.includes(section.name)
+              );
+            }
+          }
+          
           // Clone pane with unique id for each occurrence
           result.push({ 
             ...pane, 
             id: `${pane.id}-${index}`,
-            sections: pane.sections.map(s => ({ ...s, id: `${s.id}-${index}` })),
+            sections: filteredSections.map(s => ({ ...s, id: `${s.id}-${index}` })),
             buttons: pane.buttons?.map(b => ({ ...b, id: `${b.id}-${index}` })) || []
           });
         }
       });
       return result;
+    }
+
+    // Apply section filtering even without allowedPanes
+    if (allowedSections && allowedSections.size > 0) {
+      panesConfig = panesConfig.map(pane => {
+        const allowedForPane = allowedSections.get(pane.name);
+        if (allowedForPane && allowedForPane.length > 0) {
+          return {
+            ...pane,
+            sections: pane.sections.filter(section => 
+              allowedForPane.includes(section.name)
+            )
+          };
+        }
+        return pane;
+      });
     }
 
     return panesConfig;
