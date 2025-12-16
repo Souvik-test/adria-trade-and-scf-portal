@@ -465,7 +465,14 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                           />
                         </TableCell>
                         <TableCell className="font-medium">{field.field_name}</TableCell>
-                        <TableCell className="text-sm">{field.ui_label}</TableCell>
+                        <TableCell>
+                          <Input
+                            value={field.ui_label}
+                            onChange={(e) => handleUpdateField(field.id, { ui_label: e.target.value })}
+                            className="h-8 min-w-[180px]"
+                            disabled={viewOnly}
+                          />
+                        </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_visible}
