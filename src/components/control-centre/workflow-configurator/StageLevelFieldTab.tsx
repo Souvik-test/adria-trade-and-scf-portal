@@ -230,6 +230,28 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
     }
   };
 
+  const handleRemoveAllFields = async () => {
+    if (stageFields.length === 0) {
+      toast.info('No fields to remove');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('workflow_stage_fields')
+        .delete()
+        .eq('stage_id', stage!.id);
+
+      if (error) throw error;
+
+      toast.success(`Removed ${stageFields.length} fields`);
+      setStageFields([]);
+    } catch (error) {
+      console.error('Error removing all fields:', error);
+      toast.error('Failed to remove fields');
+    }
+  };
+
   const handleSave = () => {
     toast.success('Field configuration saved');
   };
@@ -367,20 +389,32 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
 
         {/* Right Panel - Field Configuration Table */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {!viewOnly && (
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <Checkbox checked={allVisible} onCheckedChange={handleToggleAllVisible} />
-                <label className="text-sm">All Visible</label>
+        {!viewOnly && (
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={allVisible} onCheckedChange={handleToggleAllVisible} />
+                  <label className="text-sm">All Visible</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={allEditable} onCheckedChange={handleToggleAllEditable} />
+                  <label className="text-sm">All Editable</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={allMandatory} onCheckedChange={handleToggleAllMandatory} />
+                  <label className="text-sm">All Mandatory</label>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Checkbox checked={allEditable} onCheckedChange={handleToggleAllEditable} />
-                <label className="text-sm">All Editable</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox checked={allMandatory} onCheckedChange={handleToggleAllMandatory} />
-                <label className="text-sm">All Mandatory</label>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRemoveAllFields}
+                disabled={stageFields.length === 0}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove All
+              </Button>
             </div>
           )}
           {viewOnly && (
