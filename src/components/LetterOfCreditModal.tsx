@@ -199,11 +199,12 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       // Render dynamic form if workflow template exists
       if (useDynamicForm) {
         const customerSegment = businessApp === 'Adria TSCF Client' ? 'Corporate' : 'Bank';
+        const triggerType = businessApp === 'Adria TSCF Client' ? 'ClientPortal' : 'Manual';
         return (
           <DynamicTransactionForm
             productCode="ILC"
             eventCode="ISS"
-            triggerType="Manual"
+            triggerType={triggerType}
             businessApp={businessApp}
             customerSegment={customerSegment}
             onClose={onClose}
