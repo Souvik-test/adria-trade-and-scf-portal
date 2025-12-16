@@ -431,8 +431,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                     <TableHead className="w-32">Pane</TableHead>
                     <TableHead className="w-32">Section</TableHead>
                     <TableHead>Field Name</TableHead>
-                    <TableHead>UI Label</TableHead>
-                    <TableHead className="w-32">Display Type</TableHead>
+                    <TableHead className="min-w-[200px]">UI Label</TableHead>
                     <TableHead className="w-20 text-center">Visible</TableHead>
                     <TableHead className="w-20 text-center">Editable</TableHead>
                     <TableHead className="w-20 text-center">Mandatory</TableHead>
@@ -442,7 +441,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                 <TableBody>
                   {stageFields.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         Add fields from the left panel
                       </TableCell>
                     </TableRow>
@@ -466,22 +465,7 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
                           />
                         </TableCell>
                         <TableCell className="font-medium">{field.field_name}</TableCell>
-                        <TableCell>
-                          <Input
-                            value={field.ui_label}
-                            onChange={(e) => handleUpdateField(field.id, { ui_label: e.target.value })}
-                            className="h-8"
-                            disabled={viewOnly}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={field.ui_display_type}
-                            onChange={(e) => handleUpdateField(field.id, { ui_display_type: e.target.value })}
-                            className="h-8"
-                            disabled={viewOnly}
-                          />
-                        </TableCell>
+                        <TableCell className="text-sm">{field.ui_label}</TableCell>
                         <TableCell className="text-center">
                           <Checkbox
                             checked={field.is_visible}
