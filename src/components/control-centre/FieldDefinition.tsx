@@ -168,6 +168,15 @@ const getInitialFieldData = (): FieldData => ({
   effective_from_date: new Date().toISOString().split('T')[0],
 });
 
+// Utility function to generate field_code from field_label_key (UPPER_SNAKE_CASE)
+const generateFieldCode = (fieldName: string): string => {
+  return fieldName
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '_');        // Replace spaces with underscores
+};
+
 const FieldDefinition = () => {
   const [customUser, setCustomUser] = useState<any>(null);
   const [productMappings, setProductMappings] = useState<ProductEventMapping[]>([]);
@@ -843,9 +852,12 @@ const FieldDefinition = () => {
             dropdownValuesArray = dropdown_values.split(',').map((v: string) => v.trim()).filter((v: string) => v);
           }
         }
+        // Auto-generate field_code from field_label_key if not provided
+        const autoFieldCode = field.field_code || generateFieldCode(field.field_label_key || '');
         return {
           ...fieldWithoutIdAndDropdown,
           field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          field_code: autoFieldCode,
           dropdown_values: dropdownValuesArray,
         };
       });
@@ -882,20 +894,25 @@ const FieldDefinition = () => {
     setGridWarnings([]);
   };
 
+
   const handleSaveField = async () => {
     if (!customUser?.id) {
       toast.error('You must be logged in to save fields');
       return;
     }
 
-    if (!fieldData.field_code || !fieldData.field_label_key) {
-      toast.error('Field Code and Field Label are required');
+    // Only require Field Name (field_label_key)
+    if (!fieldData.field_label_key) {
+      toast.error('Field Name is required');
       return;
     }
 
     setSaving(true);
     try {
       const fieldId = fieldData.field_id || `FLD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      
+      // Auto-generate field_code from field_label_key if not provided
+      const autoFieldCode = fieldData.field_code || generateFieldCode(fieldData.field_label_key);
       
       // Handle dropdown_values - could be string or array
       let dropdownValuesArray = null;
@@ -912,6 +929,7 @@ const FieldDefinition = () => {
       const saveData = {
         ...fieldDataWithoutIdAndDropdown,
         field_id: fieldId,
+        field_code: autoFieldCode,
         dropdown_values: dropdownValuesArray,
       };
 
