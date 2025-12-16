@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Settings, Copy, Trash2, Eye, CheckCircle } from 'lucide-react';
+import { Search, Plus, Settings, Copy, Trash2, Eye, CheckCircle, Power } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
@@ -315,6 +315,25 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
     }
   };
 
+  const handleDeactivateTemplate = async (template: WorkflowTemplate) => {
+    try {
+      const { error } = await supabase
+        .from('workflow_templates')
+        .update({ status: 'Inactive' })
+        .eq('id', template.id);
+
+      if (error) throw error;
+
+      toast.success('Template deactivated successfully');
+      setTemplates(prev => prev.map(t => 
+        t.id === template.id ? { ...t, status: 'Inactive' } : t
+      ));
+    } catch (error) {
+      console.error('Error deactivating template:', error);
+      toast.error('Failed to deactivate template');
+    }
+  };
+
   const handleToggleTrigger = (triggerId: string) => {
     setTriggerTypes(prev =>
       prev.includes(triggerId)
@@ -517,8 +536,8 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      {/* Activate button - only show for Submitted status */}
-                      {template.status.toLowerCase() === 'submitted' && (
+                      {/* Activate button - show for Submitted or Inactive status */}
+                      {(template.status.toLowerCase() === 'submitted' || template.status.toLowerCase() === 'inactive') && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -533,6 +552,26 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Activate Template</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      {/* Deactivate button - only show for Active status */}
+                      {template.status.toLowerCase() === 'active' && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                                onClick={() => handleDeactivateTemplate(template)}
+                              >
+                                <Power className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Deactivate Template</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
