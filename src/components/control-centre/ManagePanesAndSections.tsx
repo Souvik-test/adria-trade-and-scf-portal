@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2, Copy } from 'lucide-react';
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2, Copy, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -863,8 +863,19 @@ const ManagePanesAndSections = () => {
                               </div>
                             )}
                             <div className="flex items-center justify-between pt-2 border-t mt-2">
-                              <span className="text-xs text-muted-foreground">Status</span>
                               <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => loadConfiguration(config)}
+                                >
+                                  <Pencil className="w-3 h-3 mr-1" />
+                                  Edit
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                                <span className="text-xs text-muted-foreground">Status</span>
                                 <Switch 
                                   checked={config.is_active !== false}
                                   onCheckedChange={() => toggleConfigActiveStatus(config.id, config.is_active !== false, { stopPropagation: () => {} } as React.MouseEvent)}
