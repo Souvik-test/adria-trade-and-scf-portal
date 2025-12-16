@@ -3,6 +3,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import DynamicTransactionForm from '@/components/dynamic-form/DynamicTransactionForm';
 import { Loader2 } from 'lucide-react';
+import { findWorkflowTemplate, getTemplateStages } from '@/services/workflowTemplateService';
+import { matchesAccessibleStage } from '@/utils/stageAliases';
 
 interface Transaction {
   id: string;
@@ -79,86 +81,95 @@ const getTriggerTypeFromContext = (initiatingChannel: string, status: string): s
   return 'Manual';
 };
 
-// Determine which stage the user should see based on transaction status and permissions
-// Returns null if the transaction's current stage has already been completed
-const getTargetStage = (status: string, accessibleStages: string[], initiatingChannel: string): string | null => {
+// Map transaction status to the stage that was just completed
+const getCompletedStageName = (status: string): string | null => {
+  const mapping: Record<string, string> = {
+    'submitted': 'Data Entry',
+    'sent to bank': 'Authorization',
+    'bank processing': 'Data Entry',      // Bank Data Entry completed
+    'limit checked': 'Limit Check',
+    'checker reviewed': 'Checker Review',
+    'issued': '__ALL_COMPLETE__',
+  };
+  return mapping[status.toLowerCase()] || null;
+};
+
+// Fetch the workflow template and determine the next stage based on current status
+const getTargetStageFromWorkflow = async (
+  status: string, 
+  accessibleStages: string[],
+  productCode: string,
+  eventCode: string,
+  triggerType: string
+): Promise<string | null> => {
   const normalizedStatus = status.toLowerCase();
   
-  // "Sent to Bank" status - transaction is ready for Bank workflow processing
-  // Bank users should start from Data Entry in their workflow
-  if (normalizedStatus === 'sent to bank') {
-    // Transaction arrived from Portal - Bank users start from Data Entry in Bank workflow
-    if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-    }
-    return null;
-  }
-  
-  // "Bank Processing" status - Bank Data Entry is done, next is Limit Check
-  if (normalizedStatus === 'bank processing') {
-    if (accessibleStages.some(s => s.toLowerCase().includes('limit'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('limit')) || null;
-    }
-    if (accessibleStages.some(s => s.toLowerCase().includes('checker'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('checker')) || null;
-    }
-    return null;
-  }
-  
-  // Check each accessible stage and ensure user can only open at appropriate next stage
-  // Prevent reopening a transaction at a stage that's already completed
-  
-  if (normalizedStatus === 'submitted') {
-    // Portal Data Entry is done - user cannot reopen at Data Entry
-    // Next stage is Authorization (Portal) or Limit Check (if any)
-    if (accessibleStages.some(s => s.toLowerCase().includes('authorization'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('authorization')) || null;
-    }
-    if (accessibleStages.some(s => s.toLowerCase().includes('limit'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('limit')) || null;
-    }
-    if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
-    }
-    // User only has Data Entry access but transaction is already submitted - no access
-    return null;
-  }
-  
-  if (normalizedStatus === 'limit checked') {
-    // Data Entry AND Limit Check are done - user cannot reopen at those stages
-    // Next stage is Checker Review or Approval
-    if (accessibleStages.some(s => s.toLowerCase().includes('checker'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('checker')) || null;
-    }
-    if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
-    }
-    // User doesn't have appropriate access - no access
-    return null;
-  }
-  
-  if (normalizedStatus === 'checker reviewed') {
-    // Up through Checker Review is done - next is Final Approval
-    if (accessibleStages.some(s => s.toLowerCase().includes('approval'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('approval')) || null;
-    }
-    return null;
-  }
-  
+  // Handle rejected - always goes back to Data Entry
   if (normalizedStatus === 'rejected') {
-    // Rejected transactions go back to Data Entry
-    if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
-      return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-    }
-    return null;
-  }
-  
-  // For draft or other status, check if user has Data Entry access
-  if (accessibleStages.some(s => s.toLowerCase().includes('data entry'))) {
     return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
   }
   
-  // Return null if no appropriate stage found
+  // Handle draft - start from Data Entry
+  if (normalizedStatus === 'draft') {
+    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+  }
+  
+  // Get which stage was just completed based on status
+  const completedStageName = getCompletedStageName(status);
+  
+  if (!completedStageName) {
+    // Unknown status, try Data Entry
+    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
+  }
+  
+  if (completedStageName === '__ALL_COMPLETE__') {
+    return null; // Transaction fully processed
+  }
+  
+  // Fetch workflow template to get stage order
+  const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
+  if (!template) {
+    console.log('No workflow template found for:', productCode, eventCode, triggerType);
+    return null;
+  }
+  
+  const stages = await getTemplateStages(template.id);
+  console.log('Workflow template stages:', stages.map(s => s.stage_name));
+  console.log('Looking for completed stage:', completedStageName);
+  
+  // Find the completed stage index in the workflow template
+  const completedIndex = stages.findIndex(
+    s => s.stage_name.toLowerCase() === completedStageName.toLowerCase()
+  );
+  
+  if (completedIndex === -1) {
+    console.log('Completed stage not found in template, checking for Data Entry');
+    // Stage not found in this template - might be cross-workflow
+    // Find first stage after Data Entry
+    const dataEntryIndex = stages.findIndex(
+      s => s.stage_name.toLowerCase().includes('data entry')
+    );
+    if (dataEntryIndex >= 0 && dataEntryIndex < stages.length - 1) {
+      const nextStage = stages[dataEntryIndex + 1];
+      if (matchesAccessibleStage(nextStage.stage_name, accessibleStages)) {
+        return nextStage.stage_name;
+      }
+    }
+    return null;
+  }
+  
+  // Get the NEXT stage after the completed one
+  if (completedIndex < stages.length - 1) {
+    const nextStage = stages[completedIndex + 1];
+    console.log('Next stage from template:', nextStage.stage_name);
+    
+    // Check if user has access to this next stage
+    if (matchesAccessibleStage(nextStage.stage_name, accessibleStages)) {
+      return nextStage.stage_name;
+    }
+    console.log('User does not have access to next stage:', nextStage.stage_name);
+  }
+  
   return null;
 };
 
@@ -171,27 +182,47 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   const { isSuperUser, getAccessibleStages, loading: permissionsLoading } = useUserPermissions();
   const [targetStage, setTargetStage] = useState<string | null>(null);
   const [canProcess, setCanProcess] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(true);
 
   const productCode = getProductCode(transaction.product_type);
   const eventCode = getEventCode(transaction.process_type);
 
   useEffect(() => {
-    if (!permissionsLoading && isOpen) {
-      // Get user's accessible stages for this product-event
-      const accessibleStages = isSuperUser() 
-        ? ['Data Entry', 'Authorization', 'Limit Check', 'Checker Review', 'Approval'] // Super user has all stages
-        : getAccessibleStages(productCode, eventCode);
-      
-      console.log('Accessible stages for user:', accessibleStages);
-      console.log('Transaction status:', transaction.status);
-      console.log('Initiating channel:', transaction.initiating_channel);
-      
-      const stage = getTargetStage(transaction.status, accessibleStages, transaction.initiating_channel);
-      console.log('Target stage:', stage);
-      
-      setTargetStage(stage);
-      setCanProcess(!!stage);
-    }
+    const determineTargetStage = async () => {
+      if (!permissionsLoading && isOpen) {
+        setLoadingStage(true);
+        
+        // Get user's accessible stages for this product-event
+        const accessibleStages = isSuperUser() 
+          ? ['Data Entry', 'Authorization', 'Limit Check', 'Checker Review', 'Approval', 'Final Approval']
+          : getAccessibleStages(productCode, eventCode);
+        
+        console.log('Accessible stages for user:', accessibleStages);
+        console.log('Transaction status:', transaction.status);
+        console.log('Initiating channel:', transaction.initiating_channel);
+        
+        // Get trigger type for template lookup
+        const triggerType = getTriggerTypeFromContext(transaction.initiating_channel, transaction.status);
+        console.log('Trigger type:', triggerType);
+        
+        // Fetch workflow template and determine next stage
+        const stage = await getTargetStageFromWorkflow(
+          transaction.status,
+          accessibleStages,
+          productCode,
+          eventCode,
+          triggerType
+        );
+        
+        console.log('Target stage determined from workflow:', stage);
+        
+        setTargetStage(stage);
+        setCanProcess(!!stage);
+        setLoadingStage(false);
+      }
+    };
+    
+    determineTargetStage();
   }, [permissionsLoading, isOpen, transaction.status, transaction.initiating_channel, productCode, eventCode, isSuperUser, getAccessibleStages]);
 
   const handleClose = () => {
@@ -215,7 +246,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     return {};
   }, [transaction.form_data]);
 
-  if (permissionsLoading) {
+  if (permissionsLoading || loadingStage) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-6xl max-h-[95vh]">
