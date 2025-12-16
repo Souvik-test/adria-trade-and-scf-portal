@@ -79,9 +79,15 @@ const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel
   
   const normalizedStage = stageName.toLowerCase().trim();
   
-  // Data Entry stage -> Submitted
+  // Data Entry stage - differentiate by workflow phase (Portal vs Bank)
   if (normalizedStage.includes('data entry') || normalizedStage === 'data entry') {
-    return 'Submitted';
+    // Check if this is Bank workflow processing
+    const currentBusinessApp = localStorage.getItem('businessCentre') || '';
+    const isBankWorkflow = channel === 'Bank' || 
+                           currentBusinessApp.includes('Orchestrator') || 
+                           currentBusinessApp.includes('TSCF Bank');
+    
+    return isBankWorkflow ? 'Bank Processing' : 'Submitted';
   }
   // Authorization stage (Portal workflow) -> Sent to Bank (enables cross-workflow handoff)
   else if (normalizedStage.includes('authorization') || normalizedStage === 'authorization') {
