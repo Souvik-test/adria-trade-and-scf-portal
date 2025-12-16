@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { matchesAccessibleStage } from '@/utils/stageAliases';
 import { 
   WorkflowTemplateRuntime, 
   WorkflowStageRuntime, 
@@ -165,8 +166,7 @@ export const getTemplatePaneNames = async (
   // Filter stages if accessibleStageNames is provided and not empty
   const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
     ? stages.filter(stage => 
-        accessibleStageNames.includes(stage.stage_name) || 
-        accessibleStageNames.includes('__ALL__')
+        matchesAccessibleStage(stage.stage_name, accessibleStageNames)
       )
     : stages;
 
@@ -200,8 +200,7 @@ export const getStagePaneMapping = async (
   // Filter stages if accessibleStageNames is provided and not empty
   const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
     ? stages.filter(stage => 
-        accessibleStageNames.includes(stage.stage_name) || 
-        accessibleStageNames.includes('__ALL__')
+        matchesAccessibleStage(stage.stage_name, accessibleStageNames)
       )
     : stages;
 
