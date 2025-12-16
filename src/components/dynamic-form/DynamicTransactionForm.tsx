@@ -145,6 +145,19 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
           message: `Your ${productName} - ${eventName} request has been successfully processed.`,
           isError: false,
         };
+      } else if (stageLower.includes('authorization')) {
+        // Portal Authorization completed - transaction sent to Bank
+        return {
+          title: 'Sent to Bank',
+          message: `Your ${productName} - ${eventName} has been authorized and sent to the bank for processing.`,
+          isError: false,
+        };
+      } else if (stageLower.includes('checker')) {
+        return {
+          title: 'Checker Review Completed',
+          message: `Your ${productName} - ${eventName} has passed checker review and is pending final approval.`,
+          isError: false,
+        };
       } else if (stageLower.includes('limit')) {
         return {
           title: 'Limit Check Completed',
