@@ -553,6 +553,13 @@ export const useDynamicTransaction = ({
         'Rejected'
       );
 
+      // Update formData state with rejection_reason so completion screen shows correct message
+      setFormData(prev => ({
+        ...prev,
+        rejection_reason: reason,
+        rejected_at: new Date().toISOString(),
+      }));
+
       toast.success(`Transaction ${transactionRefRef.current} has been rejected`);
       setCompletedStageName('Approval');
       setIsTransactionComplete(true);
