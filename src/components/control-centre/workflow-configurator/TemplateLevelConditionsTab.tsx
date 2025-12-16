@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Plus, Trash2, Save, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { clearTemplateCache } from '@/services/workflowTemplateService';
 import type { WorkflowTemplate, WorkflowCondition } from '../NextGenWorkflowConfigurator';
 
 interface TemplateLevelConditionsTabProps {
@@ -243,6 +244,7 @@ export function TemplateLevelConditionsTab({ template, onBack, viewOnly = false 
         .update({ status: 'draft' })
         .eq('id', template.id);
 
+      clearTemplateCache();
       toast.success('Saved as draft');
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -259,6 +261,7 @@ export function TemplateLevelConditionsTab({ template, onBack, viewOnly = false 
         .update({ status: 'submitted' })
         .eq('id', template.id);
 
+      clearTemplateCache();
       toast.success('Template submitted for approval');
     } catch (error) {
       console.error('Error submitting template:', error);
