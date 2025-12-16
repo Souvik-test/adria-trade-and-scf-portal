@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { matchesAccessibleStage } from '@/utils/stageAliases';
 import { toast } from 'sonner';
 import { 
   PaneConfig, 
@@ -228,8 +229,7 @@ export const useDynamicTransaction = ({
           const filteredStages = isSuper || accessibleStages.length === 0
             ? templateStages
             : templateStages.filter(stage => 
-                accessibleStages.includes(stage.stage_name) || 
-                accessibleStages.includes('__ALL__')
+                matchesAccessibleStage(stage.stage_name, accessibleStages)
               );
           
           setStages(filteredStages);
