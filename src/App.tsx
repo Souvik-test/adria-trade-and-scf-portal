@@ -11,6 +11,7 @@ import AuthGuard from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import LoginPage from "./components/LoginPage";
 import NotFound from "./pages/NotFound";
+import SpecificationDocument from "./pages/SpecificationDocument";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<LoginPage />} />
+              <Route path="/specification-document" element={<SpecificationDocument />} />
               <Route path="/" element={
                 <AuthGuard>
                   <Index />
