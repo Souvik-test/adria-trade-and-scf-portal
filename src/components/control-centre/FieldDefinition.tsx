@@ -935,13 +935,17 @@ const FieldDefinition = () => {
 
       if (editingField?.id) {
         // Use security definer function to bypass RLS
-        const { error } = await supabase.rpc('update_field_repository', {
+        const { data, error } = await supabase.rpc('update_field_repository', {
           p_user_id: customUser.id,
           p_field_id: editingField.id,
           p_field_data: saveData
         });
 
         if (error) throw error;
+        if (!data) {
+          toast.error('Update failed - field may not exist or no changes were made');
+          return;
+        }
         toast.success('Field updated successfully');
       } else {
         // Use security definer function to bypass RLS
