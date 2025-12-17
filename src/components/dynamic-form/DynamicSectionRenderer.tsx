@@ -120,7 +120,8 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
 
             // Determine if this specific field is editable based on workflow_stage_fields config
             // Field is disabled if: global disabled OR field's is_editable is explicitly false
-            const fieldIsEditable = fieldEditabilityMap?.get(field.field_label_key) ?? true;
+            // Use field_code for lookup as fieldEditabilityMap is keyed by field_name which matches field_code
+            const fieldIsEditable = fieldEditabilityMap?.get(field.field_code) ?? true;
             const fieldDisabled = disabled || !fieldIsEditable;
 
             return (
