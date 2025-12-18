@@ -220,7 +220,9 @@ export type Database = {
       custom_users: {
         Row: {
           business_applications: string[] | null
+          client_id: string | null
           corporate_id: string | null
+          corporate_name: string | null
           created_at: string | null
           full_name: string
           id: string
@@ -235,7 +237,9 @@ export type Database = {
         }
         Insert: {
           business_applications?: string[] | null
+          client_id?: string | null
           corporate_id?: string | null
+          corporate_name?: string | null
           created_at?: string | null
           full_name: string
           id?: string
@@ -250,7 +254,9 @@ export type Database = {
         }
         Update: {
           business_applications?: string[] | null
+          client_id?: string | null
           corporate_id?: string | null
+          corporate_name?: string | null
           created_at?: string | null
           full_name?: string
           id?: string
@@ -3437,18 +3443,33 @@ export type Database = {
         Args: { p_field_id: string; p_user_id: string }
         Returns: Json
       }
-      create_custom_user: {
-        Args: {
-          p_business_applications: string[]
-          p_full_name: string
-          p_is_super_user?: boolean
-          p_password_hash: string
-          p_requesting_user_id: string
-          p_user_id: string
-          p_user_login_id: string
-        }
-        Returns: string
-      }
+      create_custom_user:
+        | {
+            Args: {
+              p_business_applications: string[]
+              p_full_name: string
+              p_is_super_user?: boolean
+              p_password_hash: string
+              p_requesting_user_id: string
+              p_user_id: string
+              p_user_login_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_business_applications: string[]
+              p_client_id?: string
+              p_corporate_name?: string
+              p_full_name: string
+              p_is_super_user?: boolean
+              p_password_hash: string
+              p_requesting_user_id: string
+              p_user_id: string
+              p_user_login_id: string
+            }
+            Returns: string
+          }
       delete_custom_user: {
         Args: { p_requesting_user_id: string; p_target_user_id: string }
         Returns: boolean
@@ -4073,17 +4094,31 @@ export type Database = {
         Args: { p_config_id: string; p_is_active: boolean }
         Returns: boolean
       }
-      update_custom_user: {
-        Args: {
-          p_business_applications?: string[]
-          p_full_name?: string
-          p_is_super_user?: boolean
-          p_password_hash?: string
-          p_requesting_user_id: string
-          p_target_user_id: string
-        }
-        Returns: boolean
-      }
+      update_custom_user:
+        | {
+            Args: {
+              p_business_applications?: string[]
+              p_full_name?: string
+              p_is_super_user?: boolean
+              p_password_hash?: string
+              p_requesting_user_id: string
+              p_target_user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_business_applications?: string[]
+              p_client_id?: string
+              p_corporate_name?: string
+              p_full_name?: string
+              p_is_super_user?: boolean
+              p_password_hash?: string
+              p_requesting_user_id: string
+              p_target_user_id: string
+            }
+            Returns: boolean
+          }
       update_field_repository: {
         Args: { p_field_data: Json; p_field_id: string; p_user_id: string }
         Returns: Json
