@@ -63,7 +63,7 @@ serve(async (req) => {
       // Get user with password hash for verification
       const { data: users, error: fetchError } = await supabase
         .from("custom_users")
-        .select("id, user_id, password_hash, full_name, user_login_id, corporate_id, role_type, product_linkage, created_at, updated_at")
+        .select("id, user_id, password_hash, full_name, user_login_id, corporate_id, role_type, product_linkage, corporate_name, client_id, created_at, updated_at")
         .eq("user_id", userId)
         .limit(1);
 

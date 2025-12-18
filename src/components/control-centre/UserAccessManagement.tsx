@@ -23,6 +23,8 @@ interface ManagedUser {
   full_name: string;
   business_applications: string[];
   is_super_user: boolean;
+  corporate_name: string | null;
+  client_id: string | null;
   created_at: string;
 }
 
@@ -113,6 +115,8 @@ const UserAccessManagement: React.FC = () => {
   const [formFullName, setFormFullName] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formBusinessApps, setFormBusinessApps] = useState<string[]>([]);
+  const [formCorporateName, setFormCorporateName] = useState('');
+  const [formClientId, setFormClientId] = useState('');
   const [formIsSuperUser, setFormIsSuperUser] = useState(false);
   
   // Permission matrix state
@@ -164,7 +168,9 @@ const UserAccessManagement: React.FC = () => {
 
     setUsers((data as any[])?.map(u => ({
       ...u,
-      business_applications: u.business_applications || []
+      business_applications: u.business_applications || [],
+      corporate_name: u.corporate_name || null,
+      client_id: u.client_id || null
     })) || []);
   };
 
@@ -290,6 +296,8 @@ const UserAccessManagement: React.FC = () => {
     setFormPassword('');
     setFormBusinessApps([]);
     setFormIsSuperUser(false);
+    setFormCorporateName('');
+    setFormClientId('');
     setUserDialogOpen(true);
   };
 
@@ -300,6 +308,8 @@ const UserAccessManagement: React.FC = () => {
     setFormPassword('');
     setFormBusinessApps(user.business_applications || []);
     setFormIsSuperUser(user.is_super_user || false);
+    setFormCorporateName(user.corporate_name || '');
+    setFormClientId(user.client_id || '');
     setUserDialogOpen(true);
   };
 
@@ -327,7 +337,9 @@ const UserAccessManagement: React.FC = () => {
           p_full_name: formFullName,
           p_business_applications: formBusinessApps,
           p_is_super_user: formIsSuperUser,
-          p_password_hash: formPassword.trim() ? formPassword : null
+          p_password_hash: formPassword.trim() ? formPassword : null,
+          p_corporate_name: formBusinessApps.includes('Adria TSCF Client') ? formCorporateName : null,
+          p_client_id: formBusinessApps.includes('Adria TSCF Client') ? formClientId : null
         });
 
         if (error) throw error;
@@ -341,7 +353,9 @@ const UserAccessManagement: React.FC = () => {
           p_full_name: formFullName,
           p_password_hash: formPassword,
           p_business_applications: formBusinessApps,
-          p_is_super_user: formIsSuperUser
+          p_is_super_user: formIsSuperUser,
+          p_corporate_name: formBusinessApps.includes('Adria TSCF Client') ? formCorporateName : null,
+          p_client_id: formBusinessApps.includes('Adria TSCF Client') ? formClientId : null
         });
 
         if (error) throw error;
@@ -852,6 +866,31 @@ const UserAccessManagement: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Conditional fields for Adria TSCF Client */}
+            {formBusinessApps.includes('Adria TSCF Client') && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="corporateName">Corporate Name</Label>
+                  <Input
+                    id="corporateName"
+                    value={formCorporateName}
+                    onChange={(e) => setFormCorporateName(e.target.value)}
+                    placeholder="Enter corporate name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="clientId">Corporate Client ID</Label>
+                  <Input
+                    id="clientId"
+                    value={formClientId}
+                    onChange={(e) => setFormClientId(e.target.value)}
+                    placeholder="Enter corporate client ID"
+                  />
+                </div>
+              </>
+            )}
             
             <div className="flex items-center gap-2 pt-2">
               <Switch
