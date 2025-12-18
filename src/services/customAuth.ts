@@ -8,6 +8,8 @@ export interface CustomUser {
   corporate_id: string;
   role_type: 'Maker' | 'Checker' | 'Viewer' | 'All';
   product_linkage: string[];
+  corporate_name: string | null;
+  client_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +101,8 @@ export const customAuth = {
         corporate_id: data.user.corporate_id,
         role_type: data.user.role_type,
         product_linkage: data.user.product_linkage,
+        corporate_name: data.user.corporate_name || null,
+        client_id: data.user.client_id || null,
         created_at: data.user.created_at,
         updated_at: data.user.updated_at,
       };

@@ -3495,6 +3495,8 @@ export type Database = {
         Args: never
         Returns: {
           business_applications: string[]
+          client_id: string
+          corporate_name: string
           created_at: string
           full_name: string
           id: string
