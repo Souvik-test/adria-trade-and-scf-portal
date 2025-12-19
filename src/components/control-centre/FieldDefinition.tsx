@@ -19,6 +19,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 import { Textarea } from '@/components/ui/textarea';
 import { customAuth } from '@/services/customAuth';
+import FieldActionsTab from './FieldActionsTab';
+import { FieldActions } from '@/types/dynamicForm';
 
 interface ProductEventMapping {
   product_code: string;
@@ -102,6 +104,7 @@ interface FieldData {
   ai_mapping_key: string;
   is_active_flag: boolean;
   effective_from_date: string;
+  field_actions?: FieldActions | null;
 }
 
 const UI_DISPLAY_TYPES = [
@@ -166,6 +169,7 @@ const getInitialFieldData = (): FieldData => ({
   ai_mapping_key: '',
   is_active_flag: true,
   effective_from_date: new Date().toISOString().split('T')[0],
+  field_actions: null,
 });
 
 // Utility function to generate field_code from field_label_key (UPPER_SNAKE_CASE)
@@ -859,6 +863,7 @@ const FieldDefinition = () => {
           field_id: `FLD_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           field_code: autoFieldCode,
           dropdown_values: dropdownValuesArray,
+          field_actions: field.field_actions as any,
         };
       });
 
@@ -931,6 +936,7 @@ const FieldDefinition = () => {
         field_id: fieldId,
         field_code: autoFieldCode,
         dropdown_values: dropdownValuesArray,
+        field_actions: fieldData.field_actions as any,
       };
 
       if (editingField?.id) {
@@ -1299,9 +1305,10 @@ const FieldDefinition = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signature" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="signature">Field Signature</TabsTrigger>
                 <TabsTrigger value="swift">SWIFT Details</TabsTrigger>
+                <TabsTrigger value="actions">Actions</TabsTrigger>
                 <TabsTrigger value="other">Other Details</TabsTrigger>
               </TabsList>
 
@@ -1749,6 +1756,15 @@ const FieldDefinition = () => {
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              {/* Actions Tab */}
+              <TabsContent value="actions" className="mt-4">
+                <FieldActionsTab
+                  fieldActions={fieldData.field_actions || null}
+                  onChange={(actions) => updateFieldData('field_actions', actions)}
+                  isReadOnly={false}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
