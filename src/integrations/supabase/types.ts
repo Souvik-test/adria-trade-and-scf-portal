@@ -3598,6 +3598,7 @@ export type Database = {
           decimal_places: number
           default_value: string
           dropdown_values: string[]
+          field_actions: Json
           field_code: string
           field_column: number
           field_id: string
