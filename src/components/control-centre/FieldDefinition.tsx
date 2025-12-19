@@ -1764,6 +1764,10 @@ const FieldDefinition = () => {
                   fieldActions={fieldData.field_actions || null}
                   onChange={(actions) => updateFieldData('field_actions', actions)}
                   isReadOnly={false}
+                  availableFields={existingFields.map(f => ({
+                    code: f.field_code || '',
+                    label: f.field_label_key || ''
+                  })).filter(f => f.code)}
                 />
               </TabsContent>
             </Tabs>

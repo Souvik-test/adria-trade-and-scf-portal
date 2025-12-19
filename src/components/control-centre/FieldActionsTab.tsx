@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Info } from 'lucide-react';
+import { Plus, Trash2, Info, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { FieldActions, FieldActionTrigger } from '@/types/dynamicForm';
 import {
@@ -14,6 +14,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FieldActionsTabProps {
   fieldActions: FieldActions | null | undefined;
@@ -29,6 +35,8 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
   availableFields = [],
 }) => {
   const [actions, setActions] = useState<FieldActions>(fieldActions || {});
+  const [showFieldPicker, setShowFieldPicker] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const updateActions = (updates: Partial<FieldActions>) => {
     const newActions = { ...actions, ...updates };
@@ -62,8 +70,75 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
     return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
   };
 
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Available Fields Reference */}
+      {availableFields.length > 0 && (
+        <Collapsible open={showFieldPicker} onOpenChange={setShowFieldPicker}>
+          <Card className="border-dashed border-primary/30 bg-primary/5">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-2 cursor-pointer hover:bg-primary/10 transition-colors rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    Available Field Codes ({availableFields.length} fields)
+                  </CardTitle>
+                  {showFieldPicker ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Click to {showFieldPicker ? 'hide' : 'show'} field codes you can use in formulas and triggers
+                </p>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-2">
+                <ScrollArea className="h-48">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {availableFields.map((field) => (
+                      <div
+                        key={field.code}
+                        className="flex items-center justify-between p-2 rounded-md bg-background border hover:border-primary/50 transition-colors group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <code className="text-xs font-mono text-primary font-medium">
+                            {field.code}
+                          </code>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {field.label}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => copyToClipboard(field.code)}
+                        >
+                          {copiedCode === field.code ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
+
       {/* Computed Field Section */}
       <Card>
         <CardHeader className="pb-3">
@@ -103,7 +178,8 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Use field codes (e.g., LC_AMOUNT, TOLERANCE_PERCENT) separated by operators (+, -, *, /)
+                Use field codes (e.g., LC_AMOUNT, TOLERANCE_PERCENT) separated by operators (+, -, *, /).
+                {availableFields.length > 0 && ' Expand the field list above to see available codes.'}
               </p>
             </div>
           )}
@@ -182,7 +258,10 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
                       }
                       disabled={isReadOnly}
                     />
-                    <p className="text-xs text-muted-foreground">Field codes, comma-separated</p>
+                    <p className="text-xs text-muted-foreground">
+                      Field codes, comma-separated
+                      {availableFields.length > 0 && ' (see list above)'}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -195,7 +274,10 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
                       }
                       disabled={isReadOnly}
                     />
-                    <p className="text-xs text-muted-foreground">Field codes, comma-separated</p>
+                    <p className="text-xs text-muted-foreground">
+                      Field codes, comma-separated
+                      {availableFields.length > 0 && ' (see list above)'}
+                    </p>
                   </div>
                 </div>
 
@@ -269,6 +351,7 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
             />
             <p className="text-xs text-muted-foreground">
               The source field must have triggers configured with filter_dropdowns pointing to this field
+              {availableFields.length > 0 && '. See available field codes above.'}
             </p>
           </div>
         </CardContent>
