@@ -606,6 +606,7 @@ export type Database = {
           effective_to_date: string | null
           error_message_key: string | null
           event_type: string | null
+          field_actions: Json | null
           field_code: string | null
           field_column: number | null
           field_display_sequence: number | null
@@ -682,6 +683,7 @@ export type Database = {
           effective_to_date?: string | null
           error_message_key?: string | null
           event_type?: string | null
+          field_actions?: Json | null
           field_code?: string | null
           field_column?: number | null
           field_display_sequence?: number | null
@@ -758,6 +760,7 @@ export type Database = {
           effective_to_date?: string | null
           error_message_key?: string | null
           event_type?: string | null
+          field_actions?: Json | null
           field_code?: string | null
           field_column?: number | null
           field_display_sequence?: number | null
@@ -3654,6 +3657,7 @@ export type Database = {
           effective_to_date: string | null
           error_message_key: string | null
           event_type: string | null
+          field_actions: Json | null
           field_code: string | null
           field_column: number | null
           field_display_sequence: number | null
@@ -3818,6 +3822,7 @@ export type Database = {
           effective_to_date: string | null
           error_message_key: string | null
           event_type: string | null
+          field_actions: Json | null
           field_code: string | null
           field_column: number | null
           field_display_sequence: number | null

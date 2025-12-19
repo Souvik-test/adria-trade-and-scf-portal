@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { createProductField, updateProductField, ProductField } from "@/services/productFieldService";
+import FieldActionsTab from "./FieldActionsTab";
+import { FieldActions } from "@/types/dynamicForm";
 import {
   Select,
   SelectContent,
@@ -207,11 +209,12 @@ export const ProductFieldFormDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Basic</TabsTrigger>
             <TabsTrigger value="ui">UI Layout</TabsTrigger>
             <TabsTrigger value="data">Data Props</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
+            <TabsTrigger value="actions">Actions</TabsTrigger>
             <TabsTrigger value="more">More...</TabsTrigger>
           </TabsList>
 
@@ -711,6 +714,14 @@ export const ProductFieldFormDialog = ({
                 Note: Input, Edit, View, and Read Only permissions are currently global across all channels.
               </p>
             </div>
+          </TabsContent>
+
+          <TabsContent value="actions" className="space-y-4">
+            <FieldActionsTab
+              fieldActions={formData.field_actions as FieldActions | null}
+              onChange={(actions) => setFormData({ ...formData, field_actions: actions })}
+              isReadOnly={isReadOnly}
+            />
           </TabsContent>
 
           <TabsContent value="more" className="space-y-4">

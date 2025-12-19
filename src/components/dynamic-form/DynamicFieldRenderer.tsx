@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, HelpCircle } from 'lucide-react';
+import { CalendarIcon, HelpCircle, Calculator } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DynamicFieldDefinition } from '@/types/dynamicForm';
@@ -20,6 +20,10 @@ interface DynamicFieldRendererProps {
   onChange: (fieldCode: string, value: any) => void;
   disabled?: boolean;
   channel?: 'portal' | 'mo' | 'bo';
+  isComputed?: boolean;
+  computedValue?: number | string | null;
+  filteredDropdownOptions?: string[];
+  isHidden?: boolean;
 }
 
 const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
@@ -28,15 +32,27 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
   onChange,
   disabled = false,
   channel = 'portal',
+  isComputed = false,
+  computedValue = null,
+  filteredDropdownOptions,
+  isHidden = false,
 }) => {
+  // If field is hidden by field actions, don't render
+  if (isHidden) return null;
   // Check if field is mandatory based on channel
   const isMandatory = 
     (channel === 'portal' && field.is_mandatory_portal) ||
     (channel === 'mo' && field.is_mandatory_mo) ||
     (channel === 'bo' && field.is_mandatory_bo);
 
+  // Determine display value - use computed value if available
+  const displayValue = isComputed && computedValue !== null ? computedValue : value;
+  const isFieldDisabled = disabled || isComputed;
+
   const handleChange = (newValue: any) => {
-    onChange(field.field_code, newValue);
+    if (!isComputed) {
+      onChange(field.field_code, newValue);
+    }
   };
 
   const renderLabel = () => (
@@ -45,6 +61,16 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
         {field.field_label_key}
         {isMandatory && <span className="text-destructive ml-1">*</span>}
       </Label>
+      {/* Computed Field Badge */}
+      {isComputed && (
+        <Badge 
+          variant="outline" 
+          className="text-[10px] font-mono px-1.5 py-0 h-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700"
+        >
+          <Calculator className="h-2.5 w-2.5 mr-0.5" />
+          Auto
+        </Badge>
+      )}
       {/* SWIFT Tag Badge */}
       {field.swift_tag_display_flag && field.swift_tag && (
         <Badge 
@@ -75,12 +101,12 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
         return (
           <Input
             id={field.field_code}
-            value={value || field.default_value || ''}
+            value={displayValue || field.default_value || ''}
             onChange={(e) => handleChange(e.target.value)}
-            disabled={disabled}
+            disabled={isFieldDisabled}
             placeholder={field.field_label_key}
             maxLength={field.length_max || undefined}
-            className="h-9"
+            className={cn("h-9", isComputed && "bg-muted")}
           />
         );
 
@@ -102,23 +128,24 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
           <Input
             id={field.field_code}
             type="number"
-            value={value ?? field.default_value ?? ''}
+            value={displayValue ?? field.default_value ?? ''}
             onChange={(e) => handleChange(e.target.value ? Number(e.target.value) : null)}
-            disabled={disabled}
+            disabled={isFieldDisabled}
             placeholder={field.field_label_key}
             step={field.decimal_places ? Math.pow(10, -field.decimal_places) : 1}
-            className="h-9"
+            className={cn("h-9", isComputed && "bg-muted")}
           />
         );
 
       case 'DROPDOWN':
       case 'ENUM':
-        const options = field.dropdown_values || [];
+        // Use filtered options if provided, otherwise use original dropdown_values
+        const options = filteredDropdownOptions || field.dropdown_values || [];
         return (
           <Select
-            value={value || field.default_value || ''}
+            value={displayValue || field.default_value || ''}
             onValueChange={handleChange}
-            disabled={disabled}
+            disabled={isFieldDisabled}
           >
             <SelectTrigger id={field.field_code} className="h-9">
               <SelectValue placeholder={`Select ${field.field_label_key}`} />
