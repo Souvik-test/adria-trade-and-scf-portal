@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SectionFields, DynamicFormData, RepeatableGroupInstance } from '@/types/dynamicForm';
+import { SectionFields, DynamicFormData, RepeatableGroupInstance, DynamicFieldDefinition } from '@/types/dynamicForm';
 import { Plus, Trash2 } from 'lucide-react';
 import DynamicFieldRenderer from './DynamicFieldRenderer';
 import RepeatableGroupRenderer from './RepeatableGroupRenderer';
+import { useFieldActions } from '@/hooks/useFieldActions';
 
 interface DynamicSectionRendererProps {
   section: SectionFields;
@@ -22,6 +23,8 @@ interface DynamicSectionRendererProps {
   // Section-level repeatable config
   isRepeatable?: boolean;
   repeatableGroupId?: string;
+  // All fields for computed value evaluation
+  allFields?: DynamicFieldDefinition[];
 }
 
 const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
@@ -38,7 +41,17 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
   overrideGridColumns,
   isRepeatable = false,
   repeatableGroupId,
+  allFields = [],
 }) => {
+  // Collect all fields from this section for field actions (if allFields not provided)
+  const sectionFields = React.useMemo(() => {
+    if (allFields.length > 0) return allFields;
+    return section.groups.flatMap(g => g.fields);
+  }, [section.groups, allFields]);
+
+  // Use field actions hook for computed values and visibility
+  const { getComputedValue, isFieldComputed, getFilteredDropdownOptions, getFieldVisibility } = 
+    useFieldActions({ fields: sectionFields, formData });
   // Check if all fields in a group have the same position (needs auto-flow fallback)
   const needsAutoFlow = (fields: typeof section.groups[0]['fields']): boolean => {
     if (fields.length <= 1) return false;
@@ -124,6 +137,12 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
             const fieldIsEditable = fieldEditabilityMap?.get(field.field_code) ?? true;
             const fieldDisabled = disabled || !fieldIsEditable;
 
+            // Get computed field info
+            const fieldIsComputed = isFieldComputed(field.field_code);
+            const computedValue = fieldIsComputed ? getComputedValue(field.field_code) : null;
+            const filteredOptions = getFilteredDropdownOptions(field.field_code, field.dropdown_values || []);
+            const fieldIsHidden = !getFieldVisibility(field.field_code);
+
             return (
               <div key={field.field_code} style={gridPositionStyle}>
                 <DynamicFieldRenderer
@@ -131,6 +150,10 @@ const DynamicSectionRenderer: React.FC<DynamicSectionRendererProps> = ({
                   value={fieldValue}
                   onChange={handleChange}
                   disabled={fieldDisabled}
+                  isComputed={fieldIsComputed}
+                  computedValue={computedValue}
+                  filteredDropdownOptions={filteredOptions}
+                  isHidden={fieldIsHidden}
                 />
               </div>
             );
