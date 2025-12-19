@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PaneFields, DynamicFormData, RepeatableGroupInstance } from '@/types/dynamicForm';
+import { PaneFields, DynamicFormData, RepeatableGroupInstance, DynamicFieldDefinition } from '@/types/dynamicForm';
 import DynamicSectionRenderer from './DynamicSectionRenderer';
 
 interface DynamicPaneRendererProps {
@@ -31,6 +31,15 @@ const DynamicPaneRenderer: React.FC<DynamicPaneRendererProps> = ({
   // Default to all panes expanded
   const defaultExpanded = panes.map(p => p.paneCode);
   const expandedValue = expandedPanes || defaultExpanded;
+
+  // Collect all fields from all panes for cross-field computed value evaluation
+  const allFields: DynamicFieldDefinition[] = useMemo(() => {
+    return panes.flatMap(pane => 
+      pane.sections.flatMap(section => 
+        section.groups.flatMap(group => group.fields)
+      )
+    );
+  }, [panes]);
 
   return (
     <Accordion
@@ -68,6 +77,7 @@ const DynamicPaneRenderer: React.FC<DynamicPaneRendererProps> = ({
                 onAddRepeatableInstance={onAddRepeatableInstance}
                 onRemoveRepeatableInstance={onRemoveRepeatableInstance}
                 disabled={disabled}
+                allFields={allFields}
               />
             ))}
           </AccordionContent>

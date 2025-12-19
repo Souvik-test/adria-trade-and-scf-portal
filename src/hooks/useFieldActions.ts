@@ -13,11 +13,38 @@ interface FieldActionsResult {
   isFieldComputed: (fieldCode: string) => boolean;
 }
 
+// Normalize field code to UPPERCASE_UNDERSCORE format
+const normalizeFieldCode = (code: string): string => {
+  return code.toUpperCase().replace(/\s+/g, '_');
+};
+
+// Build a lookup map for field values with multiple key variants
+const buildFieldValueMap = (formData: DynamicFormData): Map<string, any> => {
+  const map = new Map<string, any>();
+  
+  Object.entries(formData).forEach(([key, value]) => {
+    // Add original key
+    map.set(key, value);
+    // Add normalized version
+    const normalized = normalizeFieldCode(key);
+    if (normalized !== key) {
+      map.set(normalized, value);
+    }
+    // Add lowercase version
+    map.set(key.toLowerCase(), value);
+  });
+  
+  return map;
+};
+
 // Parse and evaluate a simple arithmetic formula
 const evaluateFormula = (formula: string, formData: DynamicFormData): number | null => {
   if (!formula) return null;
   
   try {
+    // Build a lookup map with multiple key variants
+    const valueMap = buildFieldValueMap(formData);
+    
     // Replace field codes with their values
     let expression = formula;
     
@@ -27,7 +54,9 @@ const evaluateFormula = (formula: string, formData: DynamicFormData): number | n
     
     // Replace each field code with its numeric value
     for (const code of fieldCodes) {
-      const value = formData[code];
+      // Try multiple variants to find the value
+      let value = valueMap.get(code) ?? valueMap.get(normalizeFieldCode(code)) ?? valueMap.get(code.toLowerCase());
+      
       const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
       expression = expression.replace(new RegExp(code, 'g'), String(numValue));
     }
