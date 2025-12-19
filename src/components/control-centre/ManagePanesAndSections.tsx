@@ -43,6 +43,7 @@ interface Pane {
   sections: Section[];
   buttons: PaneButtonConfig[];
   isOpen: boolean;
+  showSwiftPreview?: boolean;
 }
 
 interface SavedConfiguration {
@@ -256,9 +257,14 @@ const ManagePanesAndSections = () => {
       sequence: panes.length + 1,
       sections: [],
       buttons: [],
-      isOpen: true
+      isOpen: true,
+      showSwiftPreview: true,
     };
     setPanes([...panes, newPane]);
+  };
+
+  const updatePaneSwiftPreview = (paneId: string, showSwiftPreview: boolean) => {
+    setPanes(panes.map(p => p.id === paneId ? { ...p, showSwiftPreview } : p));
   };
 
   const updatePaneName = (paneId: string, name: string) => {
@@ -1082,6 +1088,16 @@ const ManagePanesAndSections = () => {
                                   onChange={(e) => updatePaneName(pane.id, e.target.value)}
                                   className="font-medium"
                                 />
+                                <div className="flex items-center gap-2 border rounded-md px-3 py-1">
+                                  <Switch
+                                    id={`swift-preview-${pane.id}`}
+                                    checked={pane.showSwiftPreview !== false}
+                                    onCheckedChange={(checked) => updatePaneSwiftPreview(pane.id, checked)}
+                                  />
+                                  <Label htmlFor={`swift-preview-${pane.id}`} className="text-xs whitespace-nowrap cursor-pointer">
+                                    SWIFT Preview
+                                  </Label>
+                                </div>
                                 <Button
                                   variant="outline"
                                   size="sm"

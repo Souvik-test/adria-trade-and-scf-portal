@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { FieldActions } from "@/types/dynamicForm";
 
 export interface ProductField {
   id?: string;
@@ -72,6 +73,8 @@ export interface ProductField {
   iso_data_format_pattern?: string;
   ai_mapping_key?: string;
   user_id: string;
+  // Field actions for computed fields and conditional logic
+  field_actions?: FieldActions | null;
 }
 
 export const fetchProductFields = async (userId: string) => {
@@ -89,9 +92,12 @@ export const createProductField = async (fieldData: ProductField, userId: string
   // Auto-generate field_id if not provided
   const fieldId = fieldData.field_id || `FLD_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
   
+  // Cast to any to handle JSONB field_actions type
+  const insertData = { ...fieldData, field_id: fieldId, user_id: userId } as any;
+  
   const { data, error } = await supabase
     .from("field_repository")
-    .insert([{ ...fieldData, field_id: fieldId, user_id: userId }])
+    .insert([insertData])
     .select()
     .single();
 
@@ -100,9 +106,12 @@ export const createProductField = async (fieldData: ProductField, userId: string
 };
 
 export const updateProductField = async (id: string, fieldData: Partial<ProductField>, userId: string) => {
+  // Cast to any to handle JSONB field_actions type
+  const updateData = fieldData as any;
+  
   const { data, error } = await supabase
     .from("field_repository")
-    .update(fieldData)
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", userId)
     .select()

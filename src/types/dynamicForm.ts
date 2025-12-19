@@ -1,5 +1,20 @@
 // Dynamic Form Types for Workflow-Based UI Generation
 
+// Field Action Types for computed fields, conditional visibility, and dropdown filtering
+export interface FieldActionTrigger {
+  when_value: string[];
+  show_fields?: string[];
+  hide_fields?: string[];
+  filter_dropdowns?: { [targetFieldCode: string]: string[] };
+}
+
+export interface FieldActions {
+  is_computed?: boolean;
+  computed_formula?: string;
+  triggers?: FieldActionTrigger[];
+  dropdown_filter_source?: string; // Field code that controls this dropdown's options
+}
+
 export interface DynamicFieldDefinition {
   id: string;
   field_id: string;
@@ -39,6 +54,8 @@ export interface DynamicFieldDefinition {
   swift_subfield_qualifier?: string | null;
   swift_tag_required_flag?: boolean;
   swift_format_pattern?: string | null;
+  // Field actions for computed fields and conditional logic
+  field_actions?: FieldActions | null;
 }
 
 export interface GroupedFields {
@@ -62,6 +79,7 @@ export interface PaneFields {
   paneName: string;
   sections: SectionFields[];
   buttons?: PaneButtonConfig[];
+  showSwiftPreview?: boolean;
 }
 
 export interface DynamicFormData {
