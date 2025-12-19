@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Info, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +19,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface FieldActionsTabProps {
   fieldActions: FieldActions | null | undefined;
@@ -27,6 +33,20 @@ interface FieldActionsTabProps {
   isReadOnly?: boolean;
   availableFields?: { code: string; label: string }[];
 }
+
+// Helper to normalize field code to UPPERCASE_UNDERSCORE format
+const normalizeFieldCode = (code: string): string => {
+  return code.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+};
+
+const OPERATORS = [
+  { label: '+', value: ' + ' },
+  { label: '-', value: ' - ' },
+  { label: '×', value: ' * ' },
+  { label: '÷', value: ' / ' },
+  { label: '(', value: '(' },
+  { label: ')', value: ')' },
+];
 
 const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
   fieldActions,
@@ -37,6 +57,7 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
   const [actions, setActions] = useState<FieldActions>(fieldActions || {});
   const [showFieldPicker, setShowFieldPicker] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const formulaInputRef = useRef<HTMLInputElement>(null);
 
   const updateActions = (updates: Partial<FieldActions>) => {
     const newActions = { ...actions, ...updates };
@@ -71,9 +92,41 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
   };
 
   const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(normalizeFieldCode(code));
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  // Insert field code or operator at cursor position in formula
+  const insertIntoFormula = (text: string) => {
+    const currentFormula = actions.computed_formula || '';
+    const input = formulaInputRef.current;
+    
+    if (input) {
+      const start = input.selectionStart || currentFormula.length;
+      const end = input.selectionEnd || currentFormula.length;
+      const newFormula = currentFormula.slice(0, start) + text + currentFormula.slice(end);
+      updateActions({ computed_formula: newFormula });
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        input.focus();
+        const newPos = start + text.length;
+        input.setSelectionRange(newPos, newPos);
+      }, 0);
+    } else {
+      updateActions({ computed_formula: currentFormula + text });
+    }
+  };
+
+  const handleFieldSelect = (fieldCode: string) => {
+    const normalizedCode = normalizeFieldCode(fieldCode);
+    insertIntoFormula(normalizedCode);
+  };
+
+  const clearFormula = () => {
+    updateActions({ computed_formula: '' });
+    formulaInputRef.current?.focus();
   };
 
   return (
@@ -150,7 +203,7 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
                   <Info className="h-4 w-4 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm">
-                  <p>Enable this to make the field auto-calculate its value based on other fields. Use field codes in the formula (e.g., LC_AMOUNT + ADDITIONAL_AMOUNT).</p>
+                  <p>Enable this to make the field auto-calculate its value based on other fields. Select fields from dropdown and use operator buttons to build your formula.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -167,19 +220,97 @@ const FieldActionsTab: React.FC<FieldActionsTabProps> = ({
           </div>
 
           {actions.is_computed && (
-            <div className="space-y-2">
-              <Label htmlFor="computed_formula">Computed Formula</Label>
-              <Textarea
-                id="computed_formula"
-                placeholder="e.g., LC_AMOUNT + (TOLERANCE_PERCENT * LC_AMOUNT / 100) + ADDITIONAL_AMOUNT"
-                value={actions.computed_formula || ''}
-                onChange={(e) => updateActions({ computed_formula: e.target.value })}
-                disabled={isReadOnly}
-                className="font-mono text-sm"
-              />
+            <div className="space-y-4">
+              <Label>Formula Builder</Label>
+              
+              {/* Field Selector and Operator Buttons */}
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg border">
+                {/* Field Dropdown */}
+                <Select
+                  onValueChange={handleFieldSelect}
+                  disabled={isReadOnly || availableFields.length === 0}
+                >
+                  <SelectTrigger className="w-[200px] bg-background">
+                    <SelectValue placeholder="Select field..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <ScrollArea className="h-[200px]">
+                      {availableFields.map((field) => (
+                        <SelectItem key={field.code} value={field.code}>
+                          <div className="flex flex-col items-start">
+                            <span className="font-mono text-xs text-primary">
+                              {normalizeFieldCode(field.code)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {field.label}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </ScrollArea>
+                  </SelectContent>
+                </Select>
+
+                <div className="h-6 w-px bg-border mx-1" />
+
+                {/* Operator Buttons */}
+                {OPERATORS.map((op) => (
+                  <Button
+                    key={op.label}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 font-mono text-base"
+                    onClick={() => insertIntoFormula(op.value)}
+                    disabled={isReadOnly}
+                  >
+                    {op.label}
+                  </Button>
+                ))}
+
+                <div className="h-6 w-px bg-border mx-1" />
+
+                {/* Clear Button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={clearFormula}
+                  disabled={isReadOnly}
+                >
+                  Clear
+                </Button>
+              </div>
+
+              {/* Formula Input */}
+              <div className="space-y-2">
+                <Label htmlFor="computed_formula" className="text-xs text-muted-foreground">
+                  Formula (you can also type directly)
+                </Label>
+                <Input
+                  ref={formulaInputRef}
+                  id="computed_formula"
+                  placeholder="Select fields and operators above, or type directly..."
+                  value={actions.computed_formula || ''}
+                  onChange={(e) => updateActions({ computed_formula: e.target.value })}
+                  disabled={isReadOnly}
+                  className="font-mono text-sm h-10"
+                />
+              </div>
+
+              {/* Formula Preview */}
+              {actions.computed_formula && (
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Formula Preview:</p>
+                  <code className="text-sm font-mono text-primary">
+                    {actions.computed_formula}
+                  </code>
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground">
-                Use field codes (e.g., LC_AMOUNT, TOLERANCE_PERCENT) separated by operators (+, -, *, /).
-                {availableFields.length > 0 && ' Expand the field list above to see available codes.'}
+                💡 Tip: Select a field from the dropdown to insert it, then click operators to build your formula.
               </p>
             </div>
           )}
