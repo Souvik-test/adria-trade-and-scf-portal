@@ -58,27 +58,20 @@ const getEventCode = (processType: string | undefined): string => {
   return mapping[processType || 'Issuance'] || 'ISS';
 };
 
-// Determine trigger type based on transaction context (channel + status)
-// This enables cross-workflow handoff: Portal workflow → Bank workflow
+// Determine trigger type based on CURRENT business application (where user is logged in)
+// This uses the login context to determine which workflow template to fetch
 const getTriggerTypeFromContext = (initiatingChannel: string, status: string): string => {
-  // If initiated from Bank, always use Manual (Bank workflow)
-  if (initiatingChannel === 'Bank') {
+  // Use CURRENT business application from login context
+  const currentBusinessApp = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+  const normalizedApp = currentBusinessApp.toLowerCase();
+  
+  // If user is logged into Bank application, use Bank (Manual) workflow
+  if (normalizedApp.includes('orchestrator') || normalizedApp.includes('bank')) {
     return 'Manual';
   }
   
-  // If initiated from Portal: check status to determine workflow phase
-  if (initiatingChannel === 'Portal') {
-    // Statuses that indicate transaction has moved to Bank phase
-    const bankPhaseStatuses = ['Sent to Bank', 'Bank Processing', 'Limit Checked', 'Checker Reviewed', 'Issued'];
-    
-    if (bankPhaseStatuses.includes(status)) {
-      return 'Manual'; // Switch to Bank workflow
-    }
-    return 'ClientPortal'; // Still in Portal phase
-  }
-  
-  // Default to Manual
-  return 'Manual';
+  // If user is logged into Client Portal, use ClientPortal workflow
+  return 'ClientPortal';
 };
 
 // Map transaction status to the stage that was just completed
