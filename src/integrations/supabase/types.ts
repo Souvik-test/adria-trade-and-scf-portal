@@ -2429,6 +2429,134 @@ export type Database = {
         }
         Relationships: []
       }
+      remittance_recipients: {
+        Row: {
+          amount: number
+          created_at: string | null
+          credit_account: string
+          id: string
+          recipient_name: string
+          transfer_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          credit_account: string
+          id?: string
+          recipient_name: string
+          transfer_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          credit_account?: string
+          id?: string
+          recipient_name?: string
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remittance_recipients_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "remittance_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      remittance_transfers: {
+        Row: {
+          adhoc_account_or_iban: string | null
+          adhoc_bank_address: string | null
+          adhoc_bank_name: string | null
+          adhoc_beneficiary_name: string | null
+          adhoc_bic_swift_code: string | null
+          adhoc_country: string | null
+          amount: number
+          beneficiary_id: string | null
+          corporate_id: string | null
+          created_at: string | null
+          created_by: string | null
+          credit_account: string | null
+          currency: string
+          debit_account: string | null
+          direction: string
+          execution_date: string | null
+          execution_type: string
+          external_sender_bank: string | null
+          external_sender_name: string | null
+          frequency: string | null
+          id: string
+          is_adhoc_beneficiary: boolean | null
+          status: string
+          transfer_reference: string
+          transfer_reference_note: string | null
+          transfer_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          adhoc_account_or_iban?: string | null
+          adhoc_bank_address?: string | null
+          adhoc_bank_name?: string | null
+          adhoc_beneficiary_name?: string | null
+          adhoc_bic_swift_code?: string | null
+          adhoc_country?: string | null
+          amount: number
+          beneficiary_id?: string | null
+          corporate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_account?: string | null
+          currency?: string
+          debit_account?: string | null
+          direction: string
+          execution_date?: string | null
+          execution_type: string
+          external_sender_bank?: string | null
+          external_sender_name?: string | null
+          frequency?: string | null
+          id?: string
+          is_adhoc_beneficiary?: boolean | null
+          status?: string
+          transfer_reference: string
+          transfer_reference_note?: string | null
+          transfer_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          adhoc_account_or_iban?: string | null
+          adhoc_bank_address?: string | null
+          adhoc_bank_name?: string | null
+          adhoc_beneficiary_name?: string | null
+          adhoc_bic_swift_code?: string | null
+          adhoc_country?: string | null
+          amount?: number
+          beneficiary_id?: string | null
+          corporate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_account?: string | null
+          currency?: string
+          debit_account?: string | null
+          direction?: string
+          execution_date?: string | null
+          execution_type?: string
+          external_sender_bank?: string | null
+          external_sender_name?: string | null
+          frequency?: string | null
+          id?: string
+          is_adhoc_beneficiary?: boolean | null
+          status?: string
+          transfer_reference?: string
+          transfer_reference_note?: string | null
+          transfer_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       resolve_discrepancies: {
         Row: {
           applicant_name: string | null
@@ -3511,6 +3639,7 @@ export type Database = {
       generate_documentary_collection_bill_ref: { Args: never; Returns: string }
       generate_export_bill_ref: { Args: never; Returns: string }
       generate_lc_transfer_ref: { Args: never; Returns: string }
+      generate_remittance_ref: { Args: never; Returns: string }
       generate_transaction_ref: {
         Args: { product_type: string }
         Returns: string
