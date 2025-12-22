@@ -123,11 +123,43 @@ const getCurrentBusinessApp = (): string => {
   return localStorage.getItem('businessCentre') || 'Adria TSCF Client';
 };
 
-// Get channel from current business application
+// Get channel from current business application (for access control)
 const getChannelFromCurrentApp = (): string => {
   const app = getCurrentBusinessApp().toLowerCase();
   if (app.includes('orchestrator') || app.includes('bank')) return 'Bank';
   return 'Portal';
+};
+
+// Determine trigger type from TRANSACTION STATUS (not current business app)
+// This ensures Next Stage is calculated based on where the transaction currently is in its lifecycle
+const getTriggerTypeFromTransactionStatus = (status: string, initiatingChannel: string): string => {
+  const normalizedStatus = status.toLowerCase();
+  
+  // Bank phase statuses - always use Manual (Bank) workflow
+  const bankPhaseStatuses = ['sent to bank', 'bank processing', 'limit checked', 'issued'];
+  if (bankPhaseStatuses.some(s => normalizedStatus.includes(s))) {
+    return 'Manual';
+  }
+  
+  // Check for "<Stage Name> Completed" pattern - determine phase by stage name
+  if (normalizedStatus.endsWith(' completed')) {
+    const stageName = status.slice(0, -' Completed'.length).toLowerCase();
+    
+    // Bank-specific stages - use Manual workflow
+    const bankStages = ['domiciliaion', 'domiciliation', 'limit check', 'final approval', 'checker review', 'sanction check'];
+    if (bankStages.some(stage => stageName.includes(stage))) {
+      return 'Manual';
+    }
+    
+    // Portal-specific stages - use ClientPortal workflow
+    const portalStages = ['data entry', 'authorization', 'review'];
+    if (portalStages.some(stage => stageName.includes(stage)) && initiatingChannel === 'Portal') {
+      return 'ClientPortal';
+    }
+  }
+  
+  // Default based on originating channel
+  return initiatingChannel === 'Bank' ? 'Manual' : 'ClientPortal';
 };
 
 // Determine next stage for a transaction based on workflow template
@@ -143,9 +175,9 @@ const getNextStageForTransaction = async (transaction: Transaction): Promise<str
   const productCode = mapProductTypeToCode(transaction.product_type);
   const eventCode = mapProcessTypeToEventCode(transaction.process_type);
   
-  // Use CURRENT business application (where user is logged in) for workflow routing
-  const currentChannel = getChannelFromCurrentApp();
-  const triggerType = currentChannel === 'Bank' ? 'Manual' : 'ClientPortal';
+  // Use TRANSACTION STATUS to determine which workflow to fetch for Next Stage calculation
+  // This ensures accuracy regardless of where the user is currently logged in
+  const triggerType = getTriggerTypeFromTransactionStatus(status, transaction.initiating_channel);
   
   try {
     const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
