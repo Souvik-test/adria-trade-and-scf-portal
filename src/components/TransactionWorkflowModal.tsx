@@ -158,7 +158,8 @@ const getTargetStageFromWorkflow = async (
     );
     if (dataEntryIndex >= 0 && dataEntryIndex < stages.length - 1) {
       const nextStage = stages[dataEntryIndex + 1];
-      if (matchesAccessibleStage(nextStage.stage_name, accessibleStages)) {
+      // Check if user has access via actor_type, not stage_name
+      if (accessibleStages.includes(nextStage.actor_type) || accessibleStages.includes('__ALL__')) {
         return nextStage.stage_name;
       }
     }
@@ -168,13 +169,13 @@ const getTargetStageFromWorkflow = async (
   // Get the NEXT stage after the completed one
   if (completedIndex < stages.length - 1) {
     const nextStage = stages[completedIndex + 1];
-    console.log('Next stage from template:', nextStage.stage_name);
+    console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type);
     
-    // Check if user has access to this next stage
-    if (matchesAccessibleStage(nextStage.stage_name, accessibleStages)) {
+    // Check if user has access to this next stage via actor_type
+    if (accessibleStages.includes(nextStage.actor_type) || accessibleStages.includes('__ALL__')) {
       return nextStage.stage_name;
     }
-    console.log('User does not have access to next stage:', nextStage.stage_name);
+    console.log('User does not have access to next stage actor_type:', nextStage.actor_type);
   }
   
   return null;
