@@ -82,16 +82,31 @@ const getTriggerTypeFromContext = (initiatingChannel: string, status: string): s
 };
 
 // Map transaction status to the stage that was just completed
+// Supports dynamic "<Stage Name> Completed" format and legacy statuses
 const getCompletedStageName = (status: string): string | null => {
-  const mapping: Record<string, string> = {
+  const normalizedStatus = status.toLowerCase();
+  
+  // Handle special statuses first
+  if (normalizedStatus === 'sent to bank') return 'Authorization';
+  if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
+  if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
+  
+  // Dynamic parsing: "<Stage Name> Completed" → "<Stage Name>"
+  if (normalizedStatus.endsWith(' completed')) {
+    // Return original case for matching with workflow template
+    return status.slice(0, -' Completed'.length);
+  }
+  
+  // Legacy status support (for existing transactions)
+  const legacyMapping: Record<string, string> = {
     'submitted': 'Data Entry',
-    'sent to bank': 'Authorization',
-    'bank processing': 'Data Entry',      // Bank Data Entry completed
+    'bank processing': 'Data Entry',
     'limit checked': 'Limit Check',
     'checker reviewed': 'Checker Review',
-    'issued': '__ALL_COMPLETE__',
+    'approved': 'Final Approval',
   };
-  return mapping[status.toLowerCase()] || null;
+  
+  return legacyMapping[normalizedStatus] || null;
 };
 
 // Fetch the workflow template and determine the next stage based on current status

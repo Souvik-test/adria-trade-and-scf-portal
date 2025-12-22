@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExternalLink } from "lucide-react";
@@ -14,6 +13,7 @@ import {
   PaginationLink,
   PaginationNext,
 } from "@/components/ui/pagination";
+import { findWorkflowTemplate, getTemplateStages } from '@/services/workflowTemplateService';
 
 interface Transaction {
   id: string;
@@ -44,18 +44,13 @@ interface Props {
 }
 
 const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "submitted":
-      return "text-blue-600";
-    case "pending":
-      return "text-orange-600";
-    case "approved":
-      return "text-green-600";
-    case "rejected":
-      return "text-red-600";
-    default:
-      return "text-gray-600";
-  }
+  const normalizedStatus = status.toLowerCase();
+  if (normalizedStatus === "rejected") return "text-red-600";
+  if (normalizedStatus === "issued") return "text-green-600";
+  if (normalizedStatus.endsWith(" completed")) return "text-blue-600";
+  if (normalizedStatus === "sent to bank") return "text-purple-600";
+  if (normalizedStatus === "pending") return "text-orange-600";
+  return "text-gray-600";
 };
 
 const formatAmount = (amount: number | null, currency: string) => {
@@ -73,6 +68,106 @@ const getChannelLabel = (initiatingChannel: string, businessApplication: string 
   return initiatingChannel || 'Portal';
 };
 
+// Map product_type to product code for workflow lookup
+const mapProductTypeToCode = (productType: string): string => {
+  const mapping: Record<string, string> = {
+    'Import LC': 'ILC',
+    'Export LC': 'ELC',
+    'Bank Guarantee': 'IBG',
+    'Documentary Collection': 'ODC',
+    'BG': 'OBG',
+  };
+  return mapping[productType] || productType;
+};
+
+// Map process_type to event code for workflow lookup
+const mapProcessTypeToEventCode = (processType: string | undefined): string => {
+  const mapping: Record<string, string> = {
+    'Issuance': 'ISS',
+    'Create': 'ISS',
+    'Amendment': 'AMD',
+    'Cancellation': 'CAN',
+    'LC Transfer': 'TRF',
+    'Assignment Request': 'ASG',
+  };
+  return mapping[processType || 'Issuance'] || 'ISS';
+};
+
+// Extract completed stage name from status
+const getCompletedStageName = (status: string): string | null => {
+  const normalizedStatus = status.toLowerCase();
+  
+  if (normalizedStatus === 'sent to bank') return 'Authorization';
+  if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
+  if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
+  
+  // Dynamic parsing: "<Stage Name> Completed" → "<Stage Name>"
+  if (normalizedStatus.endsWith(' completed')) {
+    return status.slice(0, -' Completed'.length);
+  }
+  
+  // Legacy status support
+  const legacyMapping: Record<string, string> = {
+    'submitted': 'Data Entry',
+    'bank processing': 'Data Entry',
+    'limit checked': 'Limit Check',
+    'checker reviewed': 'Checker Review',
+    'approved': 'Final Approval',
+  };
+  
+  return legacyMapping[normalizedStatus] || null;
+};
+
+// Determine next stage for a transaction based on workflow template
+const getNextStageForTransaction = async (transaction: Transaction): Promise<string> => {
+  const status = transaction.status;
+  const normalizedStatus = status.toLowerCase();
+  
+  // Terminal statuses
+  if (normalizedStatus === 'issued') return 'Completed';
+  if (normalizedStatus === 'rejected') return '-';
+  if (normalizedStatus === 'draft') return 'Data Entry';
+  
+  const productCode = mapProductTypeToCode(transaction.product_type);
+  const eventCode = mapProcessTypeToEventCode(transaction.process_type);
+  const channelLabel = getChannelLabel(transaction.initiating_channel, transaction.business_application);
+  const triggerType = channelLabel === 'Bank' ? 'Manual' : 'ClientPortal';
+  
+  try {
+    const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
+    if (!template) return 'Unknown';
+    
+    const stages = await getTemplateStages(template.id);
+    if (!stages.length) return 'Unknown';
+    
+    const completedStageName = getCompletedStageName(status);
+    
+    // If no completed stage, first stage is next
+    if (!completedStageName) {
+      return stages[0]?.stage_name || 'Data Entry';
+    }
+    
+    if (completedStageName === '__ALL_COMPLETE__') return 'Completed';
+    
+    // Find completed stage index and return next stage
+    const completedIndex = stages.findIndex(s => 
+      s.stage_name.toLowerCase() === completedStageName.toLowerCase()
+    );
+    
+    if (completedIndex >= 0 && completedIndex < stages.length - 1) {
+      return stages[completedIndex + 1].stage_name;
+    }
+    
+    // If last stage completed, it's done
+    if (completedIndex === stages.length - 1) return 'Final Approval';
+    
+    return stages[0]?.stage_name || 'Unknown';
+  } catch (error) {
+    console.error('Error getting next stage:', error);
+    return 'Unknown';
+  }
+};
+
 const PAGE_SIZE = 10;
 
 const DashboardTransactionsTable: React.FC<Props> = ({
@@ -87,9 +182,28 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [nextStageCache, setNextStageCache] = useState<Record<string, string>>({});
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Load next stages for all transactions
+  useEffect(() => {
+    const loadNextStages = async () => {
+      const cache: Record<string, string> = {};
+      for (const transaction of transactions) {
+        try {
+          cache[transaction.id] = await getNextStageForTransaction(transaction);
+        } catch {
+          cache[transaction.id] = 'Unknown';
+        }
+      }
+      setNextStageCache(cache);
+    };
+    if (transactions.length > 0) {
+      loadNextStages();
+    }
+  }, [transactions]);
 
   // Updated filtering to include Documentary Collection
   const filteredTransactions = transactions.filter((transaction) => {
@@ -203,6 +317,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     <th className="pb-2">Customer</th>
                     <th className="pb-2">Amount</th>
                     <th className="pb-2">Status</th>
+                    <th className="pb-2">Next Stage</th>
                     <th className="pb-2">Created Date</th>
                     <th className="pb-2">Business Application</th>
                     <th className="pb-2">Channel</th>
@@ -226,6 +341,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className="py-2">{transaction.customer_name || "-"}</td>
                         <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
+                        <td className="py-2 text-purple-600 font-medium">{nextStageCache[transaction.id] || 'Loading...'}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
                         <td className="py-2">{transaction.business_application || 'Adria TSCF Client'}</td>
                         <td className="py-2">{getChannelLabel(transaction.initiating_channel, transaction.business_application)}</td>
@@ -233,7 +349,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={9} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={10} className="py-8 text-center text-gray-500 dark:text-gray-400">
                         No transactions found. Create your first PO, PI, Invoice, Import LC, Export LC Bills, Documentary Collection, LC Transfer, or Assignment Request to see them here.
                       </td>
                     </tr>
