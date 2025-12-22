@@ -407,8 +407,24 @@ const UserAccessManagement: React.FC = () => {
   const selectAllColumn = (field: 'is_maker' | 'is_viewer' | 'is_checker') => {
     if (selectedUser?.is_super_user) return;
     
-    const allChecked = permissions.every(p => p[field]);
-    setPermissions(permissions.map(p => ({ ...p, [field]: !allChecked })));
+    // Map field to corresponding actor type
+    const actorTypeMap: Record<string, string> = {
+      'is_maker': 'Maker',
+      'is_viewer': 'Checker', // Viewers are typically Checkers
+      'is_checker': 'Checker'
+    };
+    
+    const targetActorType = actorTypeMap[field];
+    
+    // Only toggle permissions for matching actor type
+    const relevantPerms = permissions.filter(p => p.actor_type === targetActorType);
+    const allChecked = relevantPerms.every(p => p[field]);
+    
+    setPermissions(permissions.map(p => 
+      p.actor_type === targetActorType 
+        ? { ...p, [field]: !allChecked }
+        : p
+    ));
   };
 
   const handleSavePermissions = async () => {
@@ -671,41 +687,50 @@ const UserAccessManagement: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPermissions.map((perm, index) => (
-                      <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.actor_type}`}>
-                        <TableCell>
-                          <Badge variant="outline">{perm.module_code}</Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{perm.product_name}</TableCell>
-                        <TableCell>{perm.event_name}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="font-medium">
-                            {perm.actor_type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Checkbox
-                            checked={selectedUser?.is_super_user || perm.is_maker}
-                            disabled={selectedUser?.is_super_user}
-                            onCheckedChange={() => togglePermission(index, 'is_maker')}
-                          />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Checkbox
-                            checked={selectedUser?.is_super_user || perm.is_viewer}
-                            disabled={selectedUser?.is_super_user}
-                            onCheckedChange={() => togglePermission(index, 'is_viewer')}
-                          />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Checkbox
-                            checked={selectedUser?.is_super_user || perm.is_checker}
-                            disabled={selectedUser?.is_super_user}
-                            onCheckedChange={() => togglePermission(index, 'is_checker')}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filteredPermissions.map((perm) => {
+                      // Find the actual index in the full permissions array
+                      const actualIndex = permissions.findIndex(
+                        p => p.product_code === perm.product_code && 
+                             p.event_code === perm.event_code && 
+                             p.actor_type === perm.actor_type
+                      );
+                      
+                      return (
+                        <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.actor_type}`}>
+                          <TableCell>
+                            <Badge variant="outline">{perm.module_code}</Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">{perm.product_name}</TableCell>
+                          <TableCell>{perm.event_name}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="font-medium">
+                              {perm.actor_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedUser?.is_super_user || perm.is_maker}
+                              disabled={selectedUser?.is_super_user}
+                              onCheckedChange={() => togglePermission(actualIndex, 'is_maker')}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedUser?.is_super_user || perm.is_viewer}
+                              disabled={selectedUser?.is_super_user}
+                              onCheckedChange={() => togglePermission(actualIndex, 'is_viewer')}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedUser?.is_super_user || perm.is_checker}
+                              disabled={selectedUser?.is_super_user}
+                              onCheckedChange={() => togglePermission(actualIndex, 'is_checker')}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {filteredPermissions.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
