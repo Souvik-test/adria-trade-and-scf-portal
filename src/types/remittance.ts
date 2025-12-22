@@ -4,6 +4,15 @@ export type TransferType = 'a2a' | 'beneficiary' | 'multiple' | 'international';
 export type ExecutionType = 'immediate' | 'deferred' | 'standing';
 export type TransferStatus = 'draft' | 'submitted' | 'signed' | 'processed' | 'completed' | 'failed' | 'scheduled';
 
+export interface AdhocBeneficiary {
+  beneficiaryName: string;
+  accountOrIban: string;
+  bankName: string;
+  bicSwiftCode: string;
+  bankAddress: string;
+  country: string;
+}
+
 export interface RecipientEntry {
   id: string;
   creditAccount: string;
@@ -26,6 +35,8 @@ export interface TransferFormData {
   externalSender: string;
   externalBank: string;
   multipleRecipients: RecipientEntry[];
+  isAdhocBeneficiary: boolean;
+  adhocBeneficiary: AdhocBeneficiary;
 }
 
 export interface TransferRecord {
@@ -44,6 +55,15 @@ export interface TransferRecord {
   executionDate?: string;
 }
 
+export const initialAdhocBeneficiary: AdhocBeneficiary = {
+  beneficiaryName: '',
+  accountOrIban: '',
+  bankName: '',
+  bicSwiftCode: '',
+  bankAddress: '',
+  country: '',
+};
+
 export const initialTransferFormData: TransferFormData = {
   direction: 'outward',
   outwardType: 'a2a',
@@ -59,6 +79,8 @@ export const initialTransferFormData: TransferFormData = {
   externalSender: '',
   externalBank: '',
   multipleRecipients: [],
+  isAdhocBeneficiary: false,
+  adhocBeneficiary: initialAdhocBeneficiary,
 };
 
 export const FREQUENCY_OPTIONS = [
@@ -88,4 +110,15 @@ export const MOCK_BENEFICIARIES = [
   { value: 'BEN001', label: 'John Doe - HSBC Bank' },
   { value: 'BEN002', label: 'Jane Smith - Citibank' },
   { value: 'BEN003', label: 'Acme Corp - Deutsche Bank' },
+];
+
+export const MOCK_COUNTRIES = [
+  { value: 'US', label: 'United States' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'AE', label: 'United Arab Emirates' },
+  { value: 'IN', label: 'India' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'JP', label: 'Japan' },
 ];
