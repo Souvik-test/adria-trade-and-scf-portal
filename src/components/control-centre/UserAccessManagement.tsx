@@ -34,7 +34,7 @@ interface PermissionRow {
   product_name: string;
   event_code: string;
   event_name: string;
-  stage_name: string;
+  actor_type: string;
   is_maker: boolean;
   is_viewer: boolean;
   is_checker: boolean;
@@ -54,7 +54,7 @@ const BUSINESS_APPLICATIONS = [
   'Adria TSCF Bank'
 ];
 
-const WORKFLOW_STAGES = ['Data Entry', 'Limit Check', 'Approval', '__ALL__'];
+const ACTOR_TYPES = ['Maker', 'Checker', 'System', 'Authorization', 'Exception Handler'];
 
 // Screen access configuration
 const SCREEN_ACCESS_CONFIG = {
@@ -175,17 +175,17 @@ const UserAccessManagement: React.FC = () => {
   };
 
   const loadProductEvents = async () => {
-    const { data, error } = await (supabase
-      .from('product_event_mapping') as any)
+    const { data, error } = await supabase
+      .from('product_event_definitions')
       .select('module_code, product_code, product_name, event_code, event_name')
-      .order('module_code');
+      .order('product_name');
 
     if (error) {
       console.error('Error loading product events:', error);
       return;
     }
 
-    console.log('Loaded product events:', data);
+    console.log('Loaded product events from product_event_definitions:', data);
     setProductEvents(data || []);
   };
 
@@ -233,15 +233,15 @@ const UserAccessManagement: React.FC = () => {
       }
     });
 
-    // Build full permission matrix with all unique product-event-stage combinations
+    // Build full permission matrix with all unique product-event-actor type combinations
     const fullMatrix: PermissionRow[] = [];
     
     uniqueProductEvents.forEach(pe => {
-      WORKFLOW_STAGES.forEach(stage => {
+      ACTOR_TYPES.forEach(actorType => {
         const existing = data?.find(
           (p: any) => p.product_code === pe.product_code && 
                 p.event_code === pe.event_code && 
-                p.stage_name === stage
+                p.stage_name === actorType
         );
         
         fullMatrix.push({
@@ -250,7 +250,7 @@ const UserAccessManagement: React.FC = () => {
           product_name: pe.product_name,
           event_code: pe.event_code,
           event_name: pe.event_name,
-          stage_name: stage,
+          actor_type: actorType,
           is_maker: existing?.is_maker || false,
           is_viewer: existing?.is_viewer || false,
           is_checker: existing?.is_checker || false
@@ -424,7 +424,7 @@ const UserAccessManagement: React.FC = () => {
           module_code: p.module_code,
           product_code: p.product_code,
           event_code: p.event_code,
-          stage_name: p.stage_name,
+          stage_name: p.actor_type,
           is_maker: p.is_maker,
           is_viewer: p.is_viewer,
           is_checker: p.is_checker
@@ -664,7 +664,7 @@ const UserAccessManagement: React.FC = () => {
                       <TableHead className="w-[100px]">Module</TableHead>
                       <TableHead>Product</TableHead>
                       <TableHead>Event</TableHead>
-                      <TableHead>Stage</TableHead>
+                      <TableHead>Actor Type</TableHead>
                       <TableHead className="text-center w-[80px]">Maker</TableHead>
                       <TableHead className="text-center w-[80px]">Viewer</TableHead>
                       <TableHead className="text-center w-[80px]">Checker</TableHead>
@@ -672,16 +672,16 @@ const UserAccessManagement: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredPermissions.map((perm, index) => (
-                      <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.stage_name}`}>
+                      <TableRow key={`${perm.product_code}-${perm.event_code}-${perm.actor_type}`}>
                         <TableCell>
                           <Badge variant="outline">{perm.module_code}</Badge>
                         </TableCell>
                         <TableCell className="font-medium">{perm.product_name}</TableCell>
                         <TableCell>{perm.event_name}</TableCell>
                         <TableCell>
-                          <span className={perm.stage_name === '__ALL__' ? 'font-semibold text-primary' : ''}>
-                            {perm.stage_name === '__ALL__' ? 'All Stages' : perm.stage_name}
-                          </span>
+                          <Badge variant="secondary" className="font-medium">
+                            {perm.actor_type}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Checkbox
