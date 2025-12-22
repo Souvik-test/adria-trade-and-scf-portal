@@ -386,15 +386,18 @@ export const useDynamicTransaction = ({
       const hasMorePanes = currentPaneIndex < panes.length - 1;
       
       // Determine channel name for status embedding
-      // Map business application to a clear channel identifier
-      const currentBusinessApp = businessApp || localStorage.getItem('businessCentre') || 'Adria TSCF Client';
-      const normalizedApp = currentBusinessApp.toLowerCase();
+      // Use triggerType (workflow template) to determine the channel - NOT business app
+      // This ensures Bank-side workflows (Manual) always get "Product Processor"
+      // and Portal-side workflows (ClientPortal) always get "Portal"
       let channelName: string;
-      if (normalizedApp.includes('orchestrator')) {
+      if (triggerType === 'Manual') {
+        // Bank-side workflow - stages are processed by Product Processor
         channelName = 'Product Processor';
-      } else if (normalizedApp.includes('bank') || normalizedApp.includes('back office')) {
-        channelName = 'Back Office';
+      } else if (triggerType === 'ClientPortal') {
+        // Portal workflow - stages are processed by Portal
+        channelName = 'Portal';
       } else {
+        // Fallback for other trigger types
         channelName = 'Portal';
       }
       
@@ -525,13 +528,12 @@ export const useDynamicTransaction = ({
       const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
       
       // Determine channel name for status embedding (same logic as handleStageSubmit)
-      const currentBusinessAppForReject = businessApp || localStorage.getItem('businessCentre') || 'Adria TSCF Client';
-      const normalizedAppForReject = currentBusinessAppForReject.toLowerCase();
+      // Use triggerType (workflow template) to determine the channel
       let channelNameForReject: string;
-      if (normalizedAppForReject.includes('orchestrator')) {
+      if (triggerType === 'Manual') {
         channelNameForReject = 'Product Processor';
-      } else if (normalizedAppForReject.includes('bank') || normalizedAppForReject.includes('back office')) {
-        channelNameForReject = 'Back Office';
+      } else if (triggerType === 'ClientPortal') {
+        channelNameForReject = 'Portal';
       } else {
         channelNameForReject = 'Portal';
       }
