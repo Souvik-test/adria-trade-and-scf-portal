@@ -118,6 +118,18 @@ const getCompletedStageName = (status: string): string | null => {
   return legacyMapping[normalizedStatus] || null;
 };
 
+// Get current business application from login context
+const getCurrentBusinessApp = (): string => {
+  return localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+};
+
+// Get channel from current business application
+const getChannelFromCurrentApp = (): string => {
+  const app = getCurrentBusinessApp().toLowerCase();
+  if (app.includes('orchestrator') || app.includes('bank')) return 'Bank';
+  return 'Portal';
+};
+
 // Determine next stage for a transaction based on workflow template
 const getNextStageForTransaction = async (transaction: Transaction): Promise<string> => {
   const status = transaction.status;
@@ -130,8 +142,10 @@ const getNextStageForTransaction = async (transaction: Transaction): Promise<str
   
   const productCode = mapProductTypeToCode(transaction.product_type);
   const eventCode = mapProcessTypeToEventCode(transaction.process_type);
-  const channelLabel = getChannelLabel(transaction.initiating_channel, transaction.business_application);
-  const triggerType = channelLabel === 'Bank' ? 'Manual' : 'ClientPortal';
+  
+  // Use CURRENT business application (where user is logged in) for workflow routing
+  const currentChannel = getChannelFromCurrentApp();
+  const triggerType = currentChannel === 'Bank' ? 'Manual' : 'ClientPortal';
   
   try {
     const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
@@ -319,8 +333,8 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     <th className="pb-2">Status</th>
                     <th className="pb-2">Next Stage</th>
                     <th className="pb-2">Created Date</th>
-                    <th className="pb-2">Business Application</th>
-                    <th className="pb-2">Channel</th>
+                    <th className="pb-2">Current Business App</th>
+                    <th className="pb-2">Originating Channel</th>
                   </tr>
                 </thead>
                 <tbody className="text-xs">
@@ -343,7 +357,7 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
                         <td className="py-2 text-purple-600 font-medium">{nextStageCache[transaction.id] || 'Loading...'}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
-                        <td className="py-2">{transaction.business_application || 'Adria TSCF Client'}</td>
+                        <td className="py-2 font-medium text-green-600">{getCurrentBusinessApp()}</td>
                         <td className="py-2">{getChannelLabel(transaction.initiating_channel, transaction.business_application)}</td>
                       </tr>
                     ))
