@@ -5,20 +5,23 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Save, Send, FileSignature } from 'lucide-react';
+import { Save, Send, FileSignature, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   TransferFormData,
   TransferDirection,
   TransferType,
   ExecutionType,
+  AdhocBeneficiary,
   initialTransferFormData,
+  initialAdhocBeneficiary,
   CURRENCY_OPTIONS,
   MOCK_ACCOUNTS,
   MOCK_BENEFICIARIES,
   FREQUENCY_OPTIONS,
 } from '@/types/remittance';
 import MultipleRecipientsSection from './MultipleRecipientsSection';
+import AdhocBeneficiarySection from './AdhocBeneficiarySection';
 
 const TransferFormSection: React.FC = () => {
   const [formData, setFormData] = useState<TransferFormData>(initialTransferFormData);
@@ -27,31 +30,73 @@ const TransferFormSection: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleAdhocChange = (field: keyof AdhocBeneficiary, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      adhocBeneficiary: {
+        ...prev.adhocBeneficiary,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleToggleAdhoc = (checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      isAdhocBeneficiary: checked,
+      beneficiary: checked ? '' : prev.beneficiary,
+      adhocBeneficiary: checked ? prev.adhocBeneficiary : initialAdhocBeneficiary,
+    }));
+  };
+
+  const handleDiscard = () => {
+    setFormData(initialTransferFormData);
+    toast.info('Form discarded');
+  };
+
   const handleSaveDraft = () => {
     toast.success('Transfer saved as draft');
   };
 
   const handleSubmit = () => {
-    if (!formData.debitAccount || !formData.creditAccount || formData.amount <= 0) {
-      toast.error('Please fill in all required fields');
+    if (!formData.debitAccount && formData.direction === 'outward') {
+      toast.error('Please select a debit account');
+      return;
+    }
+    if (!formData.creditAccount && formData.direction === 'inward') {
+      toast.error('Please select a credit account');
+      return;
+    }
+    if (formData.amount <= 0) {
+      toast.error('Please enter a valid amount');
       return;
     }
     toast.success('Transfer submitted successfully');
   };
 
   const handleSignConfirm = () => {
-    if (!formData.debitAccount || !formData.creditAccount || formData.amount <= 0) {
-      toast.error('Please fill in all required fields');
+    if (!formData.debitAccount && formData.direction === 'outward') {
+      toast.error('Please select a debit account');
+      return;
+    }
+    if (!formData.creditAccount && formData.direction === 'inward') {
+      toast.error('Please select a credit account');
+      return;
+    }
+    if (formData.amount <= 0) {
+      toast.error('Please enter a valid amount');
       return;
     }
     toast.success('Transfer signed and confirmed');
   };
 
   const showMultipleRecipients = formData.direction === 'outward' && formData.outwardType === 'multiple';
+  const showAdhocBeneficiary = formData.direction === 'outward' && 
+    (formData.outwardType === 'beneficiary' || formData.outwardType === 'international');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-6 overflow-y-auto pb-4">
         {/* Transfer Direction */}
         <Card>
           <CardHeader className="pb-3">
@@ -93,7 +138,7 @@ const TransferFormSection: React.FC = () => {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="a2a" id="a2a" />
-                  <Label htmlFor="a2a" className="cursor-pointer">A2A</Label>
+                  <Label htmlFor="a2a" className="cursor-pointer">A2A (Own Account)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="beneficiary" id="beneficiary" />
@@ -161,7 +206,7 @@ const TransferFormSection: React.FC = () => {
                     </div>
                   )}
 
-                  {(formData.outwardType === 'beneficiary' || formData.outwardType === 'international') && (
+                  {(formData.outwardType === 'beneficiary' || formData.outwardType === 'international') && !formData.isAdhocBeneficiary && (
                     <div className="space-y-2">
                       <Label htmlFor="beneficiary">Beneficiary *</Label>
                       <Select
@@ -262,6 +307,16 @@ const TransferFormSection: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Adhoc Beneficiary Section */}
+        {showAdhocBeneficiary && (
+          <AdhocBeneficiarySection
+            isAdhocBeneficiary={formData.isAdhocBeneficiary}
+            adhocBeneficiary={formData.adhocBeneficiary}
+            onToggleAdhoc={handleToggleAdhoc}
+            onAdhocChange={handleAdhocChange}
+          />
+        )}
+
         {/* Multiple Recipients Section */}
         {showMultipleRecipients && (
           <MultipleRecipientsSection
@@ -355,16 +410,19 @@ const TransferFormSection: React.FC = () => {
         </Card>
       </div>
 
-      {/* Actions Sidebar */}
-      <div className="lg:col-span-1">
-        <Card className="sticky top-4">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium">Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+      {/* Footer Actions */}
+      <div className="border-t bg-background pt-4 mt-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={handleDiscard}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Discard
+          </Button>
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              className="w-full justify-start"
               onClick={handleSaveDraft}
             >
               <Save className="h-4 w-4 mr-2" />
@@ -372,21 +430,19 @@ const TransferFormSection: React.FC = () => {
             </Button>
             <Button
               variant="secondary"
-              className="w-full justify-start"
               onClick={handleSubmit}
             >
               <Send className="h-4 w-4 mr-2" />
               Submit
             </Button>
             <Button
-              className="w-full justify-start"
               onClick={handleSignConfirm}
             >
               <FileSignature className="h-4 w-4 mr-2" />
               Sign & Confirm
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

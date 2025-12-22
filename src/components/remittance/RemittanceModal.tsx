@@ -35,8 +35,8 @@ const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-background">
-        <DialogHeader className="flex flex-row items-center gap-4 pb-4 border-b">
+      <DialogContent className={selectedAction === 'process' ? "w-screen h-screen max-w-none max-h-none p-0 m-0 rounded-none flex flex-col bg-background" : "max-w-4xl max-h-[90vh] overflow-y-auto bg-background"}>
+        <DialogHeader className={`flex flex-row items-center gap-4 pb-4 border-b ${selectedAction === 'process' ? 'px-6 pt-4' : ''}`}>
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -48,7 +48,7 @@ const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) =>
           </div>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className={selectedAction === 'process' ? "flex-1 overflow-y-auto px-6 py-4" : "py-4"}>
           {!selectedAction ? (
             <RemittanceActionSection onSelectAction={setSelectedAction} />
           ) : selectedAction === 'process' ? (
