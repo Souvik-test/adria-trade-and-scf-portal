@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt } from 'lucide-react';
+import { FileText, Shield, Banknote, Ship, DollarSign, Globe, Receipt, SendHorizontal } from 'lucide-react';
 import BillsModal from './BillsModal';
 import LetterOfCreditModal from './LetterOfCreditModal';
 import BankGuaranteeModal from './bank-guarantee/BankGuaranteeModal';
@@ -8,6 +8,7 @@ import InvoiceModal from './InvoiceModal';
 import DocumentaryCollectionModal from './documentary-collection/DocumentaryCollectionModal';
 import InwardDocumentaryCollectionModal from './documentary-collection/InwardDocumentaryCollectionModal';
 import ShippingGuaranteeModal from './shipping-guarantee/ShippingGuaranteeModal';
+import RemittanceModal from './remittance/RemittanceModal';
 import ProductSuiteHeader from './product-suite/ProductSuiteHeader';
 import ProductCard from './product-suite/ProductCard';
 import { useProductEventMappings } from '@/hooks/useProductEventMappings';
@@ -27,6 +28,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
   const [showDocumentaryCollectionModal, setShowDocumentaryCollectionModal] = useState(false);
   const [showInwardDocumentaryCollectionModal, setShowInwardDocumentaryCollectionModal] = useState(false);
   const [showShippingGuaranteeModal, setShowShippingGuaranteeModal] = useState(false);
+  const [showRemittanceModal, setShowRemittanceModal] = useState(false);
   const [lcModalType, setLcModalType] = useState<'import' | 'export'>('import');
   const [billsModalType, setBillsModalType] = useState<'import' | 'export'>('import');
   const [guaranteeModalType, setGuaranteeModalType] = useState<'outward' | 'inward'>('outward');
@@ -122,6 +124,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         description: 'Manage shipping guarantees and delivery orders',
         onClick: () => setShowShippingGuaranteeModal(true),
         productCode: 'SHG'
+      },
+      {
+        id: 'remittance',
+        title: 'Remittance',
+        icon: SendHorizontal,
+        description: 'Process inward and outward remittance transactions',
+        hasFlip: true,
+        flipOptions: ['Process Inward/Outward Remittance', 'Return/Reject']
       },
       {
         id: 'trade-loan',
@@ -248,6 +258,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
       handleUnderlyingDocsClick(option);
     } else if (productId === 'shipping') {
       setShowShippingGuaranteeModal(true);
+    } else if (productId === 'remittance') {
+      if (option === 'Process Inward/Outward Remittance' || option === 'Return/Reject') {
+        setShowRemittanceModal(true);
+      }
     }
   };
 
@@ -341,6 +355,13 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
           isOpen={showShippingGuaranteeModal}
           onClose={() => setShowShippingGuaranteeModal(false)}
           onBack={() => setShowShippingGuaranteeModal(false)}
+        />
+      )}
+
+      {showRemittanceModal && (
+        <RemittanceModal
+          isOpen={showRemittanceModal}
+          onClose={() => setShowRemittanceModal(false)}
         />
       )}
     </div>
