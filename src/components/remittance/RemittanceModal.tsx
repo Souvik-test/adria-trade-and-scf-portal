@@ -1,0 +1,68 @@
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, SendHorizontal, RotateCcw } from 'lucide-react';
+import { RemittanceActionType } from '@/types/remittance';
+import RemittanceActionSection from './RemittanceActionSection';
+import RemittanceForm from './RemittanceForm';
+
+interface RemittanceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) => {
+  const [selectedAction, setSelectedAction] = useState<RemittanceActionType>(null);
+
+  const handleBack = () => {
+    if (selectedAction) {
+      setSelectedAction(null);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setSelectedAction(null);
+    onClose();
+  };
+
+  const getTitle = () => {
+    if (!selectedAction) return 'Remittance';
+    if (selectedAction === 'process') return 'Process Inward/Outward Remittance';
+    return 'Return/Reject Remittance';
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-background">
+        <DialogHeader className="flex flex-row items-center gap-4 pb-4 border-b">
+          <Button variant="ghost" size="icon" onClick={handleBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <SendHorizontal className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-xl font-semibold">{getTitle()}</DialogTitle>
+          </div>
+        </DialogHeader>
+
+        <div className="py-4">
+          {!selectedAction ? (
+            <RemittanceActionSection onSelectAction={setSelectedAction} />
+          ) : selectedAction === 'process' ? (
+            <RemittanceForm onBack={handleBack} />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <RotateCcw className="h-12 w-12 mb-4" />
+              <p className="text-lg">Return/Reject functionality coming soon</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default RemittanceModal;
