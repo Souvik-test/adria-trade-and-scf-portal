@@ -164,9 +164,10 @@ export const getTemplatePaneNames = async (
   const paneNames: string[] = [];
 
   // Filter stages if accessibleStageNames is provided and not empty
+  // Note: accessibleStageNames actually contains actor_types like 'Maker', 'Checker'
   const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
     ? stages.filter(stage => 
-        matchesAccessibleStage(stage.stage_name, accessibleStageNames)
+        accessibleStageNames.includes(stage.actor_type) || accessibleStageNames.includes('__ALL__')
       )
     : stages;
 
@@ -198,9 +199,10 @@ export const getStagePaneMapping = async (
   const stages = await getTemplateStages(templateId); // Already sorted by stage_order
   
   // Filter stages if accessibleStageNames is provided and not empty
+  // Note: accessibleStageNames actually contains actor_types like 'Maker', 'Checker'
   const filteredStages = accessibleStageNames && accessibleStageNames.length > 0
     ? stages.filter(stage => 
-        matchesAccessibleStage(stage.stage_name, accessibleStageNames)
+        accessibleStageNames.includes(stage.actor_type) || accessibleStageNames.includes('__ALL__')
       )
     : stages;
 

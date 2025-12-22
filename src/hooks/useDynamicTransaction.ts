@@ -226,10 +226,11 @@ export const useDynamicTransaction = ({
           const templateStages = await getTemplateStages(foundTemplate.id);
           
           // Filter stages based on user permissions (super users see all)
+          // accessibleStages contains actor_types like 'Maker', 'Checker' - not stage_names
           const filteredStages = isSuper || accessibleStages.length === 0
             ? templateStages
             : templateStages.filter(stage => 
-                matchesAccessibleStage(stage.stage_name, accessibleStages)
+                accessibleStages.includes(stage.actor_type) || accessibleStages.includes('__ALL__')
               );
           
           setStages(filteredStages);
