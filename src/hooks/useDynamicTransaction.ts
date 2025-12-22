@@ -385,8 +385,21 @@ export const useDynamicTransaction = ({
       const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
       const hasMorePanes = currentPaneIndex < panes.length - 1;
       
-      // Get appropriate status based on stage
-      const status = getStatusFromStage(currentStageName, isFinalApproval);
+      // Determine channel name for status embedding
+      // Map business application to a clear channel identifier
+      const currentBusinessApp = businessApp || localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+      const normalizedApp = currentBusinessApp.toLowerCase();
+      let channelName: string;
+      if (normalizedApp.includes('orchestrator')) {
+        channelName = 'Product Processor';
+      } else if (normalizedApp.includes('bank') || normalizedApp.includes('back office')) {
+        channelName = 'Back Office';
+      } else {
+        channelName = 'Portal';
+      }
+      
+      // Get appropriate status based on stage - now includes channel
+      const status = getStatusFromStage(currentStageName, isFinalApproval, channelName);
       
       // Generate transaction reference if not already created
       if (!transactionRefRef.current) {
@@ -510,7 +523,20 @@ export const useDynamicTransaction = ({
       const currentStageName = getCurrentStageName();
       const isApprovalStage = currentStageName.toLowerCase().includes('approval');
       const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
-      const finalStatus = getStatusFromStage(currentStageName, isFinalApproval);
+      
+      // Determine channel name for status embedding (same logic as handleStageSubmit)
+      const currentBusinessAppForReject = businessApp || localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+      const normalizedAppForReject = currentBusinessAppForReject.toLowerCase();
+      let channelNameForReject: string;
+      if (normalizedAppForReject.includes('orchestrator')) {
+        channelNameForReject = 'Product Processor';
+      } else if (normalizedAppForReject.includes('bank') || normalizedAppForReject.includes('back office')) {
+        channelNameForReject = 'Back Office';
+      } else {
+        channelNameForReject = 'Portal';
+      }
+      
+      const finalStatus = getStatusFromStage(currentStageName, isFinalApproval, channelNameForReject);
 
       // Create transaction with correct status for current stage
       await createTransactionRecord(

@@ -75,7 +75,7 @@ const getTriggerTypeFromContext = (initiatingChannel: string, status: string): s
 };
 
 // Map transaction status to the stage that was just completed
-// Supports dynamic "<Stage Name> Completed" format and legacy statuses
+// Supports new format "<Stage Name> Completed-<Channel>" and legacy "<Stage Name> Completed" format
 const getCompletedStageName = (status: string): string | null => {
   const normalizedStatus = status.toLowerCase();
   
@@ -84,7 +84,13 @@ const getCompletedStageName = (status: string): string | null => {
   if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
   if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
   
-  // Dynamic parsing: "<Stage Name> Completed" → "<Stage Name>"
+  // NEW: Handle format "<Stage Name> Completed-<Channel>" (e.g., "Data Entry Completed-Portal")
+  const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
+  if (completedWithChannelMatch) {
+    return completedWithChannelMatch[1]; // Return just the stage name
+  }
+  
+  // Legacy format: "<Stage Name> Completed" (without channel suffix)
   if (normalizedStatus.endsWith(' completed')) {
     // Return original case for matching with workflow template
     return status.slice(0, -' Completed'.length);
