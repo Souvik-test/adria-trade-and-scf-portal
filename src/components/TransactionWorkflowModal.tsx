@@ -95,45 +95,17 @@ const getCompletedStageName = (status: string): string | null => {
 };
 
 // Fetch the workflow template and determine the next stage based on current status
+// NOTE: accessibleStages now contains actor_types like 'Maker', 'Checker' - NOT stage names
 const getTargetStageFromWorkflow = async (
   status: string, 
-  accessibleStages: string[],
+  accessibleActorTypes: string[],  // These are actor types, not stage names
   productCode: string,
   eventCode: string,
   triggerType: string
 ): Promise<string | null> => {
   const normalizedStatus = status.toLowerCase();
   
-  // Handle rejected - always goes back to Data Entry
-  if (normalizedStatus === 'rejected') {
-    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-  }
-  
-  // Handle draft - start from Data Entry
-  if (normalizedStatus === 'draft') {
-    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-  }
-  
-  // Special case: "Sent to Bank" means Portal workflow ended, Bank workflow should START
-  // This is a cross-workflow handoff - Bank Maker starts from Bank's Data Entry
-  if (normalizedStatus === 'sent to bank') {
-    console.log('Cross-workflow handoff: Sent to Bank - starting Bank workflow from Data Entry');
-    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-  }
-  
-  // Get which stage was just completed based on status
-  const completedStageName = getCompletedStageName(status);
-  
-  if (!completedStageName) {
-    // Unknown status, try Data Entry
-    return accessibleStages.find(s => s.toLowerCase().includes('data entry')) || null;
-  }
-  
-  if (completedStageName === '__ALL_COMPLETE__') {
-    return null; // Transaction fully processed
-  }
-  
-  // Fetch workflow template to get stage order
+  // Fetch workflow template first - we need it for all cases to check actor_type
   const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
   if (!template) {
     console.log('No workflow template found for:', productCode, eventCode, triggerType);
@@ -141,7 +113,62 @@ const getTargetStageFromWorkflow = async (
   }
   
   const stages = await getTemplateStages(template.id);
-  console.log('Workflow template stages:', stages.map(s => s.stage_name));
+  console.log('Workflow template stages:', stages.map(s => ({ name: s.stage_name, actor_type: s.actor_type })));
+  console.log('User accessible actor types:', accessibleActorTypes);
+  
+  // Helper function to find first accessible stage matching criteria
+  const findAccessibleStage = (matchFn: (stageName: string) => boolean): string | null => {
+    const matchingStage = stages.find(s => 
+      matchFn(s.stage_name.toLowerCase()) && 
+      (accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__'))
+    );
+    return matchingStage?.stage_name || null;
+  };
+  
+  // Helper to find first stage user has access to (by actor_type)
+  const findFirstAccessibleStage = (): string | null => {
+    const accessibleStage = stages.find(s => 
+      accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__')
+    );
+    return accessibleStage?.stage_name || null;
+  };
+  
+  // Handle rejected - find Data Entry stage that user has access to via actor_type
+  if (normalizedStatus === 'rejected') {
+    const stage = findAccessibleStage(name => name.includes('data entry'));
+    console.log('Rejected status - found accessible data entry stage:', stage);
+    return stage;
+  }
+  
+  // Handle draft - start from Data Entry (if user has actor_type access)
+  if (normalizedStatus === 'draft') {
+    const stage = findAccessibleStage(name => name.includes('data entry'));
+    console.log('Draft status - found accessible data entry stage:', stage);
+    return stage;
+  }
+  
+  // Special case: "Sent to Bank" means Portal workflow ended, Bank workflow should START
+  // Bank Maker starts from first stage they have actor_type access to
+  if (normalizedStatus === 'sent to bank') {
+    console.log('Cross-workflow handoff: Sent to Bank - looking for first accessible stage by actor_type');
+    const stage = findFirstAccessibleStage();
+    console.log('Found first accessible stage for actor types', accessibleActorTypes, ':', stage);
+    return stage;
+  }
+  
+  // Get which stage was just completed based on status
+  const completedStageName = getCompletedStageName(status);
+  
+  if (!completedStageName) {
+    // Unknown status, try first accessible stage
+    console.log('Unknown status, finding first accessible stage');
+    return findFirstAccessibleStage();
+  }
+  
+  if (completedStageName === '__ALL_COMPLETE__') {
+    return null; // Transaction fully processed
+  }
+  
   console.log('Looking for completed stage:', completedStageName);
   
   // Find the completed stage index in the workflow template
@@ -152,14 +179,14 @@ const getTargetStageFromWorkflow = async (
   if (completedIndex === -1) {
     console.log('Completed stage not found in template, checking for Data Entry');
     // Stage not found in this template - might be cross-workflow
-    // Find first stage after Data Entry
+    // Find first stage after Data Entry that user has actor_type access to
     const dataEntryIndex = stages.findIndex(
       s => s.stage_name.toLowerCase().includes('data entry')
     );
     if (dataEntryIndex >= 0 && dataEntryIndex < stages.length - 1) {
       const nextStage = stages[dataEntryIndex + 1];
-      // Check if user has access via actor_type, not stage_name
-      if (accessibleStages.includes(nextStage.actor_type) || accessibleStages.includes('__ALL__')) {
+      // Check if user has access via actor_type
+      if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
         return nextStage.stage_name;
       }
     }
@@ -172,7 +199,7 @@ const getTargetStageFromWorkflow = async (
     console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type);
     
     // Check if user has access to this next stage via actor_type
-    if (accessibleStages.includes(nextStage.actor_type) || accessibleStages.includes('__ALL__')) {
+    if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
       return nextStage.stage_name;
     }
     console.log('User does not have access to next stage actor_type:', nextStage.actor_type);
@@ -200,12 +227,13 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
       if (!permissionsLoading && isOpen) {
         setLoadingStage(true);
         
-        // Get user's accessible stages for this product-event
-        const accessibleStages = isSuperUser() 
-          ? ['Data Entry', 'Authorization', 'Limit Check', 'Checker Review', 'Approval', 'Final Approval']
+        // Get user's accessible actor types for this product-event
+        // Note: getAccessibleStages returns actor_types like 'Maker', 'Checker'
+        const accessibleActorTypes = isSuperUser() 
+          ? ['__ALL__']  // Super users have access to all actor types
           : getAccessibleStages(productCode, eventCode);
         
-        console.log('Accessible stages for user:', accessibleStages);
+        console.log('Accessible actor types for user:', accessibleActorTypes);
         console.log('Transaction status:', transaction.status);
         console.log('Initiating channel:', transaction.initiating_channel);
         
@@ -216,7 +244,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
         // Fetch workflow template and determine next stage
         const stage = await getTargetStageFromWorkflow(
           transaction.status,
-          accessibleStages,
+          accessibleActorTypes,
           productCode,
           eventCode,
           triggerType
