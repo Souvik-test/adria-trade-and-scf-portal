@@ -94,6 +94,7 @@ const mapProcessTypeToEventCode = (processType: string | undefined): string => {
 };
 
 // Extract completed stage name from status
+// Handles new format "<Stage Name> Completed-<Channel>" and legacy format "<Stage Name> Completed"
 const getCompletedStageName = (status: string): string | null => {
   const normalizedStatus = status.toLowerCase();
   
@@ -101,7 +102,13 @@ const getCompletedStageName = (status: string): string | null => {
   if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
   if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
   
-  // Dynamic parsing: "<Stage Name> Completed" → "<Stage Name>"
+  // NEW: Handle format "<Stage Name> Completed-<Channel>" (e.g., "Data Entry Completed-Portal")
+  const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
+  if (completedWithChannelMatch) {
+    return completedWithChannelMatch[1]; // Return just the stage name
+  }
+  
+  // Legacy format: "<Stage Name> Completed" (without channel suffix)
   if (normalizedStatus.endsWith(' completed')) {
     return status.slice(0, -' Completed'.length);
   }
@@ -130,7 +137,8 @@ const getChannelFromCurrentApp = (): string => {
   return 'Portal';
 };
 
-// Determine trigger type from TRANSACTION STATUS (not current business app)
+// Determine trigger type from TRANSACTION STATUS with embedded channel
+// Status format: "<Stage Name> Completed-<Channel>" (e.g., "Data Entry Completed-Portal")
 // This ensures Next Stage is calculated based on where the transaction currently is in its lifecycle
 const getTriggerTypeFromTransactionStatus = (status: string, initiatingChannel: string): string => {
   const normalizedStatus = status.toLowerCase();
@@ -141,7 +149,19 @@ const getTriggerTypeFromTransactionStatus = (status: string, initiatingChannel: 
     return 'Manual';
   }
   
-  // Check for "<Stage Name> Completed" pattern - determine phase by stage name
+  // NEW: Parse channel from status format "<Stage Name> Completed-<Channel>"
+  const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
+  if (completedWithChannelMatch) {
+    const channel = completedWithChannelMatch[2].toLowerCase();
+    // Bank channels: Product Processor, Back Office, Bank
+    if (channel.includes('processor') || channel.includes('office') || channel === 'bank') {
+      return 'Manual';
+    }
+    // Portal channel
+    return 'ClientPortal';
+  }
+  
+  // Legacy format: "<Stage Name> Completed" (without channel suffix)
   if (normalizedStatus.endsWith(' completed')) {
     const stageName = status.slice(0, -' Completed'.length).toLowerCase();
     

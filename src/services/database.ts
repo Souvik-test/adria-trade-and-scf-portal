@@ -72,9 +72,9 @@ const getAmount = (productType: string, formData: any) => {
 };
 
 // Map stage name to transaction status
-// Returns dynamic "<Stage Name> Completed" format for accurate next-stage lookup
-// channel parameter enables Portal Authorization to return "Sent to Bank" for handoff to Bank workflow
-const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel?: string): string => {
+// Returns dynamic "<Stage Name> Completed-<Channel>" format for accurate next-stage lookup
+// Channel is embedded in status to unambiguously identify which workflow the stage belongs to
+const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel: string): string => {
   // Final approval always returns 'Issued'
   if (isFinalApproval) return 'Issued';
   
@@ -85,9 +85,10 @@ const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel
     return 'Sent to Bank';
   }
   
-  // Dynamic status: "<Stage Name> Completed"
-  // This makes it clear which stage was completed and enables accurate next-stage lookup
-  return `${stageName} Completed`;
+  // Dynamic status: "<Stage Name> Completed-<Channel>"
+  // Format embeds the channel to make workflow routing unambiguous
+  // e.g., "Data Entry Completed-Portal" or "Data Entry Completed-Product Processor"
+  return `${stageName} Completed-${channel}`;
 };
 
 // Get channel based on business application
