@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Search, Trash2, Save, Filter, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Trash2, Save, Filter, PanelLeftClose, PanelLeftOpen, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -265,10 +265,55 @@ export function StageLevelFieldTab({ stage, template, onBack, viewOnly = false }
     return matchesSearch && matchesPane && matchesSection;
   });
 
+  // Check if stage uses static UI mode
+  const isStaticMode = !stage.ui_render_mode || stage.ui_render_mode === 'static';
+
   if (!stage || !template) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         Please select a stage first
+      </div>
+    );
+  }
+
+  // Show message for static mode stages
+  if (isStaticMode) {
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="border-b border-border px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Stages
+            </Button>
+            <div className="border-l border-border h-6" />
+            <div>
+              <h2 className="font-semibold text-foreground">{stage.stage_name}</h2>
+              <p className="text-sm text-muted-foreground">
+                {template.template_name} • {stage.actor_type}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Static Mode Message */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Static Screen Mode</h3>
+          <p className="text-muted-foreground max-w-md">
+            This stage is configured to use a static (hardcoded) screen. Field mapping is not required.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            To configure fields dynamically, change the <strong>UI Render Mode</strong> to <strong>"Apply Dynamic UI"</strong> in the Stage Flow Builder.
+          </p>
+          <Button variant="outline" className="mt-6" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Stages
+          </Button>
+        </div>
       </div>
     );
   }
