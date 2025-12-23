@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import DynamicTransactionForm from '@/components/dynamic-form/DynamicTransactionForm';
 import { Loader2 } from 'lucide-react';
 import { findWorkflowTemplate, getTemplateStages } from '@/services/workflowTemplateService';
-import { matchesAccessibleStage } from '@/utils/stageAliases';
+import { WorkflowStageRuntime, WorkflowTemplateRuntime } from '@/types/dynamicForm';
+
+// Lazy load static form components
+const ImportLCForm = lazy(() => import('./import-lc/ImportLCForm'));
 
 interface Transaction {
   id: string;
@@ -59,44 +62,34 @@ const getEventCode = (processType: string | undefined): string => {
 };
 
 // Determine trigger type based on CURRENT business application (where user is logged in)
-// This uses the login context to determine which workflow template to fetch
 const getTriggerTypeFromContext = (initiatingChannel: string, status: string): string => {
-  // Use CURRENT business application from login context
   const currentBusinessApp = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
   const normalizedApp = currentBusinessApp.toLowerCase();
   
-  // If user is logged into Bank application, use Bank (Manual) workflow
   if (normalizedApp.includes('orchestrator') || normalizedApp.includes('bank')) {
     return 'Manual';
   }
   
-  // If user is logged into Client Portal, use ClientPortal workflow
   return 'ClientPortal';
 };
 
 // Map transaction status to the stage that was just completed
-// Supports new format "<Stage Name> Completed-<Channel>" and legacy "<Stage Name> Completed" format
 const getCompletedStageName = (status: string): string | null => {
   const normalizedStatus = status.toLowerCase();
   
-  // Handle special statuses first
   if (normalizedStatus === 'sent to bank') return 'Authorization';
   if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
   if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
   
-  // NEW: Handle format "<Stage Name> Completed-<Channel>" (e.g., "Data Entry Completed-Portal")
   const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
   if (completedWithChannelMatch) {
-    return completedWithChannelMatch[1]; // Return just the stage name
+    return completedWithChannelMatch[1];
   }
   
-  // Legacy format: "<Stage Name> Completed" (without channel suffix)
   if (normalizedStatus.endsWith(' completed')) {
-    // Return original case for matching with workflow template
     return status.slice(0, -' Completed'.length);
   }
   
-  // Legacy status support (for existing transactions)
   const legacyMapping: Record<string, string> = {
     'submitted': 'Data Entry',
     'bank processing': 'Data Entry',
@@ -108,118 +101,116 @@ const getCompletedStageName = (status: string): string | null => {
   return legacyMapping[normalizedStatus] || null;
 };
 
+// Extended result type to include stage info and ui_render_mode
+interface TargetStageResult {
+  stageName: string | null;
+  stage: WorkflowStageRuntime | null;
+  template: WorkflowTemplateRuntime | null;
+  uiRenderMode: 'static' | 'dynamic';
+}
+
 // Fetch the workflow template and determine the next stage based on current status
-// NOTE: accessibleStages now contains actor_types like 'Maker', 'Checker' - NOT stage names
 const getTargetStageFromWorkflow = async (
   status: string, 
-  accessibleActorTypes: string[],  // These are actor types, not stage names
+  accessibleActorTypes: string[],
   productCode: string,
   eventCode: string,
   triggerType: string
-): Promise<string | null> => {
+): Promise<TargetStageResult> => {
+  const defaultResult: TargetStageResult = { stageName: null, stage: null, template: null, uiRenderMode: 'static' };
   const normalizedStatus = status.toLowerCase();
   
-  // Fetch workflow template first - we need it for all cases to check actor_type
   const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
   if (!template) {
     console.log('No workflow template found for:', productCode, eventCode, triggerType);
-    return null;
+    return defaultResult;
   }
   
   const stages = await getTemplateStages(template.id);
-  console.log('Workflow template stages:', stages.map(s => ({ name: s.stage_name, actor_type: s.actor_type })));
+  console.log('Workflow template stages:', stages.map(s => ({ name: s.stage_name, actor_type: s.actor_type, ui_render_mode: s.ui_render_mode })));
   console.log('User accessible actor types:', accessibleActorTypes);
   
-  // Helper function to find first accessible stage matching criteria
-  const findAccessibleStage = (matchFn: (stageName: string) => boolean): string | null => {
-    const matchingStage = stages.find(s => 
+  const createResult = (stage: WorkflowStageRuntime | null): TargetStageResult => ({
+    stageName: stage?.stage_name || null,
+    stage,
+    template,
+    uiRenderMode: stage?.ui_render_mode || 'static'
+  });
+  
+  const findAccessibleStage = (matchFn: (stageName: string) => boolean): WorkflowStageRuntime | null => {
+    return stages.find(s => 
       matchFn(s.stage_name.toLowerCase()) && 
       (accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__'))
-    );
-    return matchingStage?.stage_name || null;
+    ) || null;
   };
   
-  // Helper to find first stage user has access to (by actor_type)
-  const findFirstAccessibleStage = (): string | null => {
-    const accessibleStage = stages.find(s => 
+  const findFirstAccessibleStage = (): WorkflowStageRuntime | null => {
+    return stages.find(s => 
       accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__')
-    );
-    return accessibleStage?.stage_name || null;
+    ) || null;
   };
   
-  // Handle rejected - find Data Entry stage that user has access to via actor_type
   if (normalizedStatus === 'rejected') {
     const stage = findAccessibleStage(name => name.includes('data entry'));
-    console.log('Rejected status - found accessible data entry stage:', stage);
-    return stage;
+    console.log('Rejected status - found accessible data entry stage:', stage?.stage_name);
+    return createResult(stage);
   }
   
-  // Handle draft - start from Data Entry (if user has actor_type access)
   if (normalizedStatus === 'draft') {
     const stage = findAccessibleStage(name => name.includes('data entry'));
-    console.log('Draft status - found accessible data entry stage:', stage);
-    return stage;
+    console.log('Draft status - found accessible data entry stage:', stage?.stage_name);
+    return createResult(stage);
   }
   
-  // Special case: "Sent to Bank" means Portal workflow ended, Bank workflow should START
-  // Bank Maker starts from first stage they have actor_type access to
   if (normalizedStatus === 'sent to bank') {
-    console.log('Cross-workflow handoff: Sent to Bank - looking for first accessible stage by actor_type');
+    console.log('Cross-workflow handoff: Sent to Bank - looking for first accessible stage');
     const stage = findFirstAccessibleStage();
-    console.log('Found first accessible stage for actor types', accessibleActorTypes, ':', stage);
-    return stage;
+    console.log('Found first accessible stage:', stage?.stage_name);
+    return createResult(stage);
   }
   
-  // Get which stage was just completed based on status
   const completedStageName = getCompletedStageName(status);
   
   if (!completedStageName) {
-    // Unknown status, try first accessible stage
     console.log('Unknown status, finding first accessible stage');
-    return findFirstAccessibleStage();
+    return createResult(findFirstAccessibleStage());
   }
   
   if (completedStageName === '__ALL_COMPLETE__') {
-    return null; // Transaction fully processed
+    return defaultResult;
   }
   
   console.log('Looking for completed stage:', completedStageName);
   
-  // Find the completed stage index in the workflow template
   const completedIndex = stages.findIndex(
     s => s.stage_name.toLowerCase() === completedStageName.toLowerCase()
   );
   
   if (completedIndex === -1) {
     console.log('Completed stage not found in template, checking for Data Entry');
-    // Stage not found in this template - might be cross-workflow
-    // Find first stage after Data Entry that user has actor_type access to
     const dataEntryIndex = stages.findIndex(
       s => s.stage_name.toLowerCase().includes('data entry')
     );
     if (dataEntryIndex >= 0 && dataEntryIndex < stages.length - 1) {
       const nextStage = stages[dataEntryIndex + 1];
-      // Check if user has access via actor_type
       if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
-        return nextStage.stage_name;
+        return createResult(nextStage);
       }
     }
-    return null;
+    return defaultResult;
   }
   
-  // Get the NEXT stage after the completed one
   if (completedIndex < stages.length - 1) {
     const nextStage = stages[completedIndex + 1];
-    console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type);
+    console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type, 'ui_render_mode:', nextStage.ui_render_mode);
     
-    // Check if user has access to this next stage via actor_type
     if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
-      return nextStage.stage_name;
+      return createResult(nextStage);
     }
     console.log('User does not have access to next stage actor_type:', nextStage.actor_type);
   }
   
-  return null;
+  return defaultResult;
 };
 
 const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
@@ -229,7 +220,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   onTransactionUpdated,
 }) => {
   const { isSuperUser, getAccessibleStages, loading: permissionsLoading } = useUserPermissions();
-  const [targetStage, setTargetStage] = useState<string | null>(null);
+  const [targetStageResult, setTargetStageResult] = useState<TargetStageResult>({ stageName: null, stage: null, template: null, uiRenderMode: 'static' });
   const [canProcess, setCanProcess] = useState(false);
   const [loadingStage, setLoadingStage] = useState(true);
 
@@ -241,22 +232,18 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
       if (!permissionsLoading && isOpen) {
         setLoadingStage(true);
         
-        // Get user's accessible actor types for this product-event
-        // Note: getAccessibleStages returns actor_types like 'Maker', 'Checker'
         const accessibleActorTypes = isSuperUser() 
-          ? ['__ALL__']  // Super users have access to all actor types
+          ? ['__ALL__']
           : getAccessibleStages(productCode, eventCode);
         
         console.log('Accessible actor types for user:', accessibleActorTypes);
         console.log('Transaction status:', transaction.status);
         console.log('Initiating channel:', transaction.initiating_channel);
         
-        // Get trigger type for template lookup
         const triggerType = getTriggerTypeFromContext(transaction.initiating_channel, transaction.status);
         console.log('Trigger type:', triggerType);
         
-        // Fetch workflow template and determine next stage
-        const stage = await getTargetStageFromWorkflow(
+        const result = await getTargetStageFromWorkflow(
           transaction.status,
           accessibleActorTypes,
           productCode,
@@ -264,10 +251,10 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
           triggerType
         );
         
-        console.log('Target stage determined from workflow:', stage);
+        console.log('Target stage result:', result);
         
-        setTargetStage(stage);
-        setCanProcess(!!stage);
+        setTargetStageResult(result);
+        setCanProcess(!!result.stageName);
         setLoadingStage(false);
       }
     };
@@ -282,7 +269,6 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     onClose();
   };
 
-  // Parse form_data from transaction if available
   const initialFormData = React.useMemo(() => {
     if (transaction.form_data) {
       try {
@@ -309,7 +295,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     );
   }
 
-  if (!canProcess || !targetStage) {
+  if (!canProcess || !targetStageResult.stageName) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-md">
@@ -334,9 +320,56 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     );
   }
 
-  // Determine trigger type based on transaction context for cross-workflow handoff
   const triggerType = getTriggerTypeFromContext(transaction.initiating_channel, transaction.status);
 
+  // Check ui_render_mode to determine which form to render
+  const useStaticMode = targetStageResult.uiRenderMode === 'static';
+
+  // Render static form based on product code when ui_render_mode is 'static'
+  const renderStaticForm = () => {
+    switch (productCode) {
+      case 'ILC':
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          }>
+            <ImportLCForm
+              onBack={handleClose}
+              onClose={handleClose}
+            />
+          </Suspense>
+        );
+      // Add more product-specific static forms here as needed
+      default:
+        // Fallback to DynamicTransactionForm if no static form exists
+        return (
+          <DynamicTransactionForm
+            productCode={productCode}
+            eventCode={eventCode}
+            triggerType={triggerType}
+            businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
+            showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
+            onClose={handleClose}
+            transactionRef={transaction.transaction_ref}
+            initialFormData={initialFormData}
+            initialStage={targetStageResult.stageName}
+          />
+        );
+    }
+  };
+
+  // For static mode, render in full screen
+  if (useStaticMode) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background overflow-hidden">
+        {renderStaticForm()}
+      </div>
+    );
+  }
+
+  // For dynamic mode, render DynamicTransactionForm in dialog
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
@@ -349,7 +382,7 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
           onClose={handleClose}
           transactionRef={transaction.transaction_ref}
           initialFormData={initialFormData}
-          initialStage={targetStage}
+          initialStage={targetStageResult.stageName}
         />
       </DialogContent>
     </Dialog>

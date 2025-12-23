@@ -11,7 +11,7 @@ import AmendmentResponseForm from "./export-lc/AmendmentResponseForm";
 import RequestLCTransferForm from "./export-lc/RequestLCTransferForm";
 import RequestAssignmentForm from "./export-lc/RequestAssignmentForm";
 import { DynamicTransactionForm } from './dynamic-form';
-import { findWorkflowTemplate, clearTemplateCache } from '@/services/workflowTemplateService';
+import { useWorkflowScreenMode } from '@/hooks/useWorkflowScreenMode';
 import { Loader2 } from 'lucide-react';
 
 interface LetterOfCreditModalProps {
@@ -29,7 +29,6 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const [amendmentResponseFullScreen, setAmendmentResponseFullScreen] = useState(false);
   const [transferFullScreen, setTransferFullScreen] = useState(false);
   const [assignmentFullScreen, setAssignmentFullScreen] = useState(false);
-  const [useDynamicForm, setUseDynamicForm] = useState<boolean | null>(null);
   const [businessApp, setBusinessApp] = useState<string>('');
 
   // Initialize business app from localStorage
@@ -38,31 +37,22 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     setBusinessApp(storedBusinessCentre);
   }, []);
 
-  // Check for workflow template when manual issuance is selected (depends on businessApp being set)
-  useEffect(() => {
-    if (selectedMethod === 'manual' && selectedAction === 'issuance' && businessApp) {
-      checkWorkflowTemplate();
-    } else {
-      setUseDynamicForm(null);
-    }
-  }, [selectedMethod, selectedAction, businessApp]);
+  // Determine trigger type and event code based on selections
+  const triggerType = businessApp === 'Adria TSCF Client' ? 'ClientPortal' : 'Manual';
+  const eventCode = selectedAction === 'issuance' ? 'ISS' : selectedAction === 'amendment' ? 'AMD' : 'CAN';
+  
+  // Only check workflow when manual method is selected for issuance
+  const shouldCheckWorkflow = selectedMethod === 'manual' && selectedAction === 'issuance' && businessApp;
+  
+  // Use the generic hook to check workflow and ui_render_mode
+  const { loading, hasTemplate, template, stages, uiRenderMode } = useWorkflowScreenMode(
+    shouldCheckWorkflow ? 'ILC' : '',
+    shouldCheckWorkflow ? eventCode : '',
+    shouldCheckWorkflow ? triggerType : ''
+  );
 
-  const checkWorkflowTemplate = async () => {
-    // Skip dynamic form for TSCF Client - use hardcoded form
-    // Clear cache to ensure fresh lookup (prevents stale template status)
-    clearTemplateCache();
-    
-    // Determine trigger type based on business application
-    const triggerType = businessApp === 'Adria TSCF Client' ? 'ClientPortal' : 'Manual';
-    
-    try {
-      const template = await findWorkflowTemplate('ILC', 'ISS', triggerType);
-      setUseDynamicForm(!!template);
-    } catch (error) {
-      console.error('Error checking workflow template:', error);
-      setUseDynamicForm(false);
-    }
-  };
+  // Determine if we should use dynamic form based on ui_render_mode
+  const useDynamicForm = hasTemplate && uiRenderMode === 'dynamic';
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
@@ -188,7 +178,7 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
   const renderContent = () => {
     if (selectedMethod === 'manual' && selectedAction === 'issuance') {
       // Show loading state while checking for workflow template
-      if (useDynamicForm === null) {
+      if (loading) {
         return (
           <div className="flex items-center justify-center h-full min-h-[400px]">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
