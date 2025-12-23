@@ -225,13 +225,32 @@ export const useDynamicTransaction = ({
           // Fetch all stages first
           const templateStages = await getTemplateStages(foundTemplate.id);
           
-          // Filter stages based on user permissions (super users see all)
-          // accessibleStages contains actor_types like 'Maker', 'Checker' - not stage_names
-          const filteredStages = isSuper || accessibleStages.length === 0
-            ? templateStages
-            : templateStages.filter(stage => 
-                accessibleStages.includes(stage.actor_type) || accessibleStages.includes('__ALL__')
-              );
+          // When continuing an existing transaction with initialStage, only show that specific stage's panes
+          // This enforces stage chronology - users can only work on the current pending stage
+          let filteredStages: typeof templateStages;
+          
+          if (initialStage) {
+            // Continuing existing transaction - only show the target stage
+            const targetStage = templateStages.find(
+              stage => stage.stage_name.toLowerCase() === initialStage.toLowerCase()
+            );
+            
+            // Check if user has access to this stage
+            const hasAccess = isSuper || 
+              accessibleStages.length === 0 || 
+              accessibleStages.includes('__ALL__') ||
+              (targetStage && accessibleStages.includes(targetStage.actor_type));
+            
+            filteredStages = targetStage && hasAccess ? [targetStage] : [];
+          } else {
+            // New transaction - filter stages based on user permissions (super users see all)
+            // accessibleStages contains actor_types like 'Maker', 'Checker' - not stage_names
+            filteredStages = isSuper || accessibleStages.length === 0
+              ? templateStages
+              : templateStages.filter(stage => 
+                  accessibleStages.includes(stage.actor_type) || accessibleStages.includes('__ALL__')
+                );
+          }
           
           setStages(filteredStages);
 
@@ -246,7 +265,10 @@ export const useDynamicTransaction = ({
           setStageFields(fieldsMap);
 
           // Extract pane names and stage-pane mapping (filtered by accessible stages)
-          const stageNamesFilter = isSuper ? undefined : accessibleStages;
+          // For existing transactions, only include the target stage
+          const stageNamesFilter = initialStage 
+            ? [initialStage] // Only the target stage for existing transactions
+            : (isSuper ? undefined : accessibleStages);
           allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, stageNamesFilter);
           const mapping = await getStagePaneMapping(foundTemplate.id, stageNamesFilter);
           setStagePaneMapping(mapping);
@@ -432,12 +454,15 @@ export const useDynamicTransaction = ({
         setCompletedStageName('Approval');
         setIsTransactionComplete(true);
         toast.success(`Transaction ${transactionRefRef.current} has been issued`);
+      } else if (isLastPaneOfCurrentStage()) {
+        // Current stage is complete - redirect to dashboard
+        // This enforces stage chronology - user must wait for next stage actor
+        setCompletedStageName(currentStageName);
+        setIsTransactionComplete(true);
+        toast.success(`${currentStageName} stage completed - Status: ${status}. Redirecting to dashboard.`);
       } else if (hasMorePanes) {
-        // More panes to go - navigate to next pane
+        // More panes within current stage - navigate to next pane
         setCurrentPaneIndex(prev => prev + 1);
-        if (isLastPaneOfCurrentStage()) {
-          toast.success(`${currentStageName} stage completed - Status: ${status}`);
-        }
       } else {
         // No more panes but not final approval - stage submitted, waiting for next stage
         setCompletedStageName(currentStageName);
