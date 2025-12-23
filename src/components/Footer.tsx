@@ -28,6 +28,9 @@ const Footer: React.FC<FooterProps> = ({ loginTime }) => {
           )}
           <span><strong>User Name:</strong> {userName}</span>
           <span><strong>Login Time:</strong> {loginTime}</span>
+          {businessCentre && (
+            <span><strong>Current Business Application:</strong> {businessCentre}</span>
+          )}
         </div>
       </div>
     </div>

@@ -385,7 +385,6 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                     <th className="pb-2">Status</th>
                     <th className="pb-2">Next Stage</th>
                     <th className="pb-2">Created Date</th>
-                    <th className="pb-2">Current Business App</th>
                     <th className="pb-2">Originating Channel</th>
                   </tr>
                 </thead>
@@ -409,13 +408,12 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
                         <td className="py-2 text-purple-600 font-medium">{nextStageCache[transaction.id] || 'Loading...'}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
-                        <td className="py-2 font-medium text-green-600">{getCurrentBusinessApp()}</td>
                         <td className="py-2">{getChannelLabel(transaction.initiating_channel, transaction.business_application)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={9} className="py-8 text-center text-gray-500 dark:text-gray-400">
                         No transactions found. Create your first PO, PI, Invoice, Import LC, Export LC Bills, Documentary Collection, LC Transfer, or Assignment Request to see them here.
                       </td>
                     </tr>
