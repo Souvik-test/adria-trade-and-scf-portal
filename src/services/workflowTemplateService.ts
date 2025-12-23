@@ -352,6 +352,79 @@ export const getStageRenderMode = async (
   return stage?.ui_render_mode || 'static';
 };
 
+/**
+ * Get pane names for a SPECIFIC stage by its stage_order.
+ * Used for continuing existing transactions where we know the exact stage to work on.
+ * This enforces stage chronology - only panes for the specified stage are returned.
+ */
+export const getTemplatePaneNamesByStageOrder = async (
+  templateId: string,
+  stageOrder: number
+): Promise<string[]> => {
+  const stages = await getTemplateStages(templateId);
+  const targetStage = stages.find(s => s.stage_order === stageOrder);
+  
+  if (!targetStage) return [];
+  
+  const fields = await getStageFields(targetStage.id);
+  const paneNames: string[] = [];
+  const seenPanes = new Set<string>();
+  
+  fields.forEach(field => {
+    if (field.pane && !seenPanes.has(field.pane)) {
+      seenPanes.add(field.pane);
+      paneNames.push(field.pane);
+    }
+  });
+  
+  return paneNames;
+};
+
+/**
+ * Get detailed stage-pane mapping for a SPECIFIC stage by its stage_order.
+ * Used for continuing existing transactions where we know the exact stage to work on.
+ * This enforces stage chronology - only the specified stage's panes are returned.
+ */
+export const getStagePaneMappingByStageOrder = async (
+  templateId: string,
+  stageOrder: number
+): Promise<StagePaneInfo[]> => {
+  const stages = await getTemplateStages(templateId);
+  const targetStage = stages.find(s => s.stage_order === stageOrder);
+  const totalStages = stages.length;
+  
+  if (!targetStage) return [];
+  
+  const fields = await getStageFields(targetStage.id);
+  const stageSectionMap = await getStageSectionMapping(targetStage.id);
+  
+  // Get unique panes for this stage
+  const stagePanes: string[] = [];
+  const seenPanes = new Set<string>();
+  fields.forEach(field => {
+    if (field.pane && !seenPanes.has(field.pane)) {
+      seenPanes.add(field.pane);
+      stagePanes.push(field.pane);
+    }
+  });
+  
+  const isFinalStage = targetStage.stage_order === totalStages;
+  
+  const mapping: StagePaneInfo[] = stagePanes.map((paneName, paneIdx) => ({
+    paneIndex: paneIdx,
+    paneName,
+    stageId: targetStage.id,
+    stageName: targetStage.stage_name,
+    stageOrder: targetStage.stage_order,
+    isFirstPaneOfStage: paneIdx === 0,
+    isLastPaneOfStage: paneIdx === stagePanes.length - 1,
+    isFinalStage,
+    allowedSections: stageSectionMap.get(paneName) || [],
+  }));
+  
+  return mapping;
+};
+
 export default {
   findWorkflowTemplate,
   getTemplateStages,
@@ -364,4 +437,6 @@ export default {
   getMultiStageSectionMapping,
   getWorkflowWithRenderMode,
   getStageRenderMode,
+  getTemplatePaneNamesByStageOrder,
+  getStagePaneMappingByStageOrder,
 };

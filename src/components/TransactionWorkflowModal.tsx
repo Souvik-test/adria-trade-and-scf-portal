@@ -110,6 +110,7 @@ interface TargetStageResult {
 }
 
 // Fetch the workflow template and determine the next stage based on current status
+// Returns the next pending stage regardless of user access, so we can show informative messages
 const getTargetStageFromWorkflow = async (
   status: string, 
   accessibleActorTypes: string[],
@@ -127,53 +128,57 @@ const getTargetStageFromWorkflow = async (
   }
   
   const stages = await getTemplateStages(template.id);
-  console.log('Workflow template stages:', stages.map(s => ({ name: s.stage_name, actor_type: s.actor_type, ui_render_mode: s.ui_render_mode })));
+  console.log('Workflow template stages:', stages.map(s => ({ name: s.stage_name, actor_type: s.actor_type, stage_order: s.stage_order, ui_render_mode: s.ui_render_mode })));
   console.log('User accessible actor types:', accessibleActorTypes);
   
-  const createResult = (stage: WorkflowStageRuntime | null): TargetStageResult => ({
-    stageName: stage?.stage_name || null,
-    stage,
+  const createResult = (stage: WorkflowStageRuntime | null, hasAccess: boolean): TargetStageResult => ({
+    stageName: hasAccess ? stage?.stage_name || null : null, // Only set stageName if user has access
+    stage, // Always include stage for display purposes
     template,
     uiRenderMode: stage?.ui_render_mode || 'static'
   });
   
-  const findAccessibleStage = (matchFn: (stageName: string) => boolean): WorkflowStageRuntime | null => {
-    return stages.find(s => 
-      matchFn(s.stage_name.toLowerCase()) && 
-      (accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__'))
-    ) || null;
+  const hasAccessToStage = (stage: WorkflowStageRuntime): boolean => {
+    return accessibleActorTypes.includes(stage.actor_type) || accessibleActorTypes.includes('__ALL__');
   };
   
-  const findFirstAccessibleStage = (): WorkflowStageRuntime | null => {
-    return stages.find(s => 
-      accessibleActorTypes.includes(s.actor_type) || accessibleActorTypes.includes('__ALL__')
-    ) || null;
+  // Find stage by matching function and check access
+  const findStageAndCheckAccess = (matchFn: (stageName: string) => boolean): { stage: WorkflowStageRuntime | null; hasAccess: boolean } => {
+    const stage = stages.find(s => matchFn(s.stage_name.toLowerCase())) || null;
+    return { stage, hasAccess: stage ? hasAccessToStage(stage) : false };
+  };
+  
+  // Find first stage based on stage_order and check access
+  const findFirstStageByOrder = (): { stage: WorkflowStageRuntime | null; hasAccess: boolean } => {
+    const stage = stages.length > 0 ? stages[0] : null; // stages are already ordered by stage_order
+    return { stage, hasAccess: stage ? hasAccessToStage(stage) : false };
   };
   
   if (normalizedStatus === 'rejected') {
-    const stage = findAccessibleStage(name => name.includes('data entry'));
-    console.log('Rejected status - found accessible data entry stage:', stage?.stage_name);
-    return createResult(stage);
+    const result = findStageAndCheckAccess(name => name.includes('data entry'));
+    console.log('Rejected status - data entry stage:', result.stage?.stage_name, 'hasAccess:', result.hasAccess);
+    return createResult(result.stage, result.hasAccess);
   }
   
   if (normalizedStatus === 'draft') {
-    const stage = findAccessibleStage(name => name.includes('data entry'));
-    console.log('Draft status - found accessible data entry stage:', stage?.stage_name);
-    return createResult(stage);
+    const result = findStageAndCheckAccess(name => name.includes('data entry'));
+    console.log('Draft status - data entry stage:', result.stage?.stage_name, 'hasAccess:', result.hasAccess);
+    return createResult(result.stage, result.hasAccess);
   }
   
   if (normalizedStatus === 'sent to bank') {
-    console.log('Cross-workflow handoff: Sent to Bank - looking for first accessible stage');
-    const stage = findFirstAccessibleStage();
-    console.log('Found first accessible stage:', stage?.stage_name);
-    return createResult(stage);
+    console.log('Cross-workflow handoff: Sent to Bank - looking for first stage by order');
+    const result = findFirstStageByOrder();
+    console.log('First stage by order:', result.stage?.stage_name, 'hasAccess:', result.hasAccess);
+    return createResult(result.stage, result.hasAccess);
   }
   
   const completedStageName = getCompletedStageName(status);
   
   if (!completedStageName) {
-    console.log('Unknown status, finding first accessible stage');
-    return createResult(findFirstAccessibleStage());
+    console.log('Unknown status, finding first stage by order');
+    const result = findFirstStageByOrder();
+    return createResult(result.stage, result.hasAccess);
   }
   
   if (completedStageName === '__ALL_COMPLETE__') {
@@ -182,34 +187,35 @@ const getTargetStageFromWorkflow = async (
   
   console.log('Looking for completed stage:', completedStageName);
   
-  const completedIndex = stages.findIndex(
+  // Find completed stage by name to get its stage_order
+  const completedStage = stages.find(
     s => s.stage_name.toLowerCase() === completedStageName.toLowerCase()
   );
   
-  if (completedIndex === -1) {
+  if (!completedStage) {
     console.log('Completed stage not found in template, checking for Data Entry');
-    const dataEntryIndex = stages.findIndex(
-      s => s.stage_name.toLowerCase().includes('data entry')
-    );
-    if (dataEntryIndex >= 0 && dataEntryIndex < stages.length - 1) {
-      const nextStage = stages[dataEntryIndex + 1];
-      if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
-        return createResult(nextStage);
+    const dataEntryStage = stages.find(s => s.stage_name.toLowerCase().includes('data entry'));
+    if (dataEntryStage) {
+      // Find next stage by stage_order
+      const nextStage = stages.find(s => s.stage_order === dataEntryStage.stage_order + 1);
+      if (nextStage) {
+        const hasAccess = hasAccessToStage(nextStage);
+        return createResult(nextStage, hasAccess);
       }
     }
     return defaultResult;
   }
   
-  if (completedIndex < stages.length - 1) {
-    const nextStage = stages[completedIndex + 1];
-    console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type, 'ui_render_mode:', nextStage.ui_render_mode);
-    
-    if (accessibleActorTypes.includes(nextStage.actor_type) || accessibleActorTypes.includes('__ALL__')) {
-      return createResult(nextStage);
-    }
-    console.log('User does not have access to next stage actor_type:', nextStage.actor_type);
+  // Find next stage by stage_order (completed stage order + 1)
+  const nextStage = stages.find(s => s.stage_order === completedStage.stage_order + 1);
+  
+  if (nextStage) {
+    const hasAccess = hasAccessToStage(nextStage);
+    console.log('Next stage from template:', nextStage.stage_name, 'actor_type:', nextStage.actor_type, 'stage_order:', nextStage.stage_order, 'hasAccess:', hasAccess);
+    return createResult(nextStage, hasAccess);
   }
   
+  // No next stage - all stages complete
   return defaultResult;
 };
 
@@ -296,14 +302,19 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   }
 
   if (!canProcess || !targetStageResult.stageName) {
+    // Determine the actual pending stage for display
+    const pendingActorType = targetStageResult.stage?.actor_type;
+    
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-md">
           <div className="text-center py-8">
             <h3 className="text-lg font-semibold mb-2">No Action Required</h3>
             <p className="text-muted-foreground">
-              You don't have permission to process this transaction at its current stage, 
-              or the transaction has already been fully processed.
+              {pendingActorType 
+                ? `This transaction is pending the "${pendingActorType}" stage. You don't have permission to process this stage.`
+                : 'You don\'t have permission to process this transaction at its current stage, or the transaction has already been fully processed.'
+              }
             </p>
             <p className="text-sm text-muted-foreground mt-2">
               Current Status: <span className="font-medium">{transaction.status}</span>
