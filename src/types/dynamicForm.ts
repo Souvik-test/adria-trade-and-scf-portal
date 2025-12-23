@@ -166,6 +166,7 @@ export interface WorkflowStageRuntime {
   is_rejectable: boolean;
   reject_to_stage_id: string | null;
   stage_type: string;
+  ui_render_mode: 'static' | 'dynamic';
 }
 
 export interface WorkflowStageFieldRuntime {

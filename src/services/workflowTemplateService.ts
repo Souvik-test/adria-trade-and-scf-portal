@@ -313,6 +313,45 @@ export const getMultiStageSectionMapping = async (
   return result;
 };
 
+/**
+ * Get workflow template with render mode for a product-event-trigger combination.
+ * Returns the template, stages, and the first stage's ui_render_mode.
+ */
+export const getWorkflowWithRenderMode = async (
+  productCode: string,
+  eventCode: string,
+  triggerType: string
+): Promise<{
+  template: WorkflowTemplateRuntime;
+  stages: WorkflowStageRuntime[];
+  uiRenderMode: 'static' | 'dynamic';
+} | null> => {
+  const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
+  if (!template) return null;
+  
+  const stages = await getTemplateStages(template.id);
+  const firstStage = stages[0];
+  
+  return {
+    template,
+    stages,
+    uiRenderMode: firstStage?.ui_render_mode || 'static'
+  };
+};
+
+/**
+ * Get the ui_render_mode for a specific stage in a workflow.
+ * Useful for TransactionWorkflowModal which opens at a specific stage.
+ */
+export const getStageRenderMode = async (
+  templateId: string,
+  stageName: string
+): Promise<'static' | 'dynamic'> => {
+  const stages = await getTemplateStages(templateId);
+  const stage = stages.find(s => s.stage_name === stageName);
+  return stage?.ui_render_mode || 'static';
+};
+
 export default {
   findWorkflowTemplate,
   getTemplateStages,
@@ -323,4 +362,6 @@ export default {
   getStagePaneMapping,
   getStageSectionMapping,
   getMultiStageSectionMapping,
+  getWorkflowWithRenderMode,
+  getStageRenderMode,
 };
