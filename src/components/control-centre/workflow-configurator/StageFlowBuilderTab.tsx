@@ -136,13 +136,17 @@ function SortableStageCard({
                 >
                   <Settings className="w-4 h-4" />
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onStageSelect(stage)}
-                >
-                  <FileText className="w-4 h-4" />
-                </Button>
+                {/* Only show Configure Fields button when ui_render_mode is 'dynamic' */}
+                {(stage.ui_render_mode === 'dynamic') && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onStageSelect(stage)}
+                    title="Configure Fields"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                )}
                 {!viewOnly && (
                   <Button
                     size="sm"
@@ -156,7 +160,7 @@ function SortableStageCard({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-5 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs">Actor Type</Label>
                 <Select
@@ -171,6 +175,23 @@ function SortableStageCard({
                     {ACTOR_TYPES.map(actor => (
                       <SelectItem key={actor} value={actor}>{actor}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">UI Render Mode</Label>
+                <Select
+                  value={stage.ui_render_mode || 'static'}
+                  onValueChange={(val) => onUpdateStage(stage.id, { ui_render_mode: val as 'static' | 'dynamic' })}
+                  disabled={viewOnly}
+                >
+                  <SelectTrigger className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="static">Use Static Screen</SelectItem>
+                    <SelectItem value="dynamic">Apply Dynamic UI</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

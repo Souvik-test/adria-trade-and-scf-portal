@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Save, Send, FileSignature, X } from 'lucide-react';
+import { Save, Send, FileSignature, X, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   TransferFormData,
@@ -23,14 +23,30 @@ import {
 import MultipleRecipientsSection from './MultipleRecipientsSection';
 import AdhocBeneficiarySection from './AdhocBeneficiarySection';
 
-const TransferFormSection: React.FC = () => {
+interface TransferFormSectionProps {
+  readOnly?: boolean;
+  isApprovalStage?: boolean;
+  onStageComplete?: () => void;
+  onApprove?: () => void;
+  onReject?: (reason?: string) => void;
+}
+
+const TransferFormSection: React.FC<TransferFormSectionProps> = ({
+  readOnly = false,
+  isApprovalStage = false,
+  onStageComplete,
+  onApprove,
+  onReject,
+}) => {
   const [formData, setFormData] = useState<TransferFormData>(initialTransferFormData);
 
   const updateField = <K extends keyof TransferFormData>(field: K, value: TransferFormData[K]) => {
+    if (readOnly) return;
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAdhocChange = (field: keyof AdhocBeneficiary, value: string) => {
+    if (readOnly) return;
     setFormData((prev) => ({
       ...prev,
       adhocBeneficiary: {
@@ -41,6 +57,7 @@ const TransferFormSection: React.FC = () => {
   };
 
   const handleToggleAdhoc = (checked: boolean) => {
+    if (readOnly) return;
     setFormData((prev) => ({
       ...prev,
       isAdhocBeneficiary: checked,
@@ -72,6 +89,7 @@ const TransferFormSection: React.FC = () => {
       return;
     }
     toast.success('Transfer submitted successfully');
+    onStageComplete?.();
   };
 
   const handleSignConfirm = () => {
@@ -88,11 +106,26 @@ const TransferFormSection: React.FC = () => {
       return;
     }
     toast.success('Transfer signed and confirmed');
+    onStageComplete?.();
+  };
+
+  const handleApprove = () => {
+    toast.success('Transfer approved');
+    onApprove?.();
+  };
+
+  const handleReject = () => {
+    toast.info('Transfer rejected');
+    onReject?.('Rejected by approver');
   };
 
   const showMultipleRecipients = formData.direction === 'outward' && formData.outwardType === 'multiple';
   const showAdhocBeneficiary = formData.direction === 'outward' && 
     (formData.outwardType === 'beneficiary' || formData.outwardType === 'international');
+
+  // Helper to apply readonly styles
+  const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
+  const selectDisabled = readOnly;
 
   return (
     <div className="flex flex-col h-full">
@@ -107,16 +140,17 @@ const TransferFormSection: React.FC = () => {
               value={formData.direction}
               onValueChange={(value: TransferDirection) => updateField('direction', value)}
               className="flex gap-6"
+              disabled={readOnly}
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="outward" id="outward" />
-                <Label htmlFor="outward" className="cursor-pointer">
+                <RadioGroupItem value="outward" id="outward" disabled={readOnly} />
+                <Label htmlFor="outward" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>
                   Outward Transaction
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="inward" id="inward" />
-                <Label htmlFor="inward" className="cursor-pointer">
+                <RadioGroupItem value="inward" id="inward" disabled={readOnly} />
+                <Label htmlFor="inward" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>
                   Inward Transaction
                 </Label>
               </div>
@@ -135,22 +169,23 @@ const TransferFormSection: React.FC = () => {
                 value={formData.outwardType}
                 onValueChange={(value: TransferType) => updateField('outwardType', value)}
                 className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                disabled={readOnly}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="a2a" id="a2a" />
-                  <Label htmlFor="a2a" className="cursor-pointer">A2A (Own Account)</Label>
+                  <RadioGroupItem value="a2a" id="a2a" disabled={readOnly} />
+                  <Label htmlFor="a2a" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>A2A (Own Account)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="beneficiary" id="beneficiary" />
-                  <Label htmlFor="beneficiary" className="cursor-pointer">Beneficiary</Label>
+                  <RadioGroupItem value="beneficiary" id="beneficiary" disabled={readOnly} />
+                  <Label htmlFor="beneficiary" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>Beneficiary</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="multiple" id="multiple" />
-                  <Label htmlFor="multiple" className="cursor-pointer">Multiple Recipients</Label>
+                  <RadioGroupItem value="multiple" id="multiple" disabled={readOnly} />
+                  <Label htmlFor="multiple" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>Multiple Recipients</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="international" id="international" />
-                  <Label htmlFor="international" className="cursor-pointer">International</Label>
+                  <RadioGroupItem value="international" id="international" disabled={readOnly} />
+                  <Label htmlFor="international" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>International</Label>
                 </div>
               </RadioGroup>
             </CardContent>
@@ -171,8 +206,9 @@ const TransferFormSection: React.FC = () => {
                     <Select
                       value={formData.debitAccount}
                       onValueChange={(value) => updateField('debitAccount', value)}
+                      disabled={selectDisabled}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={inputClassName}>
                         <SelectValue placeholder="Select debit account" />
                       </SelectTrigger>
                       <SelectContent>
@@ -191,8 +227,9 @@ const TransferFormSection: React.FC = () => {
                       <Select
                         value={formData.creditAccount}
                         onValueChange={(value) => updateField('creditAccount', value)}
+                        disabled={selectDisabled}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={inputClassName}>
                           <SelectValue placeholder="Select credit account" />
                         </SelectTrigger>
                         <SelectContent>
@@ -212,8 +249,9 @@ const TransferFormSection: React.FC = () => {
                       <Select
                         value={formData.beneficiary}
                         onValueChange={(value) => updateField('beneficiary', value)}
+                        disabled={selectDisabled}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={inputClassName}>
                           <SelectValue placeholder="Select beneficiary" />
                         </SelectTrigger>
                         <SelectContent>
@@ -234,8 +272,9 @@ const TransferFormSection: React.FC = () => {
                     <Select
                       value={formData.creditAccount}
                       onValueChange={(value) => updateField('creditAccount', value)}
+                      disabled={selectDisabled}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={inputClassName}>
                         <SelectValue placeholder="Select credit account" />
                       </SelectTrigger>
                       <SelectContent>
@@ -255,6 +294,8 @@ const TransferFormSection: React.FC = () => {
                       value={formData.externalSender}
                       onChange={(e) => updateField('externalSender', e.target.value)}
                       placeholder="Enter sender name"
+                      disabled={readOnly}
+                      className={inputClassName}
                     />
                   </div>
 
@@ -265,6 +306,8 @@ const TransferFormSection: React.FC = () => {
                       value={formData.externalBank}
                       onChange={(e) => updateField('externalBank', e.target.value)}
                       placeholder="Enter sender bank name"
+                      disabled={readOnly}
+                      className={inputClassName}
                     />
                   </div>
                 </>
@@ -282,6 +325,8 @@ const TransferFormSection: React.FC = () => {
                     onChange={(e) => updateField('amount', parseFloat(e.target.value) || 0)}
                     placeholder="Enter amount"
                     min={0}
+                    disabled={readOnly}
+                    className={inputClassName}
                   />
                 </div>
                 <div className="space-y-2">
@@ -289,8 +334,9 @@ const TransferFormSection: React.FC = () => {
                   <Select
                     value={formData.currency}
                     onValueChange={(value) => updateField('currency', value)}
+                    disabled={selectDisabled}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={inputClassName}>
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -308,7 +354,7 @@ const TransferFormSection: React.FC = () => {
         </Card>
 
         {/* Adhoc Beneficiary Section */}
-        {showAdhocBeneficiary && (
+        {showAdhocBeneficiary && !readOnly && (
           <AdhocBeneficiarySection
             isAdhocBeneficiary={formData.isAdhocBeneficiary}
             adhocBeneficiary={formData.adhocBeneficiary}
@@ -318,7 +364,7 @@ const TransferFormSection: React.FC = () => {
         )}
 
         {/* Multiple Recipients Section */}
-        {showMultipleRecipients && (
+        {showMultipleRecipients && !readOnly && (
           <MultipleRecipientsSection
             recipients={formData.multipleRecipients}
             currency={formData.currency}
@@ -337,18 +383,19 @@ const TransferFormSection: React.FC = () => {
               value={formData.executionType}
               onValueChange={(value: ExecutionType) => updateField('executionType', value)}
               className="flex flex-wrap gap-6"
+              disabled={readOnly}
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="immediate" id="immediate" />
-                <Label htmlFor="immediate" className="cursor-pointer">Immediate</Label>
+                <RadioGroupItem value="immediate" id="immediate" disabled={readOnly} />
+                <Label htmlFor="immediate" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>Immediate</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="deferred" id="deferred" />
-                <Label htmlFor="deferred" className="cursor-pointer">Deferred</Label>
+                <RadioGroupItem value="deferred" id="deferred" disabled={readOnly} />
+                <Label htmlFor="deferred" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>Deferred</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="standing" id="standing" />
-                <Label htmlFor="standing" className="cursor-pointer">Standing Order</Label>
+                <RadioGroupItem value="standing" id="standing" disabled={readOnly} />
+                <Label htmlFor="standing" className={`cursor-pointer ${readOnly ? 'text-muted-foreground' : ''}`}>Standing Order</Label>
               </div>
             </RadioGroup>
 
@@ -363,6 +410,8 @@ const TransferFormSection: React.FC = () => {
                     type="date"
                     value={formData.executionDate}
                     onChange={(e) => updateField('executionDate', e.target.value)}
+                    disabled={readOnly}
+                    className={inputClassName}
                   />
                 </div>
 
@@ -372,8 +421,9 @@ const TransferFormSection: React.FC = () => {
                     <Select
                       value={formData.frequency}
                       onValueChange={(value) => updateField('frequency', value)}
+                      disabled={selectDisabled}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={inputClassName}>
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
                       <SelectContent>
@@ -404,6 +454,8 @@ const TransferFormSection: React.FC = () => {
                 value={formData.reference}
                 onChange={(e) => updateField('reference', e.target.value)}
                 placeholder="Enter reference or description"
+                disabled={readOnly}
+                className={inputClassName}
               />
             </div>
           </CardContent>
@@ -413,34 +465,69 @@ const TransferFormSection: React.FC = () => {
       {/* Footer Actions */}
       <div className="border-t bg-background pt-4 mt-4">
         <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={handleDiscard}
-          >
-            <X className="h-4 w-4 mr-2" />
-            Discard
-          </Button>
-          <div className="flex items-center gap-3">
+          {/* Left side - Discard (only for data entry) */}
+          {!isApprovalStage ? (
             <Button
               variant="outline"
-              onClick={handleSaveDraft}
+              onClick={handleDiscard}
+              disabled={readOnly}
             >
-              <Save className="h-4 w-4 mr-2" />
-              Save as Draft
+              <X className="h-4 w-4 mr-2" />
+              Discard
             </Button>
-            <Button
-              variant="secondary"
-              onClick={handleSubmit}
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Submit
-            </Button>
-            <Button
-              onClick={handleSignConfirm}
-            >
-              <FileSignature className="h-4 w-4 mr-2" />
-              Sign & Confirm
-            </Button>
+          ) : (
+            <div /> // Empty div to maintain flex layout
+          )}
+
+          {/* Right side - Action buttons */}
+          <div className="flex items-center gap-3">
+            {isApprovalStage ? (
+              // Approval stage buttons
+              <>
+                <Button
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={handleReject}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject
+                </Button>
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleApprove}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve
+                </Button>
+              </>
+            ) : (
+              // Data entry stage buttons
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  disabled={readOnly}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save as Draft
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleSubmit}
+                  disabled={readOnly}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Submit
+                </Button>
+                <Button
+                  onClick={handleSignConfirm}
+                  disabled={readOnly}
+                >
+                  <FileSignature className="h-4 w-4 mr-2" />
+                  Sign & Confirm
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

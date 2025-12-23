@@ -3448,6 +3448,7 @@ export type Database = {
           stage_order: number
           stage_type: string
           template_id: string
+          ui_render_mode: string
           updated_at: string
         }
         Insert: {
@@ -3461,6 +3462,7 @@ export type Database = {
           stage_order: number
           stage_type?: string
           template_id: string
+          ui_render_mode?: string
           updated_at?: string
         }
         Update: {
@@ -3474,6 +3476,7 @@ export type Database = {
           stage_order?: number
           stage_type?: string
           template_id?: string
+          ui_render_mode?: string
           updated_at?: string
         }
         Relationships: [
