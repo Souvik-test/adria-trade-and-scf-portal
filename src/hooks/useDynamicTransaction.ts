@@ -16,6 +16,8 @@ import {
   getStageFields,
   getTemplatePaneNames,
   getStagePaneMapping,
+  getTemplatePaneNamesByStageOrder,
+  getStagePaneMappingByStageOrder,
   StagePaneInfo,
 } from '@/services/workflowTemplateService';
 import { getPaneSectionConfig, getDefaultButtons } from '@/services/paneSectionService';
@@ -230,18 +232,44 @@ export const useDynamicTransaction = ({
           let filteredStages: typeof templateStages;
           
           if (initialStage) {
-            // Continuing existing transaction - only show the target stage
+            // Continuing existing transaction - find target stage by name
             const targetStage = templateStages.find(
               stage => stage.stage_name.toLowerCase() === initialStage.toLowerCase()
             );
             
-            // Check if user has access to this stage
-            const hasAccess = isSuper || 
-              accessibleStages.length === 0 || 
-              accessibleStages.includes('__ALL__') ||
-              (targetStage && accessibleStages.includes(targetStage.actor_type));
-            
-            filteredStages = targetStage && hasAccess ? [targetStage] : [];
+            if (!targetStage) {
+              console.error(`Target stage "${initialStage}" not found in workflow template`);
+              filteredStages = [];
+            } else {
+              // Check if user has access to this stage's ACTOR TYPE (not stage name)
+              const hasAccess = isSuper || 
+                accessibleStages.length === 0 || 
+                accessibleStages.includes('__ALL__') ||
+                accessibleStages.includes(targetStage.actor_type);
+              
+              if (!hasAccess) {
+                console.log(`User does not have access to actor_type: ${targetStage.actor_type} for stage: ${targetStage.stage_name}`);
+                setError(`You don't have permission to process the ${targetStage.actor_type} stage`);
+                setLoading(false);
+                return;
+              }
+              
+              filteredStages = [targetStage];
+              
+              // Use stage_order-based functions to get panes (NOT stage name filter)
+              // This ensures we get panes specifically for this stage's stage_order
+              allowedPaneNames = await getTemplatePaneNamesByStageOrder(foundTemplate.id, targetStage.stage_order);
+              const mapping = await getStagePaneMappingByStageOrder(foundTemplate.id, targetStage.stage_order);
+              setStagePaneMapping(mapping);
+              
+              console.log(`Stage order: ${targetStage.stage_order}, Panes: ${allowedPaneNames.join(', ')}, Mapping:`, mapping);
+              
+              // Build per-pane-index section mapping
+              allowedSections = new Map<string, string[]>();
+              mapping.forEach((paneInfo, index) => {
+                allowedSections!.set(`${index}`, paneInfo.allowedSections);
+              });
+            }
           } else {
             // New transaction - filter stages based on user permissions (super users see all)
             // accessibleStages contains actor_types like 'Maker', 'Checker' - not stage_names
@@ -250,6 +278,18 @@ export const useDynamicTransaction = ({
               : templateStages.filter(stage => 
                   accessibleStages.includes(stage.actor_type) || accessibleStages.includes('__ALL__')
                 );
+            
+            // Use actor_type-based functions for new transactions
+            const actorTypeFilter = isSuper ? undefined : accessibleStages;
+            allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, actorTypeFilter);
+            const mapping = await getStagePaneMapping(foundTemplate.id, actorTypeFilter);
+            setStagePaneMapping(mapping);
+            
+            // Build per-pane-index section mapping
+            allowedSections = new Map<string, string[]>();
+            mapping.forEach((paneInfo, index) => {
+              allowedSections!.set(`${index}`, paneInfo.allowedSections);
+            });
           }
           
           setStages(filteredStages);
@@ -263,22 +303,6 @@ export const useDynamicTransaction = ({
             })
           );
           setStageFields(fieldsMap);
-
-          // Extract pane names and stage-pane mapping (filtered by accessible stages)
-          // For existing transactions, only include the target stage
-          const stageNamesFilter = initialStage 
-            ? [initialStage] // Only the target stage for existing transactions
-            : (isSuper ? undefined : accessibleStages);
-          allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, stageNamesFilter);
-          const mapping = await getStagePaneMapping(foundTemplate.id, stageNamesFilter);
-          setStagePaneMapping(mapping);
-          
-          // Build per-pane-index section mapping from stagePaneMapping (stage-specific sections)
-          allowedSections = new Map<string, string[]>();
-          mapping.forEach((paneInfo, index) => {
-            // Use index as key to ensure each pane occurrence gets its own section filter
-            allowedSections!.set(`${index}`, paneInfo.allowedSections);
-          });
         }
 
         // Fetch pane/section configuration, filtered and ordered by workflow template panes and sections
