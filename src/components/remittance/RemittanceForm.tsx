@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, History, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import TransferFormSection from './TransferFormSection';
-import TransferHistorySection from './TransferHistorySection';
 import { useRemittanceWorkflow } from '@/hooks/useRemittanceWorkflow';
 
 interface RemittanceFormProps {
@@ -17,8 +15,6 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
   transactionRef,
   transactionStatus 
 }) => {
-  const [activeTab, setActiveTab] = useState('new-transfer');
-  
   // Integrate with workflow template
   const {
     hasWorkflowTemplate,
@@ -138,38 +134,14 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="new-transfer" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            New Transfer
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="h-4 w-4" />
-            Transfer History
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="new-transfer" className="mt-0">
-          {/* 
-            For now, we always use static screen (TransferFormSection)
-            Dynamic mode would use DynamicFormRenderer based on stage fields
-            When ui_render_mode === 'dynamic' and stage fields are configured,
-            we would render DynamicFormRenderer instead
-          */}
-          <TransferFormSection 
-            readOnly={!isEditable}
-            isApprovalStage={isApprovalStage}
-            onStageComplete={handleStageComplete}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-        </TabsContent>
-
-        <TabsContent value="history" className="mt-0">
-          <TransferHistorySection />
-        </TabsContent>
-      </Tabs>
+      {/* Transfer Form - No tabs, direct display */}
+      <TransferFormSection 
+        readOnly={!isEditable}
+        isApprovalStage={isApprovalStage}
+        onStageComplete={handleStageComplete}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
