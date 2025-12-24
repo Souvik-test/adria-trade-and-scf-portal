@@ -14,7 +14,9 @@ import {
   CURRENCY_OPTIONS,
   MOCK_ACCOUNTS,
 } from '@/types/remittance';
+import { OutwardTransferType, OUTWARD_TRANSFER_TYPE_OPTIONS } from '@/types/internationalRemittance';
 import OutwardRemittanceForm from './OutwardRemittanceForm';
+import FICreditTransferForm from './FICreditTransferForm';
 
 interface TransferFormSectionProps {
   readOnly?: boolean;
@@ -32,6 +34,7 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
   onReject,
 }) => {
   const [direction, setDirection] = useState<TransferDirection>('outward');
+  const [transferType, setTransferType] = useState<OutwardTransferType>('customer');
   const [inwardFormData, setInwardFormData] = useState<TransferFormData>(initialTransferFormData);
 
   const updateInwardField = <K extends keyof TransferFormData>(field: K, value: TransferFormData[K]) => {
@@ -50,36 +53,18 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
     toast.info('Form discarded');
   };
 
-  const handleInwardSaveDraft = () => {
-    toast.success('Transfer saved as draft');
-  };
+  const handleInwardSaveDraft = () => toast.success('Transfer saved as draft');
 
   const handleInwardSubmit = () => {
-    if (!inwardFormData.creditAccount) {
-      toast.error('Please select a credit account');
-      return;
-    }
-    if (!inwardFormData.externalSender.trim()) {
-      toast.error('Please enter sender name');
-      return;
-    }
-    if (inwardFormData.amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
+    if (!inwardFormData.creditAccount) { toast.error('Please select a credit account'); return; }
+    if (!inwardFormData.externalSender.trim()) { toast.error('Please enter sender name'); return; }
+    if (inwardFormData.amount <= 0) { toast.error('Please enter a valid amount'); return; }
     toast.success('Inward remittance submitted successfully');
     onStageComplete?.();
   };
 
-  const handleApprove = () => {
-    toast.success('Transfer approved');
-    onApprove?.();
-  };
-
-  const handleReject = () => {
-    toast.info('Transfer rejected');
-    onReject?.('Rejected by approver');
-  };
+  const handleApprove = () => { toast.success('Transfer approved'); onApprove?.(); };
+  const handleReject = () => { toast.info('Transfer rejected'); onReject?.('Rejected by approver'); };
 
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   const selectDisabled = readOnly;
@@ -114,9 +99,35 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
         </CardContent>
       </Card>
 
+      {/* Transfer Type Selection for Outward */}
+      {direction === 'outward' && (
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Transfer Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={transferType}
+              onValueChange={(value: OutwardTransferType) => setTransferType(value)}
+              disabled={readOnly}
+            >
+              <SelectTrigger className={`w-full md:w-96 ${inputClassName}`}>
+                <SelectValue placeholder="Select transfer type" />
+              </SelectTrigger>
+              <SelectContent>
+                {OUTWARD_TRANSFER_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Conditional Form Rendering */}
-      {direction === 'outward' ? (
-        // Outward International Remittance Form (pacs.008)
+      {direction === 'outward' && transferType === 'customer' && (
         <OutwardRemittanceForm
           readOnly={readOnly}
           isApprovalStage={isApprovalStage}
@@ -124,108 +135,61 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
           onApprove={onApprove}
           onReject={onReject}
         />
-      ) : (
-        // Inward Transaction Form (Keep Existing)
+      )}
+
+      {direction === 'outward' && transferType === 'fi' && (
+        <FICreditTransferForm
+          readOnly={readOnly}
+          isApprovalStage={isApprovalStage}
+          onStageComplete={onStageComplete}
+          onApprove={onApprove}
+          onReject={onReject}
+        />
+      )}
+
+      {direction === 'inward' && (
         <div className="flex flex-col h-full">
           <div className="flex-1 space-y-6 overflow-y-auto pb-4">
-            {/* Inward: Account & Amount Section */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-medium">Account & Amount</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Credit Account */}
                   <div className="space-y-2">
                     <Label htmlFor="creditAccount">Credit Account <span className="text-destructive">*</span></Label>
-                    <Select
-                      value={inwardFormData.creditAccount}
-                      onValueChange={(value) => updateInwardField('creditAccount', value)}
-                      disabled={selectDisabled}
-                    >
-                      <SelectTrigger className={inputClassName}>
-                        <SelectValue placeholder="Select credit account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_ACCOUNTS.map((acc) => (
-                          <SelectItem key={acc.value} value={acc.value}>
-                            {acc.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                    <Select value={inwardFormData.creditAccount} onValueChange={(value) => updateInwardField('creditAccount', value)} disabled={selectDisabled}>
+                      <SelectTrigger className={inputClassName}><SelectValue placeholder="Select credit account" /></SelectTrigger>
+                      <SelectContent>{MOCK_ACCOUNTS.map((acc) => (<SelectItem key={acc.value} value={acc.value}>{acc.label}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
-
-                  {/* Sender Name */}
                   <div className="space-y-2">
                     <Label htmlFor="externalSender">Sender Name <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="externalSender"
-                      value={inwardFormData.externalSender}
-                      onChange={(e) => updateInwardField('externalSender', e.target.value)}
-                      placeholder="Enter sender name"
-                      disabled={readOnly}
-                      className={inputClassName}
-                    />
+                    <Input id="externalSender" value={inwardFormData.externalSender} onChange={(e) => updateInwardField('externalSender', e.target.value)} placeholder="Enter sender name" disabled={readOnly} className={inputClassName} />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Sender Bank */}
                   <div className="space-y-2">
                     <Label htmlFor="externalBank">Sender Bank <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="externalBank"
-                      value={inwardFormData.externalBank}
-                      onChange={(e) => updateInwardField('externalBank', e.target.value)}
-                      placeholder="Enter sender bank name"
-                      disabled={readOnly}
-                      className={inputClassName}
-                    />
+                    <Input id="externalBank" value={inwardFormData.externalBank} onChange={(e) => updateInwardField('externalBank', e.target.value)} placeholder="Enter sender bank name" disabled={readOnly} className={inputClassName} />
                   </div>
-
-                  {/* Amount */}
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount <span className="text-destructive">*</span></Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={inwardFormData.amount || ''}
-                      onChange={(e) => updateInwardField('amount', parseFloat(e.target.value) || 0)}
-                      placeholder="Enter amount"
-                      min={0}
-                      disabled={readOnly}
-                      className={inputClassName}
-                    />
+                    <Input id="amount" type="number" value={inwardFormData.amount || ''} onChange={(e) => updateInwardField('amount', parseFloat(e.target.value) || 0)} placeholder="Enter amount" min={0} disabled={readOnly} className={inputClassName} />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Currency */}
                   <div className="space-y-2">
                     <Label htmlFor="currency">Currency</Label>
-                    <Select
-                      value={inwardFormData.currency}
-                      onValueChange={(value) => updateInwardField('currency', value)}
-                      disabled={selectDisabled}
-                    >
-                      <SelectTrigger className={inputClassName}>
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCY_OPTIONS.map((cur) => (
-                          <SelectItem key={cur.value} value={cur.value}>
-                            {cur.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                    <Select value={inwardFormData.currency} onValueChange={(value) => updateInwardField('currency', value)} disabled={selectDisabled}>
+                      <SelectTrigger className={inputClassName}><SelectValue placeholder="Select currency" /></SelectTrigger>
+                      <SelectContent>{CURRENCY_OPTIONS.map((cur) => (<SelectItem key={cur.value} value={cur.value}>{cur.label}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Reference Section */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-medium">Reference</CardTitle>
@@ -233,73 +197,27 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="reference">Transaction Reference</Label>
-                  <Input
-                    id="reference"
-                    value={inwardFormData.reference}
-                    onChange={(e) => updateInwardField('reference', e.target.value)}
-                    placeholder="Enter reference or description"
-                    disabled={readOnly}
-                    className={inputClassName}
-                  />
+                  <Input id="reference" value={inwardFormData.reference} onChange={(e) => updateInwardField('reference', e.target.value)} placeholder="Enter reference or description" disabled={readOnly} className={inputClassName} />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Footer Actions for Inward */}
           <div className="border-t bg-background pt-4 mt-4">
             <div className="flex items-center justify-between">
-              {/* Left side - Discard (only for data entry) */}
               {!isApprovalStage ? (
-                <Button
-                  variant="outline"
-                  onClick={handleInwardDiscard}
-                  disabled={readOnly}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Discard
-                </Button>
-              ) : (
-                <div />
-              )}
-
-              {/* Right side - Action buttons */}
+                <Button variant="outline" onClick={handleInwardDiscard} disabled={readOnly}><X className="h-4 w-4 mr-2" />Discard</Button>
+              ) : (<div />)}
               <div className="flex items-center gap-3">
                 {isApprovalStage ? (
                   <>
-                    <Button
-                      variant="outline"
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={handleReject}
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      onClick={handleApprove}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
-                    </Button>
+                    <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={handleReject}><XCircle className="h-4 w-4 mr-2" />Reject</Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleApprove}><CheckCircle className="h-4 w-4 mr-2" />Approve</Button>
                   </>
                 ) : (
                   <>
-                    <Button
-                      variant="outline"
-                      onClick={handleInwardSaveDraft}
-                      disabled={readOnly}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save as Draft
-                    </Button>
-                    <Button
-                      onClick={handleInwardSubmit}
-                      disabled={readOnly}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit
-                    </Button>
+                    <Button variant="outline" onClick={handleInwardSaveDraft} disabled={readOnly}><Save className="h-4 w-4 mr-2" />Save as Draft</Button>
+                    <Button onClick={handleInwardSubmit} disabled={readOnly}><Send className="h-4 w-4 mr-2" />Submit</Button>
                   </>
                 )}
               </div>
