@@ -5,7 +5,6 @@ export { default as AmountChargesPane } from './AmountChargesPane';
 export { default as RoutingSettlementPane } from './RoutingSettlementPane';
 export { default as RegulatoryCompliancePane } from './RegulatoryCompliancePane';
 export { default as RemittanceInfoPane } from './RemittanceInfoPane';
-export { default as CollapsiblePane } from './CollapsiblePane';
 // PACS.009 Panes
 export { default as SettlementHeaderPane } from './SettlementHeaderPane';
 export { default as InstructingAgentPane } from './InstructingAgentPane';
