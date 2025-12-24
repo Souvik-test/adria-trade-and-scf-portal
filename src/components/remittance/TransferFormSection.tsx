@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Save, Send, FileSignature, X, CheckCircle, XCircle } from 'lucide-react';
+import { Save, Send, X, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   TransferFormData,
@@ -19,9 +19,63 @@ import {
   MOCK_ACCOUNTS,
   MOCK_BENEFICIARIES,
   FREQUENCY_OPTIONS,
+  MOCK_COUNTRIES,
 } from '@/types/remittance';
 import MultipleRecipientsSection from './MultipleRecipientsSection';
 import AdhocBeneficiarySection from './AdhocBeneficiarySection';
+
+// Mock data for states/regions (can be expanded)
+const MOCK_STATES: Record<string, { value: string; label: string }[]> = {
+  US: [
+    { value: 'NY', label: 'New York' },
+    { value: 'CA', label: 'California' },
+    { value: 'TX', label: 'Texas' },
+  ],
+  GB: [
+    { value: 'ENG', label: 'England' },
+    { value: 'SCT', label: 'Scotland' },
+    { value: 'WLS', label: 'Wales' },
+  ],
+  AE: [
+    { value: 'DXB', label: 'Dubai' },
+    { value: 'AUH', label: 'Abu Dhabi' },
+    { value: 'SHJ', label: 'Sharjah' },
+  ],
+  IN: [
+    { value: 'MH', label: 'Maharashtra' },
+    { value: 'DL', label: 'Delhi' },
+    { value: 'KA', label: 'Karnataka' },
+  ],
+};
+
+// Mock data for cities (can be expanded)
+const MOCK_CITIES: Record<string, { value: string; label: string }[]> = {
+  NY: [{ value: 'NYC', label: 'New York City' }, { value: 'BUF', label: 'Buffalo' }],
+  CA: [{ value: 'LA', label: 'Los Angeles' }, { value: 'SF', label: 'San Francisco' }],
+  ENG: [{ value: 'LON', label: 'London' }, { value: 'MAN', label: 'Manchester' }],
+  DXB: [{ value: 'DXB', label: 'Dubai City' }],
+  MH: [{ value: 'MUM', label: 'Mumbai' }, { value: 'PUN', label: 'Pune' }],
+};
+
+interface OrderingCustomerAddress {
+  country: string;
+  stateRegion: string;
+  city: string;
+  town: string;
+  addressLine1: string;
+  addressLine2: string;
+  pinPostCode: string;
+}
+
+const initialOrderingCustomerAddress: OrderingCustomerAddress = {
+  country: '',
+  stateRegion: '',
+  city: '',
+  town: '',
+  addressLine1: '',
+  addressLine2: '',
+  pinPostCode: '',
+};
 
 interface TransferFormSectionProps {
   readOnly?: boolean;
@@ -39,10 +93,28 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
   onReject,
 }) => {
   const [formData, setFormData] = useState<TransferFormData>(initialTransferFormData);
+  const [orderingCustomer, setOrderingCustomer] = useState('');
+  const [orderingCustomerAddress, setOrderingCustomerAddress] = useState<OrderingCustomerAddress>(initialOrderingCustomerAddress);
+  const [orderingBankBic, setOrderingBankBic] = useState('');
 
   const updateField = <K extends keyof TransferFormData>(field: K, value: TransferFormData[K]) => {
     if (readOnly) return;
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateOrderingAddress = (field: keyof OrderingCustomerAddress, value: string) => {
+    if (readOnly) return;
+    setOrderingCustomerAddress((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Reset dependent fields when parent changes
+      if (field === 'country') {
+        updated.stateRegion = '';
+        updated.city = '';
+      } else if (field === 'stateRegion') {
+        updated.city = '';
+      }
+      return updated;
+    });
   };
 
   const handleAdhocChange = (field: keyof AdhocBeneficiary, value: string) => {
@@ -68,6 +140,9 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
 
   const handleDiscard = () => {
     setFormData(initialTransferFormData);
+    setOrderingCustomer('');
+    setOrderingCustomerAddress(initialOrderingCustomerAddress);
+    setOrderingBankBic('');
     toast.info('Form discarded');
   };
 
@@ -77,7 +152,7 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
 
   const handleSubmit = () => {
     if (!formData.debitAccount && formData.direction === 'outward') {
-      toast.error('Please select a debit account');
+      toast.error('Please select a debit/ordering account');
       return;
     }
     if (!formData.creditAccount && formData.direction === 'inward') {
@@ -89,23 +164,6 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
       return;
     }
     toast.success('Transfer submitted successfully');
-    onStageComplete?.();
-  };
-
-  const handleSignConfirm = () => {
-    if (!formData.debitAccount && formData.direction === 'outward') {
-      toast.error('Please select a debit account');
-      return;
-    }
-    if (!formData.creditAccount && formData.direction === 'inward') {
-      toast.error('Please select a credit account');
-      return;
-    }
-    if (formData.amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-    toast.success('Transfer signed and confirmed');
     onStageComplete?.();
   };
 
@@ -126,6 +184,11 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
   // Helper to apply readonly styles
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   const selectDisabled = readOnly;
+
+  // Get available states based on selected country
+  const availableStates = orderingCustomerAddress.country ? MOCK_STATES[orderingCustomerAddress.country] || [] : [];
+  // Get available cities based on selected state
+  const availableCities = orderingCustomerAddress.stateRegion ? MOCK_CITIES[orderingCustomerAddress.stateRegion] || [] : [];
 
   return (
     <div className="flex flex-col h-full">
@@ -198,18 +261,160 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
             <CardTitle className="text-base font-medium">Account & Amount</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Ordering Customer */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="orderingCustomer">Ordering Customer *</Label>
+                <Input
+                  id="orderingCustomer"
+                  value={orderingCustomer}
+                  onChange={(e) => !readOnly && setOrderingCustomer(e.target.value.slice(0, 140))}
+                  placeholder="Enter ordering customer name"
+                  maxLength={140}
+                  disabled={readOnly}
+                  className={inputClassName}
+                />
+                <span className="text-xs text-muted-foreground">{orderingCustomer.length}/140</span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="orderingBankBic">Ordering Bank BIC/SWIFT *</Label>
+                <Input
+                  id="orderingBankBic"
+                  value={orderingBankBic}
+                  onChange={(e) => !readOnly && setOrderingBankBic(e.target.value.toUpperCase())}
+                  placeholder="e.g., HSBCGB2L"
+                  maxLength={11}
+                  disabled={readOnly}
+                  className={inputClassName}
+                />
+              </div>
+            </div>
+
+            {/* Ordering Customer Address */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Ordering Customer Address</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="addressCountry" className="text-xs text-muted-foreground">Country *</Label>
+                  <Select
+                    value={orderingCustomerAddress.country}
+                    onValueChange={(value) => updateOrderingAddress('country', value)}
+                    disabled={selectDisabled}
+                  >
+                    <SelectTrigger className={inputClassName}>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOCK_COUNTRIES.map((country) => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="addressState" className="text-xs text-muted-foreground">State/Region</Label>
+                  <Select
+                    value={orderingCustomerAddress.stateRegion}
+                    onValueChange={(value) => updateOrderingAddress('stateRegion', value)}
+                    disabled={selectDisabled || !orderingCustomerAddress.country}
+                  >
+                    <SelectTrigger className={inputClassName}>
+                      <SelectValue placeholder="Select state/region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStates.map((state) => (
+                        <SelectItem key={state.value} value={state.value}>
+                          {state.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="addressCity" className="text-xs text-muted-foreground">City</Label>
+                  <Select
+                    value={orderingCustomerAddress.city}
+                    onValueChange={(value) => updateOrderingAddress('city', value)}
+                    disabled={selectDisabled || !orderingCustomerAddress.stateRegion}
+                  >
+                    <SelectTrigger className={inputClassName}>
+                      <SelectValue placeholder="Select city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCities.map((city) => (
+                        <SelectItem key={city.value} value={city.value}>
+                          {city.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="addressTown" className="text-xs text-muted-foreground">Town</Label>
+                  <Input
+                    id="addressTown"
+                    value={orderingCustomerAddress.town}
+                    onChange={(e) => updateOrderingAddress('town', e.target.value)}
+                    placeholder="Enter town"
+                    disabled={readOnly}
+                    className={inputClassName}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="addressLine1" className="text-xs text-muted-foreground">Address Line 1 *</Label>
+                  <Input
+                    id="addressLine1"
+                    value={orderingCustomerAddress.addressLine1}
+                    onChange={(e) => updateOrderingAddress('addressLine1', e.target.value)}
+                    placeholder="Enter address line 1"
+                    disabled={readOnly}
+                    className={inputClassName}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="addressLine2" className="text-xs text-muted-foreground">Address Line 2</Label>
+                  <Input
+                    id="addressLine2"
+                    value={orderingCustomerAddress.addressLine2}
+                    onChange={(e) => updateOrderingAddress('addressLine2', e.target.value)}
+                    placeholder="Enter address line 2"
+                    disabled={readOnly}
+                    className={inputClassName}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="addressPin" className="text-xs text-muted-foreground">PIN/POST Code</Label>
+                  <Input
+                    id="addressPin"
+                    value={orderingCustomerAddress.pinPostCode}
+                    onChange={(e) => updateOrderingAddress('pinPostCode', e.target.value)}
+                    placeholder="Enter PIN/POST code"
+                    disabled={readOnly}
+                    className={inputClassName}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Account Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {formData.direction === 'outward' ? (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="debitAccount">Debit Account *</Label>
+                    <Label htmlFor="debitAccount">Debit/Ordering Account/IBAN *</Label>
                     <Select
                       value={formData.debitAccount}
                       onValueChange={(value) => updateField('debitAccount', value)}
                       disabled={selectDisabled}
                     >
                       <SelectTrigger className={inputClassName}>
-                        <SelectValue placeholder="Select debit account" />
+                        <SelectValue placeholder="Select debit/ordering account" />
                       </SelectTrigger>
                       <SelectContent>
                         {MOCK_ACCOUNTS.map((acc) => (
@@ -512,19 +717,11 @@ const TransferFormSection: React.FC<TransferFormSectionProps> = ({
                   Save as Draft
                 </Button>
                 <Button
-                  variant="secondary"
                   onClick={handleSubmit}
                   disabled={readOnly}
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Submit
-                </Button>
-                <Button
-                  onClick={handleSignConfirm}
-                  disabled={readOnly}
-                >
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Sign & Confirm
                 </Button>
               </>
             )}
