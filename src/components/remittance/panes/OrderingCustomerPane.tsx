@@ -1,29 +1,30 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrderingCustomer, COUNTRY_OPTIONS } from '@/types/internationalRemittance';
+import CollapsiblePane from './CollapsiblePane';
 
 interface OrderingCustomerPaneProps {
   data: OrderingCustomer;
   onChange: (field: keyof OrderingCustomer, value: string) => void;
   readOnly?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
   data,
   onChange,
   readOnly = false,
+  isOpen = true,
+  onToggle = () => {},
 }) => {
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">Ordering Customer</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsiblePane title="Ordering Customer" isOpen={isOpen} onToggle={onToggle}>
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Ordering Customer Name */}
           <div className="space-y-2">
@@ -120,8 +121,8 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             <span className="text-xs text-muted-foreground">{data.ordAddr2.length}/70</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </CollapsiblePane>
   );
 };
 

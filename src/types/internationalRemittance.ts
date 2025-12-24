@@ -233,3 +233,120 @@ export const validateIBAN = (iban: string): boolean => {
   const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/;
   return ibanRegex.test(iban.toUpperCase().replace(/\s/g, ''));
 };
+
+// =====================================================
+// Transfer Type for Outward Transactions
+// =====================================================
+export type OutwardTransferType = 'customer' | 'fi';
+
+export const OUTWARD_TRANSFER_TYPE_OPTIONS = [
+  { value: 'customer', label: 'Customer Credit Transfer (pacs.008)' },
+  { value: 'fi', label: 'FI Credit Transfer (pacs.009)' },
+];
+
+// =====================================================
+// PACS.009 - FI Credit Transfer Types
+// =====================================================
+
+// Pane 1: Settlement Header
+export interface SettlementHeader {
+  sttlmRef: string;      // Settlement Reference, Read-only
+  uetr: string;          // UUID, Read-only
+  creDt: string;         // Creation Date, Read-only
+  sttlmMtd: 'INDA' | 'COVE' | '';
+}
+
+export const initialSettlementHeader: SettlementHeader = {
+  sttlmRef: '',
+  uetr: '',
+  creDt: '',
+  sttlmMtd: '',
+};
+
+// Pane 2: Instructing Agent
+export interface InstructingAgent {
+  instgAgtName: string;  // Max 140, Mandatory
+  instgAgtBic: string;   // Max 11, Mandatory
+  instgAgtAddr: string;  // Max 70, Optional
+}
+
+export const initialInstructingAgent: InstructingAgent = {
+  instgAgtName: '',
+  instgAgtBic: '',
+  instgAgtAddr: '',
+};
+
+// Pane 3: Instructed Agent
+export interface InstructedAgent {
+  instdAgtName: string;  // Max 140, Mandatory
+  instdAgtBic: string;   // Max 11, Mandatory
+  instdAgtAddr: string;  // Max 70, Optional
+}
+
+export const initialInstructedAgent: InstructedAgent = {
+  instdAgtName: '',
+  instdAgtBic: '',
+  instdAgtAddr: '',
+};
+
+// Pane 4: Settlement Amount
+export interface SettlementAmount {
+  sttlmAmt: number | '';  // Decimal 18,2, Mandatory
+  ccy: string;            // ISO 4217, Mandatory
+  valDt: string;          // Value Date, Mandatory
+}
+
+export const initialSettlementAmount: SettlementAmount = {
+  sttlmAmt: '',
+  ccy: '',
+  valDt: '',
+};
+
+// Pane 5: Cover / Linkage
+export interface CoverLinkage {
+  linkedPacs008Ref: string;  // Reference to parent pacs.008, Read-only
+  linkedUetr: string;        // Linked UETR, Read-only
+}
+
+export const initialCoverLinkage: CoverLinkage = {
+  linkedPacs008Ref: '',
+  linkedUetr: '',
+};
+
+// Pane 6: Settlement Instructions
+export interface SettlementInstructions {
+  instrCd: string;        // Instruction Code
+  addtlInfo: string;      // Additional Information, Max 140
+}
+
+export const initialSettlementInstructions: SettlementInstructions = {
+  instrCd: '',
+  addtlInfo: '',
+};
+
+// Instruction Code Options for PACS.009
+export const INSTRUCTION_CODE_OPTIONS = [
+  { value: 'PHOB', label: 'PHOB - Phone Beneficiary' },
+  { value: 'TELB', label: 'TELB - Telex Beneficiary' },
+  { value: 'HOLD', label: 'HOLD - Hold for Collection' },
+  { value: 'CHQB', label: 'CHQB - Cheque Required' },
+];
+
+// Combined Form Data for PACS.009 FI Credit Transfer
+export interface FICreditTransferFormData {
+  settlementHeader: SettlementHeader;
+  instructingAgent: InstructingAgent;
+  instructedAgent: InstructedAgent;
+  settlementAmount: SettlementAmount;
+  coverLinkage: CoverLinkage;
+  settlementInstructions: SettlementInstructions;
+}
+
+export const initialFICreditTransferFormData: FICreditTransferFormData = {
+  settlementHeader: initialSettlementHeader,
+  instructingAgent: initialInstructingAgent,
+  instructedAgent: initialInstructedAgent,
+  settlementAmount: initialSettlementAmount,
+  coverLinkage: initialCoverLinkage,
+  settlementInstructions: initialSettlementInstructions,
+};

@@ -1,30 +1,31 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BeneficiaryCustomer, COUNTRY_OPTIONS, validateBIC } from '@/types/internationalRemittance';
+import CollapsiblePane from './CollapsiblePane';
 
 interface BeneficiaryCustomerPaneProps {
   data: BeneficiaryCustomer;
   onChange: (field: keyof BeneficiaryCustomer, value: string) => void;
   readOnly?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
   data,
   onChange,
   readOnly = false,
+  isOpen = true,
+  onToggle = () => {},
 }) => {
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   const isBicValid = data.benBic.length === 0 || validateBIC(data.benBic);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">Beneficiary Customer</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsiblePane title="Beneficiary Customer" isOpen={isOpen} onToggle={onToggle}>
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Beneficiary Name */}
           <div className="space-y-2">
@@ -143,8 +144,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             <span className="text-xs text-muted-foreground">{data.benAddr2.length}/70</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </CollapsiblePane>
   );
 };
 

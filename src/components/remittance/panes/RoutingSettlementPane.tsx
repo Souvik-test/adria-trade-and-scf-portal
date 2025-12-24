@@ -1,19 +1,23 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RoutingSettlement, validateBIC } from '@/types/internationalRemittance';
+import CollapsiblePane from './CollapsiblePane';
 
 interface RoutingSettlementPaneProps {
   data: RoutingSettlement;
   onChange: (field: keyof RoutingSettlement, value: string) => void;
   readOnly?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
   data,
   onChange,
   readOnly = false,
+  isOpen = true,
+  onToggle = () => {},
 }) => {
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   
@@ -22,11 +26,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
   const isIntrmyBicValid = data.intrmyBic.length === 0 || validateBIC(data.intrmyBic);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">Routing & Settlement</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsiblePane title="Routing & Settlement" isOpen={isOpen} onToggle={onToggle}>
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Instructing Agent BIC */}
           <div className="space-y-2">
@@ -124,8 +125,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </CollapsiblePane>
   );
 };
 
