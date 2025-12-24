@@ -79,43 +79,113 @@ export const initialPaymentHeader: PaymentHeader = {
 };
 
 // =====================================================
-// PANE 2: Ordering Customer
+// Form Step Types
+// =====================================================
+export type CustomerCreditTransferStep = 
+  | 'payment-header' 
+  | 'ordering-customer' 
+  | 'beneficiary-customer' 
+  | 'amount-charges' 
+  | 'routing-settlement' 
+  | 'regulatory-compliance' 
+  | 'remittance-info';
+
+export type FICreditTransferStep = 
+  | 'settlement-header' 
+  | 'instructing-agent' 
+  | 'instructed-agent' 
+  | 'settlement-amount' 
+  | 'cover-linkage' 
+  | 'settlement-instructions';
+
+export const CUSTOMER_CREDIT_TRANSFER_STEPS: CustomerCreditTransferStep[] = [
+  'payment-header',
+  'ordering-customer',
+  'beneficiary-customer',
+  'amount-charges',
+  'routing-settlement',
+  'regulatory-compliance',
+  'remittance-info',
+];
+
+export const FI_CREDIT_TRANSFER_STEPS: FICreditTransferStep[] = [
+  'settlement-header',
+  'instructing-agent',
+  'instructed-agent',
+  'settlement-amount',
+  'cover-linkage',
+  'settlement-instructions',
+];
+
+export const CUSTOMER_CREDIT_TRANSFER_STEP_LABELS: Record<CustomerCreditTransferStep, string> = {
+  'payment-header': 'Payment Header',
+  'ordering-customer': 'Ordering Customer',
+  'beneficiary-customer': 'Beneficiary Customer',
+  'amount-charges': 'Amount & Charges',
+  'routing-settlement': 'Routing & Settlement',
+  'regulatory-compliance': 'Regulatory & Compliance',
+  'remittance-info': 'Remittance Information',
+};
+
+export const FI_CREDIT_TRANSFER_STEP_LABELS: Record<FICreditTransferStep, string> = {
+  'settlement-header': 'Settlement Header',
+  'instructing-agent': 'Instructing Agent',
+  'instructed-agent': 'Instructed Agent',
+  'settlement-amount': 'Settlement Amount',
+  'cover-linkage': 'Cover / Linkage',
+  'settlement-instructions': 'Settlement Instructions',
+};
+
+// =====================================================
+// PANE 2: Ordering Customer (with proper address structure)
 // =====================================================
 export interface OrderingCustomer {
   ordName: string;          // Max 140, Mandatory
   ordAcct: string;          // Max 34, Mandatory (IBAN/BBAN)
-  ordAddr1: string;         // Max 70, Optional
-  ordAddr2: string;         // Max 70, Optional
   ordCountry: string;       // ISO 2-letter, Mandatory
+  ordState: string;         // State/Region, Optional
+  ordCity: string;          // City/Town, Optional
+  ordAddr1: string;         // Max 70, Address Line 1, Optional
+  ordAddr2: string;         // Max 70, Address Line 2, Optional
+  ordPostCode: string;      // PIN/Post Code, Optional
 }
 
 export const initialOrderingCustomer: OrderingCustomer = {
   ordName: '',
   ordAcct: '',
+  ordCountry: '',
+  ordState: '',
+  ordCity: '',
   ordAddr1: '',
   ordAddr2: '',
-  ordCountry: '',
+  ordPostCode: '',
 };
 
 // =====================================================
-// PANE 3: Beneficiary Customer
+// PANE 3: Beneficiary Customer (with proper address structure)
 // =====================================================
 export interface BeneficiaryCustomer {
   benName: string;          // Max 140, Mandatory
   benAcct: string;          // Max 34, Mandatory
   benBic: string;           // Max 11, Mandatory (BIC format)
-  benAddr1: string;         // Max 70, Optional
-  benAddr2: string;         // Max 70, Optional
   benCountry: string;       // ISO 2-letter, Mandatory
+  benState: string;         // State/Region, Optional
+  benCity: string;          // City/Town, Optional
+  benAddr1: string;         // Max 70, Address Line 1, Optional
+  benAddr2: string;         // Max 70, Address Line 2, Optional
+  benPostCode: string;      // PIN/Post Code, Optional
 }
 
 export const initialBeneficiaryCustomer: BeneficiaryCustomer = {
   benName: '',
   benAcct: '',
   benBic: '',
+  benCountry: '',
+  benState: '',
+  benCity: '',
   benAddr1: '',
   benAddr2: '',
-  benCountry: '',
+  benPostCode: '',
 };
 
 // =====================================================
