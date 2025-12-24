@@ -1,31 +1,30 @@
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BeneficiaryCustomer, COUNTRY_OPTIONS, validateBIC } from '@/types/internationalRemittance';
-import CollapsiblePane from './CollapsiblePane';
 
 interface BeneficiaryCustomerPaneProps {
   data: BeneficiaryCustomer;
   onChange: (field: keyof BeneficiaryCustomer, value: string) => void;
   readOnly?: boolean;
-  isOpen?: boolean;
-  onToggle?: () => void;
 }
 
 const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
   data,
   onChange,
   readOnly = false,
-  isOpen = true,
-  onToggle = () => {},
 }) => {
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   const isBicValid = data.benBic.length === 0 || validateBIC(data.benBic);
 
   return (
-    <CollapsiblePane title="Beneficiary Customer" isOpen={isOpen} onToggle={onToggle}>
-      <div className="space-y-4">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-medium">Beneficiary Customer</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Beneficiary Name */}
           <div className="space-y-2">
@@ -84,11 +83,14 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
               <span className="text-xs text-muted-foreground">{data.benBic.length}/11</span>
             )}
           </div>
+        </div>
 
-          {/* Beneficiary Country */}
+        {/* Address Section - Country, State/Region, City/Town */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Country */}
           <div className="space-y-2">
             <Label htmlFor="benCountry" className="text-sm">
-              Beneficiary Country <span className="text-destructive">*</span>
+              Country <span className="text-destructive">*</span>
             </Label>
             <Select
               value={data.benCountry}
@@ -107,13 +109,46 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* State/Region */}
+          <div className="space-y-2">
+            <Label htmlFor="benState" className="text-sm">
+              State/Region
+            </Label>
+            <Input
+              id="benState"
+              value={data.benState}
+              onChange={(e) => onChange('benState', e.target.value.slice(0, 35))}
+              placeholder="Enter state or region"
+              maxLength={35}
+              disabled={readOnly}
+              className={inputClassName}
+            />
+          </div>
+
+          {/* City/Town */}
+          <div className="space-y-2">
+            <Label htmlFor="benCity" className="text-sm">
+              City/Town
+            </Label>
+            <Input
+              id="benCity"
+              value={data.benCity}
+              onChange={(e) => onChange('benCity', e.target.value.slice(0, 35))}
+              placeholder="Enter city or town"
+              maxLength={35}
+              disabled={readOnly}
+              className={inputClassName}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Address Line 1, Address Line 2, PIN/Post Code */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Address Line 1 */}
           <div className="space-y-2">
             <Label htmlFor="benAddr1" className="text-sm">
-              Address Line 1
+              Address Line-1
             </Label>
             <Input
               id="benAddr1"
@@ -130,7 +165,7 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
           {/* Address Line 2 */}
           <div className="space-y-2">
             <Label htmlFor="benAddr2" className="text-sm">
-              Address Line 2
+              Address Line-2
             </Label>
             <Input
               id="benAddr2"
@@ -143,9 +178,25 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             />
             <span className="text-xs text-muted-foreground">{data.benAddr2.length}/70</span>
           </div>
+
+          {/* PIN/Post Code */}
+          <div className="space-y-2">
+            <Label htmlFor="benPostCode" className="text-sm">
+              PIN/Post Code
+            </Label>
+            <Input
+              id="benPostCode"
+              value={data.benPostCode}
+              onChange={(e) => onChange('benPostCode', e.target.value.slice(0, 16))}
+              placeholder="Enter PIN or post code"
+              maxLength={16}
+              disabled={readOnly}
+              className={inputClassName}
+            />
+          </div>
         </div>
-      </div>
-    </CollapsiblePane>
+      </CardContent>
+    </Card>
   );
 };
 
