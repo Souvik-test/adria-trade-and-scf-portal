@@ -23,6 +23,7 @@ import CoverLinkagePane from './panes/CoverLinkagePane';
 import SettlementInstructionsPane from './panes/SettlementInstructionsPane';
 import RemittanceProgressIndicator from './RemittanceProgressIndicator';
 import RemittanceFormActions from './RemittanceFormActions';
+import ISO20022Sidebar from './ISO20022Sidebar';
 
 interface FICreditTransferFormProps {
   readOnly?: boolean;
@@ -165,35 +166,45 @@ const FICreditTransferForm: React.FC<FICreditTransferFormProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Progress Indicator */}
-      <RemittanceProgressIndicator
-        steps={FI_CREDIT_TRANSFER_STEPS}
-        currentStep={currentStep}
-        stepLabels={FI_CREDIT_TRANSFER_STEP_LABELS}
-        onStepClick={goToStep}
-        getStepStatus={getStepStatus}
-      />
+    <div className="flex h-full">
+      {/* Main Form Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Progress Indicator */}
+        <RemittanceProgressIndicator
+          steps={FI_CREDIT_TRANSFER_STEPS}
+          currentStep={currentStep}
+          stepLabels={FI_CREDIT_TRANSFER_STEP_LABELS}
+          onStepClick={goToStep}
+          getStepStatus={getStepStatus}
+        />
 
-      {/* Current Pane */}
-      <div className="flex-1 overflow-y-auto pb-4">
-        {renderCurrentPane()}
+        {/* Current Pane */}
+        <div className="flex-1 overflow-y-auto pb-4">
+          {renderCurrentPane()}
+        </div>
+
+        {/* Footer Actions */}
+        <RemittanceFormActions
+          isFirstStep={isFirstStep}
+          isLastStep={isLastStep}
+          isValid={validateCurrentStep()}
+          onPrevious={previousStep}
+          onNext={nextStep}
+          onSaveDraft={handleSaveDraft}
+          onSubmit={handleSubmit}
+          onDiscard={handleDiscard}
+          readOnly={readOnly}
+          isApprovalStage={isApprovalStage}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       </div>
 
-      {/* Footer Actions */}
-      <RemittanceFormActions
-        isFirstStep={isFirstStep}
-        isLastStep={isLastStep}
-        isValid={validateCurrentStep()}
-        onPrevious={previousStep}
-        onNext={nextStep}
-        onSaveDraft={handleSaveDraft}
-        onSubmit={handleSubmit}
-        onDiscard={handleDiscard}
-        readOnly={readOnly}
-        isApprovalStage={isApprovalStage}
-        onApprove={handleApprove}
-        onReject={handleReject}
+      {/* ISO 20022 Sidebar */}
+      <ISO20022Sidebar
+        pacs009Data={formData}
+        transferType="fi"
+        settlementMethod={formData.settlementHeader.sttlmMtd}
       />
     </div>
   );
