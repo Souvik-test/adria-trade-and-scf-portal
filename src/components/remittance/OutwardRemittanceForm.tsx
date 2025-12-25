@@ -29,10 +29,13 @@ import {
 import RemittanceProgressIndicator from './RemittanceProgressIndicator';
 import RemittanceFormActions from './RemittanceFormActions';
 import ISO20022Sidebar from './ISO20022Sidebar';
+import { getCurrentUserAsync } from '@/services/database';
+import { saveRemittanceTransaction, submitRemittanceForApproval, approveRemittanceTransaction, rejectRemittanceTransaction } from '@/services/remittanceService';
 
 interface OutwardRemittanceFormProps {
   readOnly?: boolean;
   isApprovalStage?: boolean;
+  transactionId?: string; // For editing existing transactions
   onStageComplete?: () => void;
   onApprove?: () => void;
   onReject?: (reason?: string) => void;
@@ -41,11 +44,14 @@ interface OutwardRemittanceFormProps {
 const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
   readOnly = false,
   isApprovalStage = false,
+  transactionId,
   onStageComplete,
   onApprove,
   onReject,
 }) => {
   const [formData, setFormData] = useState<OutwardRemittanceFormData>(initialOutwardRemittanceFormData);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedTransactionId, setSavedTransactionId] = useState<string | undefined>(transactionId);
   const [currentStep, setCurrentStep] = useState<CustomerCreditTransferStep>('payment-header');
 
   const currentStepIndex = CUSTOMER_CREDIT_TRANSFER_STEPS.indexOf(currentStep);
@@ -140,18 +146,109 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
       paymentHeader: { ...initialOutwardRemittanceFormData.paymentHeader, msgRef: generateMessageRef(), uetr: generateUUID(), creDt: now },
     });
     setCurrentStep('payment-header');
+    setSavedTransactionId(undefined);
     toast.info('Form discarded');
   };
 
-  const handleSaveDraft = () => toast.success('Transfer saved as draft');
-
-  const handleSubmit = () => {
-    toast.success('Outward remittance submitted successfully');
-    onStageComplete?.();
+  const handleSaveDraft = async () => {
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await saveRemittanceTransaction(user.id, formData, 'draft', savedTransactionId);
+      if (result.success) {
+        setSavedTransactionId(result.id);
+        toast.success(`Draft saved - Ref: ${result.transactionRef}`);
+      } else {
+        toast.error(result.error || 'Failed to save draft');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save draft');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleApprove = () => { toast.success('Transfer approved'); onApprove?.(); };
-  const handleReject = () => { toast.info('Transfer rejected'); onReject?.('Rejected by approver'); };
+  const handleSubmit = async () => {
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await submitRemittanceForApproval(user.id, formData);
+      if (result.success) {
+        const msg = result.pacs009Ref 
+          ? `Submitted - PACS.008: ${result.pacs008Ref}, PACS.009: ${result.pacs009Ref}`
+          : `Submitted - Ref: ${result.pacs008Ref}`;
+        toast.success(msg);
+        onStageComplete?.();
+      } else {
+        toast.error(result.error || 'Failed to submit');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!savedTransactionId) {
+      toast.error('No transaction to approve');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await approveRemittanceTransaction(savedTransactionId, user.id);
+      if (result.success) {
+        toast.success('Transfer approved');
+        onApprove?.();
+      } else {
+        toast.error(result.error || 'Failed to approve');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to approve');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!savedTransactionId) {
+      toast.error('No transaction to reject');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await rejectRemittanceTransaction(savedTransactionId, user.id, 'Rejected by approver');
+      if (result.success) {
+        toast.info('Transfer rejected');
+        onReject?.('Rejected by approver');
+      } else {
+        toast.error(result.error || 'Failed to reject');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   // Render current pane
   const renderCurrentPane = () => {

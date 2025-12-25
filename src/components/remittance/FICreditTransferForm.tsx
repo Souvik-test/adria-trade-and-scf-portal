@@ -24,10 +24,13 @@ import SettlementInstructionsPane from './panes/SettlementInstructionsPane';
 import RemittanceProgressIndicator from './RemittanceProgressIndicator';
 import RemittanceFormActions from './RemittanceFormActions';
 import ISO20022Sidebar from './ISO20022Sidebar';
+import { getCurrentUserAsync } from '@/services/database';
+import { saveInterbankSettlement, submitFITransferForApproval } from '@/services/remittanceService';
 
 interface FICreditTransferFormProps {
   readOnly?: boolean;
   isApprovalStage?: boolean;
+  settlementId?: string; // For editing existing settlements
   onStageComplete?: () => void;
   onApprove?: () => void;
   onReject?: (reason?: string) => void;
@@ -36,10 +39,13 @@ interface FICreditTransferFormProps {
 const FICreditTransferForm: React.FC<FICreditTransferFormProps> = ({
   readOnly = false,
   isApprovalStage = false,
+  settlementId,
   onStageComplete,
   onApprove,
   onReject,
 }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSettlementId, setSavedSettlementId] = useState<string | undefined>(settlementId);
   const [formData, setFormData] = useState<FICreditTransferFormData>(initialFICreditTransferFormData);
   const [currentStep, setCurrentStep] = useState<FICreditTransferStep>('settlement-header');
 
@@ -132,14 +138,52 @@ const FICreditTransferForm: React.FC<FICreditTransferFormProps> = ({
       settlementHeader: { ...initialFICreditTransferFormData.settlementHeader, sttlmRef: generateMessageRef(), uetr: generateUUID(), creDt: now },
     });
     setCurrentStep('settlement-header');
+    setSavedSettlementId(undefined);
     toast.info('Form discarded');
   };
 
-  const handleSaveDraft = () => toast.success('FI Credit Transfer saved as draft');
+  const handleSaveDraft = async () => {
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await saveInterbankSettlement(user.id, formData, 'draft', undefined, savedSettlementId);
+      if (result.success) {
+        setSavedSettlementId(result.id);
+        toast.success(`Draft saved - Ref: ${result.settlementRef}`);
+      } else {
+        toast.error(result.error || 'Failed to save draft');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save draft');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-  const handleSubmit = () => {
-    toast.success('FI Credit Transfer submitted successfully');
-    onStageComplete?.();
+  const handleSubmit = async () => {
+    setIsSaving(true);
+    try {
+      const user = await getCurrentUserAsync();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+      const result = await submitFITransferForApproval(user.id, formData);
+      if (result.success) {
+        toast.success(`FI Credit Transfer submitted - Ref: ${result.settlementRef}`);
+        onStageComplete?.();
+      } else {
+        toast.error(result.error || 'Failed to submit');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleApprove = () => { toast.success('Transfer approved'); onApprove?.(); };
