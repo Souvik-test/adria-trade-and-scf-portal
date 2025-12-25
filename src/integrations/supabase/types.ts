@@ -1132,6 +1132,165 @@ export type Database = {
         }
         Relationships: []
       }
+      interbank_settlements: {
+        Row: {
+          addtl_info: string | null
+          approved_at: string | null
+          approved_by: string | null
+          ccy: string | null
+          corporate_id: string | null
+          cre_dt: string | null
+          created_at: string | null
+          created_by: string | null
+          current_stage: string | null
+          direction: string
+          form_data: Json | null
+          id: string
+          instd_agt_addr1: string | null
+          instd_agt_addr2: string | null
+          instd_agt_bic: string | null
+          instd_agt_city: string | null
+          instd_agt_country: string | null
+          instd_agt_name: string | null
+          instd_agt_post_code: string | null
+          instd_agt_state: string | null
+          instg_agt_addr1: string | null
+          instg_agt_addr2: string | null
+          instg_agt_bic: string | null
+          instg_agt_city: string | null
+          instg_agt_country: string | null
+          instg_agt_name: string | null
+          instg_agt_post_code: string | null
+          instg_agt_state: string | null
+          instr_cd: string | null
+          linked_pacs008_ref: string | null
+          linked_uetr: string | null
+          parent_pacs008_id: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          settlement_ref: string
+          status: string
+          sttlm_amt: number | null
+          sttlm_mtd: string | null
+          submitted_at: string | null
+          transfer_type: string
+          uetr: string | null
+          updated_at: string | null
+          user_id: string
+          val_dt: string | null
+        }
+        Insert: {
+          addtl_info?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          ccy?: string | null
+          corporate_id?: string | null
+          cre_dt?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_stage?: string | null
+          direction?: string
+          form_data?: Json | null
+          id?: string
+          instd_agt_addr1?: string | null
+          instd_agt_addr2?: string | null
+          instd_agt_bic?: string | null
+          instd_agt_city?: string | null
+          instd_agt_country?: string | null
+          instd_agt_name?: string | null
+          instd_agt_post_code?: string | null
+          instd_agt_state?: string | null
+          instg_agt_addr1?: string | null
+          instg_agt_addr2?: string | null
+          instg_agt_bic?: string | null
+          instg_agt_city?: string | null
+          instg_agt_country?: string | null
+          instg_agt_name?: string | null
+          instg_agt_post_code?: string | null
+          instg_agt_state?: string | null
+          instr_cd?: string | null
+          linked_pacs008_ref?: string | null
+          linked_uetr?: string | null
+          parent_pacs008_id?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          settlement_ref: string
+          status?: string
+          sttlm_amt?: number | null
+          sttlm_mtd?: string | null
+          submitted_at?: string | null
+          transfer_type?: string
+          uetr?: string | null
+          updated_at?: string | null
+          user_id: string
+          val_dt?: string | null
+        }
+        Update: {
+          addtl_info?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          ccy?: string | null
+          corporate_id?: string | null
+          cre_dt?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_stage?: string | null
+          direction?: string
+          form_data?: Json | null
+          id?: string
+          instd_agt_addr1?: string | null
+          instd_agt_addr2?: string | null
+          instd_agt_bic?: string | null
+          instd_agt_city?: string | null
+          instd_agt_country?: string | null
+          instd_agt_name?: string | null
+          instd_agt_post_code?: string | null
+          instd_agt_state?: string | null
+          instg_agt_addr1?: string | null
+          instg_agt_addr2?: string | null
+          instg_agt_bic?: string | null
+          instg_agt_city?: string | null
+          instg_agt_country?: string | null
+          instg_agt_name?: string | null
+          instg_agt_post_code?: string | null
+          instg_agt_state?: string | null
+          instr_cd?: string | null
+          linked_pacs008_ref?: string | null
+          linked_uetr?: string | null
+          parent_pacs008_id?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          settlement_ref?: string
+          status?: string
+          sttlm_amt?: number | null
+          sttlm_mtd?: string | null
+          submitted_at?: string | null
+          transfer_type?: string
+          uetr?: string | null
+          updated_at?: string | null
+          user_id?: string
+          val_dt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interbank_settlements_parent_pacs008_id_fkey"
+            columns: ["parent_pacs008_id"]
+            isOneToOne: false
+            referencedRelation: "remittance_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interbank_settlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "custom_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_disbursements: {
         Row: {
           accounting_entry_ref: string | null
@@ -2429,133 +2588,187 @@ export type Database = {
         }
         Relationships: []
       }
-      remittance_recipients: {
+      remittance_transactions: {
         Row: {
-          amount: number
+          aml_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          ben_acct: string | null
+          ben_addr1: string | null
+          ben_addr2: string | null
+          ben_bic: string | null
+          ben_city: string | null
+          ben_country: string | null
+          ben_name: string | null
+          ben_post_code: string | null
+          ben_state: string | null
+          biz_svc: string | null
+          ccy: string | null
+          chg_br: string | null
+          corporate_id: string | null
+          cre_dt: string | null
           created_at: string | null
-          credit_account: string
+          created_by: string | null
+          current_stage: string | null
+          decl_flg: boolean | null
+          direction: string
+          form_data: Json | null
           id: string
-          recipient_name: string
-          transfer_id: string
+          inst_amt: number | null
+          instd_agt_bic: string | null
+          instg_agt_bic: string | null
+          intrmdy_agt_bic: string | null
+          inv_ref: string | null
+          linked_pacs009_id: string | null
+          msg_ref: string | null
+          ord_acct: string | null
+          ord_addr1: string | null
+          ord_addr2: string | null
+          ord_bic: string | null
+          ord_city: string | null
+          ord_country: string | null
+          ord_name: string | null
+          ord_post_code: string | null
+          ord_state: string | null
+          purp_cd: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          rmt_info: string | null
+          src_funds: string | null
+          status: string
+          sttlm_mtd: string | null
+          submitted_at: string | null
+          transaction_ref: string
+          transfer_type: string
+          uetr: string | null
+          updated_at: string | null
+          user_id: string
+          xchg_rate: number | null
         }
         Insert: {
-          amount: number
+          aml_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          ben_acct?: string | null
+          ben_addr1?: string | null
+          ben_addr2?: string | null
+          ben_bic?: string | null
+          ben_city?: string | null
+          ben_country?: string | null
+          ben_name?: string | null
+          ben_post_code?: string | null
+          ben_state?: string | null
+          biz_svc?: string | null
+          ccy?: string | null
+          chg_br?: string | null
+          corporate_id?: string | null
+          cre_dt?: string | null
           created_at?: string | null
-          credit_account: string
+          created_by?: string | null
+          current_stage?: string | null
+          decl_flg?: boolean | null
+          direction?: string
+          form_data?: Json | null
           id?: string
-          recipient_name: string
-          transfer_id: string
+          inst_amt?: number | null
+          instd_agt_bic?: string | null
+          instg_agt_bic?: string | null
+          intrmdy_agt_bic?: string | null
+          inv_ref?: string | null
+          linked_pacs009_id?: string | null
+          msg_ref?: string | null
+          ord_acct?: string | null
+          ord_addr1?: string | null
+          ord_addr2?: string | null
+          ord_bic?: string | null
+          ord_city?: string | null
+          ord_country?: string | null
+          ord_name?: string | null
+          ord_post_code?: string | null
+          ord_state?: string | null
+          purp_cd?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          rmt_info?: string | null
+          src_funds?: string | null
+          status?: string
+          sttlm_mtd?: string | null
+          submitted_at?: string | null
+          transaction_ref: string
+          transfer_type?: string
+          uetr?: string | null
+          updated_at?: string | null
+          user_id: string
+          xchg_rate?: number | null
         }
         Update: {
-          amount?: number
+          aml_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          ben_acct?: string | null
+          ben_addr1?: string | null
+          ben_addr2?: string | null
+          ben_bic?: string | null
+          ben_city?: string | null
+          ben_country?: string | null
+          ben_name?: string | null
+          ben_post_code?: string | null
+          ben_state?: string | null
+          biz_svc?: string | null
+          ccy?: string | null
+          chg_br?: string | null
+          corporate_id?: string | null
+          cre_dt?: string | null
           created_at?: string | null
-          credit_account?: string
+          created_by?: string | null
+          current_stage?: string | null
+          decl_flg?: boolean | null
+          direction?: string
+          form_data?: Json | null
           id?: string
-          recipient_name?: string
-          transfer_id?: string
+          inst_amt?: number | null
+          instd_agt_bic?: string | null
+          instg_agt_bic?: string | null
+          intrmdy_agt_bic?: string | null
+          inv_ref?: string | null
+          linked_pacs009_id?: string | null
+          msg_ref?: string | null
+          ord_acct?: string | null
+          ord_addr1?: string | null
+          ord_addr2?: string | null
+          ord_bic?: string | null
+          ord_city?: string | null
+          ord_country?: string | null
+          ord_name?: string | null
+          ord_post_code?: string | null
+          ord_state?: string | null
+          purp_cd?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          rmt_info?: string | null
+          src_funds?: string | null
+          status?: string
+          sttlm_mtd?: string | null
+          submitted_at?: string | null
+          transaction_ref?: string
+          transfer_type?: string
+          uetr?: string | null
+          updated_at?: string | null
+          user_id?: string
+          xchg_rate?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "remittance_recipients_transfer_id_fkey"
-            columns: ["transfer_id"]
+            foreignKeyName: "remittance_transactions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "remittance_transfers"
+            referencedRelation: "custom_users"
             referencedColumns: ["id"]
           },
         ]
-      }
-      remittance_transfers: {
-        Row: {
-          adhoc_account_or_iban: string | null
-          adhoc_bank_address: string | null
-          adhoc_bank_name: string | null
-          adhoc_beneficiary_name: string | null
-          adhoc_bic_swift_code: string | null
-          adhoc_country: string | null
-          amount: number
-          beneficiary_id: string | null
-          corporate_id: string | null
-          created_at: string | null
-          created_by: string | null
-          credit_account: string | null
-          currency: string
-          debit_account: string | null
-          direction: string
-          execution_date: string | null
-          execution_type: string
-          external_sender_bank: string | null
-          external_sender_name: string | null
-          frequency: string | null
-          id: string
-          is_adhoc_beneficiary: boolean | null
-          status: string
-          transfer_reference: string
-          transfer_reference_note: string | null
-          transfer_type: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          adhoc_account_or_iban?: string | null
-          adhoc_bank_address?: string | null
-          adhoc_bank_name?: string | null
-          adhoc_beneficiary_name?: string | null
-          adhoc_bic_swift_code?: string | null
-          adhoc_country?: string | null
-          amount: number
-          beneficiary_id?: string | null
-          corporate_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          credit_account?: string | null
-          currency?: string
-          debit_account?: string | null
-          direction: string
-          execution_date?: string | null
-          execution_type: string
-          external_sender_bank?: string | null
-          external_sender_name?: string | null
-          frequency?: string | null
-          id?: string
-          is_adhoc_beneficiary?: boolean | null
-          status?: string
-          transfer_reference: string
-          transfer_reference_note?: string | null
-          transfer_type?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          adhoc_account_or_iban?: string | null
-          adhoc_bank_address?: string | null
-          adhoc_bank_name?: string | null
-          adhoc_beneficiary_name?: string | null
-          adhoc_bic_swift_code?: string | null
-          adhoc_country?: string | null
-          amount?: number
-          beneficiary_id?: string | null
-          corporate_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          credit_account?: string | null
-          currency?: string
-          debit_account?: string | null
-          direction?: string
-          execution_date?: string | null
-          execution_type?: string
-          external_sender_bank?: string | null
-          external_sender_name?: string | null
-          frequency?: string | null
-          id?: string
-          is_adhoc_beneficiary?: boolean | null
-          status?: string
-          transfer_reference?: string
-          transfer_reference_note?: string | null
-          transfer_type?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
       resolve_discrepancies: {
         Row: {
