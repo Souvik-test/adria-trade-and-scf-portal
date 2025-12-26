@@ -33,6 +33,7 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<LoginPage />} />
                 <Route path="/specification-document" element={<SpecificationDocument />} />
+                <Route path="/documentation/database" element={<DatabaseDocumentationPage />} />
                 <Route path="/" element={
                   <AuthGuard>
                     <Index />
