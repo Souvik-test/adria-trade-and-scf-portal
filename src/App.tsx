@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import LoginPage from "./components/LoginPage";
 import NotFound from "./pages/NotFound";
 import SpecificationDocument from "./pages/SpecificationDocument";
+import DatabaseDocumentationPage from "./pages/DatabaseDocumentationPage";
 
 const queryClient = new QueryClient();
 
