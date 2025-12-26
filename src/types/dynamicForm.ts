@@ -144,6 +144,7 @@ export interface PaneConfig {
   sections: SectionConfig[];
   buttons: PaneButtonConfig[];
   isOpen?: boolean;
+  showSwiftPreview?: boolean;
 }
 
 // Workflow runtime types

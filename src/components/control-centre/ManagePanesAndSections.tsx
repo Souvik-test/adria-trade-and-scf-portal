@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2, Copy, Pencil } from 'lucide-react';
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronRight, Upload, Download, Settings2, Copy, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -108,6 +109,11 @@ const ManagePanesAndSections = () => {
   // Button configuration dialog state
   const [showButtonDialog, setShowButtonDialog] = useState(false);
   const [editingPaneId, setEditingPaneId] = useState<string | null>(null);
+
+  // Delete confirmation dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [configToDelete, setConfigToDelete] = useState<SavedConfiguration | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch product event mappings
   useEffect(() => {
@@ -621,13 +627,54 @@ const ManagePanesAndSections = () => {
     }
   };
 
+  const deleteConfiguration = async () => {
+    if (!configToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const customSession = customAuth.getSession();
+      if (!customSession?.user) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('pane_section_mappings')
+        .delete()
+        .eq('id', configToDelete.id)
+        .eq('user_id', customSession.user.id);
+
+      if (error) throw error;
+
+      toast.success('Configuration deleted successfully');
+      setShowDeleteDialog(false);
+      setConfigToDelete(null);
+      await fetchAllConfigurations();
+      
+      // Clear current selection if deleted config was loaded
+      if (selectedProduct === configToDelete.product_code && 
+          selectedEvent === configToDelete.event_code) {
+        setPanes([]);
+        setSelectedProduct('');
+        setSelectedEvent('');
+        setHasExistingConfig(false);
+      }
+    } catch (error: any) {
+      toast.error('Failed to delete configuration', {
+        description: error.message
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Excel Upload Functions
   const downloadTemplate = () => {
     const templateData = [
-      ['Pane Name', 'Pane Sequence', 'Section Name', 'Section Sequence', 'Rows', 'Columns'],
-      ['LC Key Info', '1', 'Data Entry Accelerator', '1', '1', '2'],
-      ['LC Key Info', '1', 'Basic LC Information', '2', '6', '2'],
-      ['Party Details', '2', 'Party Details', '1', '2', '3'],
+      ['Pane Name', 'Pane Sequence', 'SWIFT Preview', 'Section Name', 'Section Sequence', 'Rows', 'Columns', 'Repeatable', 'Group ID', 'Button Label', 'Button Position', 'Button Action', 'Button Variant', 'Button Order'],
+      ['LC Key Info', '1', 'Yes', 'Data Entry Accelerator', '1', '1', '2', 'No', '', 'Back', 'left', 'previous_pane', 'outline', '1'],
+      ['LC Key Info', '1', 'Yes', 'Data Entry Accelerator', '1', '1', '2', 'No', '', 'Save Draft', 'right', 'save_draft', 'secondary', '1'],
+      ['LC Key Info', '1', 'Yes', 'Data Entry Accelerator', '1', '1', '2', 'No', '', 'Next', 'right', 'next_pane', 'default', '2'],
+      ['LC Key Info', '1', 'Yes', 'Basic LC Information', '2', '6', '2', 'No', '', '', '', '', '', ''],
+      ['Party Details', '2', 'Yes', 'Party Details', '1', '2', '3', 'Yes', 'PartyDetails', '', '', '', '', ''],
+      ['Accounts', '3', 'No', 'Account Information', '1', '3', '2', 'No', '', '', '', '', '', ''],
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(templateData);
@@ -635,7 +682,7 @@ const ManagePanesAndSections = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Pane Section Template');
 
     worksheet['!cols'] = [
-      { wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 8 }, { wch: 10 }
+      { wch: 20 }, { wch: 15 }, { wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 12 }
     ];
 
     XLSX.writeFile(workbook, 'pane_section_template.xlsx');
@@ -669,6 +716,7 @@ const ManagePanesAndSections = () => {
         });
 
         const panesMap = new Map<string, Pane>();
+        const sectionsProcessed = new Set<string>(); // Track unique section entries
         
         for (let i = 1; i < jsonData.length; i++) {
           const row = jsonData[i] as any[];
@@ -676,10 +724,22 @@ const ManagePanesAndSections = () => {
 
           const paneName = row[headerMap['panename']] || '';
           const paneSeq = parseInt(row[headerMap['panesequence']] || '1') || 1;
+          const swiftPreviewRaw = (row[headerMap['swiftpreview']] || 'yes').toString().toLowerCase();
+          const showSwiftPreview = swiftPreviewRaw === 'yes' || swiftPreviewRaw === 'true' || swiftPreviewRaw === '1';
           const sectionName = row[headerMap['sectionname']] || '';
           const sectionSeq = parseInt(row[headerMap['sectionsequence']] || '1') || 1;
           const rows = parseInt(row[headerMap['rows']] || '1') || 1;
           const columns = parseInt(row[headerMap['columns']] || '2') || 2;
+          const repeatableRaw = (row[headerMap['repeatable']] || 'no').toString().toLowerCase();
+          const isRepeatable = repeatableRaw === 'yes' || repeatableRaw === 'true' || repeatableRaw === '1';
+          const groupId = row[headerMap['groupid']] || '';
+          
+          // Button columns
+          const buttonLabel = row[headerMap['buttonlabel']] || '';
+          const buttonPosition = (row[headerMap['buttonposition']] || 'right').toString().toLowerCase();
+          const buttonAction = row[headerMap['buttonaction']] || '';
+          const buttonVariant = (row[headerMap['buttonvariant']] || 'default').toString().toLowerCase();
+          const buttonOrder = parseInt(row[headerMap['buttonorder']] || '1') || 1;
 
           if (!paneName) continue;
 
@@ -691,19 +751,42 @@ const ManagePanesAndSections = () => {
               sections: [],
               buttons: [],
               isOpen: false,
+              showSwiftPreview: showSwiftPreview,
             });
           }
 
           const pane = panesMap.get(paneName)!;
           
-          if (sectionName) {
+          // Add section only once (avoid duplicates from button rows)
+          const sectionKey = `${paneName}-${sectionName}`;
+          if (sectionName && !sectionsProcessed.has(sectionKey)) {
+            sectionsProcessed.add(sectionKey);
             pane.sections.push({
               id: `section-${Date.now()}-${pane.sections.length}`,
               name: sectionName,
               sequence: sectionSeq,
               rows: rows,
               columns: columns,
+              isRepeatable: isRepeatable,
+              groupId: isRepeatable ? (groupId || sectionName.replace(/\s+/g, '')) : '',
             });
+          }
+          
+          // Add button if label is provided
+          if (buttonLabel) {
+            const existingButton = pane.buttons?.find(b => b.label === buttonLabel);
+            if (!existingButton) {
+              pane.buttons.push({
+                id: `btn-${Date.now()}-${pane.buttons.length}`,
+                label: buttonLabel,
+                position: buttonPosition as 'left' | 'right',
+                variant: buttonVariant as 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost',
+                action: (buttonAction || 'custom') as any,
+                targetPaneId: null,
+                isVisible: true,
+                order: buttonOrder,
+              });
+            }
           }
         }
 
@@ -867,11 +950,15 @@ const ManagePanesAndSections = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => loadConfiguration(config)}
+                                  className="h-7 px-2 text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConfigToDelete(config);
+                                    setShowDeleteDialog(true);
+                                  }}
                                 >
-                                  <Pencil className="w-3 h-3 mr-1" />
-                                  Edit
+                                  <Trash2 className="w-3 h-3 mr-1" />
+                                  Delete
                                 </Button>
                               </div>
                               <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
@@ -1519,6 +1606,39 @@ const ManagePanesAndSections = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Configuration
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this configuration?
+              {configToDelete && (
+                <div className="mt-2 p-2 bg-muted rounded-md text-sm">
+                  <div><strong>Product:</strong> {configToDelete.product_code}</div>
+                  <div><strong>Event:</strong> {configToDelete.event_code}</div>
+                  <div><strong>Business App:</strong> {configToDelete.business_application[0]}</div>
+                </div>
+              )}
+              <div className="mt-2 text-destructive">This action cannot be undone.</div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteConfiguration}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

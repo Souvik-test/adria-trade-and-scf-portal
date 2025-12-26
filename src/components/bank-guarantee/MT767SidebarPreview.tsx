@@ -11,14 +11,17 @@ interface MT767SidebarPreviewProps {
   originalData: OutwardBGFormData;
   guaranteeReference: string;
   onToggleCollapse?: (collapsed: boolean) => void;
+  visible?: boolean;
 }
 
 const MT767SidebarPreview: React.FC<MT767SidebarPreviewProps> = ({ 
   formData, 
   originalData,
   guaranteeReference,
-  onToggleCollapse
+  onToggleCollapse,
+  visible = true
 }) => {
+  if (!visible) return null;
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 

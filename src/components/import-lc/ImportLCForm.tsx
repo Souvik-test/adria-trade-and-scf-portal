@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useImportLCForm from '@/hooks/useImportLCForm';
 import ImportLCProgressIndicator from './ImportLCProgressIndicator';
 import ImportLCPaneRenderer from './ImportLCPaneRenderer';
@@ -9,6 +9,8 @@ import SaveTemplateDialog from './SaveTemplateDialog';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
+import { getPaneSectionConfig } from '@/services/paneSectionService';
+import { PaneConfig } from '@/types/dynamicForm';
 
 interface ImportLCFormProps {
   onBack: () => void;
@@ -19,6 +21,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   const { toast } = useToast();
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [userId, setUserId] = useState<string>('');
+  const [paneConfig, setPaneConfig] = useState<PaneConfig[]>([]);
   
   const {
     formData,
@@ -34,7 +37,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   } = useImportLCForm();
 
   // Get user ID on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchUserId = async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) return;
@@ -49,6 +52,19 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     };
     fetchUserId();
   }, []);
+
+  // Load pane configuration
+  useEffect(() => {
+    const loadPaneConfig = async () => {
+      const config = await getPaneSectionConfig('ILC', 'ISSUANCE');
+      setPaneConfig(config);
+    };
+    loadPaneConfig();
+  }, []);
+
+  // Get current pane's showSwiftPreview setting
+  const currentPaneConfig = paneConfig[currentStep];
+  const showSwiftPreview = currentPaneConfig?.showSwiftPreview !== false;
 
   const handleSubmit = async () => {
     try {
@@ -149,7 +165,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       </div>
 
       {/* MT 700 Sidebar Preview */}
-      <MT700SidebarPreview formData={formData} />
+      <MT700SidebarPreview formData={formData} visible={showSwiftPreview} />
 
       {/* Save Template Dialog */}
       <SaveTemplateDialog

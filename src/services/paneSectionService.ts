@@ -119,6 +119,7 @@ const parsePanesConfig = (panesData: any): PaneConfig[] => {
     sequence: pane.sequence || 1,
     sections: parseSectionsConfig(pane.sections),
     buttons: parseButtonsConfig(pane.buttons),
+    showSwiftPreview: pane.showSwiftPreview !== false,
   }));
 };
 

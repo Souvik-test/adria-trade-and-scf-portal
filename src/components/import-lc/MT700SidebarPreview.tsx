@@ -8,10 +8,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 interface MT700SidebarPreviewProps {
   formData: ImportLCFormData;
+  visible?: boolean;
 }
 const MT700SidebarPreview: React.FC<MT700SidebarPreviewProps> = ({
-  formData
+  formData,
+  visible = true
 }) => {
+  if (!visible) return null;
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
   const generateMT700Content = () => {
     const applicant = formData.parties.find(p => p.role === 'applicant');

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ImportLCFormData } from '@/types/importLC';
 import ImportLCAmendmentPanes from './ImportLCAmendmentPanes';
 import ImportLCAmendmentActions from './ImportLCAmendmentActions';
@@ -9,6 +9,8 @@ import AmendmentChangesSummaryModal from './AmendmentChangesSummaryModal';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import useImportLCAmendmentForm from '@/hooks/useImportLCAmendmentForm';
+import { getPaneSectionConfig } from '@/services/paneSectionService';
+import { PaneConfig } from '@/types/dynamicForm';
 
 interface ImportLCAmendmentFormProps {
   onBack: () => void;
@@ -18,6 +20,7 @@ interface ImportLCAmendmentFormProps {
 const ImportLCAmendmentForm: React.FC<ImportLCAmendmentFormProps> = ({ onBack, onClose }) => {
   const { toast } = useToast();
   const [showChangesSummary, setShowChangesSummary] = useState(false);
+  const [paneConfig, setPaneConfig] = useState<PaneConfig[]>([]);
   
   const {
     formData,
@@ -34,6 +37,19 @@ const ImportLCAmendmentForm: React.FC<ImportLCAmendmentFormProps> = ({ onBack, o
     saveDraft,
     resetForm
   } = useImportLCAmendmentForm();
+
+  // Load pane configuration
+  useEffect(() => {
+    const loadPaneConfig = async () => {
+      const config = await getPaneSectionConfig('ILC', 'AMENDMENT');
+      setPaneConfig(config);
+    };
+    loadPaneConfig();
+  }, []);
+
+  // Get current pane's showSwiftPreview setting
+  const currentPaneConfig = paneConfig[currentStep];
+  const showSwiftPreview = currentPaneConfig?.showSwiftPreview !== false;
 
   const handleSubmit = async () => {
     try {
@@ -147,7 +163,7 @@ const ImportLCAmendmentForm: React.FC<ImportLCAmendmentFormProps> = ({ onBack, o
       </div>
 
       {/* MT 707 Sidebar Preview */}
-      <MT707SidebarPreview formData={formData} originalData={originalData} changes={changes} />
+      <MT707SidebarPreview formData={formData} originalData={originalData} changes={changes} visible={showSwiftPreview} />
 
       {/* Changes Summary Modal */}
       {showChangesSummary && (

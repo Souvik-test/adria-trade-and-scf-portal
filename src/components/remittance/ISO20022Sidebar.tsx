@@ -15,6 +15,7 @@ interface ISO20022SidebarProps {
   transferType: 'customer' | 'fi';
   settlementMethod?: 'INDA' | 'COVE' | '';
   className?: string;
+  visible?: boolean;
 }
 
 const ISO20022Sidebar: React.FC<ISO20022SidebarProps> = ({
@@ -23,7 +24,9 @@ const ISO20022Sidebar: React.FC<ISO20022SidebarProps> = ({
   transferType,
   settlementMethod = '',
   className,
+  visible = true,
 }) => {
+  if (!visible) return null;
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [copiedTab, setCopiedTab] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'pacs008' | 'pacs009'>('pacs008');
