@@ -66,12 +66,12 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
     loadPaneConfig();
   }, []);
 
-  // Get current pane's showSwiftPreview setting
-  const showSwiftPreview = paneConfigList[currentStepIndex]?.showSwiftPreview !== false;
-
   const currentStepIndex = CUSTOMER_CREDIT_TRANSFER_STEPS.indexOf(currentStep);
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === CUSTOMER_CREDIT_TRANSFER_STEPS.length - 1;
+
+  // Get current pane's showSwiftPreview setting
+  const showSwiftPreview = paneConfigList[currentStepIndex]?.showSwiftPreview !== false;
 
   // Auto-generate read-only fields on mount
   useEffect(() => {
