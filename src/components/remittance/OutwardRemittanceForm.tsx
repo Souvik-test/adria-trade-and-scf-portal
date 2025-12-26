@@ -128,7 +128,9 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
       case 'amount-charges':
         return amountCharges.instAmt !== '' && amountCharges.instAmt > 0 && !!amountCharges.ccy && !!amountCharges.chgBr;
       case 'routing-settlement':
-        return validateBIC(routingSettlement.instgAgtBic) && validateBIC(routingSettlement.instdAgtBic);
+        // Debtor Agent BIC and Creditor Agent BIC are now optional
+        return (routingSettlement.instgAgtBic.length === 0 || validateBIC(routingSettlement.instgAgtBic)) &&
+               (routingSettlement.instdAgtBic.length === 0 || validateBIC(routingSettlement.instdAgtBic));
       case 'regulatory-compliance':
         return !!regulatoryCompliance.purpCd && !!regulatoryCompliance.srcFunds && regulatoryCompliance.declFlg;
       case 'remittance-info':

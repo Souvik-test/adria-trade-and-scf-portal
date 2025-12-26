@@ -100,13 +100,6 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
               {isApprovalStage ? 'Review (Read-only)' : 'Data Entry'}
             </Badge>
           </div>
-          <div className="h-4 border-l border-border" />
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">UI Mode:</span>
-            <Badge variant="outline">
-              {currentStage.ui_render_mode === 'dynamic' ? 'Dynamic' : 'Static'}
-            </Badge>
-          </div>
           {allStages.length > 1 && (
             <>
               <div className="h-4 border-l border-border" />

@@ -28,10 +28,10 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Instructing Agent BIC */}
+          {/* Debtor Agent BIC (formerly Instructing Agent BIC) */}
           <div className="space-y-2">
             <Label htmlFor="instgAgtBic" className="text-sm">
-              Instructing Agent BIC <span className="text-destructive">*</span>
+              Debtor Agent BIC
             </Label>
             <Input
               id="instgAgtBic"
@@ -47,10 +47,10 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             )}
           </div>
 
-          {/* Instructed Agent BIC */}
+          {/* Creditor Agent BIC (formerly Instructed Agent BIC) */}
           <div className="space-y-2">
             <Label htmlFor="instdAgtBic" className="text-sm">
-              Instructed Agent BIC <span className="text-destructive">*</span>
+              Creditor Agent BIC
             </Label>
             <Input
               id="instdAgtBic"
