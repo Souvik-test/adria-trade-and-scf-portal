@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.authenticate-user]
 verify_jwt = false
+
+[functions.submit-remittance]
+verify_jwt = false
