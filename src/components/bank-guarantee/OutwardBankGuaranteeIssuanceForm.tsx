@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -8,6 +8,8 @@ import OutwardBGPaneRenderer from './OutwardBGPaneRenderer';
 import OutwardBGProgressIndicator from './OutwardBGProgressIndicator';
 import MT760SidebarPreview from './MT760SidebarPreview';
 import { OutwardBGFormData } from '@/types/outwardBankGuarantee';
+import { getPaneSectionConfig } from '@/services/paneSectionService';
+import { PaneConfig } from '@/types/dynamicForm';
 
 interface OutwardBankGuaranteeIssuanceFormProps {
   onClose: () => void;
@@ -21,7 +23,20 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
   const [currentPane, setCurrentPane] = useState(0);
   const [formData, setFormData] = useState<OutwardBGFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paneConfigList, setPaneConfigList] = useState<PaneConfig[]>([]);
   const { toast } = useToast();
+
+  // Load pane configuration
+  useEffect(() => {
+    const loadPaneConfig = async () => {
+      const config = await getPaneSectionConfig('OBG', 'ISSUANCE');
+      setPaneConfigList(config);
+    };
+    loadPaneConfig();
+  }, []);
+
+  // Get current pane's showSwiftPreview setting
+  const showSwiftPreview = paneConfigList[currentPane]?.showSwiftPreview !== false;
 
   const panes = [
     'Guarantee Information',
@@ -294,8 +309,8 @@ const OutwardBankGuaranteeIssuanceForm: React.FC<OutwardBankGuaranteeIssuanceFor
       </div>
 
       {/* MT 760 Preview Sidebar - Fixed width */}
-      <div className="w-96 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
-        <MT760SidebarPreview formData={formData} />
+      <div className={`flex-shrink-0 ${showSwiftPreview ? 'w-96' : 'w-0'} bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700`}>
+        <MT760SidebarPreview formData={formData} visible={showSwiftPreview} />
       </div>
     </div>
   );

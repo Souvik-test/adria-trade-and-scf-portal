@@ -31,6 +31,8 @@ import RemittanceFormActions from './RemittanceFormActions';
 import ISO20022Sidebar from './ISO20022Sidebar';
 import { getCurrentUserAsync } from '@/services/database';
 import { saveRemittanceTransaction, submitRemittanceForApproval, approveRemittanceTransaction, rejectRemittanceTransaction } from '@/services/remittanceService';
+import { getPaneSectionConfig } from '@/services/paneSectionService';
+import { PaneConfig } from '@/types/dynamicForm';
 
 interface OutwardRemittanceFormProps {
   readOnly?: boolean;
@@ -53,6 +55,19 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [savedTransactionId, setSavedTransactionId] = useState<string | undefined>(transactionId);
   const [currentStep, setCurrentStep] = useState<CustomerCreditTransferStep>('payment-header');
+  const [paneConfigList, setPaneConfigList] = useState<PaneConfig[]>([]);
+
+  // Load pane configuration
+  useEffect(() => {
+    const loadPaneConfig = async () => {
+      const config = await getPaneSectionConfig('REM', 'PACS008');
+      setPaneConfigList(config);
+    };
+    loadPaneConfig();
+  }, []);
+
+  // Get current pane's showSwiftPreview setting
+  const showSwiftPreview = paneConfigList[currentStepIndex]?.showSwiftPreview !== false;
 
   const currentStepIndex = CUSTOMER_CREDIT_TRANSFER_STEPS.indexOf(currentStep);
   const isFirstStep = currentStepIndex === 0;
@@ -314,6 +329,7 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
         pacs008Data={formData}
         transferType="customer"
         settlementMethod={formData.paymentHeader.sttlmMtd}
+        visible={showSwiftPreview}
       />
     </div>
   );

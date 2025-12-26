@@ -11,13 +11,16 @@ interface MT707SidebarPreviewProps {
   formData: ImportLCFormData;
   originalData: ImportLCFormData;
   changes: Record<string, { original: any; current: any }>;
+  visible?: boolean;
 }
 
 const MT707SidebarPreview: React.FC<MT707SidebarPreviewProps> = ({ 
   formData, 
   originalData, 
-  changes 
+  changes,
+  visible = true
 }) => {
+  if (!visible) return null;
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
 
   const generateMT707Content = () => {

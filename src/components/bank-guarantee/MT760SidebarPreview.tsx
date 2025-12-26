@@ -6,9 +6,11 @@ import { FileText } from 'lucide-react';
 
 interface MT760SidebarPreviewProps {
   formData: any;
+  visible?: boolean;
 }
 
-const MT760SidebarPreview: React.FC<MT760SidebarPreviewProps> = ({ formData }) => {
+const MT760SidebarPreview: React.FC<MT760SidebarPreviewProps> = ({ formData, visible = true }) => {
+  if (!visible) return null;
   const generateMT760Preview = () => {
     return `{1:F01BANKSGSGXXXX0000000000}
 {2:I760RECIPSGSGXXXN}
