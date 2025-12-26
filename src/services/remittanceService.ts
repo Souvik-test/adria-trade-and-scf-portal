@@ -4,6 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { OutwardRemittanceFormData, FICreditTransferFormData } from '@/types/internationalRemittance';
 import { generatePACS009FromPACS008 } from '@/utils/iso20022Generator';
 import { Json } from '@/integrations/supabase/types';
+import { customAuth } from '@/services/customAuth';
+
+const EDGE_FUNCTION_URL = 'https://txkejzwremnrpyksizso.functions.supabase.co/submit-remittance';
 
 export interface RemittanceTransactionRecord {
   id: string;
@@ -39,6 +42,54 @@ export interface InterbankSettlementRecord {
 }
 
 /**
+ * Helper to check if we should use edge function (customAuth) or direct Supabase calls
+ */
+const shouldUseEdgeFunction = (): { useEdge: boolean; session: any } => {
+  const customSession = customAuth.getSession();
+  if (customSession?.access_token) {
+    return { useEdge: true, session: customSession };
+  }
+  return { useEdge: false, session: null };
+};
+
+/**
+ * Call the edge function for remittance operations
+ */
+const callEdgeFunction = async (
+  action: string,
+  payload: Record<string, unknown>
+): Promise<{ success: boolean; data?: any; error?: string }> => {
+  try {
+    const { session } = shouldUseEdgeFunction();
+    
+    const response = await fetch(EDGE_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
+      },
+      body: JSON.stringify({
+        session,
+        action,
+        ...payload,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Edge function error:', result);
+      return { success: false, error: result.error || 'Failed to save transaction' };
+    }
+
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error('Edge function call failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Save or update a PACS.008 Customer Credit Transfer transaction
  */
 export const saveRemittanceTransaction = async (
@@ -47,6 +98,23 @@ export const saveRemittanceTransaction = async (
   status: 'draft' | 'Pending Approval' | 'Approved' | 'Rejected' = 'draft',
   existingId?: string
 ): Promise<{ success: boolean; id?: string; transactionRef?: string; error?: string }> => {
+  const { useEdge } = shouldUseEdgeFunction();
+  
+  if (useEdge) {
+    const action = status === 'draft' ? 'saveDraftPacs008' : 'submitPacs008';
+    const result = await callEdgeFunction(action, { formData, existingId });
+    
+    if (result.success) {
+      return {
+        success: true,
+        id: result.data.pacs008Id,
+        transactionRef: result.data.pacs008Ref,
+      };
+    }
+    return { success: false, error: result.error };
+  }
+
+  // Direct Supabase call for Supabase-authenticated users
   try {
     const { paymentHeader, orderingCustomer, beneficiaryCustomer, amountCharges, routingSettlement, regulatoryCompliance, remittanceInfo } = formData;
     
@@ -105,7 +173,6 @@ export const saveRemittanceTransaction = async (
     };
 
     if (existingId) {
-      // Update existing record
       const { data, error } = await supabase
         .from('remittance_transactions')
         .update(record)
@@ -116,7 +183,6 @@ export const saveRemittanceTransaction = async (
       if (error) throw error;
       return { success: true, id: data.id, transactionRef: data.transaction_ref };
     } else {
-      // Insert new record
       const { data, error } = await supabase
         .from('remittance_transactions')
         .insert([record])
@@ -142,6 +208,23 @@ export const saveInterbankSettlement = async (
   parentPacs008Id?: string,
   existingId?: string
 ): Promise<{ success: boolean; id?: string; settlementRef?: string; error?: string }> => {
+  const { useEdge } = shouldUseEdgeFunction();
+  
+  if (useEdge) {
+    const action = status === 'draft' ? 'saveDraftPacs009' : 'submitPacs009';
+    const result = await callEdgeFunction(action, { formData, parentPacs008Id, existingId });
+    
+    if (result.success) {
+      return {
+        success: true,
+        id: result.data.id,
+        settlementRef: result.data.settlementRef,
+      };
+    }
+    return { success: false, error: result.error };
+  }
+
+  // Direct Supabase call for Supabase-authenticated users
   try {
     const { settlementHeader, instructingAgent, instructedAgent, settlementAmount, coverLinkage, settlementInstructions } = formData;
     
@@ -220,8 +303,26 @@ export const submitRemittanceForApproval = async (
   pacs009Ref?: string;
   error?: string 
 }> => {
+  const { useEdge } = shouldUseEdgeFunction();
+  
+  if (useEdge) {
+    // Edge function handles everything including auto-creating PACS.009 for COVE
+    const result = await callEdgeFunction('submitPacs008', { formData });
+    
+    if (result.success) {
+      return {
+        success: true,
+        pacs008Id: result.data.pacs008Id,
+        pacs008Ref: result.data.pacs008Ref,
+        pacs009Id: result.data.pacs009Id,
+        pacs009Ref: result.data.pacs009Ref,
+      };
+    }
+    return { success: false, error: result.error };
+  }
+
+  // Direct Supabase call for Supabase-authenticated users
   try {
-    // Save PACS.008
     const pacs008Result = await saveRemittanceTransaction(userId, formData, 'Pending Approval');
     
     if (!pacs008Result.success) {
@@ -281,6 +382,13 @@ export const approveRemittanceTransaction = async (
   transactionId: string,
   approverUserId: string
 ): Promise<{ success: boolean; error?: string }> => {
+  const { useEdge } = shouldUseEdgeFunction();
+  
+  if (useEdge) {
+    const result = await callEdgeFunction('approve', { transactionId });
+    return { success: result.success, error: result.error };
+  }
+
   try {
     const { error } = await supabase
       .from('remittance_transactions')
@@ -308,6 +416,13 @@ export const rejectRemittanceTransaction = async (
   rejectorUserId: string,
   reason: string
 ): Promise<{ success: boolean; error?: string }> => {
+  const { useEdge } = shouldUseEdgeFunction();
+  
+  if (useEdge) {
+    const result = await callEdgeFunction('reject', { transactionId, reason });
+    return { success: result.success, error: result.error };
+  }
+
   try {
     const { error } = await supabase
       .from('remittance_transactions')
