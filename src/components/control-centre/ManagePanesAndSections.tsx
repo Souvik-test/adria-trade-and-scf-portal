@@ -635,13 +635,18 @@ const ManagePanesAndSections = () => {
       const customSession = customAuth.getSession();
       if (!customSession?.user) throw new Error('User not authenticated');
       
-      const { error } = await supabase
-        .from('pane_section_mappings')
-        .delete()
-        .eq('id', configToDelete.id)
-        .eq('user_id', customSession.user.id);
+      // Use the hard_delete RPC function that bypasses RLS
+      const { data, error } = await supabase
+        .rpc('hard_delete_pane_section_mapping', {
+          p_config_id: configToDelete.id,
+          p_requester_id: customSession.user.id
+        });
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error('Configuration not found or already deleted');
+      }
 
       toast.success('Configuration deleted successfully');
       setShowDeleteDialog(false);

@@ -4300,6 +4300,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      hard_delete_pane_section_mapping: {
+        Args: { p_config_id: string; p_requester_id: string }
+        Returns: boolean
+      }
       has_permission: {
         Args: {
           p_event_code: string
