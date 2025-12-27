@@ -381,9 +381,15 @@ const FieldDefinition = () => {
         .flatMap(psm => psm.panes || [])
     : [];
 
-  // Get sections for selected pane
+  // Get sections for selected pane - merge from all matching panes with the same name
   const availableSections = selectedPane
-    ? availablePanes.find(p => p.name === selectedPane)?.sections || []
+    ? availablePanes
+        .filter(p => p.name === selectedPane)
+        .flatMap(p => p.sections || [])
+        // De-duplicate sections by id or name
+        .filter((section, index, self) => 
+          index === self.findIndex(s => s.id === section.id || s.name === section.name)
+        )
     : [];
 
   const handleBusinessAppChange = (value: string) => {
