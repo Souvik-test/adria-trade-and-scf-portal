@@ -208,8 +208,15 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Determine if current stage is Approval - fields should be read-only
   const isApprovalStage = currentStageName.toLowerCase().includes('approval');
 
-  // Determine if MT700 sidebar should be shown (for ILC/ELC products)
-  const shouldShowMT700 = showMT700Sidebar && ['ILC', 'ELC'].includes(productCode);
+  // Determine if MT700 sidebar should be shown
+  // - Only for ILC/ELC products
+  // - Only if workflow template exists
+  // - Only if current pane's showSwiftPreview is true (from pane_section_mappings)
+  const currentPaneShowSwiftPreview = currentPane?.showSwiftPreview !== false;
+  const shouldShowMT700 = showMT700Sidebar && 
+                          ['ILC', 'ELC'].includes(productCode) && 
+                          hasWorkflowTemplate && 
+                          currentPaneShowSwiftPreview;
 
   // Extract LC Reference Number from form data for header display
   const lcReferenceNumber = formData['LC Number'] || formData['LC  Number'] || 
