@@ -3878,11 +3878,7 @@ export type Database = {
         }[]
       }
       get_all_fields_for_mapping: {
-        Args: {
-          p_event_type: string
-          p_product_code: string
-          p_user_id: string
-        }
+        Args: { p_event_type: string; p_product_code: string }
         Returns: {
           field_code: string
           field_id: string
