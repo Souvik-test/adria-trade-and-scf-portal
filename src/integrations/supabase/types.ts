@@ -633,6 +633,7 @@ export type Database = {
           limit_check_required_flag: boolean | null
           limit_dimension_type: string | null
           lookup_code: string | null
+          mapped_from_field_code: string | null
           masking_flag: boolean | null
           pane_code: string | null
           pane_display_sequence: number | null
@@ -710,6 +711,7 @@ export type Database = {
           limit_check_required_flag?: boolean | null
           limit_dimension_type?: string | null
           lookup_code?: string | null
+          mapped_from_field_code?: string | null
           masking_flag?: boolean | null
           pane_code?: string | null
           pane_display_sequence?: number | null
@@ -787,6 +789,7 @@ export type Database = {
           limit_check_required_flag?: boolean | null
           limit_dimension_type?: string | null
           lookup_code?: string | null
+          mapped_from_field_code?: string | null
           masking_flag?: boolean | null
           pane_code?: string | null
           pane_display_sequence?: number | null
@@ -4030,6 +4033,7 @@ export type Database = {
           limit_check_required_flag: boolean | null
           limit_dimension_type: string | null
           lookup_code: string | null
+          mapped_from_field_code: string | null
           masking_flag: boolean | null
           pane_code: string | null
           pane_display_sequence: number | null
@@ -4195,6 +4199,7 @@ export type Database = {
           limit_check_required_flag: boolean | null
           limit_dimension_type: string | null
           lookup_code: string | null
+          mapped_from_field_code: string | null
           masking_flag: boolean | null
           pane_code: string | null
           pane_display_sequence: number | null

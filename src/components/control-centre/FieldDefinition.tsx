@@ -105,6 +105,7 @@ interface FieldData {
   is_active_flag: boolean;
   effective_from_date: string;
   field_actions?: FieldActions | null;
+  mapped_from_field_code: string;
 }
 
 const UI_DISPLAY_TYPES = [
@@ -170,6 +171,7 @@ const getInitialFieldData = (): FieldData => ({
   is_active_flag: true,
   effective_from_date: new Date().toISOString().split('T')[0],
   field_actions: null,
+  mapped_from_field_code: '',
 });
 
 // Utility function to generate field_code from field_label_key (UPPER_SNAKE_CASE)
@@ -215,6 +217,9 @@ const FieldDefinition = () => {
   const [gridWarnings, setGridWarnings] = useState<string[]>([]);
   const [existingFieldsForDeletion, setExistingFieldsForDeletion] = useState<FieldData[]>([]);
   const [loadingExistingFields, setLoadingExistingFields] = useState(false);
+  
+  // State for "Mapped From" dropdown - all fields for the product-event
+  const [allFieldsForMapping, setAllFieldsForMapping] = useState<FieldData[]>([]);
 
   // Get custom auth user on mount
   useEffect(() => {
@@ -315,6 +320,41 @@ const FieldDefinition = () => {
       setLoadingExistingFields(false);
     }
   };
+
+  // Fetch ALL fields for product-event (for Mapped From dropdown)
+  const fetchAllFieldsForMapping = async () => {
+    if (!selectedProduct || !selectedEvent) {
+      setAllFieldsForMapping([]);
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from('field_repository')
+        .select('*')
+        .eq('product_code', selectedProduct)
+        .eq('event_type', selectedEvent)
+        .eq('is_active_flag', true)
+        .order('pane_display_sequence', { ascending: true })
+        .order('section_display_sequence', { ascending: true })
+        .order('field_display_sequence', { ascending: true });
+
+      if (error) throw error;
+      setAllFieldsForMapping((data || []) as unknown as FieldData[]);
+    } catch (error: any) {
+      console.error('Failed to fetch fields for mapping', error);
+      setAllFieldsForMapping([]);
+    }
+  };
+
+  // Fetch all fields for mapping when product/event changes
+  React.useEffect(() => {
+    if (selectedProduct && selectedEvent) {
+      fetchAllFieldsForMapping();
+    } else {
+      setAllFieldsForMapping([]);
+    }
+  }, [selectedProduct, selectedEvent]);
 
   // Fetch existing fields when replaceExisting is checked and dialog is open
   React.useEffect(() => {
@@ -1489,6 +1529,34 @@ const FieldDefinition = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  {/* 12a. Mapped From (Auto-populate from another field) */}
+                  <div className="space-y-2">
+                    <Label tooltip="Select a field from any pane/section whose value should auto-populate this field during transaction processing">Mapped From</Label>
+                    <Select 
+                      value={fieldData.mapped_from_field_code || '_none_'} 
+                      onValueChange={(v) => updateFieldData('mapped_from_field_code', v === '_none_' ? '' : v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select source field..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        <SelectItem value="_none_" className="text-muted-foreground italic">-- None --</SelectItem>
+                        {allFieldsForMapping
+                          .filter(f => f.field_code !== fieldData.field_code) // Exclude current field
+                          .map(f => (
+                            <SelectItem key={f.id || f.field_id} value={f.field_code}>
+                              {f.field_label_key} ({f.pane_code} → {f.section_code})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldData.mapped_from_field_code && (
+                      <p className="text-xs text-muted-foreground">
+                        Value will auto-populate from: <span className="font-medium">{fieldData.mapped_from_field_code}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 

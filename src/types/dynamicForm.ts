@@ -56,6 +56,8 @@ export interface DynamicFieldDefinition {
   swift_format_pattern?: string | null;
   // Field actions for computed fields and conditional logic
   field_actions?: FieldActions | null;
+  // Field mapping for auto-population from previous panes/sections
+  mapped_from_field_code?: string | null;
 }
 
 export interface GroupedFields {
