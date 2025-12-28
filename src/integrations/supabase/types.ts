@@ -3877,6 +3877,20 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_all_fields_for_mapping: {
+        Args: {
+          p_event_type: string
+          p_product_code: string
+          p_user_id: string
+        }
+        Returns: {
+          field_code: string
+          field_id: string
+          field_label_key: string
+          pane_code: string
+          section_code: string
+        }[]
+      }
       get_all_managed_users: {
         Args: { p_requesting_user_id: string }
         Returns: {
