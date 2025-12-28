@@ -328,20 +328,19 @@ const FieldDefinition = () => {
       return;
     }
     
-    const customUser = customAuth.getSession()?.user;
-    if (!customUser?.id) {
-      setAllFieldsForMapping([]);
-      return;
-    }
-    
     try {
       const { data, error } = await supabase.rpc('get_all_fields_for_mapping', {
-        p_user_id: customUser.id,
         p_product_code: selectedProduct,
         p_event_type: selectedEvent
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to fetch fields for mapping:', error);
+        toast.error('Failed to load fields for mapping dropdown');
+        setAllFieldsForMapping([]);
+        return;
+      }
+      
       // Map the RPC response to FieldData format for the dropdown
       const mappedFields = (data || []).map((f: any) => ({
         field_id: f.field_id,
@@ -351,8 +350,10 @@ const FieldDefinition = () => {
         section_code: f.section_code
       })) as unknown as FieldData[];
       setAllFieldsForMapping(mappedFields);
+      console.log('Loaded fields for mapping:', mappedFields.length);
     } catch (error: any) {
       console.error('Failed to fetch fields for mapping', error);
+      toast.error('Failed to load fields for mapping dropdown');
       setAllFieldsForMapping([]);
     }
   };
