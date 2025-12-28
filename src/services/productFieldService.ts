@@ -75,6 +75,8 @@ export interface ProductField {
   user_id: string;
   // Field actions for computed fields and conditional logic
   field_actions?: FieldActions | null;
+  // Field mapping for auto-population from another field
+  mapped_from_field_code?: string | null;
 }
 
 export const fetchProductFields = async (userId: string) => {

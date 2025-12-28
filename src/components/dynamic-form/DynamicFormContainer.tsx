@@ -54,6 +54,35 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     initialData?.repeatableGroups || {}
   );
 
+  // Notify parent of form changes - define this early so other effects can use it
+  const notifyChange = useCallback((newFormData: DynamicFormData, newRepeatableGroups: { [groupId: string]: RepeatableGroupInstance[] }) => {
+    if (onFormChange) {
+      onFormChange({
+        formData: newFormData,
+        repeatableGroups: newRepeatableGroups,
+      });
+    }
+  }, [onFormChange]);
+
+  // Apply field mappings - auto-populate values from mapped fields
+  const applyFieldMappings = useCallback((fields: { mapped_from_field_code?: string | null; field_code: string }[], currentFormData: DynamicFormData): DynamicFormData => {
+    const updatedData = { ...currentFormData };
+    let hasChanges = false;
+    
+    fields.forEach(field => {
+      if (field.mapped_from_field_code && !updatedData[field.field_code]) {
+        // Get value from source field
+        const sourceValue = updatedData[field.mapped_from_field_code];
+        if (sourceValue !== undefined && sourceValue !== null && sourceValue !== '') {
+          updatedData[field.field_code] = sourceValue;
+          hasChanges = true;
+        }
+      }
+    });
+    
+    return hasChanges ? updatedData : currentFormData;
+  }, []);
+
   // Sync formData and repeatableGroups when initialData changes (important for stage transitions)
   React.useEffect(() => {
     if (initialData?.formData) {
@@ -78,6 +107,36 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
       });
     }
   }, [initialData?.formData, initialData?.repeatableGroups]);
+
+  // Apply field mappings when panes load and formData has values
+  React.useEffect(() => {
+    if (panes.length > 0 && Object.keys(formData).length > 0) {
+      // Collect all fields that have mapped_from_field_code
+      const allFields: { mapped_from_field_code?: string | null; field_code: string }[] = [];
+      panes.forEach(pane => {
+        pane.sections.forEach(section => {
+          section.groups.forEach(group => {
+            group.fields.forEach(field => {
+              if (field.mapped_from_field_code) {
+                allFields.push({
+                  field_code: field.field_code,
+                  mapped_from_field_code: field.mapped_from_field_code,
+                });
+              }
+            });
+          });
+        });
+      });
+      
+      if (allFields.length > 0) {
+        const updatedFormData = applyFieldMappings(allFields, formData);
+        if (updatedFormData !== formData) {
+          setFormData(updatedFormData);
+          notifyChange(updatedFormData, repeatableGroups);
+        }
+      }
+    }
+  }, [panes, formData, applyFieldMappings, notifyChange, repeatableGroups]);
 
   // Helper to get section config by name
   const getSectionConfig = (sectionName: string): SectionConfig | undefined => {
@@ -126,16 +185,6 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
       }
     }
   }, [panes, sectionConfigs]);
-
-  // Notify parent of form changes
-  const notifyChange = useCallback((newFormData: DynamicFormData, newRepeatableGroups: { [groupId: string]: RepeatableGroupInstance[] }) => {
-    if (onFormChange) {
-      onFormChange({
-        formData: newFormData,
-        repeatableGroups: newRepeatableGroups,
-      });
-    }
-  }, [onFormChange]);
 
   // Handle regular field changes
   const handleFieldChange = useCallback((fieldCode: string, value: any) => {
