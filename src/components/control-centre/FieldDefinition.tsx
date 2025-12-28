@@ -321,26 +321,36 @@ const FieldDefinition = () => {
     }
   };
 
-  // Fetch ALL fields for product-event (for Mapped From dropdown)
+  // Fetch ALL fields for product-event (for Mapped From dropdown) - uses RPC to bypass RLS
   const fetchAllFieldsForMapping = async () => {
     if (!selectedProduct || !selectedEvent) {
       setAllFieldsForMapping([]);
       return;
     }
     
+    const customUser = customAuth.getSession()?.user;
+    if (!customUser?.id) {
+      setAllFieldsForMapping([]);
+      return;
+    }
+    
     try {
-      const { data, error } = await supabase
-        .from('field_repository')
-        .select('*')
-        .eq('product_code', selectedProduct)
-        .eq('event_type', selectedEvent)
-        .eq('is_active_flag', true)
-        .order('pane_display_sequence', { ascending: true })
-        .order('section_display_sequence', { ascending: true })
-        .order('field_display_sequence', { ascending: true });
+      const { data, error } = await supabase.rpc('get_all_fields_for_mapping', {
+        p_user_id: customUser.id,
+        p_product_code: selectedProduct,
+        p_event_type: selectedEvent
+      });
 
       if (error) throw error;
-      setAllFieldsForMapping((data || []) as unknown as FieldData[]);
+      // Map the RPC response to FieldData format for the dropdown
+      const mappedFields = (data || []).map((f: any) => ({
+        field_id: f.field_id,
+        field_code: f.field_code,
+        field_label_key: f.field_label_key,
+        pane_code: f.pane_code,
+        section_code: f.section_code
+      })) as unknown as FieldData[];
+      setAllFieldsForMapping(mappedFields);
     } catch (error: any) {
       console.error('Failed to fetch fields for mapping', error);
       setAllFieldsForMapping([]);
