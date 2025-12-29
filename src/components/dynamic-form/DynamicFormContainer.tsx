@@ -65,23 +65,64 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   }, [onFormChange]);
 
   // Apply field mappings - auto-populate values from mapped fields
-  const applyFieldMappings = useCallback((fields: { mapped_from_field_code?: string | null; field_code: string }[], currentFormData: DynamicFormData): DynamicFormData => {
-    const updatedData = { ...currentFormData };
-    let hasChanges = false;
-    
-    fields.forEach(field => {
-      if (field.mapped_from_field_code && !updatedData[field.field_code]) {
-        // Get value from source field
-        const sourceValue = updatedData[field.mapped_from_field_code];
-        if (sourceValue !== undefined && sourceValue !== null && sourceValue !== '') {
-          updatedData[field.field_code] = sourceValue;
-          hasChanges = true;
+  const applyFieldMappings = useCallback(
+    (
+      fields: {
+        mapped_from_field_code?: string | null;
+        field_code: string;
+        ui_display_type?: string | null;
+        data_type?: string | null;
+        decimal_places?: number | null;
+      }[],
+      currentFormData: DynamicFormData
+    ): DynamicFormData => {
+      const updatedData = { ...currentFormData };
+      let hasChanges = false;
+
+      const normalizeFieldCode = (code: string) => code.toUpperCase().replace(/\s+/g, '_');
+
+      const getValueForCode = (data: DynamicFormData, code: string) => {
+        return (
+          data[code] ??
+          data[normalizeFieldCode(code)] ??
+          data[code.toLowerCase()] ??
+          data[code.toUpperCase()]
+        );
+      };
+
+      const coerceMappedValue = (raw: any, target: { ui_display_type?: string | null }) => {
+        if (raw === undefined || raw === null) return raw;
+
+        // If target is a NUMBER input, sanitize common currency formats like "100,000.00"
+        if (target.ui_display_type === 'NUMBER') {
+          if (typeof raw === 'number') return raw;
+          if (typeof raw === 'string') {
+            const cleaned = raw.replace(/,/g, '').trim();
+            if (cleaned === '') return null;
+            const num = Number(cleaned);
+            return Number.isFinite(num) ? num : raw;
+          }
         }
-      }
-    });
-    
-    return hasChanges ? updatedData : currentFormData;
-  }, []);
+
+        return raw;
+      };
+
+      fields.forEach((field) => {
+        if (field.mapped_from_field_code && !updatedData[field.field_code]) {
+          const sourceValue = getValueForCode(updatedData, field.mapped_from_field_code);
+          const mappedValue = coerceMappedValue(sourceValue, field);
+
+          if (mappedValue !== undefined && mappedValue !== null && mappedValue !== '') {
+            updatedData[field.field_code] = mappedValue;
+            hasChanges = true;
+          }
+        }
+      });
+
+      return hasChanges ? updatedData : currentFormData;
+    },
+    []
+  );
 
   // Sync formData and repeatableGroups when initialData changes (important for stage transitions)
   React.useEffect(() => {
