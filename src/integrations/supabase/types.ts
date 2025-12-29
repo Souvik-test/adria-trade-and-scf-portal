@@ -3973,6 +3973,7 @@ export type Database = {
           length_max: number
           length_min: number
           lookup_code: string
+          mapped_from_field_code: string
           pane_code: string
           section_code: string
           swift_format_pattern: string
