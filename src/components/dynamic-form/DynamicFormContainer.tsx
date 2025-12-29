@@ -44,7 +44,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   const { panes, loading, error } = useDynamicFormFields({
     productCode,
     eventType,
-    paneCode: currentPaneCode,
+    // IMPORTANT: fetch ALL panes so mapped fields can auto-populate across panes
     stageId,
   });
 
@@ -90,15 +90,28 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
         );
       };
 
-      const coerceMappedValue = (raw: any, target: { ui_display_type?: string | null }) => {
+      const coerceMappedValue = (
+        raw: any,
+        target: { ui_display_type?: string | null; data_type?: string | null }
+      ) => {
         if (raw === undefined || raw === null) return raw;
 
-        // If target is a NUMBER input, sanitize common currency formats like "100,000.00"
-        if (target.ui_display_type === 'NUMBER') {
+        const dt = (target.data_type || '').toUpperCase();
+        const isNumericTarget =
+          target.ui_display_type === 'NUMBER' ||
+          dt === 'NUMERIC' ||
+          dt === 'NUMBER' ||
+          dt === 'DECIMAL' ||
+          dt === 'FLOAT' ||
+          dt === 'INTEGER' ||
+          dt === 'INT';
+
+        // Sanitize common currency formats like "USD 100,000.00" for numeric targets
+        if (isNumericTarget) {
           if (typeof raw === 'number') return raw;
           if (typeof raw === 'string') {
-            const cleaned = raw.replace(/,/g, '').trim();
-            if (cleaned === '') return null;
+            const cleaned = raw.replace(/[^0-9.-]/g, '').trim();
+            if (cleaned === '' || cleaned === '-' || cleaned === '.') return null;
             const num = Number(cleaned);
             return Number.isFinite(num) ? num : raw;
           }
@@ -153,7 +166,13 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   React.useEffect(() => {
     if (panes.length > 0 && Object.keys(formData).length > 0) {
       // Collect all fields that have mapped_from_field_code
-      const allFields: { mapped_from_field_code?: string | null; field_code: string }[] = [];
+      const allFields: {
+        mapped_from_field_code?: string | null;
+        field_code: string;
+        ui_display_type?: string | null;
+        data_type?: string | null;
+        decimal_places?: number | null;
+      }[] = [];
       panes.forEach(pane => {
         pane.sections.forEach(section => {
           section.groups.forEach(group => {
@@ -162,6 +181,9 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
                 allFields.push({
                   field_code: field.field_code,
                   mapped_from_field_code: field.mapped_from_field_code,
+                  ui_display_type: field.ui_display_type,
+                  data_type: field.data_type,
+                  decimal_places: field.decimal_places,
                 });
               }
             });
@@ -314,8 +336,10 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     );
   }
 
-  // Get the current pane (should be only one since we filter by paneCode)
-  const currentPane = panes[0];
+  // Pick the pane to render (we still fetch all panes to support cross-pane mappings)
+  const currentPane = currentPaneCode
+    ? panes.find((p) => p.paneCode === currentPaneCode)
+    : panes[0];
   
   if (!currentPane) {
     return (
