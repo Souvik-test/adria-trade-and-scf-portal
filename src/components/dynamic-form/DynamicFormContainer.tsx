@@ -1,7 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDynamicFormFields } from '@/hooks/useDynamicFormFields';
-import { DynamicFormData, RepeatableGroupInstance, DynamicFormState } from '@/types/dynamicForm';
+import useFieldActions from '@/hooks/useFieldActions';
+import {
+  DynamicFieldDefinition,
+  DynamicFormData,
+  RepeatableGroupInstance,
+  DynamicFormState,
+} from '@/types/dynamicForm';
 import DynamicSectionRenderer from './DynamicSectionRenderer';
 
 // Section config from pane_section_mappings
