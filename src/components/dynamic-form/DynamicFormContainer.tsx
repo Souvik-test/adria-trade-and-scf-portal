@@ -60,6 +60,25 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     initialData?.repeatableGroups || {}
   );
 
+  // Collect ALL fields across ALL panes for computed field evaluation
+  const allFieldsFlat = useMemo<DynamicFieldDefinition[]>(() => {
+    const fields: DynamicFieldDefinition[] = [];
+    panes.forEach(pane => {
+      pane.sections.forEach(section => {
+        section.groups.forEach(group => {
+          group.fields.forEach(field => fields.push(field));
+        });
+      });
+    });
+    return fields;
+  }, [panes]);
+
+  // Use the field actions hook to get computed values
+  const { getComputedValue, isFieldComputed } = useFieldActions({
+    fields: allFieldsFlat,
+    formData,
+  });
+
   // Notify parent of form changes - define this early so other effects can use it
   const notifyChange = useCallback((newFormData: DynamicFormData, newRepeatableGroups: { [groupId: string]: RepeatableGroupInstance[] }) => {
     if (onFormChange) {
@@ -168,11 +187,35 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
     }
   }, [initialData?.formData, initialData?.repeatableGroups]);
 
-  // Apply field mappings when panes load and formData has values
+  // STEP 1: Materialize computed field values into formData
+  // This ensures computed fields like TOTAL_LC_AMOUNT are in formData so mappings can read them
+  React.useEffect(() => {
+    if (allFieldsFlat.length === 0 || Object.keys(formData).length === 0) return;
+
+    let hasChanges = false;
+    const updatedData = { ...formData };
+
+    allFieldsFlat.forEach(field => {
+      if (isFieldComputed(field.field_code)) {
+        const computedVal = getComputedValue(field.field_code);
+        if (computedVal !== null && computedVal !== updatedData[field.field_code]) {
+          updatedData[field.field_code] = computedVal;
+          hasChanges = true;
+        }
+      }
+    });
+
+    if (hasChanges) {
+      setFormData(updatedData);
+      notifyChange(updatedData, repeatableGroups);
+    }
+  }, [allFieldsFlat, formData, getComputedValue, isFieldComputed, notifyChange, repeatableGroups]);
+
+  // STEP 2: Apply field mappings AFTER computed values are materialized
   React.useEffect(() => {
     if (panes.length > 0 && Object.keys(formData).length > 0) {
       // Collect all fields that have mapped_from_field_code
-      const allFields: {
+      const mappedFields: {
         mapped_from_field_code?: string | null;
         field_code: string;
         ui_display_type?: string | null;
@@ -184,7 +227,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
           section.groups.forEach(group => {
             group.fields.forEach(field => {
               if (field.mapped_from_field_code) {
-                allFields.push({
+                mappedFields.push({
                   field_code: field.field_code,
                   mapped_from_field_code: field.mapped_from_field_code,
                   ui_display_type: field.ui_display_type,
@@ -197,8 +240,8 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
         });
       });
       
-      if (allFields.length > 0) {
-        const updatedFormData = applyFieldMappings(allFields, formData);
+      if (mappedFields.length > 0) {
+        const updatedFormData = applyFieldMappings(mappedFields, formData);
         if (updatedFormData !== formData) {
           setFormData(updatedFormData);
           notifyChange(updatedFormData, repeatableGroups);
