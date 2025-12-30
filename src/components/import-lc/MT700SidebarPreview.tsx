@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { ImportLCFormData } from '@/types/importLC';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Maximize2 } from 'lucide-react';
+import { Download, Eye, Maximize2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
 interface MT700SidebarPreviewProps {
   formData: ImportLCFormData;
   visible?: boolean;
 }
+
 const MT700SidebarPreview: React.FC<MT700SidebarPreviewProps> = ({
   formData,
   visible = true
 }) => {
-  if (!visible) return null;
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false);
+
+  if (!visible) return null;
+
   const generateMT700Content = () => {
     const applicant = formData.parties.find(p => p.role === 'applicant');
     const beneficiary = formData.parties.find(p => p.role === 'beneficiary');
@@ -49,6 +55,7 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
 :78:${formData.additionalConditions}
 -}`;
   };
+
   const downloadMT700 = () => {
     const content = `*** DRAFT - FOR REVIEW ONLY ***\n\n${generateMT700Content()}`;
     const blob = new Blob([content], {
@@ -63,16 +70,44 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-  return <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+
+  // Collapsed state - just show the toggle button
+  if (isCollapsed) {
+    return (
+      <div className="w-10 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(false)}
+          className="h-full w-full rounded-none hover:bg-corporate-teal-100 dark:hover:bg-corporate-teal-800/50 text-corporate-teal-700 dark:text-corporate-teal-300"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-80 bg-gradient-to-br from-corporate-teal-50 to-corporate-blue-50 dark:from-corporate-teal-900/20 dark:to-corporate-blue-900/20 border-l border-corporate-teal-200 dark:border-corporate-teal-700 flex flex-col">
       <div className="p-4 border-b border-corporate-teal-200 dark:border-corporate-teal-700 bg-corporate-teal-600 dark:bg-corporate-teal-800">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Eye className="h-5 w-5" />
             MT 700 Preview
           </h3>
-          <Badge variant="outline" className="border-white/60 text-white/80 bg-white/5 uppercase tracking-[0.15em]">
-            Draft
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="border-white/60 text-white/80 bg-white/5 uppercase tracking-[0.15em]">
+              Draft
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCollapsed(true)}
+              className="h-7 w-7 text-white hover:bg-white/20 hover:text-white"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-corporate-teal-100 text-sm mt-1">Live preview of your draft MT 700 message</p>
       </div>
@@ -143,6 +178,8 @@ ${formData.tolerance ? `:39A:${formData.tolerance}` : ''}
           Download Draft
         </Button>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default MT700SidebarPreview;

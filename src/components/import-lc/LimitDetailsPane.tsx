@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ImportLCFormData } from '@/types/importLC';
-import { CheckCircle, AlertTriangle, TrendingUp, DollarSign } from 'lucide-react';
+import { CheckCircle, AlertTriangle, TrendingUp, DollarSign, Send } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
 
 interface LimitDetailsPaneProps {
   formData: ImportLCFormData;
 }
 
 const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
+  const [requestApproval, setRequestApproval] = useState(false);
+  const [assignTo, setAssignTo] = useState<'department' | 'approver' | ''>('');
+  const [email, setEmail] = useState('');
+
   // Mock limit data - in production, this would come from an external limit system
   const limitDetails = {
     limitType: 'LC Issuance Limit',
@@ -113,7 +121,7 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
                 <p className={`text-sm ${isWithinLimit ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                   {isWithinLimit 
                     ? `LC value of ${formatAmount(limitDetails.lcValue, limitDetails.currency)} is within the available limit of ${formatAmount(limitDetails.availableLimit, limitDetails.currency)}.`
-                    : `LC value of ${formatAmount(limitDetails.lcValue, limitDetails.currency)} exceeds the available limit of ${formatAmount(limitDetails.availableLimit, limitDetails.currency)}. Please request limit enhancement.`
+                    : `LC value of ${formatAmount(limitDetails.lcValue, limitDetails.currency)} exceeds the available limit of ${formatAmount(limitDetails.availableLimit, limitDetails.currency)}.`
                   }
                 </p>
               </div>
@@ -121,6 +129,77 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Request Approval Option - only shown when limit is exceeded */}
+      {!isWithinLimit && (
+        <Card className="border-amber-200 dark:border-amber-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Approval Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="request-approval" 
+                checked={requestApproval}
+                onCheckedChange={(checked) => {
+                  setRequestApproval(checked === true);
+                  if (!checked) {
+                    setAssignTo('');
+                    setEmail('');
+                  }
+                }}
+              />
+              <Label htmlFor="request-approval" className="text-sm font-medium cursor-pointer">
+                Request Approval for Limit Override
+              </Label>
+            </div>
+
+            {requestApproval && (
+              <div className="pl-6 space-y-4">
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">Assign to</Label>
+                  <RadioGroup 
+                    value={assignTo} 
+                    onValueChange={(value) => {
+                      setAssignTo(value as 'department' | 'approver');
+                      setEmail('');
+                    }}
+                    className="flex gap-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="department" id="department" />
+                      <Label htmlFor="department" className="cursor-pointer">Department</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="approver" id="approver" />
+                      <Label htmlFor="approver" className="cursor-pointer">Approver</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {assignTo && (
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm text-muted-foreground">
+                      {assignTo === 'department' ? 'Department Email' : 'Approver Email'}
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder={`Enter ${assignTo} email address`}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="max-w-md"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
