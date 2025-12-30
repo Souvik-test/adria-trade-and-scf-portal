@@ -77,16 +77,14 @@ const ImportLCFormActions: React.FC<ImportLCFormActionsProps> = ({
           </Button>
         )}
         
-        {/* Only show Save as Draft for client context */}
-        {!isBankContext && (
-          <Button
-            onClick={onSaveDraft}
-            variant="outline"
-            className="border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
-          >
-            Save as Draft
-          </Button>
-        )}
+        {/* Show Save as Draft for all contexts */}
+        <Button
+          onClick={onSaveDraft}
+          variant="outline"
+          className="border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 dark:text-amber-400 dark:border-amber-500 dark:hover:bg-amber-900/20"
+        >
+          Save as Draft
+        </Button>
 
         {isLastStep ? (
           <Button

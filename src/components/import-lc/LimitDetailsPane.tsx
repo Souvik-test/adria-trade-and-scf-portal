@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ImportLCFormData } from '@/types/importLC';
 import { CheckCircle, AlertTriangle, TrendingUp, DollarSign, Send } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,9 +17,10 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
   const [requestApproval, setRequestApproval] = useState(false);
   const [assignTo, setAssignTo] = useState<'department' | 'approver' | ''>('');
   const [email, setEmail] = useState('');
+  const [demoInsufficientLimit, setDemoInsufficientLimit] = useState(false);
 
   // Mock limit data - in production, this would come from an external limit system
-  const limitDetails = {
+  const baseLimitDetails = {
     limitType: 'LC Issuance Limit',
     totalLimit: 5000000,
     utilizedAmount: 1500000,
@@ -26,6 +28,11 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
     lcValue: formData.lcAmount || 0,
     currency: formData.currency || 'USD'
   };
+
+  // For demo mode, simulate insufficient limit
+  const limitDetails = demoInsufficientLimit 
+    ? { ...baseLimitDetails, availableLimit: 500000 }
+    : baseLimitDetails;
 
   const isWithinLimit = limitDetails.lcValue <= limitDetails.availableLimit;
   const utilizationPercentage = ((limitDetails.utilizedAmount + limitDetails.lcValue) / limitDetails.totalLimit) * 100;
@@ -41,7 +48,23 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">Limit Details</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold text-foreground">Limit Details</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setDemoInsufficientLimit(!demoInsufficientLimit);
+              setRequestApproval(false);
+              setAssignTo('');
+              setEmail('');
+            }}
+            className="text-xs h-7 gap-1"
+          >
+            <AlertTriangle className="h-3 w-3" />
+            {demoInsufficientLimit ? 'Show Sufficient' : 'Demo Insufficient'}
+          </Button>
+        </div>
         <Badge variant={isWithinLimit ? 'default' : 'destructive'} className="gap-1">
           {isWithinLimit ? (
             <>
