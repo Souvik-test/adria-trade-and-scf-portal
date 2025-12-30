@@ -20,18 +20,20 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
   const [demoInsufficientLimit, setDemoInsufficientLimit] = useState(false);
 
   // Mock limit data - in production, this would come from an external limit system
+  const lcValue = formData.lcAmount || 100000; // Default to 100k for demo purposes
   const baseLimitDetails = {
     limitType: 'LC Issuance Limit',
     totalLimit: 5000000,
     utilizedAmount: 1500000,
     availableLimit: 3500000,
-    lcValue: formData.lcAmount || 0,
+    lcValue: lcValue,
     currency: formData.currency || 'USD'
   };
 
-  // For demo mode, simulate insufficient limit
+  // For demo mode, simulate insufficient limit - set available limit to 50% of LC value
+  const insufficientAvailableLimit = Math.max(lcValue * 0.5, 500);
   const limitDetails = demoInsufficientLimit 
-    ? { ...baseLimitDetails, availableLimit: 500000 }
+    ? { ...baseLimitDetails, availableLimit: insufficientAvailableLimit, utilizedAmount: baseLimitDetails.totalLimit - insufficientAvailableLimit }
     : baseLimitDetails;
 
   const isWithinLimit = limitDetails.lcValue <= limitDetails.availableLimit;
