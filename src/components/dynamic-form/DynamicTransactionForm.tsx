@@ -6,7 +6,7 @@ import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
 import { DynamicFormState } from '@/types/dynamicForm';
 import DynamicProgressIndicator from './DynamicProgressIndicator';
 import DynamicButtonRenderer from './DynamicButtonRenderer';
-import DynamicFormContainer from './DynamicFormContainer';
+import HybridFormContainer from './HybridFormContainer';
 import DynamicMT700Sidebar from './DynamicMT700Sidebar';
 
 interface DynamicTransactionFormProps {
@@ -55,6 +55,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     productName,
     eventName,
     currentStageAllowedFields,
+    stagePaneMapping,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
@@ -259,61 +260,42 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         />
       )}
 
-      {/* Current Pane Content */}
+      {/* Current Pane Content - uses HybridFormContainer for static/dynamic switching */}
       {currentPane && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{currentPane.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Dynamic Fields from Field Repository - filtered by current pane and stage */}
-            <DynamicFormContainer
-              productCode={productCode}
-              eventType={eventCode}
-              currentPaneCode={currentPane.name}
-              sectionConfigs={currentPane.sections?.map(s => ({
-                name: s.name,
-                rows: s.rows || 2,
-                columns: s.columns || 2,
-                isRepeatable: s.isRepeatable || false,
-                groupId: s.groupId,
-              }))}
-              allowedFieldNames={currentStageAllowedFields}
-              fieldEditabilityMap={currentStageFieldEditability}
-              initialData={{ formData, repeatableGroups }}
-              onFormChange={(state) => {
-                // Sync with parent state (only if not read-only)
-                if (!isApprovalStage) {
-                  Object.entries(state.formData).forEach(([key, value]) => {
-                    if (formData[key] !== value) {
-                      handleFieldChange(key, value);
-                    }
-                  });
-                }
-              }}
-              disabled={isApprovalStage}
-            />
+        <>
+          <HybridFormContainer
+            productCode={productCode}
+            eventCode={eventCode}
+            currentPane={currentPane}
+            currentPaneIndex={currentPaneIndex}
+            stagePaneMapping={stagePaneMapping}
+            formData={formData}
+            repeatableGroups={repeatableGroups}
+            currentStageAllowedFields={currentStageAllowedFields}
+            currentStageFieldEditability={currentStageFieldEditability}
+            isApprovalStage={isApprovalStage}
+            onFieldChange={handleFieldChange}
+          />
 
-            {/* Dynamic Buttons */}
-            <div className="pt-4 border-t border-border">
-              <DynamicButtonRenderer
-                buttons={currentButtons}
-                currentPaneIndex={currentPaneIndex}
-                totalPanes={panes.length}
-                isLastPaneOfStage={isLastPane}
-                isFinalStage={isFinal}
-                stageName={currentStageName}
-                onNavigate={navigateToPane}
-                onSave={handleSave}
-                onStageSubmit={handleStageSubmit}
-                onSubmit={handleSubmit}
-                onReject={handleReject}
-                onDiscard={handleDiscard}
-                onClose={handleClose}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Dynamic Buttons */}
+          <div className="pt-4 border-t border-border">
+            <DynamicButtonRenderer
+              buttons={currentButtons}
+              currentPaneIndex={currentPaneIndex}
+              totalPanes={panes.length}
+              isLastPaneOfStage={isLastPane}
+              isFinalStage={isFinal}
+              stageName={currentStageName}
+              onNavigate={navigateToPane}
+              onSave={handleSave}
+              onStageSubmit={handleStageSubmit}
+              onSubmit={handleSubmit}
+              onReject={handleReject}
+              onDiscard={handleDiscard}
+              onClose={handleClose}
+            />
+          </div>
+        </>
       )}
 
       {/* Bottom padding for scroll */}
