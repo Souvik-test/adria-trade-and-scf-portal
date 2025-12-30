@@ -1,35 +1,41 @@
 
 import React from 'react';
-import { ImportLCFormData, ImportLCFormStep } from '@/types/importLC';
+import { ImportLCFormData, ImportLCFormStep, CLIENT_STEPS, BANK_STEPS } from '@/types/importLC';
 
 interface ImportLCProgressIndicatorProps {
   currentStep: ImportLCFormStep;
   onStepClick: (step: ImportLCFormStep) => void;
   formData: ImportLCFormData;
+  isBankContext?: boolean;
 }
+
+const STEP_LABELS: Record<ImportLCFormStep, string> = {
+  basic: 'Basic LC Information',
+  parties: 'Party Details',
+  amount: 'LC Amount & Terms',
+  shipment: 'Shipment Details',
+  documents: 'Document Requirements',
+  limits: 'Limit Details',
+  sanctions: 'Sanction Details',
+  accounting: 'Accounting Entries',
+  release: 'Release Documents'
+};
 
 const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
   currentStep,
   onStepClick,
-  formData
+  formData,
+  isBankContext = false
 }) => {
-  const steps = [
-    { key: 'basic', label: 'Basic LC Information', required: true },
-    { key: 'parties', label: 'Party Details', required: true },
-    { key: 'amount', label: 'LC Amount & Terms', required: true },
-    { key: 'shipment', label: 'Shipment Details', required: true },
-    { key: 'documents', label: 'Document Requirements', required: true }
-  ] as const;
+  const activeSteps = isBankContext ? BANK_STEPS : CLIENT_STEPS;
 
   const getStepStatus = (stepKey: ImportLCFormStep) => {
     if (stepKey === currentStep) return 'current';
 
-    // FIX: Use parties array, not just legacy fields for party details completeness.
     switch (stepKey) {
       case 'basic':
         return formData.corporateReference && formData.formOfDocumentaryCredit ? 'completed' : 'pending';
       case 'parties': {
-        // Improved logic: check parties array for applicant & beneficiary
         const applicantComplete = Array.isArray(formData.parties)
           ? formData.parties.some(p => p.role === 'applicant' && p.name && p.address)
           : (formData.applicantName && formData.applicantAddress);
@@ -44,6 +50,18 @@ const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
         return formData.descriptionOfGoods && formData.latestShipmentDate ? 'completed' : 'pending';
       case 'documents':
         return formData.requiredDocuments.length > 0 ? 'completed' : 'pending';
+      case 'limits':
+        // Limits are auto-fetched, consider completed if we reached this step
+        return 'pending';
+      case 'sanctions':
+        // Sanctions are auto-screened
+        return 'pending';
+      case 'accounting':
+        // Accounting entries are auto-generated
+        return 'pending';
+      case 'release':
+        // Release is final step
+        return 'pending';
       default:
         return 'pending';
     }
@@ -52,15 +70,15 @@ const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between">
-        {steps.map((step, index) => {
-          const status = getStepStatus(step.key);
+        {activeSteps.map((stepKey, index) => {
+          const status = getStepStatus(stepKey);
           const isClickable = status === 'completed' || status === 'current';
 
           return (
-            <React.Fragment key={step.key}>
+            <React.Fragment key={stepKey}>
               <div className="flex flex-col items-center flex-1">
                 <button
-                  onClick={() => isClickable && onStepClick(step.key)}
+                  onClick={() => isClickable && onStepClick(stepKey)}
                   disabled={!isClickable}
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors
                     ${status === 'current'
@@ -83,13 +101,13 @@ const ImportLCProgressIndicator: React.FC<ImportLCProgressIndicatorProps> = ({
                       : 'text-gray-400'
                   }
                 `}>
-                  {step.label}
+                  {STEP_LABELS[stepKey]}
                 </span>
               </div>
 
-              {index < steps.length - 1 && (
+              {index < activeSteps.length - 1 && (
                 <div className={`h-0.5 flex-1 mx-2 mt-3
-                  ${getStepStatus(steps[index + 1].key) === 'completed' || status === 'completed'
+                  ${getStepStatus(activeSteps[index + 1]) === 'completed' || status === 'completed'
                     ? 'bg-green-500'
                     : 'bg-gray-200 dark:bg-gray-600'
                   }

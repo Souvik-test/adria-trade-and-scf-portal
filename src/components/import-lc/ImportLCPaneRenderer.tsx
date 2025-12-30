@@ -6,6 +6,10 @@ import PartyDetailsPane from './PartyDetailsPane';
 import LCAmountTermsPane from './LCAmountTermsPane';
 import ShipmentDetailsPane from './ShipmentDetailsPane';
 import DocumentRequirementsPane from './DocumentRequirementsPane';
+import LimitDetailsPane from './LimitDetailsPane';
+import SanctionDetailsPane from './SanctionDetailsPane';
+import AccountingEntriesPane from './AccountingEntriesPane';
+import ReleaseDocumentsPane from './ReleaseDocumentsPane';
 
 interface ImportLCPaneRendererProps {
   currentStep: ImportLCFormStep;
@@ -54,6 +58,14 @@ const ImportLCPaneRenderer: React.FC<ImportLCPaneRendererProps> = ({
           updateField={updateField}
         />
       );
+    case 'limits':
+      return <LimitDetailsPane formData={formData} />;
+    case 'sanctions':
+      return <SanctionDetailsPane formData={formData} />;
+    case 'accounting':
+      return <AccountingEntriesPane formData={formData} />;
+    case 'release':
+      return <ReleaseDocumentsPane formData={formData} />;
     default:
       return null;
   }

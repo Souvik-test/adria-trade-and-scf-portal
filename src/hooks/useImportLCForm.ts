@@ -1,11 +1,11 @@
 
 import { useCallback } from 'react';
-import { ImportLCFormStep } from '@/types/importLC';
+import { ImportLCFormStep, CLIENT_STEPS, BANK_STEPS } from '@/types/importLC';
 import useImportLCFormState from './useImportLCFormState';
 import useImportLCFormValidation from './useImportLCFormValidation';
 import { submitImportLCRequest, saveDraftImportLCRequest } from '@/services/importLCSubmission';
 
-const useImportLCForm = () => {
+const useImportLCForm = (isBankContext: boolean = false) => {
   const {
     formData,
     currentStep,
@@ -16,26 +16,26 @@ const useImportLCForm = () => {
 
   const { validateCurrentStep } = useImportLCFormValidation(formData, currentStep);
 
+  const steps = isBankContext ? BANK_STEPS : CLIENT_STEPS;
+
   // Navigation
   const goToStep = useCallback((step: ImportLCFormStep) => {
     setCurrentStep(step);
   }, [setCurrentStep]);
 
   const nextStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
     }
-  }, [currentStep, setCurrentStep]);
+  }, [currentStep, setCurrentStep, steps]);
 
   const previousStep = useCallback(() => {
-    const steps: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
     }
-  }, [currentStep, setCurrentStep]);
+  }, [currentStep, setCurrentStep, steps]);
 
   // Submit form
   const submitForm = useCallback(async () => {

@@ -23,6 +23,10 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   const [userId, setUserId] = useState<string>('');
   const [paneConfig, setPaneConfig] = useState<PaneConfig[]>([]);
   
+  // Determine context based on businessCentre
+  const businessCentre = localStorage.getItem('businessCentre') || '';
+  const isBankContext = businessCentre.includes('Orchestrator') || businessCentre.includes('Bank');
+  
   const {
     formData,
     currentStep,
@@ -34,7 +38,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
     submitForm,
     saveDraft,
     resetForm
-  } = useImportLCForm();
+  } = useImportLCForm(isBankContext);
 
   // Get user ID on mount
   useEffect(() => {
@@ -125,7 +129,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-600 pb-4 mb-6 px-6 pt-6 bg-white dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              Request ILC Issuance
+              {isBankContext ? 'Initiate LC Issuance' : 'Request ILC Issuance'}
             </h2>
           </div>
           
@@ -133,6 +137,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             currentStep={currentStep}
             onStepClick={goToStep}
             formData={formData}
+            isBankContext={isBankContext}
           />
         </div>
 
@@ -160,6 +165,7 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
             onDiscard={handleDiscard}
             onClose={onClose}
             onBack={onBack}
+            isBankContext={isBankContext}
           />
         </div>
       </div>
