@@ -25,6 +25,15 @@ const useImportLCFormValidation = (formData: ImportLCFormData, currentStep: Impo
       case 'documents':
         return (Array.isArray(formData.documentRequirements) && formData.documentRequirements.length > 0)
           || (Array.isArray(formData.requiredDocuments) && formData.requiredDocuments.length > 0);
+      // Bank-only steps - these are informational/display panes
+      case 'limits':
+        return true; // Limits are auto-fetched, always allow proceeding
+      case 'sanctions':
+        return true; // Sanctions are auto-screened, always allow proceeding
+      case 'accounting':
+        return true; // Accounting entries are auto-generated
+      case 'release':
+        return true; // Release documents are ready
       default:
         return false;
     }

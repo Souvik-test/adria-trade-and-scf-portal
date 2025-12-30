@@ -68,7 +68,52 @@ export interface ImportLCFormData {
   supportingDocuments: File[];
 }
 
-export type ImportLCFormStep = 'basic' | 'parties' | 'amount' | 'shipment' | 'documents';
+export type ImportLCFormStep = 'basic' | 'parties' | 'amount' | 'shipment' | 'documents' | 'limits' | 'sanctions' | 'accounting' | 'release';
+
+// Step definitions for different contexts
+export const CLIENT_STEPS: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents'];
+export const BANK_STEPS: ImportLCFormStep[] = ['basic', 'parties', 'amount', 'shipment', 'documents', 'limits', 'sanctions', 'accounting', 'release'];
+
+// Limit Details types
+export interface LimitDetail {
+  limitType: string;
+  totalLimit: number;
+  availableLimit: number;
+  utilizedAmount: number;
+  lcValue: number;
+  status: 'within' | 'exceeds';
+}
+
+// Sanction Details types
+export interface SanctionResult {
+  partyName: string;
+  partyRole: string;
+  screeningStatus: 'clear' | 'hit' | 'pending';
+  hitType?: string;
+  matchScore?: number;
+  actionRequired?: string;
+}
+
+// Accounting Entry types
+export interface AccountingEntry {
+  id: string;
+  entryType: 'debit' | 'credit';
+  accountNumber: string;
+  accountDescription: string;
+  currency: string;
+  amount: number;
+  category: 'liability' | 'charges' | 'fees';
+}
+
+// Release Document types
+export interface ReleaseDocument {
+  id: string;
+  documentType: string;
+  senderBank: string;
+  receiverBank: string;
+  status: 'pending' | 'generated' | 'sent';
+  generatedAt?: string;
+}
 
 export interface SwiftTagInfo {
   tag: string;
