@@ -149,6 +149,7 @@ export interface StagePaneInfo {
   isLastPaneOfStage: boolean;
   isFinalStage: boolean;
   allowedSections: string[]; // Sections allowed for THIS specific stage-pane combination
+  uiRenderMode: 'static' | 'dynamic'; // UI render mode for this stage
 }
 
 /**
@@ -243,6 +244,7 @@ export const getStagePaneMapping = async (
         isLastPaneOfStage: paneIdxInStage === stagePanes.length - 1,
         isFinalStage,
         allowedSections,
+        uiRenderMode: stage.ui_render_mode || 'static',
       });
       paneIndex++;
     });
@@ -420,6 +422,7 @@ export const getStagePaneMappingByStageOrder = async (
     isLastPaneOfStage: paneIdx === stagePanes.length - 1,
     isFinalStage,
     allowedSections: stageSectionMap.get(paneName) || [],
+    uiRenderMode: targetStage.ui_render_mode || 'static',
   }));
   
   return mapping;
