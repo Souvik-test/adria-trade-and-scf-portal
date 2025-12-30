@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ImportLCFormData } from '@/types/importLC';
-import { CheckCircle, Calculator, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { CheckCircle, Calculator, ArrowUpRight, ArrowDownLeft, Search } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 interface AccountingEntriesPaneProps {
   formData: ImportLCFormData;
 }
 
+// Mock customer accounts for search
+const mockCustomerAccounts = [
+  { accountNo: '1001001', description: 'Customer Current Account - USD' },
+  { accountNo: '1001002', description: 'Customer Current Account - EUR' },
+  { accountNo: '1001003', description: 'Customer Savings Account - USD' },
+  { accountNo: '1001004', description: 'Customer Operating Account - USD' },
+  { accountNo: '1001005', description: 'Customer Escrow Account - USD' },
+];
+
 const AccountingEntriesPane: React.FC<AccountingEntriesPaneProps> = ({ formData }) => {
+  const [selectedDebitAccount, setSelectedDebitAccount] = useState('1001001');
+  const [isAccountSearchOpen, setIsAccountSearchOpen] = useState(false);
+  
   const currency = formData.currency || 'USD';
   const lcAmount = formData.lcAmount || 0;
   
@@ -25,34 +41,40 @@ const AccountingEntriesPane: React.FC<AccountingEntriesPaneProps> = ({ formData 
     }).format(amount);
   };
 
-  // Mock accounting entries
+  // Mock accounting entries - REVERSED as per user request (Dr-Liability, Cr-Contra)
   const liabilityEntries = [
     {
       id: '1',
       entryType: 'debit' as const,
-      accountNumber: '1810001',
-      accountDescription: 'Customer LC Liability - Contra',
+      accountNumber: '2810001',
+      accountDescription: 'LC Liability - Customer',
       currency: currency,
       amount: lcAmount
     },
     {
       id: '2',
       entryType: 'credit' as const,
-      accountNumber: '2810001',
-      accountDescription: 'LC Liability - Customer',
+      accountNumber: '1810001',
+      accountDescription: 'Customer LC Liability - Contra',
       currency: currency,
       amount: lcAmount
     }
   ];
 
+  const getSelectedAccountDescription = () => {
+    const account = mockCustomerAccounts.find(a => a.accountNo === selectedDebitAccount);
+    return account?.description || 'Customer Current Account';
+  };
+
   const chargesEntries = [
     {
       id: '3',
       entryType: 'debit' as const,
-      accountNumber: '1001001',
-      accountDescription: 'Customer Current Account',
+      accountNumber: selectedDebitAccount,
+      accountDescription: getSelectedAccountDescription(),
       currency: currency,
-      amount: issuanceCharge + swiftCharges + handlingFee
+      amount: issuanceCharge + swiftCharges + handlingFee,
+      isEditable: true
     },
     {
       id: '4',
@@ -90,7 +112,7 @@ const AccountingEntriesPane: React.FC<AccountingEntriesPaneProps> = ({ formData 
 
   const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
 
-  const renderEntryTable = (entries: typeof liabilityEntries, title: string) => (
+  const renderEntryTable = (entries: typeof liabilityEntries, title: string, showAccountSearch: boolean = false) => (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -127,7 +149,50 @@ const AccountingEntriesPane: React.FC<AccountingEntriesPaneProps> = ({ formData 
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-sm">{entry.accountNumber}</TableCell>
+                <TableCell className="font-mono text-sm">
+                  {showAccountSearch && 'isEditable' in entry && entry.isEditable ? (
+                    <Popover open={isAccountSearchOpen} onOpenChange={setIsAccountSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 w-32 justify-between font-mono"
+                        >
+                          {entry.accountNumber}
+                          <Search className="h-3 w-3 ml-1" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search accounts..." />
+                          <CommandList>
+                            <CommandEmpty>No account found.</CommandEmpty>
+                            <CommandGroup heading="Customer Accounts">
+                              {mockCustomerAccounts.map((account) => (
+                                <CommandItem
+                                  key={account.accountNo}
+                                  value={account.accountNo}
+                                  onSelect={() => {
+                                    setSelectedDebitAccount(account.accountNo);
+                                    setIsAccountSearchOpen(false);
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="font-mono font-medium">{account.accountNo}</span>
+                                    <span className="text-xs text-muted-foreground">{account.description}</span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    entry.accountNumber
+                  )}
+                </TableCell>
                 <TableCell>{entry.accountDescription}</TableCell>
                 <TableCell>{entry.currency}</TableCell>
                 <TableCell className="text-right font-mono">
@@ -161,7 +226,7 @@ const AccountingEntriesPane: React.FC<AccountingEntriesPaneProps> = ({ formData 
       {renderEntryTable(liabilityEntries, 'LC Liability Entries')}
 
       {/* Charges & Fees Entries */}
-      {renderEntryTable(chargesEntries, 'Charges & Fees Entries')}
+      {renderEntryTable(chargesEntries, 'Charges & Fees Entries', true)}
 
       {/* Summary */}
       <Card>

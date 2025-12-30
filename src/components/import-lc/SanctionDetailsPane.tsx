@@ -1,15 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ImportLCFormData } from '@/types/importLC';
-import { CheckCircle, AlertTriangle, XCircle, Shield, User, Building } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Shield, User, Building, Send } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
 
 interface SanctionDetailsPaneProps {
   formData: ImportLCFormData;
 }
 
 const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) => {
+  const [requestApproval, setRequestApproval] = useState(false);
+  const [assignTo, setAssignTo] = useState<'department' | 'approver' | ''>('');
+  const [email, setEmail] = useState('');
+
   // Get party names from formData
   const getPartyName = (role: string) => {
     if (Array.isArray(formData.parties)) {
@@ -21,7 +29,7 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
     return '';
   };
 
-  // Mock sanction screening results - in production, this would come from sanctions/AML system
+  // Mock sanction screening results with one hit for demo
   const sanctionResults = [
     {
       id: '1',
@@ -36,10 +44,10 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
       id: '2',
       partyName: getPartyName('beneficiary') || 'Beneficiary',
       partyRole: 'Beneficiary',
-      screeningStatus: 'clear' as const,
-      hitType: null,
-      matchScore: null,
-      actionRequired: null
+      screeningStatus: 'hit' as const,
+      hitType: 'OFAC - Potential Match',
+      matchScore: 78,
+      actionRequired: 'Manual Review'
     },
     {
       id: '3',
@@ -62,7 +70,7 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
   ];
 
   const allClear = sanctionResults.every(r => r.screeningStatus === 'clear');
-  const hasHits = sanctionResults.some(r => (r.screeningStatus as string) === 'hit');
+  const hasHits = sanctionResults.some(r => r.screeningStatus === 'hit');
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -121,7 +129,7 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
             </TableHeader>
             <TableBody>
               {sanctionResults.map((result) => (
-                <TableRow key={result.id}>
+                <TableRow key={result.id} className={result.screeningStatus === 'hit' ? 'bg-red-50 dark:bg-red-900/10' : ''}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {result.partyRole.includes('Bank') ? (
@@ -139,9 +147,9 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
                       {getStatusBadge(result.screeningStatus)}
                     </div>
                   </TableCell>
-                  <TableCell>{result.hitType || '-'}</TableCell>
-                  <TableCell>{result.matchScore ? `${result.matchScore}%` : '-'}</TableCell>
-                  <TableCell>{result.actionRequired || 'None'}</TableCell>
+                  <TableCell className={result.hitType ? 'text-red-600 font-medium' : ''}>{result.hitType || '-'}</TableCell>
+                  <TableCell className={result.matchScore ? 'text-red-600 font-medium' : ''}>{result.matchScore ? `${result.matchScore}%` : '-'}</TableCell>
+                  <TableCell className={result.actionRequired ? 'text-amber-600 font-medium' : ''}>{result.actionRequired || 'None'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -158,11 +166,11 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-3 rounded-lg bg-muted/50">
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
               <p className="text-xs text-muted-foreground">OFAC</p>
               <div className="flex items-center gap-2 mt-1">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-600">Clear</span>
+                <XCircle className="h-4 w-4 text-red-600" />
+                <span className="text-sm font-medium text-red-600">Hit Found</span>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-muted/50">
@@ -211,6 +219,77 @@ const SanctionDetailsPane: React.FC<SanctionDetailsPaneProps> = ({ formData }) =
           </div>
         </div>
       </div>
+
+      {/* Request Approval Option - only shown when there are hits */}
+      {hasHits && (
+        <Card className="border-amber-200 dark:border-amber-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Approval Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="request-sanction-approval" 
+                checked={requestApproval}
+                onCheckedChange={(checked) => {
+                  setRequestApproval(checked === true);
+                  if (!checked) {
+                    setAssignTo('');
+                    setEmail('');
+                  }
+                }}
+              />
+              <Label htmlFor="request-sanction-approval" className="text-sm font-medium cursor-pointer">
+                Request Approval for Sanction Override
+              </Label>
+            </div>
+
+            {requestApproval && (
+              <div className="pl-6 space-y-4">
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">Assign to</Label>
+                  <RadioGroup 
+                    value={assignTo} 
+                    onValueChange={(value) => {
+                      setAssignTo(value as 'department' | 'approver');
+                      setEmail('');
+                    }}
+                    className="flex gap-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="department" id="sanction-department" />
+                      <Label htmlFor="sanction-department" className="cursor-pointer">Department</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="approver" id="sanction-approver" />
+                      <Label htmlFor="sanction-approver" className="cursor-pointer">Approver</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {assignTo && (
+                  <div className="space-y-2">
+                    <Label htmlFor="sanction-email" className="text-sm text-muted-foreground">
+                      {assignTo === 'department' ? 'Department Email' : 'Approver Email'}
+                    </Label>
+                    <Input
+                      id="sanction-email"
+                      type="email"
+                      placeholder={`Enter ${assignTo} email address`}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="max-w-md"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
