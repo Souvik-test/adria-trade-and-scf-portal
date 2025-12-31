@@ -188,7 +188,7 @@ Product + Event + Trigger Type → Workflow Template → Stages → Fields → U
 
 Defines **which products and events exist** in the system, with differentiation by:
 - **Target Audience**: Corporate, Bank, Agent
-- **Business Application**: Adria TSCF Client, Adria TSCF Bank, etc.
+- **Business Application**: Adria TSCF Client, Adria TSCF Bank, Adria Process Orchestrator
 
 ### 4.2 Database Schema
 
@@ -205,18 +205,85 @@ Defines **which products and events exist** in the system, with differentiation 
 | `event_name` | TEXT | Event display name |
 | `target_audience` | TEXT[] | Target audiences array |
 | `business_application` | TEXT[] | Business applications array |
+| `user_id` | UUID | Owner user ID |
+| `created_at` | TIMESTAMP | Created timestamp |
+| `updated_at` | TIMESTAMP | Updated timestamp |
 
-### 4.3 Example Data
+### 4.3 Complete Product-Event Mapping Data
 
-```sql
-INSERT INTO product_event_mapping 
-(product_code, product_name, event_code, event_name, target_audience, business_application)
-VALUES 
-('ILC', 'Import Letter of Credit', 'ISS', 'Request Issuance', 
- ARRAY['Corporate'], ARRAY['Adria TSCF Client', 'Adria TSCF Bank']);
+The following table contains all constant product-event mappings in the system:
+
+| Module | Product Code | Product Name | Event Code | Event Name | Target Audience | Business Application |
+|--------|--------------|--------------|------------|------------|-----------------|---------------------|
+| **Trade Finance (TF)** |
+| TF | ILC | Import Letter of Credit | ISS | Request LC Issuance | Corporate | Adria TSCF Client |
+| TF | ILC | Import Documentary Credit | ISS | Initiate New Import LC | Bank, Agent | Adria Process Orchestrator, Adria TSCF Bank |
+| TF | ILC | Import Documentary Credit | AMD | Initiate Amendment | Bank, Agent | Adria Process Orchestrator, Adria TSCF Bank |
+| TF | ILC | Import Documentary Credit | CAN | Initiate Cancellation | Bank, Agent | Adria Process Orchestrator, Adria TSCF Bank |
+| TF | ELC | Export Letter of Credit | REV | Review Pre-adviced LC | Corporate | Adria TSCF Client |
+| TF | ELC | Export Letter of Credit | AMD | Record Amendment Consent | Corporate | Adria TSCF Client |
+| TF | ELC | Export Letter of Credit | TRF | Request Transfer | Corporate | Adria TSCF Client |
+| TF | ELC | Export Letter of Credit | ASG | Request Assignment | Corporate | Adria TSCF Client |
+| TF | OBG | Outward Bank Guarantee/SBLC | ISS | Request Issuance | Corporate | Adria TSCF Client |
+| TF | OBG | Outward Bank Guarantee/SBLC | AMD | Request Amendment | Corporate | Adria TSCF Client |
+| TF | OBG | Outward Bank Guarantee/SBLC | CAN | Request Cancellation | Corporate | Adria TSCF Client |
+| TF | IBG | Inward Bank Guarantee/SBLC | CON | Record Amendment Consent | Corporate | Adria TSCF Client |
+| TF | IBG | Inward Bank Guarantee/SBLC | DEM | Record Demand/Claim | Corporate | Adria TSCF Client |
+| TF | ODC | Outward Documentary Collection | SUB | Submit Bill | Corporate | Adria TSCF Client |
+| TF | ODC | Outward Documentary Collection | UPD | Update Bill | Corporate | Adria TSCF Client |
+| TF | ODC | Outward Documentary Collection | FIN | Request Discount/Finance | Corporate | Adria TSCF Client |
+| TF | IDC | Inward Documentary Collection | ACC | Accept/Refuse Bill | Corporate | Adria TSCF Client |
+| TF | IDC | Inward Documentary Collection | PAY | Record Payment | Corporate | Adria TSCF Client |
+| TF | IDC | Inward Documentary Collection | FIN | Request Finance | Corporate | Adria TSCF Client |
+| TF | SHG | Shipping Guarantee | ISS | Create Shipping Guarantee | Corporate | Adria TSCF Client |
+| TF | SHG | Shipping Guarantee | UPD | Update Shipping Guarantee | Corporate | Adria TSCF Client |
+| TF | SHG | Shipping Guarantee | LNK | Link/Delink Shipping Guarantee | Corporate | Adria TSCF Client |
+| TF | ILB | Import LC Bills | SUB | Submit Bill | Corporate | Adria TSCF Client |
+| TF | ILB | Import LC Bills | UPD | Update Bill | Corporate | Adria TSCF Client |
+| TF | ELB | Export LC Bills | SUB | Submit Bill | Corporate | Adria TSCF Client |
+| TF | ELB | Export LC Bills | UPD | Update Bill | Corporate | Adria TSCF Client |
+| TF | OSB | Outward Documentary Collection Bills | SUB | Submit Bill | Corporate | Adria TSCF Client |
+| TF | ISB | Inward Documentary Collection Bills | SUB | Submit Bill | Corporate | Adria TSCF Client |
+| TF | TRL | Trade Loan | REQ | Request Trade Loan | Corporate | Adria TSCF Client |
+
+### 4.4 Default Fallback Mappings
+
+When no database mappings are found, the system uses these default fallbacks:
+
+**Default Product Names:**
+```typescript
+const defaultProductNames = {
+  ILC: 'Import Letter of Credit',
+  ELC: 'Export Letter of Credit',
+  OBG: 'Outward Bank Guarantee/SBLC',
+  IBG: 'Inward Bank Guarantee/SBLC',
+  ODC: 'Outward Documentary Collection',
+  IDC: 'Inward Documentary Collection',
+  SHG: 'Shipping Guarantee',
+  TRL: 'Trade Loan',
+  ILB: 'Import LC Bills',
+  ELB: 'Export LC Bills',
+  OSB: 'Outward Documentary Collection Bills',
+  ISB: 'Inward Documentary Collection Bills'
+};
 ```
 
-### 4.4 Service Reference
+**Default Event Names:**
+```typescript
+const defaultEventNames = {
+  ILC: { ISS: 'Request Issuance', AMD: 'Request Amendment', CAN: 'Request Cancellation' },
+  ELC: { REV: 'Review Pre-adviced LC', AMD: 'Record Amendment Consent', TRF: 'Request Transfer', ASG: 'Request Assignment' },
+  OBG: { ISS: 'Request Issuance', AMD: 'Request Amendment', CAN: 'Request Cancellation' },
+  IBG: { CON: 'Record Amendment Consent', DEM: 'Record Demand/Claim' },
+  ODC: { SUB: 'Submit Bill', UPD: 'Update Bill', FIN: 'Request Discount/Finance' },
+  IDC: { ACC: 'Accept/Refuse Bill', PAY: 'Record Payment', FIN: 'Request Finance' },
+  SHG: { ISS: 'Create Shipping Guarantee', UPD: 'Update Shipping Guarantee', LNK: 'Link/Delink Shipping Guarantee' },
+  ILB: { SUB: 'Submit Bill', UPD: 'Update Bill' },
+  ELB: { SUB: 'Submit Bill', UPD: 'Update Bill' }
+};
+```
+
+### 4.5 Service Reference
 
 **File:** `src/services/productEventMappingService.ts`
 
@@ -229,9 +296,17 @@ getProductNameByCode(mappings, productCode): string | null
 
 // Get event name by product and event codes
 getEventNameByCode(mappings, productCode, eventCode): string | null
+
+// Get all events for a product
+getEventsByProductCode(mappings, productCode): ProductEventMapping[]
+
+// Clear cached mappings
+clearMappingsCache(): void
 ```
 
-### 4.5 UI Location
+### 4.6 UI Location
+
+**Path:** Control Centre → Product-Event Mapping
 
 **Path:** Control Centre → Product-Event Mapping
 
@@ -244,6 +319,7 @@ getEventNameByCode(mappings, productCode, eventCode): string | null
 Defines the **UI structure** for a product-event combination:
 - **Panes**: Major UI containers (tabs/steps)
 - **Sections**: Subdivisions within panes
+- **Buttons**: Action buttons per pane (navigation, save, submit)
 - **Grid Layout**: Rows and columns for field placement
 - **Repeatable Sections**: For variable-length data entry
 
@@ -256,9 +332,9 @@ Defines the **UI structure** for a product-event combination:
 | `id` | UUID | Primary key |
 | `product_code` | TEXT | Product code |
 | `event_code` | TEXT | Event code |
-| `business_application` | TEXT[] | Business applications |
-| `customer_segment` | TEXT[] | Customer segments |
-| `panes` | JSONB | Pane and section configuration |
+| `business_application` | TEXT[] | Business applications array |
+| `customer_segment` | TEXT[] | Customer segments array |
+| `panes` | JSONB | Pane, section, and button configuration |
 | `is_active` | BOOLEAN | Active status |
 
 ### 5.3 Panes JSONB Structure
@@ -267,25 +343,50 @@ Defines the **UI structure** for a product-event combination:
 {
   "panes": [
     {
-      "pane_name": "LC Key Info",
-      "pane_order": 1,
-      "show_swift_preview": true,
+      "id": "pane-uuid-1",
+      "name": "LC Key Info",
+      "sequence": 1,
+      "showSwiftPreview": true,
       "sections": [
         {
-          "section_name": "Basic Details",
-          "section_order": 1,
+          "id": "section-uuid-1",
+          "name": "Basic Details",
+          "sequence": 1,
           "rows": 10,
           "columns": 3,
           "isRepeatable": false,
           "groupId": null
         },
         {
-          "section_name": "Party Details",
-          "section_order": 2,
+          "id": "section-uuid-2",
+          "name": "Party Details",
+          "sequence": 2,
           "rows": 8,
           "columns": 2,
           "isRepeatable": true,
           "groupId": "party_group"
+        }
+      ],
+      "buttons": [
+        {
+          "id": "btn-back-1",
+          "label": "Back",
+          "position": "left",
+          "variant": "outline",
+          "action": "previous_pane",
+          "targetPaneId": null,
+          "isVisible": true,
+          "order": 1
+        },
+        {
+          "id": "btn-next-1",
+          "label": "Next",
+          "position": "right",
+          "variant": "default",
+          "action": "next_pane",
+          "targetPaneId": null,
+          "isVisible": true,
+          "order": 2
         }
       ]
     }
@@ -293,17 +394,62 @@ Defines the **UI structure** for a product-event combination:
 }
 ```
 
-### 5.4 Relationship to Other Components
+### 5.4 Section Configuration
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | STRING | Unique section identifier |
+| `name` | STRING | Section display name |
+| `sequence` | INTEGER | Display order within pane |
+| `rows` | INTEGER | Grid rows for field placement |
+| `columns` | INTEGER | Grid columns for field placement |
+| `isRepeatable` | BOOLEAN | Allow adding multiple instances |
+| `groupId` | STRING | Group ID for repeatable sections |
+
+### 5.5 Button Configuration
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | STRING | Unique button identifier |
+| `label` | STRING | Button display text |
+| `position` | ENUM | `'left'` or `'right'` |
+| `variant` | ENUM | `'default'`, `'secondary'`, `'outline'`, `'destructive'`, `'ghost'` |
+| `action` | ENUM | Button action type |
+| `targetPaneId` | STRING | Target pane for navigation actions |
+| `isVisible` | BOOLEAN | Visibility flag |
+| `order` | INTEGER | Display order within position group |
+
+**Button Action Types:**
+
+| Action | Description |
+|--------|-------------|
+| `next_pane` | Navigate to next pane |
+| `previous_pane` | Navigate to previous pane |
+| `save_draft` | Save current form as draft |
+| `save_template` | Save as reusable template |
+| `submit` | Submit the transaction |
+| `reject` | Reject the transaction (workflow) |
+| `discard` | Discard changes and close |
+| `close` | Close without saving |
+| `custom` | Custom action handler |
+
+**Default Buttons:** If no buttons are configured in the JSONB, the system generates default buttons:
+- First pane: `Discard`, `Save Draft`, `Next`
+- Middle panes: `Back`, `Discard`, `Save Draft`, `Next`
+- Last pane: `Back`, `Discard`, `Save Draft`, `Submit`
+
+### 5.6 Relationship to Other Components
 
 ```
 Pane-Section Mapping provides:
-├── pane_name → Used in workflow_stage_fields.pane
-├── section_name → Used in workflow_stage_fields.section
-├── rows/columns → Used for field grid placement in field_repository
-└── show_swift_preview → Controls SWIFT preview visibility in DynamicTransactionForm
+├── pane.name → Used in workflow_stage_fields.pane
+├── section.name → Used in workflow_stage_fields.section
+├── section.rows/columns → Used for field grid placement in field_repository
+├── pane.showSwiftPreview → Controls SWIFT preview visibility in DynamicTransactionForm
+└── pane.buttons → Rendered as action buttons in DynamicFormButtonBar
 ```
 
-### 5.5 UI Location
+### 5.7 UI Location
 
 **Path:** Control Centre → Manage Panes and Sections
 
@@ -318,7 +464,8 @@ Defines **individual form fields** with:
 - Data types and UI display types
 - Validation rules
 - SWIFT message mappings
-- Computed expressions
+- Computed expressions and automatic calculations
+- Field-to-field mapping for auto-population
 
 ### 6.2 Database Schema
 
@@ -326,59 +473,175 @@ Defines **individual form fields** with:
 
 | Column | Type | Description |
 |--------|------|-------------|
+| **Identity & Basic Info** |
 | `id` | UUID | Primary key |
 | `field_id` | TEXT | Unique field identifier |
-| `field_code` | TEXT | Auto-generated UPPER_SNAKE_CASE |
+| `field_code` | TEXT | Auto-generated UPPER_SNAKE_CASE code |
 | `field_label_key` | TEXT | Display label |
-| `product_code` | TEXT | Product code |
-| `event_type` | TEXT | Event code |
+| `field_tooltip_key` | TEXT | Tooltip text |
+| `product_code` | TEXT | Product code (ILC, ELC, etc.) |
+| `event_type` | TEXT | Event code (ISS, AMD, etc.) |
+| `stage` | TEXT | Stage name |
+| **Pane/Section Placement** |
 | `pane_code` | TEXT | Parent pane name |
+| `pane_display_sequence` | INTEGER | Pane display order |
 | `section_code` | TEXT | Parent section name |
-| `data_type` | TEXT | Field data type (string, number, date, etc.) |
-| `ui_display_type` | TEXT | UI component (text, dropdown, date, etc.) |
+| `section_display_sequence` | INTEGER | Section display order |
+| `field_display_sequence` | INTEGER | Field display order |
+| **Grid Layout** |
 | `field_row` | INTEGER | Grid row position (1-indexed) |
 | `field_column` | INTEGER | Grid column position (1-indexed) |
-| `is_mandatory_portal` | BOOLEAN | Required for portal users |
-| `is_mandatory_bo` | BOOLEAN | Required for back office |
-| `dropdown_values` | TEXT[] | Dropdown options |
-| `default_value` | TEXT | Default field value |
+| `ui_row_span` | INTEGER | Rows to span |
+| `ui_column_span` | INTEGER | Columns to span |
+| **Data Type & UI** |
+| `data_type` | TEXT | Field data type (string, number, date, boolean, etc.) |
+| `ui_display_type` | TEXT | UI component (text, dropdown, date, textarea, checkbox, etc.) |
+| `lookup_code` | TEXT | Lookup table reference for dropdowns |
+| `dropdown_values` | TEXT[] | Static dropdown options array |
+| **Validation** |
 | `length_min` | INTEGER | Minimum length |
 | `length_max` | INTEGER | Maximum length |
-| `field_actions` | JSONB | Computed fields and triggers |
-| `swift_tag` | TEXT | SWIFT tag (e.g., :31D:) |
-| `swift_sequence` | TEXT | SWIFT sequence |
+| `decimal_places` | INTEGER | Decimal places for numbers |
+| `size_standard_source` | TEXT | Size standard reference |
+| `validation_rule_set_id` | TEXT | Validation rule set ID |
+| `error_message_key` | TEXT | Custom error message key |
+| **Mandatory Flags by Channel** |
+| `is_mandatory_portal` | BOOLEAN | Required for customer portal |
+| `is_mandatory_mo` | BOOLEAN | Required for middle office |
+| `is_mandatory_bo` | BOOLEAN | Required for back office |
+| `conditional_mandatory_expr` | TEXT | Conditional mandatory expression |
+| **Access Control by Channel** |
+| `channel_customer_portal_flag` | BOOLEAN | Visible in customer portal |
+| `channel_middle_office_flag` | BOOLEAN | Visible in middle office |
+| `channel_back_office_flag` | BOOLEAN | Visible in back office |
+| `input_allowed_flag` | BOOLEAN | Input allowed |
+| `edit_allowed_flag` | BOOLEAN | Edit allowed |
+| `view_allowed_flag` | BOOLEAN | View allowed |
+| `read_only_flag` | BOOLEAN | Read only field |
+| **Default & Computed Values** |
+| `default_value` | TEXT | Default field value |
+| `computed_expression` | TEXT | Formula for computed fields |
+| `field_actions` | JSONB | Computed fields and trigger configuration |
+| **Field Mapping (Mapped From)** |
+| `mapped_from_field_code` | TEXT | Source field code for auto-population |
+| **Conditional Visibility** |
+| `conditional_visibility_expr` | TEXT | Expression to control visibility |
+| **Grouping & Repetition** |
+| `group_id` | TEXT | Group ID for related fields |
+| `group_repetition_flag` | BOOLEAN | Allow group repetition |
+| **SWIFT Message Mapping** |
+| `swift_mt_type` | TEXT | SWIFT MT type (MT700, MT760, etc.) |
+| `swift_sequence` | TEXT | SWIFT sequence (A, B, C, etc.) |
+| `swift_tag` | TEXT | SWIFT tag (e.g., :31D:, :32B:) |
+| `swift_subfield_qualifier` | TEXT | SWIFT subfield qualifier |
+| `swift_tag_required_flag` | BOOLEAN | SWIFT tag required |
+| `swift_tag_display_flag` | BOOLEAN | Display SWIFT tag |
+| `swift_format_pattern` | TEXT | SWIFT format pattern |
+| **ISO 20022 Mapping** |
+| `iso20022_element_code` | TEXT | ISO 20022 element code |
+| `iso_data_format_pattern` | TEXT | ISO data format pattern |
+| **Sanction & Limit Checks** |
+| `sanction_check_required_flag` | BOOLEAN | Requires sanction check |
+| `sanction_field_category` | TEXT | Sanction field category |
+| `sanction_party_role` | TEXT | Sanction party role |
+| `sanction_engine_field_map` | TEXT | Sanction engine field mapping |
+| `limit_check_required_flag` | BOOLEAN | Requires limit check |
+| `limit_dimension_type` | TEXT | Limit dimension type |
+| **Workflow & Access** |
+| `workflow_role_access` | JSONB | Role-based access configuration |
+| **Help & Documentation** |
+| `help_content_type` | TEXT | Help content type |
+| `help_content_ref` | TEXT | Help content reference |
+| **Special Flags** |
+| `is_attachment_field` | BOOLEAN | File attachment field |
+| `masking_flag` | BOOLEAN | Mask field value |
+| `audit_track_changes_flag` | BOOLEAN | Track changes for audit |
+| `is_active_flag` | BOOLEAN | Field active status |
+| **AI Integration** |
+| `ai_mapping_key` | TEXT | AI mapping key for document extraction |
+| **Versioning & Audit** |
+| `effective_from_date` | TIMESTAMP | Effective from date |
+| `effective_to_date` | TIMESTAMP | Effective to date |
+| `config_version` | INTEGER | Configuration version |
+| `created_by` | TEXT | Created by user |
+| `created_at` | TIMESTAMP | Created timestamp |
+| `last_updated_by` | TEXT | Last updated by user |
+| `updated_at` | TIMESTAMP | Updated timestamp |
+| `user_id` | UUID | Owner user ID |
 
-### 6.3 Field Actions Structure
+### 6.3 Field Mapping (Mapped From)
 
+The `mapped_from_field_code` column enables automatic population of a field's value from another field.
+
+**Use Cases:**
+- Copy applicant name from one section to another
+- Auto-populate currency across related fields
+- Mirror address fields between parties
+
+**Example:**
+```typescript
+// In field_repository, set mapped_from_field_code
+{
+  field_code: "BENEFICIARY_COUNTRY",
+  mapped_from_field_code: "APPLICANT_COUNTRY"  // Auto-populates from APPLICANT_COUNTRY
+}
+```
+
+### 6.4 Computed Fields & Automatic Calculations
+
+Fields can be automatically calculated using `computed_expression` or `field_actions`.
+
+**Using computed_expression (simple formulas):**
+```typescript
+{
+  field_code: "TOTAL_AMOUNT",
+  computed_expression: "PRINCIPAL_AMOUNT + INTEREST_AMOUNT",
+  read_only_flag: true
+}
+```
+
+**Using field_actions (complex logic):**
 ```json
 {
   "field_actions": {
-    "computed_fields": [
-      {
-        "target_field": "TOTAL_AMOUNT",
-        "expression": "PRINCIPAL_AMOUNT + INTEREST_AMOUNT"
-      }
-    ],
+    "is_computed": true,
+    "computed_formula": "PRINCIPAL_AMOUNT * (1 + INTEREST_RATE / 100)",
     "triggers": [
       {
-        "type": "visibility",
-        "source_field": "LC_TYPE",
-        "condition": "equals",
-        "condition_value": "Transferable",
-        "target_fields": ["TRANSFER_DETAILS"]
+        "when_value": ["Transferable"],
+        "show_fields": ["TRANSFER_DETAILS", "SECOND_BENEFICIARY"],
+        "hide_fields": []
       },
       {
-        "type": "dropdown_filter",
-        "source_field": "COUNTRY",
-        "target_field": "CITY",
-        "filter_by": "country_code"
+        "when_value": ["USD", "EUR"],
+        "filter_dropdowns": {
+          "CORRESPONDENT_BANK": ["US_BANKS", "EU_BANKS"]
+        }
       }
-    ]
+    ],
+    "dropdown_filter_source": "COUNTRY"
   }
 }
 ```
 
-### 6.4 Relationship to Workflow Stage Fields
+**Field Actions Structure:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `is_computed` | BOOLEAN | Field value is computed |
+| `computed_formula` | TEXT | JavaScript-like formula |
+| `triggers` | ARRAY | Conditional logic triggers |
+| `dropdown_filter_source` | TEXT | Field that filters this dropdown |
+
+**Trigger Structure:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `when_value` | TEXT[] | Values that activate the trigger |
+| `show_fields` | TEXT[] | Field codes to show |
+| `hide_fields` | TEXT[] | Field codes to hide |
+
+### 6.5 Relationship to Workflow Stage Fields
 
 ```
 Field Repository                    Workflow Stage Fields
@@ -389,7 +652,7 @@ Field Repository                    Workflow Stage Fields
 
 **Important:** Workflow Stage Fields can override the pane/section assignment, allowing the same field to appear in different panes at different stages.
 
-### 6.5 UI Location
+### 6.6 UI Location
 
 **Path:** Control Centre → Field Definition
 
