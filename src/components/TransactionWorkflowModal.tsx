@@ -1,13 +1,10 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import DynamicTransactionForm from '@/components/dynamic-form/DynamicTransactionForm';
 import { Loader2 } from 'lucide-react';
 import { findWorkflowTemplate, getTemplateStages } from '@/services/workflowTemplateService';
 import { WorkflowStageRuntime, WorkflowTemplateRuntime } from '@/types/dynamicForm';
-
-// Lazy load static form components
-const ImportLCForm = lazy(() => import('./import-lc/ImportLCForm'));
 
 interface Transaction {
   id: string;
