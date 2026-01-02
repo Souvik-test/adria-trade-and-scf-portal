@@ -32,6 +32,7 @@ export interface WorkflowStage {
   reject_to_stage_id: string | null;
   stage_type: string;
   ui_render_mode: 'static' | 'dynamic';
+  static_panes?: string[];
 }
 
 export interface WorkflowStageField {

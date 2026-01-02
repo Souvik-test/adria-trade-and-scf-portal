@@ -2,7 +2,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicFormState, RepeatableGroupInstance } from '@/types/dynamicForm';
 import { StagePaneInfo } from '@/services/workflowTemplateService';
-import { getStaticStageConfig, getStaticPaneComponent } from '@/components/import-lc/staticPaneRegistry';
+import { 
+  getStaticStageConfig, 
+  getStaticPaneComponent, 
+  getStaticPanesByNames,
+  StaticStageConfig 
+} from '@/components/import-lc/staticPaneRegistry';
 import StaticPaneRenderer from '@/components/import-lc/StaticPaneRenderer';
 import DynamicFormContainer from './DynamicFormContainer';
 
@@ -40,6 +45,8 @@ interface HybridFormContainerProps {
   isApprovalStage: boolean;
   onFieldChange: (fieldCode: string, value: any) => void;
   onFormChange?: (state: DynamicFormState) => void;
+  // New prop: explicitly configured static panes from workflow stage
+  configuredStaticPanes?: string[];
 }
 
 /**
@@ -47,8 +54,9 @@ interface HybridFormContainerProps {
  * based on the current stage's ui_render_mode setting.
  * 
  * When ui_render_mode is 'static':
- * - First checks for multi-pane stage configuration (Data Entry, Approver, etc.)
- * - Falls back to single pane component lookup
+ * - First checks if stage has explicitly configured static_panes in database
+ * - Falls back to multi-pane stage configuration (Data Entry, Approver, etc.)
+ * - Then falls back to single pane component lookup
  * 
  * When ui_render_mode is 'dynamic':
  * - Renders the DynamicFormContainer with field_repository fields.
@@ -66,6 +74,7 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
   isApprovalStage,
   onFieldChange,
   onFormChange,
+  configuredStaticPanes,
 }) => {
   if (!currentPane) {
     return (
@@ -82,7 +91,27 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
 
   // Check if this stage should use static UI
   if (uiRenderMode === 'static') {
-    // First try to get multi-pane stage configuration
+    // Priority 1: Check for explicitly configured static_panes from database
+    if (configuredStaticPanes && configuredStaticPanes.length > 0) {
+      const paneConfigs = getStaticPanesByNames(configuredStaticPanes);
+      
+      if (paneConfigs.length > 0) {
+        const stageConfig: StaticStageConfig = {
+          panes: paneConfigs,
+          readOnly: isApprovalStage,
+        };
+        
+        return (
+          <StaticPaneRenderer
+            stageConfig={stageConfig}
+            formData={formData as any}
+            updateField={(field, value) => onFieldChange(field as string, value)}
+          />
+        );
+      }
+    }
+    
+    // Priority 2: Try to get multi-pane stage configuration by stage name
     const stageConfig = getStaticStageConfig(stageName);
     
     if (stageConfig) {
@@ -96,7 +125,7 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
       );
     }
     
-    // Fall back to legacy single component lookup
+    // Priority 3: Fall back to legacy single component lookup
     const StaticComponent = getStaticPaneComponent(stageName);
     
     if (StaticComponent) {

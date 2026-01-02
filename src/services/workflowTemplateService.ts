@@ -150,6 +150,7 @@ export interface StagePaneInfo {
   isFinalStage: boolean;
   allowedSections: string[]; // Sections allowed for THIS specific stage-pane combination
   uiRenderMode: 'static' | 'dynamic'; // UI render mode for this stage
+  configuredStaticPanes?: string[]; // Explicitly configured static panes from database
 }
 
 /**
@@ -234,6 +235,9 @@ export const getStagePaneMapping = async (
     // Add each pane with stage info and its allowed sections
     stagePanes.forEach((paneName, paneIdxInStage) => {
       const allowedSections = stageSectionMap.get(paneName) || [];
+      // Parse static_panes from the stage (it's stored as jsonb in the database)
+      const staticPanes = Array.isArray(stage.static_panes) ? stage.static_panes : [];
+      
       mapping.push({
         paneIndex,
         paneName,
@@ -245,6 +249,7 @@ export const getStagePaneMapping = async (
         isFinalStage,
         allowedSections,
         uiRenderMode: stage.ui_render_mode || 'static',
+        configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
       });
       paneIndex++;
     });
@@ -412,6 +417,9 @@ export const getStagePaneMappingByStageOrder = async (
   
   const isFinalStage = targetStage.stage_order === totalStages;
   
+  // Parse static_panes from the stage (it's stored as jsonb in the database)
+  const staticPanes = Array.isArray(targetStage.static_panes) ? targetStage.static_panes : [];
+  
   const mapping: StagePaneInfo[] = stagePanes.map((paneName, paneIdx) => ({
     paneIndex: paneIdx,
     paneName,
@@ -423,6 +431,7 @@ export const getStagePaneMappingByStageOrder = async (
     isFinalStage,
     allowedSections: stageSectionMap.get(paneName) || [],
     uiRenderMode: targetStage.ui_render_mode || 'static',
+    configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
   }));
   
   return mapping;

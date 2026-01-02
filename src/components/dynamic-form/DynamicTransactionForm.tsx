@@ -276,6 +276,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             currentStageFieldEditability={currentStageFieldEditability}
             isApprovalStage={isApprovalStage}
             onFieldChange={handleFieldChange}
+            configuredStaticPanes={stagePaneMapping[currentPaneIndex]?.configuredStaticPanes}
           />
 
           {/* Dynamic Buttons */}
