@@ -333,39 +333,21 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   // Check ui_render_mode to determine which form to render
   const useStaticMode = targetStageResult.uiRenderMode === 'static';
 
-  // Render static form based on product code when ui_render_mode is 'static'
+  // Render static form - always uses DynamicTransactionForm which handles static panes
   const renderStaticForm = () => {
-    switch (productCode) {
-      case 'ILC':
-        return (
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          }>
-            <ImportLCForm
-              onBack={handleClose}
-              onClose={handleClose}
-            />
-          </Suspense>
-        );
-      // Add more product-specific static forms here as needed
-      default:
-        // Fallback to DynamicTransactionForm if no static form exists
-        return (
-          <DynamicTransactionForm
-            productCode={productCode}
-            eventCode={eventCode}
-            triggerType={triggerType}
-            businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
-            showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
-            onClose={handleClose}
-            transactionRef={transaction.transaction_ref}
-            initialFormData={initialFormData}
-            initialStage={targetStageResult.stageName}
-          />
-        );
-    }
+    return (
+      <DynamicTransactionForm
+        productCode={productCode}
+        eventCode={eventCode}
+        triggerType={triggerType}
+        businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
+        showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
+        onClose={handleClose}
+        transactionRef={transaction.transaction_ref}
+        initialFormData={initialFormData}
+        initialStage={targetStageResult.stageName}
+      />
+    );
   };
 
   // For static mode, render in full screen
