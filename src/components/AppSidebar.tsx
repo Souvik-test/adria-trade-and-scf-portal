@@ -61,14 +61,18 @@ export function AppSidebar({
   const [documentTemplateEngineOpen, setDocumentTemplateEngineOpen] = React.useState(false);
 
   // Get permissions
-  const { hasScreenAccess, hasCategoryAccess, isSuperUser, loading: permissionsLoading } = useUserPermissions();
+  const {
+    hasScreenAccess,
+    hasCategoryAccess,
+    isSuperUser,
+    loading: permissionsLoading
+  } = useUserPermissions();
 
   // Get business centre from localStorage
   const businessCentre = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
-  
+
   // Show Control Centre only for Process Orchestrator or Bank users with category access
-  const showControlCentre = (businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank') && 
-    (isSuperUser() || hasCategoryAccess('Control Centre'));
+  const showControlCentre = (businessCentre === 'Adria Process Orchestrator' || businessCentre === 'Adria TSCF Bank') && (isSuperUser() || hasCategoryAccess('Control Centre'));
 
   // Helper to check if a specific menu should be shown
   const shouldShowMenu = (screenName: string) => isSuperUser() || hasScreenAccess(screenName);
@@ -325,8 +329,7 @@ export function AppSidebar({
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {/* Foundational Data Library with sub-menus */}
-                          {shouldShowMenu('Foundational Data Library') && (
-                          <Collapsible open={foundationalDataOpen} onOpenChange={setFoundationalDataOpen}>
+                          {shouldShowMenu('Foundational Data Library') && <Collapsible open={foundationalDataOpen} onOpenChange={setFoundationalDataOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -503,12 +506,10 @@ export function AppSidebar({
                                 </SidebarMenuSub>
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
-                          </Collapsible>
-                          )}
+                          </Collapsible>}
 
                           {/* Dynamic Form Engine with sub-menus */}
-                          {shouldShowMenu('Dynamic Form Engine') && (
-                          <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
+                          {shouldShowMenu('Dynamic Form Engine') && <Collapsible open={tfNextGenWorkflowOpen} onOpenChange={setTfNextGenWorkflowOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -568,18 +569,13 @@ export function AppSidebar({
                                 </SidebarMenuSub>
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
-                          </Collapsible>
-                          )}
+                          </Collapsible>}
 
                           {/* NextGen Workflow Configurator - internal navigation */}
-                          {shouldShowMenu('NextGen Workflow Configurator') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('NextGen Workflow Configurator') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <SidebarMenuSubButton 
-                                  className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'nextgen-workflow-configurator' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
-                                  onClick={() => handleMenuClick('nextgen-workflow-configurator')}
-                                >
+                                <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'nextgen-workflow-configurator' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('nextgen-workflow-configurator')}>
                                   <Workflow className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                   {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">NextGen Workflow Configurator</span>}
                                 </SidebarMenuSubButton>
@@ -588,12 +584,10 @@ export function AppSidebar({
                                 <p>Configure workflow templates, stages, and conditions</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Posting Configuration */}
-                          {shouldShowMenu('Posting Configuration') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('Posting Configuration') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'posting-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('posting-configuration')}>
@@ -605,12 +599,10 @@ export function AppSidebar({
                                 <p>Configure accounting posting rules</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Business Validation Engine */}
-                          {shouldShowMenu('Business Validation Engine') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('Business Validation Engine') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'business-validation-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('business-validation-engine')}>
@@ -622,12 +614,10 @@ export function AppSidebar({
                                 <p>Configure business validation rules</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Fee Engine */}
-                          {shouldShowMenu('Fee Engine') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('Fee Engine') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'fee-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('fee-engine')}>
@@ -639,12 +629,10 @@ export function AppSidebar({
                                 <p>Configure fee structures and calculations</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Document Template Engine with sub-menus */}
-                          {shouldShowMenu('Document Template Engine') && (
-                          <Collapsible open={documentTemplateEngineOpen} onOpenChange={setDocumentTemplateEngineOpen}>
+                          {shouldShowMenu('Document Template Engine') && <Collapsible open={documentTemplateEngineOpen} onOpenChange={setDocumentTemplateEngineOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -680,7 +668,7 @@ export function AppSidebar({
                                       <TooltipTrigger asChild>
                                         <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'product-event-template-mapping' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('product-event-template-mapping')}>
                                           <Link className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Product-Event Template Mapping</span>}
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">​Map Template   </span>}
                                         </SidebarMenuSubButton>
                                       </TooltipTrigger>
                                       <TooltipContent side="top" className="z-50">
@@ -691,12 +679,10 @@ export function AppSidebar({
                                 </SidebarMenuSub>
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
-                          </Collapsible>
-                          )}
+                          </Collapsible>}
 
                           {/* Notification Configuration */}
-                          {shouldShowMenu('Notification Configuration') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('Notification Configuration') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'notification-configuration' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('notification-configuration')}>
@@ -708,12 +694,10 @@ export function AppSidebar({
                                 <p>Configure notification settings</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Exchange Rate Maintenance */}
-                          {shouldShowMenu('Exchange Rate Maintenance') && (
-                          <SidebarMenuSubItem>
+                          {shouldShowMenu('Exchange Rate Maintenance') && <SidebarMenuSubItem>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'exchange-rate-maintenance' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('exchange-rate-maintenance')}>
@@ -725,12 +709,10 @@ export function AppSidebar({
                                 <p>Manage exchange rates</p>
                               </TooltipContent>
                             </Tooltip>
-                          </SidebarMenuSubItem>
-                          )}
+                          </SidebarMenuSubItem>}
 
                           {/* Administration with sub-menus - Moved to end */}
-                          {shouldShowMenu('Administration') && (
-                          <Collapsible open={tfAdministrationOpen} onOpenChange={setTfAdministrationOpen}>
+                          {shouldShowMenu('Administration') && <Collapsible open={tfAdministrationOpen} onOpenChange={setTfAdministrationOpen}>
                             <SidebarMenuSubItem>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -803,8 +785,7 @@ export function AppSidebar({
                                 </SidebarMenuSub>
                               </CollapsibleContent>
                             </SidebarMenuSubItem>
-                          </Collapsible>
-                          )}
+                          </Collapsible>}
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
