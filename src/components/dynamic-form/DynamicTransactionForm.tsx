@@ -56,6 +56,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     eventName,
     currentStageAllowedFields,
     stagePaneMapping,
+    isStaticStage,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
@@ -249,8 +250,8 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         </p>
       </div>
 
-      {/* Progress Indicator */}
-      {panes.length > 1 && (
+      {/* Progress Indicator - hidden for static stages */}
+      {!isStaticStage && panes.length > 1 && (
         <DynamicProgressIndicator
           panes={panes}
           currentPaneIndex={currentPaneIndex}
