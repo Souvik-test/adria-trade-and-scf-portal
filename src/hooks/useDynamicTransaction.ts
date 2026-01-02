@@ -746,9 +746,9 @@ export const useDynamicTransaction = ({
     return { currentStageAllowedFields: fieldNames, currentStageFieldEditability: editabilityMap };
   })();
 
-  // Determine if current stage is static-only (all panes have uiRenderMode === 'static')
-  const isStaticStage = stagePaneMapping.length > 0 && 
-    stagePaneMapping.every(m => m.uiRenderMode === 'static');
+  // Determine if CURRENT pane's stage uses static UI (not all stages)
+  const currentMapping = stagePaneMapping[currentPaneIndex];
+  const isStaticStage = currentMapping?.uiRenderMode === 'static';
 
   return {
     loading,

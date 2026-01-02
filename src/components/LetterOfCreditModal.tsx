@@ -51,8 +51,9 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     shouldCheckWorkflow ? triggerType : ''
   );
 
-  // Determine if we should use dynamic form based on ui_render_mode
-  const useDynamicForm = hasTemplate && uiRenderMode === 'dynamic';
+  // Use DynamicTransactionForm for ANY workflow template (static or dynamic)
+  // HybridFormContainer inside DynamicTransactionForm handles the static/dynamic switching
+  const useDynamicForm = hasTemplate;
 
   const handleActionSelect = (action: ActionType) => {
     setSelectedAction(action);
