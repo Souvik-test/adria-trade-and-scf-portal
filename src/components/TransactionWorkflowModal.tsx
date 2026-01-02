@@ -363,12 +363,14 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   if (useStaticMode) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[98vw] max-h-[98vh] h-[98vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-[98vw] h-[95vh] p-0 overflow-hidden flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Process Transaction</DialogTitle>
             <DialogDescription>Processing {transaction.transaction_ref}</DialogDescription>
           </DialogHeader>
-          {renderStaticForm()}
+          <div className="flex-1 min-h-0 w-full overflow-hidden">
+            {renderStaticForm()}
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -377,18 +379,20 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
   // For dynamic mode, render DynamicTransactionForm in dialog
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
-        <DynamicTransactionForm
-          productCode={productCode}
-          eventCode={eventCode}
-          triggerType={triggerType}
-          businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
-          showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
-          onClose={handleClose}
-          transactionRef={transaction.transaction_ref}
-          initialFormData={initialFormData}
-          initialStage={targetStageResult.stageName}
-        />
+      <DialogContent className="max-w-[95vw] h-[95vh] p-0 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 w-full overflow-hidden">
+          <DynamicTransactionForm
+            productCode={productCode}
+            eventCode={eventCode}
+            triggerType={triggerType}
+            businessApp={transaction.business_application || localStorage.getItem('businessCentre') || undefined}
+            showMT700Sidebar={productCode === 'ILC' || productCode === 'ELC'}
+            onClose={handleClose}
+            transactionRef={transaction.transaction_ref}
+            initialFormData={initialFormData}
+            initialStage={targetStageResult.stageName}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

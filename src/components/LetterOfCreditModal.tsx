@@ -269,11 +269,11 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
       (selectedMethod === 'manual' && selectedAction === 'cancellation')) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[98vw] max-h-[98vh] h-[98vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-[98vw] h-[95vh] p-0 overflow-hidden flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Import Letter of Credit</DialogTitle>
           </DialogHeader>
-          <div className="h-full w-full overflow-hidden">
+          <div className="flex-1 min-h-0 w-full overflow-hidden">
             {renderContent()}
           </div>
         </DialogContent>
@@ -283,14 +283,14 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] w-full overflow-hidden p-0">
+      <DialogContent className="max-w-6xl h-[90vh] w-full overflow-hidden p-0 flex flex-col">
         <DialogHeader className="sr-only">
           <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-white">
             {type === 'import' ? 'Import' : 'Export'} Letter of Credit
           </DialogTitle>
         </DialogHeader>
         
-        <div className="h-full w-full overflow-hidden">
+        <div className="flex-1 min-h-0 w-full overflow-hidden">
           {renderContent()}
         </div>
       </DialogContent>
