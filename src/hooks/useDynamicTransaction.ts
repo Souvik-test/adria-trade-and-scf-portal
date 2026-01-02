@@ -719,12 +719,19 @@ export const useDynamicTransaction = ({
 
   const getPaneButtons = useCallback(() => {
     const currentPane = getCurrentPane();
-    if (!currentPane?.buttons || currentPane.buttons.length === 0) {
-      const isFirst = currentPaneIndex === 0;
-      const isLast = panes.length === 0 ? true : currentPaneIndex === panes.length - 1;
+    const isFirst = currentPaneIndex === 0;
+    const isLast = panes.length === 0 ? true : currentPaneIndex === panes.length - 1;
+
+    const configuredButtons = Array.isArray(currentPane?.buttons) ? currentPane!.buttons : [];
+    const hasAnyVisibleConfiguredButton = configuredButtons.some((b) => b?.isVisible !== false);
+
+    // If a pane has no buttons OR all configured buttons are hidden, fall back to defaults
+    // (prevents "no buttons" UI when pane_section_mappings accidentally stores invisible buttons)
+    if (configuredButtons.length === 0 || !hasAnyVisibleConfiguredButton) {
       return getDefaultButtons(isFirst, isLast);
     }
-    return currentPane.buttons;
+
+    return configuredButtons;
   }, [getCurrentPane, currentPaneIndex, panes.length]);
 
   // Get allowed field names and editability for current stage from workflow_stage_fields
