@@ -58,6 +58,7 @@ export function AppSidebar({
   const [auditComplianceOpen, setAuditComplianceOpen] = React.useState(false);
   const [supportOpen, setSupportOpen] = React.useState(false);
   const [foundationalDataOpen, setFoundationalDataOpen] = React.useState(false);
+  const [documentTemplateEngineOpen, setDocumentTemplateEngineOpen] = React.useState(false);
 
   // Get permissions
   const { hasScreenAccess, hasCategoryAccess, isSuperUser, loading: permissionsLoading } = useUserPermissions();
@@ -641,21 +642,56 @@ export function AppSidebar({
                           </SidebarMenuSubItem>
                           )}
 
-                          {/* Document Template Engine */}
+                          {/* Document Template Engine with sub-menus */}
                           {shouldShowMenu('Document Template Engine') && (
-                          <SidebarMenuSubItem>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <SidebarMenuSubButton className={`cursor-pointer whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'document-template-engine' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('document-template-engine')}>
-                                  <FileType className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                  {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Document Template Engine</span>}
-                                </SidebarMenuSubButton>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="z-50">
-                                <p>Manage document templates</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </SidebarMenuSubItem>
+                          <Collapsible open={documentTemplateEngineOpen} onOpenChange={setDocumentTemplateEngineOpen}>
+                            <SidebarMenuSubItem>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton className="cursor-pointer w-full h-auto min-h-[2.5rem] py-2">
+                                      <FileType className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                      {!isCollapsed && <span className="flex-1 whitespace-normal break-words pr-2 leading-tight">Document Template Engine</span>}
+                                      {!isCollapsed && <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform ${documentTemplateEngineOpen ? 'rotate-180' : ''}`} />}
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="z-50">
+                                  <p>Manage document templates and mappings</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <CollapsibleContent>
+                                <SidebarMenuSub>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'define-template' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('define-template')}>
+                                          <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Define Template</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Define and manage document templates</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                  <SidebarMenuSubItem>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <SidebarMenuSubButton className={`cursor-pointer pl-4 whitespace-normal break-words min-w-0 h-auto min-h-[2.5rem] py-2 ${activeMenu === 'product-event-template-mapping' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`} onClick={() => handleMenuClick('product-event-template-mapping')}>
+                                          <Link className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                          {!isCollapsed && <span className="flex-1 whitespace-normal break-words overflow-wrap-anywhere leading-tight">Product-Event Template Mapping</span>}
+                                        </SidebarMenuSubButton>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="z-50">
+                                        <p>Map templates to product events</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                              </CollapsibleContent>
+                            </SidebarMenuSubItem>
+                          </Collapsible>
                           )}
 
                           {/* Notification Configuration */}
