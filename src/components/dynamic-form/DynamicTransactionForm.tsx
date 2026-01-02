@@ -39,6 +39,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   initialFormData,
   initialStage,
 }) => {
+  // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
+  // State for static pane navigation (managed externally for DynamicButtonRenderer coordination)
+  const [staticPaneIndex, setStaticPaneIndex] = useState(0);
+  const [staticPaneTotal, setStaticPaneTotal] = useState(1);
+
   const {
     loading,
     error,
@@ -85,6 +90,21 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     initialFormData,
     initialStage,
   });
+
+  // Handler for static pane changes from StaticPaneRenderer
+  const handleStaticPaneChange = useCallback((activeIndex: number, totalPanes: number) => {
+    setStaticPaneIndex(activeIndex);
+    setStaticPaneTotal(totalPanes);
+  }, []);
+
+  // Handler for static pane navigation from DynamicButtonRenderer
+  const handleStaticPaneNavigate = useCallback((direction: 'next' | 'previous') => {
+    if (direction === 'next' && staticPaneIndex < staticPaneTotal - 1) {
+      setStaticPaneIndex(prev => prev + 1);
+    } else if (direction === 'previous' && staticPaneIndex > 0) {
+      setStaticPaneIndex(prev => prev - 1);
+    }
+  }, [staticPaneIndex, staticPaneTotal]);
 
   // Get current stage name dynamically
   const currentStageName = getCurrentStageName();
@@ -209,30 +229,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Determine if current stage is Approval - fields should be read-only
   const isApprovalStage = currentStageName.toLowerCase().includes('approval');
-
-  // State for static pane navigation (managed externally for DynamicButtonRenderer coordination)
-  const [staticPaneIndex, setStaticPaneIndex] = useState(0);
-  const [staticPaneTotal, setStaticPaneTotal] = useState(1);
   
   // Get total static panes for current stage
   const configuredStaticPanes = stagePaneMapping[currentPaneIndex]?.configuredStaticPanes;
   const totalStaticPanesCount = configuredStaticPanes?.length || 1;
   const hasMultipleStaticPanes = isStaticStage && totalStaticPanesCount > 1;
-
-  // Handler for static pane changes from StaticPaneRenderer
-  const handleStaticPaneChange = useCallback((activeIndex: number, totalPanes: number) => {
-    setStaticPaneIndex(activeIndex);
-    setStaticPaneTotal(totalPanes);
-  }, []);
-
-  // Handler for static pane navigation from DynamicButtonRenderer
-  const handleStaticPaneNavigate = useCallback((direction: 'next' | 'previous') => {
-    if (direction === 'next' && staticPaneIndex < staticPaneTotal - 1) {
-      setStaticPaneIndex(prev => prev + 1);
-    } else if (direction === 'previous' && staticPaneIndex > 0) {
-      setStaticPaneIndex(prev => prev - 1);
-    }
-  }, [staticPaneIndex, staticPaneTotal]);
 
   // Determine if MT700 sidebar should be shown
   // - Only for ILC/ELC products
