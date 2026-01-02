@@ -359,13 +359,18 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     );
   };
 
-  // For static mode, render in full screen (only if open)
+  // For static mode, render in dialog (same as dynamic, just full height)
   if (useStaticMode) {
-    if (!isOpen) return null;
     return (
-      <div className="fixed inset-0 z-50 bg-background overflow-hidden">
-        {renderStaticForm()}
-      </div>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-[98vw] max-h-[98vh] h-[98vh] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Process Transaction</DialogTitle>
+            <DialogDescription>Processing {transaction.transaction_ref}</DialogDescription>
+          </DialogHeader>
+          {renderStaticForm()}
+        </DialogContent>
+      </Dialog>
     );
   }
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
@@ -302,33 +302,53 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             isApprovalStage={isApprovalStage}
             onFieldChange={handleFieldChange}
             configuredStaticPanes={configuredStaticPanes}
-            hideStaticNavigationButtons={hasMultipleStaticPanes}
+            hideStaticNavigationButtons={false}
             onStaticPaneChange={handleStaticPaneChange}
-            staticActivePaneIndex={hasMultipleStaticPanes ? staticPaneIndex : undefined}
           />
 
-          {/* Dynamic Buttons */}
-          <div className="pt-4 border-t border-border">
-            <DynamicButtonRenderer
-              buttons={currentButtons}
-              currentPaneIndex={currentPaneIndex}
-              totalPanes={panes.length}
-              isLastPaneOfStage={isLastPane}
-              isFinalStage={isFinal}
-              stageName={currentStageName}
-              isStaticStage={isStaticStage}
-              totalStaticPanes={totalStaticPanesCount}
-              currentStaticPaneIndex={staticPaneIndex}
-              onStaticPaneNavigate={handleStaticPaneNavigate}
-              onNavigate={navigateToPane}
-              onSave={handleSave}
-              onStageSubmit={handleStageSubmit}
-              onSubmit={handleSubmit}
-              onReject={handleReject}
-              onDiscard={handleDiscard}
-              onClose={handleClose}
-            />
-          </div>
+          {/* Static Stage Action Bar - simple Discard/Save/Submit */}
+          {isStaticStage && (
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <Button variant="outline" onClick={handleDiscard}>
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Discard
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => handleSave('draft')}>
+                    <Save className="w-4 h-4 mr-1" />
+                    Save Draft
+                  </Button>
+                  <Button onClick={handleStageSubmit}>
+                    <Send className="w-4 h-4 mr-1" />
+                    Submit
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Dynamic Buttons - only for dynamic stages */}
+          {!isStaticStage && (
+            <div className="pt-4 border-t border-border">
+              <DynamicButtonRenderer
+                buttons={currentButtons}
+                currentPaneIndex={currentPaneIndex}
+                totalPanes={panes.length}
+                isLastPaneOfStage={isLastPane}
+                isFinalStage={isFinal}
+                stageName={currentStageName}
+                isStaticStage={false}
+                onNavigate={navigateToPane}
+                onSave={handleSave}
+                onStageSubmit={handleStageSubmit}
+                onSubmit={handleSubmit}
+                onReject={handleReject}
+                onDiscard={handleDiscard}
+                onClose={handleClose}
+              />
+            </div>
+          )}
         </>
       )}
 
@@ -338,10 +358,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   );
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className={`flex flex-1 overflow-hidden ${shouldShowMT700 ? 'gap-0' : ''}`}>
+    <div className="flex flex-col h-full min-h-0 bg-background">
+      <div className={`flex flex-1 min-h-0 overflow-hidden ${shouldShowMT700 ? 'gap-0' : ''}`}>
         {/* Scrollable form content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           {formContent}
         </div>
         
