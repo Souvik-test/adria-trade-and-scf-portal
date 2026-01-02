@@ -423,6 +423,12 @@ export const useDynamicTransaction = ({
 
   // Navigation
   const navigateToPane = useCallback((direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => {
+    // Safety check: ensure panes array exists
+    if (!panes || panes.length === 0) {
+      console.warn('navigateToPane called but panes array is empty');
+      return;
+    }
+    
     if (direction === 'next' && currentPaneIndex < panes.length - 1) {
       // Mark current pane as completed
       const currentPane = panes[currentPaneIndex];
@@ -713,8 +719,10 @@ export const useDynamicTransaction = ({
 
   const getPaneButtons = useCallback(() => {
     const currentPane = getCurrentPane();
-    if (!currentPane?.buttons?.length) {
-      return getDefaultButtons(currentPaneIndex === 0, currentPaneIndex === panes.length - 1);
+    if (!currentPane?.buttons || currentPane.buttons.length === 0) {
+      const isFirst = currentPaneIndex === 0;
+      const isLast = panes.length === 0 ? true : currentPaneIndex === panes.length - 1;
+      return getDefaultButtons(isFirst, isLast);
     }
     return currentPane.buttons;
   }, [getCurrentPane, currentPaneIndex, panes.length]);
