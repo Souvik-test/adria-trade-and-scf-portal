@@ -350,8 +350,9 @@ const TransactionWorkflowModal: React.FC<TransactionWorkflowModalProps> = ({
     );
   };
 
-  // For static mode, render in full screen
+  // For static mode, render in full screen (only if open)
   if (useStaticMode) {
+    if (!isOpen) return null;
     return (
       <div className="fixed inset-0 z-50 bg-background overflow-hidden">
         {renderStaticForm()}
