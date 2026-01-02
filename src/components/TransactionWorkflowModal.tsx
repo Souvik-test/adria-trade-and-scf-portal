@@ -5,7 +5,7 @@ import DynamicTransactionForm from '@/components/dynamic-form/DynamicTransaction
 import { Loader2 } from 'lucide-react';
 import { findWorkflowTemplate, getTemplateStages } from '@/services/workflowTemplateService';
 import { WorkflowStageRuntime, WorkflowTemplateRuntime } from '@/types/dynamicForm';
-
+import { matchesAccessibleStage } from '@/utils/stageAliases';
 interface Transaction {
   id: string;
   transaction_ref: string;
@@ -136,7 +136,16 @@ const getTargetStageFromWorkflow = async (
   });
   
   const hasAccessToStage = (stage: WorkflowStageRuntime): boolean => {
-    return accessibleActorTypes.includes(stage.actor_type) || accessibleActorTypes.includes('__ALL__');
+    // Super user access
+    if (accessibleActorTypes.includes('__ALL__')) return true;
+    
+    // Check stage_name with alias support (e.g., "Checker" permission grants access to "Authorization")
+    if (matchesAccessibleStage(stage.stage_name, accessibleActorTypes)) return true;
+    
+    // Check actor_type with alias support for broader matching
+    if (matchesAccessibleStage(stage.actor_type, accessibleActorTypes)) return true;
+    
+    return false;
   };
   
   // Find stage by matching function and check access
