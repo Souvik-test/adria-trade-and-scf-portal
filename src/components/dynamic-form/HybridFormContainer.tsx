@@ -82,17 +82,16 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
     const StaticComponent = getStaticPaneComponent(stageName);
     
     if (StaticComponent) {
-      // Render the static pane component
-      // Static components expect formData prop with the current form state
+      // Render the static pane component directly without Card wrapper
+      // Static components have their own styling and manage their own state
+      // Pass onUpdate callback to allow static components to update specific form fields
       return (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{currentPane.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StaticComponent formData={formData} />
-          </CardContent>
-        </Card>
+        <StaticComponent 
+          formData={formData}
+          onUpdate={(field: string, value: any) => {
+            onFieldChange(field, value);
+          }}
+        />
       );
     } else {
       // No static component registered for this stage, fall back to dynamic

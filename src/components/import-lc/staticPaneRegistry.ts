@@ -3,6 +3,14 @@ import LimitDetailsPane from './LimitDetailsPane';
 import SanctionDetailsPane from './SanctionDetailsPane';
 import AccountingEntriesPane from './AccountingEntriesPane';
 import ReleaseDocumentsPane from './ReleaseDocumentsPane';
+import BasicLCInformationPane from './BasicLCInformationPane';
+import ApplicantInformationPane from './ApplicantInformationPane';
+import BeneficiaryInformationPane from './BeneficiaryInformationPane';
+import PartyDetailsPane from './PartyDetailsPane';
+import LCAmountTermsPane from './LCAmountTermsPane';
+import ShipmentDetailsPane from './ShipmentDetailsPane';
+import DocumentRequirementsPane from './DocumentRequirementsPane';
+import MT700PreviewPane from './MT700PreviewPane';
 
 /**
  * Registry mapping stage names to their static pane components.
@@ -32,6 +40,43 @@ export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
   'Release Documents': ReleaseDocumentsPane,
   'Document Release': ReleaseDocumentsPane,
   'Release': ReleaseDocumentsPane,
+  
+  // LC Information stages (for review/checker stages)
+  'Basic LC Information': BasicLCInformationPane,
+  'LC Information': BasicLCInformationPane,
+  'LC Details': BasicLCInformationPane,
+  'Data Entry Review': BasicLCInformationPane,
+  'LC Review': BasicLCInformationPane,
+  
+  // Applicant stages
+  'Applicant Information': ApplicantInformationPane,
+  'Applicant Details': ApplicantInformationPane,
+  
+  // Beneficiary stages
+  'Beneficiary Information': BeneficiaryInformationPane,
+  'Beneficiary Details': BeneficiaryInformationPane,
+  
+  // Party stages
+  'Party Details': PartyDetailsPane,
+  'Parties': PartyDetailsPane,
+  
+  // Amount/Terms stages
+  'LC Amount Terms': LCAmountTermsPane,
+  'Amount Terms': LCAmountTermsPane,
+  'LC Amount': LCAmountTermsPane,
+  
+  // Shipment stages
+  'Shipment Details': ShipmentDetailsPane,
+  'Shipment': ShipmentDetailsPane,
+  
+  // Document stages
+  'Document Requirements': DocumentRequirementsPane,
+  'Documents': DocumentRequirementsPane,
+  'Required Documents': DocumentRequirementsPane,
+  
+  // MT700 Preview stages
+  'MT700 Preview': MT700PreviewPane,
+  'SWIFT Preview': MT700PreviewPane,
 };
 
 /**

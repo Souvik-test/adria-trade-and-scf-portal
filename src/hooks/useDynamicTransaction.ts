@@ -76,6 +76,9 @@ interface UseDynamicTransactionReturn {
   currentStageAllowedFields: string[];
   // Field editability map for current stage (field_name -> isEditable)
   currentStageFieldEditability: Map<string, boolean>;
+  
+  // Static stage flag - true when current stage uses static UI only
+  isStaticStage: boolean;
 
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
@@ -255,6 +258,40 @@ export const useDynamicTransaction = ({
               }
               
               filteredStages = [targetStage];
+              
+              // Check if this stage uses static UI - if so, create synthetic pane instead of fetching from pane_section_mappings
+              if (targetStage.ui_render_mode === 'static') {
+                console.log(`Stage "${targetStage.stage_name}" uses static UI, creating synthetic pane`);
+                
+                // Create synthetic pane for static rendering
+                const syntheticPane: PaneConfig = {
+                  id: `static-${targetStage.stage_name.replace(/\s+/g, '-').toLowerCase()}`,
+                  name: targetStage.stage_name,
+                  sequence: 1,
+                  sections: [],
+                  buttons: getDefaultButtons(true, true), // First and last pane
+                  showSwiftPreview: false,
+                };
+                
+                const syntheticMapping: StagePaneInfo[] = [{
+                  paneIndex: 0,
+                  paneName: targetStage.stage_name,
+                  stageId: targetStage.id,
+                  stageName: targetStage.stage_name,
+                  stageOrder: targetStage.stage_order,
+                  isFirstPaneOfStage: true,
+                  isLastPaneOfStage: true,
+                  isFinalStage: targetStage.stage_order === templateStages.length,
+                  allowedSections: [],
+                  uiRenderMode: 'static',
+                }];
+                
+                setPanes([syntheticPane]);
+                setStagePaneMapping(syntheticMapping);
+                setStages([targetStage]);
+                setLoading(false);
+                return; // Skip dynamic pane fetching
+              }
               
               // Use stage_order-based functions to get panes (NOT stage name filter)
               // This ensures we get panes specifically for this stage's stage_order
@@ -697,6 +734,10 @@ export const useDynamicTransaction = ({
     return { currentStageAllowedFields: fieldNames, currentStageFieldEditability: editabilityMap };
   })();
 
+  // Determine if current stage is static-only (all panes have uiRenderMode === 'static')
+  const isStaticStage = stagePaneMapping.length > 0 && 
+    stagePaneMapping.every(m => m.uiRenderMode === 'static');
+
   return {
     loading,
     error,
@@ -716,6 +757,7 @@ export const useDynamicTransaction = ({
     completedStageName,
     currentStageAllowedFields,
     currentStageFieldEditability,
+    isStaticStage,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
