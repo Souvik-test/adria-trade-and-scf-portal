@@ -110,7 +110,9 @@ export type ButtonActionType =
   | 'reject'
   | 'discard' 
   | 'close' 
-  | 'custom';
+  | 'custom'
+  | 'static_next'
+  | 'static_previous';
 
 export type ButtonPosition = 'left' | 'right';
 

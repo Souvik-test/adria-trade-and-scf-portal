@@ -47,6 +47,10 @@ interface HybridFormContainerProps {
   onFormChange?: (state: DynamicFormState) => void;
   // New prop: explicitly configured static panes from workflow stage
   configuredStaticPanes?: string[];
+  // Props for external button control in static stages
+  hideStaticNavigationButtons?: boolean;
+  onStaticPaneChange?: (activeIndex: number, totalPanes: number) => void;
+  staticActivePaneIndex?: number;
 }
 
 /**
@@ -75,6 +79,9 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
   onFieldChange,
   onFormChange,
   configuredStaticPanes,
+  hideStaticNavigationButtons,
+  onStaticPaneChange,
+  staticActivePaneIndex,
 }) => {
   if (!currentPane) {
     return (
@@ -106,6 +113,9 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
             stageConfig={stageConfig}
             formData={formData as any}
             updateField={(field, value) => onFieldChange(field as string, value)}
+            hideNavigationButtons={hideStaticNavigationButtons}
+            onActivePaneChange={onStaticPaneChange}
+            externalActivePane={staticActivePaneIndex}
           />
         );
       }
@@ -121,6 +131,9 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
           stageConfig={stageConfig}
           formData={formData as any}
           updateField={(field, value) => onFieldChange(field as string, value)}
+          hideNavigationButtons={hideStaticNavigationButtons}
+          onActivePaneChange={onStaticPaneChange}
+          externalActivePane={staticActivePaneIndex}
         />
       );
     }

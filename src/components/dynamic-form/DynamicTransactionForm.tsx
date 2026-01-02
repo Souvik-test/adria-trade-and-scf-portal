@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -210,6 +210,30 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Determine if current stage is Approval - fields should be read-only
   const isApprovalStage = currentStageName.toLowerCase().includes('approval');
 
+  // State for static pane navigation (managed externally for DynamicButtonRenderer coordination)
+  const [staticPaneIndex, setStaticPaneIndex] = useState(0);
+  const [staticPaneTotal, setStaticPaneTotal] = useState(1);
+  
+  // Get total static panes for current stage
+  const configuredStaticPanes = stagePaneMapping[currentPaneIndex]?.configuredStaticPanes;
+  const totalStaticPanesCount = configuredStaticPanes?.length || 1;
+  const hasMultipleStaticPanes = isStaticStage && totalStaticPanesCount > 1;
+
+  // Handler for static pane changes from StaticPaneRenderer
+  const handleStaticPaneChange = useCallback((activeIndex: number, totalPanes: number) => {
+    setStaticPaneIndex(activeIndex);
+    setStaticPaneTotal(totalPanes);
+  }, []);
+
+  // Handler for static pane navigation from DynamicButtonRenderer
+  const handleStaticPaneNavigate = useCallback((direction: 'next' | 'previous') => {
+    if (direction === 'next' && staticPaneIndex < staticPaneTotal - 1) {
+      setStaticPaneIndex(prev => prev + 1);
+    } else if (direction === 'previous' && staticPaneIndex > 0) {
+      setStaticPaneIndex(prev => prev - 1);
+    }
+  }, [staticPaneIndex, staticPaneTotal]);
+
   // Determine if MT700 sidebar should be shown
   // - Only for ILC/ELC products
   // - Only if workflow template exists
@@ -276,7 +300,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             currentStageFieldEditability={currentStageFieldEditability}
             isApprovalStage={isApprovalStage}
             onFieldChange={handleFieldChange}
-            configuredStaticPanes={stagePaneMapping[currentPaneIndex]?.configuredStaticPanes}
+            configuredStaticPanes={configuredStaticPanes}
+            hideStaticNavigationButtons={hasMultipleStaticPanes}
+            onStaticPaneChange={handleStaticPaneChange}
+            staticActivePaneIndex={hasMultipleStaticPanes ? staticPaneIndex : undefined}
           />
 
           {/* Dynamic Buttons */}
@@ -289,7 +316,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               isFinalStage={isFinal}
               stageName={currentStageName}
               isStaticStage={isStaticStage}
-              totalStaticPanes={stagePaneMapping[currentPaneIndex]?.configuredStaticPanes?.length || 1}
+              totalStaticPanes={totalStaticPanesCount}
+              currentStaticPaneIndex={staticPaneIndex}
+              onStaticPaneNavigate={handleStaticPaneNavigate}
               onNavigate={navigateToPane}
               onSave={handleSave}
               onStageSubmit={handleStageSubmit}

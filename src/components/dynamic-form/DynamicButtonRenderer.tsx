@@ -15,6 +15,8 @@ interface DynamicButtonRendererProps {
   stageName?: string;
   isStaticStage?: boolean;
   totalStaticPanes?: number;
+  currentStaticPaneIndex?: number;
+  onStaticPaneNavigate?: (direction: 'next' | 'previous') => void;
   onNavigate: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   onSave: (type: 'draft' | 'template') => void;
   onStageSubmit?: () => void;
@@ -72,6 +74,8 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   stageName = '',
   isStaticStage = false,
   totalStaticPanes = 1,
+  currentStaticPaneIndex = 0,
+  onStaticPaneNavigate,
   onNavigate,
   onSave,
   onStageSubmit,
@@ -101,6 +105,14 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
         } else {
           onNavigate('next');
         }
+        break;
+      case 'static_next':
+        // Internal static pane navigation
+        onStaticPaneNavigate?.('next');
+        break;
+      case 'static_previous':
+        // Internal static pane navigation
+        onStaticPaneNavigate?.('previous');
         break;
       case 'previous_pane':
         onNavigate('previous');
@@ -150,15 +162,40 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
     }
   };
 
-  // For static stages with single pane, always show Submit button instead of Next
-  // For multi-pane static stages, only show Submit on the actual last pane (handled by isLastPaneOfStage)
-  const effectiveIsLastPaneOfStage = isStaticStage && totalStaticPanes === 1 ? true : isLastPaneOfStage;
-  
   // Safely handle undefined or empty buttons array
   const safeButtons = Array.isArray(buttons) ? buttons : [];
   
-  // Transform buttons based on stage position
+  // For static stages with multiple panes, determine if we're on the last static pane
+  const isLastStaticPane = isStaticStage && totalStaticPanes > 1 
+    ? currentStaticPaneIndex === totalStaticPanes - 1 
+    : true;
+  const isFirstStaticPane = currentStaticPaneIndex === 0;
+  
+  // For static stages: show Submit only on last static pane (or single pane)
+  // For dynamic stages: use isLastPaneOfStage as before
+  const effectiveIsLastPaneOfStage = isStaticStage 
+    ? (totalStaticPanes === 1 || isLastStaticPane) 
+    : isLastPaneOfStage;
+  
+  // Transform buttons based on stage position and static pane state
   const transformedButtons = safeButtons.map(btn => {
+    // For static stages with multiple panes
+    if (isStaticStage && totalStaticPanes > 1 && btn.action === 'next_pane') {
+      if (isLastStaticPane) {
+        // Last static pane - show Submit
+        const label = isApprovalStage && isFinalStage ? 'Approve & Complete' : 'Submit';
+        return { ...btn, label, action: 'submit' as const };
+      } else {
+        // Not last - show Next for internal static pane navigation
+        return { ...btn, label: 'Next', action: 'static_next' as const };
+      }
+    }
+    
+    // For static stages with multiple panes - transform Previous to static_previous
+    if (isStaticStage && totalStaticPanes > 1 && btn.action === 'previous_pane') {
+      return { ...btn, action: 'static_previous' as const };
+    }
+    
     // If this is the last pane of a stage and button is "next_pane", show appropriate label
     if (btn.action === 'next_pane' && effectiveIsLastPaneOfStage) {
       // Only show "Approve & Complete" for Approval stage, "Submit" for all others
@@ -223,10 +260,11 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   const leftButtons = visibleButtons.filter(btn => btn.position === 'left');
   const rightButtons = visibleButtons.filter(btn => btn.position === 'right');
 
-  // Disable previous on first pane
+  // Disable previous on first pane (or first static pane for static stages)
   const isButtonDisabled = (button: PaneButtonConfig) => {
     if (disabled || isLoading) return true;
     if (button.action === 'previous_pane' && currentPaneIndex === 0) return true;
+    if (button.action === 'static_previous' && isFirstStaticPane) return true;
     return false;
   };
 
@@ -242,11 +280,18 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
               onClick={() => handleButtonClick(button)}
               disabled={isButtonDisabled(button)}
             >
-              {button.action === 'previous_pane' && getButtonIcon(button.action)}
+              {(button.action === 'previous_pane' || button.action === 'static_previous') && getButtonIcon('previous_pane')}
               {button.label}
             </Button>
           ))}
         </div>
+
+        {/* Center - Static pane indicator for multi-pane static stages */}
+        {isStaticStage && totalStaticPanes > 1 && (
+          <span className="text-sm text-muted-foreground">
+            {currentStaticPaneIndex + 1} of {totalStaticPanes}
+          </span>
+        )}
 
         {/* Right-aligned buttons */}
         <div className="flex items-center gap-2">
@@ -258,9 +303,9 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
               disabled={isButtonDisabled(button)}
               className={button.action === 'submit' && isApprovalStage && isFinalStage ? 'bg-green-600 hover:bg-green-700' : ''}
             >
-              {button.action !== 'next_pane' && getButtonIcon(button.action, isApprovalStage && isFinalStage)}
+              {button.action !== 'next_pane' && button.action !== 'static_next' && getButtonIcon(button.action, isApprovalStage && isFinalStage)}
               {button.label}
-              {button.action === 'next_pane' && getButtonIcon(button.action)}
+              {(button.action === 'next_pane' || button.action === 'static_next') && getButtonIcon('next_pane')}
             </Button>
           ))}
         </div>
