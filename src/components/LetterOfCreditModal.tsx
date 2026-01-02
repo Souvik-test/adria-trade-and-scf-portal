@@ -263,17 +263,21 @@ const LetterOfCreditModal: React.FC<LetterOfCreditModalProps> = ({ isOpen, onClo
     );
   };
 
+  // For manual LC operations, render in full-screen dialog (not fixed overlay)
   if ((selectedMethod === 'manual' && selectedAction === 'issuance') || 
       (selectedMethod === 'manual' && selectedAction === 'amendment') ||
       (selectedMethod === 'manual' && selectedAction === 'cancellation')) {
     return (
-      <>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 bg-background overflow-hidden">
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-[98vw] max-h-[98vh] h-[98vh] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Import Letter of Credit</DialogTitle>
+          </DialogHeader>
+          <div className="h-full w-full overflow-hidden">
             {renderContent()}
           </div>
-        )}
-      </>
+        </DialogContent>
+      </Dialog>
     );
   }
 
