@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicFormState, RepeatableGroupInstance } from '@/types/dynamicForm';
 import { StagePaneInfo } from '@/services/workflowTemplateService';
-import { getStaticPaneComponent } from '@/components/import-lc/staticPaneRegistry';
+import { getStaticStageConfig, getStaticPaneComponent } from '@/components/import-lc/staticPaneRegistry';
+import StaticPaneRenderer from '@/components/import-lc/StaticPaneRenderer';
 import DynamicFormContainer from './DynamicFormContainer';
 
 interface SectionConfig {
@@ -42,13 +43,15 @@ interface HybridFormContainerProps {
 }
 
 /**
- * HybridFormContainer renders either a static pane component or the dynamic form
+ * HybridFormContainer renders either static pane components or the dynamic form
  * based on the current stage's ui_render_mode setting.
  * 
- * When ui_render_mode is 'static', it looks up the stage name in staticPaneRegistry
- * and renders the corresponding static component (e.g., LimitDetailsPane, SanctionDetailsPane).
+ * When ui_render_mode is 'static':
+ * - First checks for multi-pane stage configuration (Data Entry, Approver, etc.)
+ * - Falls back to single pane component lookup
  * 
- * When ui_render_mode is 'dynamic', it renders the DynamicFormContainer with field_repository fields.
+ * When ui_render_mode is 'dynamic':
+ * - Renders the DynamicFormContainer with field_repository fields.
  */
 const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
   productCode,
@@ -79,18 +82,32 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
 
   // Check if this stage should use static UI
   if (uiRenderMode === 'static') {
+    // First try to get multi-pane stage configuration
+    const stageConfig = getStaticStageConfig(stageName);
+    
+    if (stageConfig) {
+      // Use StaticPaneRenderer for multi-pane or single-pane static stages
+      return (
+        <StaticPaneRenderer
+          stageConfig={stageConfig}
+          formData={formData as any}
+          updateField={(field, value) => onFieldChange(field as string, value)}
+        />
+      );
+    }
+    
+    // Fall back to legacy single component lookup
     const StaticComponent = getStaticPaneComponent(stageName);
     
     if (StaticComponent) {
-      // Render the static pane component directly without Card wrapper
-      // Static components have their own styling and manage their own state
-      // Pass onUpdate callback to allow static components to update specific form fields
+      // Render the static pane component directly
       return (
         <StaticComponent 
           formData={formData}
-          onUpdate={(field: string, value: any) => {
+          updateField={(field: string, value: any) => {
             onFieldChange(field, value);
           }}
+          readOnly={isApprovalStage}
         />
       );
     } else {

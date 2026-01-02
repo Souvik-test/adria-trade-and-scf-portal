@@ -1,19 +1,22 @@
-
 import React from 'react';
 import { ImportLCFormData } from '@/types/importLC';
 import PartyDetailsGrid from './PartyDetailsGrid';
 
 interface PartyDetailsPaneProps {
   formData: ImportLCFormData;
-  updateField: (field: keyof ImportLCFormData, value: any) => void;
+  updateField?: (field: keyof ImportLCFormData, value: any) => void;
+  readOnly?: boolean;
 }
 
 const PartyDetailsPane: React.FC<PartyDetailsPaneProps> = ({
   formData,
-  updateField
+  updateField,
+  readOnly = false
 }) => {
   const handleUpdateParties = (parties: any) => {
-    updateField('parties', parties);
+    if (!readOnly && updateField) {
+      updateField('parties', parties);
+    }
   };
 
   return (
@@ -23,6 +26,7 @@ const PartyDetailsPane: React.FC<PartyDetailsPaneProps> = ({
         <PartyDetailsGrid
           parties={formData.parties}
           onUpdateParties={handleUpdateParties}
+          readOnly={readOnly}
         />
       </div>
     </div>

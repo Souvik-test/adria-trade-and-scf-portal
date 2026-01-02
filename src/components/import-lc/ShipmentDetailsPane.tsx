@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,16 +5,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportLCFormData, SWIFT_TAGS } from '@/types/importLC';
 import SwiftTagLabel from './SwiftTagLabel';
+import { cn } from '@/lib/utils';
 
 interface ShipmentDetailsPaneProps {
   formData: ImportLCFormData;
-  updateField: (field: keyof ImportLCFormData, value: any) => void;
+  updateField?: (field: keyof ImportLCFormData, value: any) => void;
+  readOnly?: boolean;
 }
 
 const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
   formData,
-  updateField
+  updateField,
+  readOnly = false
 }) => {
+  const handleChange = (field: keyof ImportLCFormData, value: any) => {
+    if (!readOnly && updateField) {
+      updateField(field, value);
+    }
+  };
+
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <div className="space-y-6 pr-4">
@@ -35,9 +43,11 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
               />
               <Textarea
                 value={formData.descriptionOfGoods}
-                onChange={(e) => updateField('descriptionOfGoods', e.target.value)}
+                onChange={(e) => handleChange('descriptionOfGoods', e.target.value)}
                 placeholder="Enter detailed description of goods"
                 rows={4}
+                disabled={readOnly}
+                className={cn(readOnly && "bg-muted cursor-not-allowed")}
               />
             </div>
 
@@ -51,8 +61,10 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                 />
                 <Input
                   value={formData.portOfLoading}
-                  onChange={(e) => updateField('portOfLoading', e.target.value)}
+                  onChange={(e) => handleChange('portOfLoading', e.target.value)}
                   placeholder="Enter port of loading"
+                  disabled={readOnly}
+                  className={cn(readOnly && "bg-muted cursor-not-allowed")}
                 />
               </div>
 
@@ -65,8 +77,10 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                 />
                 <Input
                   value={formData.portOfDischarge}
-                  onChange={(e) => updateField('portOfDischarge', e.target.value)}
+                  onChange={(e) => handleChange('portOfDischarge', e.target.value)}
                   placeholder="Enter port of discharge"
+                  disabled={readOnly}
+                  className={cn(readOnly && "bg-muted cursor-not-allowed")}
                 />
               </div>
             </div>
@@ -82,7 +96,9 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                 <Input
                   type="date"
                   value={formData.latestShipmentDate}
-                  onChange={(e) => updateField('latestShipmentDate', e.target.value)}
+                  onChange={(e) => handleChange('latestShipmentDate', e.target.value)}
+                  disabled={readOnly}
+                  className={cn(readOnly && "bg-muted cursor-not-allowed")}
                 />
               </div>
 
@@ -94,8 +110,10 @@ const ShipmentDetailsPane: React.FC<ShipmentDetailsPaneProps> = ({
                 />
                 <Input
                   value={formData.presentationPeriod}
-                  onChange={(e) => updateField('presentationPeriod', e.target.value)}
+                  onChange={(e) => handleChange('presentationPeriod', e.target.value)}
                   placeholder="e.g., 21 days after shipment date"
+                  disabled={readOnly}
+                  className={cn(readOnly && "bg-muted cursor-not-allowed")}
                 />
               </div>
             </div>

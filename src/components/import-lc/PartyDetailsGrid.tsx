@@ -10,10 +10,12 @@ import { PartyDetail } from '@/types/importLC';
 interface PartyDetailsGridProps {
   parties: PartyDetail[];
   onUpdateParties: (parties: PartyDetail[]) => void;
+  readOnly?: boolean;
 }
 
-const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdateParties }) => {
+const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdateParties, readOnly = false }) => {
   const addParty = () => {
+    if (readOnly) return;
     const newParty: PartyDetail = {
       id: Date.now().toString(),
       role: 'applicant',
@@ -26,10 +28,12 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
   };
 
   const removeParty = (id: string) => {
+    if (readOnly) return;
     onUpdateParties(parties.filter(party => party.id !== id));
   };
 
   const updateParty = (id: string, field: keyof PartyDetail, value: string) => {
+    if (readOnly) return;
     onUpdateParties(parties.map(party => 
       party.id === id ? { ...party, [field]: value } : party
     ));
@@ -47,10 +51,12 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Party Details</h3>
-        <Button onClick={addParty} variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Party
-        </Button>
+        {!readOnly && (
+          <Button onClick={addParty} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Party
+          </Button>
+        )}
       </div>
 
       {parties.length === 0 ? (
@@ -68,8 +74,9 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
                     <Select
                       value={party.role}
                       onValueChange={(value) => updateParty(party.id, 'role', value)}
+                      disabled={readOnly}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={readOnly ? "bg-muted cursor-not-allowed" : ""}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -89,6 +96,8 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
                       value={party.name}
                       onChange={(e) => updateParty(party.id, 'name', e.target.value)}
                       placeholder="Enter party name"
+                      disabled={readOnly}
+                      className={readOnly ? "bg-muted cursor-not-allowed" : ""}
                     />
                   </div>
 
@@ -99,17 +108,21 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
                       value={party.swiftCode || ''}
                       onChange={(e) => updateParty(party.id, 'swiftCode', e.target.value)}
                       placeholder="Enter SWIFT code"
+                      disabled={readOnly}
+                      className={readOnly ? "bg-muted cursor-not-allowed" : ""}
                     />
                   </div>
                 </div>
-                <Button
-                  onClick={() => removeParty(party.id)}
-                  variant="outline"
-                  size="sm"
-                  className="ml-4 text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!readOnly && (
+                  <Button
+                    onClick={() => removeParty(party.id)}
+                    variant="outline"
+                    size="sm"
+                    className="ml-4 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,6 +134,8 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
                     onChange={(e) => updateParty(party.id, 'address', e.target.value)}
                     placeholder="Enter complete address"
                     rows={3}
+                    disabled={readOnly}
+                    className={readOnly ? "bg-muted cursor-not-allowed" : ""}
                   />
                 </div>
 
@@ -131,6 +146,8 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
                     value={party.accountNumber || ''}
                     onChange={(e) => updateParty(party.id, 'accountNumber', e.target.value)}
                     placeholder="Enter account number"
+                    disabled={readOnly}
+                    className={readOnly ? "bg-muted cursor-not-allowed" : ""}
                   />
                 </div>
               </div>
