@@ -11,12 +11,149 @@ import LCAmountTermsPane from './LCAmountTermsPane';
 import ShipmentDetailsPane from './ShipmentDetailsPane';
 import DocumentRequirementsPane from './DocumentRequirementsPane';
 import MT700PreviewPane from './MT700PreviewPane';
+import { ImportLCFormData } from '@/types/importLC';
 
 /**
- * Registry mapping stage names to their static pane components.
- * Used by HybridFormContainer to render static UI when a stage's ui_render_mode is 'static'.
- * 
- * Keys should match the stage_name values in workflow_stages table.
+ * Common props interface for all static pane components.
+ */
+export interface StaticPaneProps {
+  formData: ImportLCFormData;
+  updateField?: (field: keyof ImportLCFormData, value: any) => void;
+  readOnly?: boolean;
+}
+
+/**
+ * Configuration for a single pane within a stage.
+ */
+export interface StaticPaneConfig {
+  component: React.ComponentType<StaticPaneProps>;
+  name: string;
+}
+
+/**
+ * Configuration for a complete stage with one or more panes.
+ */
+export interface StaticStageConfig {
+  panes: StaticPaneConfig[];
+  readOnly: boolean;
+}
+
+/**
+ * Data Entry stage panes - full form with all editable panes.
+ */
+const dataEntryPanes: StaticPaneConfig[] = [
+  { component: BasicLCInformationPane as React.ComponentType<StaticPaneProps>, name: 'Basic LC Information' },
+  { component: PartyDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Party Details' },
+  { component: LCAmountTermsPane as React.ComponentType<StaticPaneProps>, name: 'LC Amount & Terms' },
+  { component: ShipmentDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Shipment Details' },
+  { component: DocumentRequirementsPane as React.ComponentType<StaticPaneProps>, name: 'Document Requirements' },
+  { component: AccountingEntriesPane as React.ComponentType<StaticPaneProps>, name: 'Accounting Entries' },
+  { component: ReleaseDocumentsPane as React.ComponentType<StaticPaneProps>, name: 'Release Documents' },
+];
+
+/**
+ * Static stage configurations mapping stage types to their panes and read-only state.
+ */
+export const staticStageConfigurations: Record<string, StaticStageConfig> = {
+  // Data Entry / Input / Registration stages - Full form with all panes (editable)
+  'Data Entry': { panes: dataEntryPanes, readOnly: false },
+  'Input': { panes: dataEntryPanes, readOnly: false },
+  'Registration': { panes: dataEntryPanes, readOnly: false },
+  'Data Entry Stage': { panes: dataEntryPanes, readOnly: false },
+  'Input Stage': { panes: dataEntryPanes, readOnly: false },
+  'Registration Stage': { panes: dataEntryPanes, readOnly: false },
+  
+  // Limit Check stages - Single pane
+  'Limit Check': { 
+    panes: [{ component: LimitDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Limit Details' }], 
+    readOnly: false 
+  },
+  'Limit Checking': { 
+    panes: [{ component: LimitDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Limit Details' }], 
+    readOnly: false 
+  },
+  'Limit Validation': { 
+    panes: [{ component: LimitDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Limit Details' }], 
+    readOnly: false 
+  },
+  
+  // Compliance/Sanction Check stages - Single pane
+  'Compliance Check': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  'Compliance': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  'Sanction Check': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  'Sanction Checking': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  'Sanction Screening': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  'AML Check': { 
+    panes: [{ component: SanctionDetailsPane as React.ComponentType<StaticPaneProps>, name: 'Sanction Details' }], 
+    readOnly: false 
+  },
+  
+  // Approver/Checker stages - All panes in read-only mode
+  'Approver': { panes: dataEntryPanes, readOnly: true },
+  'Authorization': { panes: dataEntryPanes, readOnly: true },
+  'Checker': { panes: dataEntryPanes, readOnly: true },
+  'Approval': { panes: dataEntryPanes, readOnly: true },
+  'Review': { panes: dataEntryPanes, readOnly: true },
+  'Approver Stage': { panes: dataEntryPanes, readOnly: true },
+  'Authorization Stage': { panes: dataEntryPanes, readOnly: true },
+  'Checker Stage': { panes: dataEntryPanes, readOnly: true },
+};
+
+/**
+ * Keyword patterns for fuzzy matching stage names to configurations.
+ */
+const keywordPatterns: { keywords: string[]; configKey: string }[] = [
+  { keywords: ['data entry', 'input', 'registration', 'entry stage'], configKey: 'Data Entry' },
+  { keywords: ['limit', 'limit check', 'limit validation'], configKey: 'Limit Check' },
+  { keywords: ['compliance', 'sanction', 'aml', 'kyc', 'screening'], configKey: 'Compliance Check' },
+  { keywords: ['approver', 'authorization', 'checker', 'reviewer', 'verify', 'approval'], configKey: 'Approver' },
+];
+
+/**
+ * Get the stage configuration for a given stage name with fuzzy matching.
+ * Returns null if no configuration is found.
+ */
+export const getStaticStageConfig = (stageName: string): StaticStageConfig | null => {
+  // Exact match first
+  if (staticStageConfigurations[stageName]) {
+    return staticStageConfigurations[stageName];
+  }
+  
+  // Case-insensitive match
+  const normalizedName = stageName.toLowerCase();
+  for (const [key, config] of Object.entries(staticStageConfigurations)) {
+    if (key.toLowerCase() === normalizedName) {
+      return config;
+    }
+  }
+  
+  // Keyword matching for common variations
+  for (const { keywords, configKey } of keywordPatterns) {
+    if (keywords.some(kw => normalizedName.includes(kw))) {
+      return staticStageConfigurations[configKey];
+    }
+  }
+  
+  return null;
+};
+
+/**
+ * Legacy registry for backward compatibility - maps stage names to single components.
  */
 export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
   // Limit-related stages
@@ -41,7 +178,7 @@ export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
   'Document Release': ReleaseDocumentsPane,
   'Release': ReleaseDocumentsPane,
   
-  // LC Information stages (for review/checker stages)
+  // LC Information stages
   'Basic LC Information': BasicLCInformationPane,
   'LC Information': BasicLCInformationPane,
   'LC Details': BasicLCInformationPane,
@@ -82,14 +219,22 @@ export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
 /**
  * Get the static pane component for a given stage name.
  * Returns null if no static component is registered for the stage.
+ * 
+ * @deprecated Use getStaticStageConfig for multi-pane support
  */
 export const getStaticPaneComponent = (stageName: string): React.ComponentType<any> | null => {
-  // Try exact match first
+  // First try to get from multi-pane config (returns first pane)
+  const stageConfig = getStaticStageConfig(stageName);
+  if (stageConfig && stageConfig.panes.length > 0) {
+    return stageConfig.panes[0].component;
+  }
+  
+  // Fall back to legacy registry
   if (staticPaneRegistry[stageName]) {
     return staticPaneRegistry[stageName];
   }
   
-  // Try case-insensitive match
+  // Try case-insensitive match on legacy registry
   const normalizedStageName = stageName.toLowerCase();
   for (const [key, component] of Object.entries(staticPaneRegistry)) {
     if (key.toLowerCase() === normalizedStageName) {
@@ -101,8 +246,8 @@ export const getStaticPaneComponent = (stageName: string): React.ComponentType<a
 };
 
 /**
- * Check if a stage has a registered static pane component.
+ * Check if a stage has a registered static pane component or configuration.
  */
 export const hasStaticPaneComponent = (stageName: string): boolean => {
-  return getStaticPaneComponent(stageName) !== null;
+  return getStaticStageConfig(stageName) !== null || getStaticPaneComponent(stageName) !== null;
 };

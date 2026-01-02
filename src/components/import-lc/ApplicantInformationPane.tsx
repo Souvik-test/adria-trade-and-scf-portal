@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,16 +5,25 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportLCFormData } from '@/types/importLC';
+import { cn } from '@/lib/utils';
 
 interface ApplicantInformationPaneProps {
   formData: ImportLCFormData;
-  updateField: (field: keyof ImportLCFormData, value: any) => void;
+  updateField?: (field: keyof ImportLCFormData, value: any) => void;
+  readOnly?: boolean;
 }
 
 const ApplicantInformationPane: React.FC<ApplicantInformationPaneProps> = ({
   formData,
-  updateField
+  updateField,
+  readOnly = false
 }) => {
+  const handleChange = (field: keyof ImportLCFormData, value: any) => {
+    if (!readOnly && updateField) {
+      updateField(field, value);
+    }
+  };
+
   return (
     <ScrollArea className="h-full" style={{ scrollbarWidth: 'auto' }}>
       <div className="space-y-6 pr-4">
@@ -33,8 +41,10 @@ const ApplicantInformationPane: React.FC<ApplicantInformationPaneProps> = ({
               </Label>
               <Input
                 value={formData.applicantName}
-                onChange={(e) => updateField('applicantName', e.target.value)}
+                onChange={(e) => handleChange('applicantName', e.target.value)}
                 placeholder="Enter applicant name"
+                disabled={readOnly}
+                className={cn(readOnly && "bg-muted cursor-not-allowed")}
               />
             </div>
 
@@ -45,9 +55,11 @@ const ApplicantInformationPane: React.FC<ApplicantInformationPaneProps> = ({
               </Label>
               <Textarea
                 value={formData.applicantAddress}
-                onChange={(e) => updateField('applicantAddress', e.target.value)}
+                onChange={(e) => handleChange('applicantAddress', e.target.value)}
                 placeholder="Enter complete applicant address"
                 rows={4}
+                disabled={readOnly}
+                className={cn(readOnly && "bg-muted cursor-not-allowed")}
               />
             </div>
 
@@ -58,8 +70,10 @@ const ApplicantInformationPane: React.FC<ApplicantInformationPaneProps> = ({
               </Label>
               <Input
                 value={formData.applicantAccountNumber}
-                onChange={(e) => updateField('applicantAccountNumber', e.target.value)}
+                onChange={(e) => handleChange('applicantAccountNumber', e.target.value)}
                 placeholder="Enter account number"
+                disabled={readOnly}
+                className={cn(readOnly && "bg-muted cursor-not-allowed")}
               />
             </div>
           </CardContent>
