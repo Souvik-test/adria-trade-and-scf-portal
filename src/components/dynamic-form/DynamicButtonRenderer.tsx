@@ -13,6 +13,8 @@ interface DynamicButtonRendererProps {
   isLastPaneOfStage?: boolean;
   isFinalStage?: boolean;
   stageName?: string;
+  isStaticStage?: boolean;
+  totalStaticPanes?: number;
   onNavigate: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
   onSave: (type: 'draft' | 'template') => void;
   onStageSubmit?: () => void;
@@ -68,6 +70,8 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   isLastPaneOfStage = false,
   isFinalStage = false,
   stageName = '',
+  isStaticStage = false,
+  totalStaticPanes = 1,
   onNavigate,
   onSave,
   onStageSubmit,
@@ -146,10 +150,17 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
     }
   };
 
+  // For static stages with single pane, always show Submit button instead of Next
+  // For multi-pane static stages, only show Submit on the actual last pane (handled by isLastPaneOfStage)
+  const effectiveIsLastPaneOfStage = isStaticStage && totalStaticPanes === 1 ? true : isLastPaneOfStage;
+  
+  // Safely handle undefined or empty buttons array
+  const safeButtons = Array.isArray(buttons) ? buttons : [];
+  
   // Transform buttons based on stage position
-  const transformedButtons = buttons.map(btn => {
+  const transformedButtons = safeButtons.map(btn => {
     // If this is the last pane of a stage and button is "next_pane", show appropriate label
-    if (btn.action === 'next_pane' && isLastPaneOfStage) {
+    if (btn.action === 'next_pane' && effectiveIsLastPaneOfStage) {
       // Only show "Approve & Complete" for Approval stage, "Submit" for all others
       const label = isApprovalStage && isFinalStage ? 'Approve & Complete' : 'Submit';
       return {
@@ -184,7 +195,7 @@ const DynamicButtonRenderer: React.FC<DynamicButtonRendererProps> = ({
   }
 
   // Add "Reject" button for Approval stage only (before Approve & Complete)
-  if (isApprovalStage && isLastPaneOfStage && onReject) {
+  if (isApprovalStage && effectiveIsLastPaneOfStage && onReject) {
     const submitIndex = finalButtons.findIndex(btn => btn.action === 'submit');
     const rejectButton: PaneButtonConfig = {
       id: 'reject_auto',
