@@ -251,3 +251,69 @@ export const getStaticPaneComponent = (stageName: string): React.ComponentType<a
 export const hasStaticPaneComponent = (stageName: string): boolean => {
   return getStaticStageConfig(stageName) !== null || getStaticPaneComponent(stageName) !== null;
 };
+
+/**
+ * List of all available static panes for workflow configuration UI.
+ */
+export const AVAILABLE_STATIC_PANES = [
+  { value: 'Basic LC Information', label: 'Basic LC Information' },
+  { value: 'Party Details', label: 'Party Details' },
+  { value: 'Applicant Information', label: 'Applicant Information' },
+  { value: 'Beneficiary Information', label: 'Beneficiary Information' },
+  { value: 'LC Amount & Terms', label: 'LC Amount & Terms' },
+  { value: 'Shipment Details', label: 'Shipment Details' },
+  { value: 'Document Requirements', label: 'Document Requirements' },
+  { value: 'Accounting Entries', label: 'Accounting Entries' },
+  { value: 'Release Documents', label: 'Release Documents' },
+  { value: 'Limit Details', label: 'Limit Details' },
+  { value: 'Sanction Details', label: 'Sanction Details' },
+  { value: 'MT700 Preview', label: 'MT700 Preview' },
+];
+
+/**
+ * Get suggested panes based on stage name keywords.
+ */
+export const getSuggestedPanes = (stageName: string): string[] => {
+  const normalizedName = stageName.toLowerCase();
+  
+  if (normalizedName.includes('limit')) {
+    return ['Limit Details'];
+  }
+  if (normalizedName.includes('compliance') || normalizedName.includes('sanction') || normalizedName.includes('aml')) {
+    return ['Sanction Details'];
+  }
+  if (normalizedName.includes('data entry') || normalizedName.includes('input') || normalizedName.includes('registration')) {
+    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents'];
+  }
+  if (normalizedName.includes('approver') || normalizedName.includes('checker') || normalizedName.includes('authorization') || normalizedName.includes('review')) {
+    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents'];
+  }
+  
+  return [];
+};
+
+/**
+ * Get static pane configurations by their names.
+ * Returns pane configs in the order specified.
+ */
+export const getStaticPanesByNames = (paneNames: string[]): StaticPaneConfig[] => {
+  return paneNames
+    .map(name => {
+      // Check legacy registry first
+      const component = staticPaneRegistry[name];
+      if (component) {
+        return { component, name };
+      }
+      
+      // Try case-insensitive match
+      const normalizedName = name.toLowerCase();
+      for (const [key, comp] of Object.entries(staticPaneRegistry)) {
+        if (key.toLowerCase() === normalizedName) {
+          return { component: comp, name };
+        }
+      }
+      
+      return null;
+    })
+    .filter(Boolean) as StaticPaneConfig[];
+};

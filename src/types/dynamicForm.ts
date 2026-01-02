@@ -170,6 +170,7 @@ export interface WorkflowStageRuntime {
   reject_to_stage_id: string | null;
   stage_type: string;
   ui_render_mode: 'static' | 'dynamic';
+  static_panes?: string[]; // Explicitly configured static panes from database
 }
 
 export interface WorkflowStageFieldRuntime {

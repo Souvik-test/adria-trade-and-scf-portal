@@ -263,6 +263,9 @@ export const useDynamicTransaction = ({
               if (targetStage.ui_render_mode === 'static') {
                 console.log(`Stage "${targetStage.stage_name}" uses static UI, creating synthetic pane`);
                 
+                // Parse static_panes from the stage (it's stored as jsonb in the database)
+                const configuredPanes = Array.isArray(targetStage.static_panes) ? targetStage.static_panes : [];
+                
                 // Create synthetic pane for static rendering
                 const syntheticPane: PaneConfig = {
                   id: `static-${targetStage.stage_name.replace(/\s+/g, '-').toLowerCase()}`,
@@ -284,6 +287,7 @@ export const useDynamicTransaction = ({
                   isFinalStage: targetStage.stage_order === templateStages.length,
                   allowedSections: [],
                   uiRenderMode: 'static',
+                  configuredStaticPanes: configuredPanes.length > 0 ? configuredPanes : undefined,
                 }];
                 
                 setPanes([syntheticPane]);
