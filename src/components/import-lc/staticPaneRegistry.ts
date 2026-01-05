@@ -215,6 +215,10 @@ export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
   // MT700 Preview stages
   'MT700 Preview': MT700PreviewPane,
   'SWIFT Preview': MT700PreviewPane,
+  
+  // Direct mappings for AVAILABLE_STATIC_PANES names
+  'Limit Details': LimitDetailsPane,
+  'Sanction Details': SanctionDetailsPane,
 };
 
 /**
@@ -284,10 +288,10 @@ export const getSuggestedPanes = (stageName: string): string[] => {
     return ['Sanction Details'];
   }
   if (normalizedName.includes('data entry') || normalizedName.includes('input') || normalizedName.includes('registration')) {
-    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents'];
+    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents', 'Limit Details', 'Sanction Details', 'MT700 Preview'];
   }
   if (normalizedName.includes('approver') || normalizedName.includes('checker') || normalizedName.includes('authorization') || normalizedName.includes('review')) {
-    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents'];
+    return ['Basic LC Information', 'Party Details', 'LC Amount & Terms', 'Shipment Details', 'Document Requirements', 'Accounting Entries', 'Release Documents', 'Limit Details', 'Sanction Details', 'MT700 Preview'];
   }
   
   return [];

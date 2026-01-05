@@ -227,8 +227,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   const isLastPane = isLastPaneOfCurrentStage();
   const isFinal = isFinalStage();
 
-  // Determine if current stage is Approval - fields should be read-only
-  const isApprovalStage = currentStageName.toLowerCase().includes('approval');
+  // Determine if current stage is Approval/Authorization based on actor_type
+  const currentActorType = stagePaneMapping[currentPaneIndex]?.actorType || '';
+  const isApprovalStage = currentActorType === 'Checker' || currentActorType === 'Authorizer';
   
   // Get total static panes for current stage
   const configuredStaticPanes = stagePaneMapping[currentPaneIndex]?.configuredStaticPanes;
@@ -348,13 +349,27 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                       Discard
                     </Button>
                   )}
-                  <Button variant="outline" onClick={() => handleSave('draft')}>
-                    <Save className="w-4 h-4 mr-1" />
-                    Save Draft
-                  </Button>
+                  {/* Only show Save Draft for non-approval stages */}
+                  {!isApprovalStage && (
+                    <Button variant="outline" onClick={() => handleSave('draft')}>
+                      <Save className="w-4 h-4 mr-1" />
+                      Save Draft
+                    </Button>
+                  )}
+                  {/* Reject button - only for approval/authorization stages */}
+                  {isApprovalStage && (
+                    <Button 
+                      variant="outline" 
+                      className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={() => handleReject('Rejected by reviewer')}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Reject
+                    </Button>
+                  )}
                   <Button onClick={handleStageSubmit}>
                     <Send className="w-4 h-4 mr-1" />
-                    Submit
+                    {isApprovalStage ? 'Approve' : 'Submit'}
                   </Button>
                 </div>
               </div>
