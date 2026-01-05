@@ -193,12 +193,26 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
           isError: false,
         };
       } else if (stageLower.includes('authorization')) {
-        // Portal Authorization completed - transaction sent to Bank
-        return {
-          title: 'Sent to Bank',
-          message: `Your ${productName} - ${eventName} has been authorized and sent to the bank for processing.`,
-          isError: false,
-        };
+        // Check if this is a Bank workflow (Manual) or Portal workflow (ClientPortal)
+        // Bank workflows: Authorization is the final stage → show "Issued"
+        // Portal workflows: Authorization triggers cross-workflow handoff → show "Sent to Bank"
+        const isBankWorkflow = triggerType === 'Manual';
+        
+        if (isBankWorkflow) {
+          // Bank workflow - Authorization is the final stage, transaction is issued
+          return {
+            title: 'Transaction Issued',
+            message: `Your ${productName} - ${eventName} has been successfully issued.`,
+            isError: false,
+          };
+        } else {
+          // Portal workflow - Authorization sends to bank for processing
+          return {
+            title: 'Sent to Bank',
+            message: `Your ${productName} - ${eventName} has been authorized and sent to the bank for processing.`,
+            isError: false,
+          };
+        }
       } else if (stageLower.includes('checker')) {
         return {
           title: 'Checker Review Completed',
