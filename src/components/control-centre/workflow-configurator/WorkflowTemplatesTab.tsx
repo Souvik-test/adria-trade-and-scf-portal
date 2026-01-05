@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Settings, Copy, Trash2, Eye, CheckCircle, Power } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { customAuth } from '@/services/customAuth';
 import { toast } from 'sonner';
@@ -173,6 +174,12 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
   const [eventCode, setEventCode] = useState('');
   const [triggerTypes, setTriggerTypes] = useState<string[]>([]);
 
+  // Copy dialog state
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [templateToCopy, setTemplateToCopy] = useState<WorkflowTemplate | null>(null);
+  const [copyTemplateName, setCopyTemplateName] = useState('');
+  const [isCopying, setIsCopying] = useState(false);
+
   useEffect(() => {
     fetchTemplates();
   }, []);
@@ -262,26 +269,40 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
     }
   };
 
-  const handleCopyTemplate = async (template: WorkflowTemplate) => {
+  const openCopyDialog = (template: WorkflowTemplate) => {
+    setTemplateToCopy(template);
+    setCopyTemplateName(`${template.template_name} (Copy)`);
+    setCopyDialogOpen(true);
+  };
+
+  const handleCopyTemplate = async () => {
+    if (!templateToCopy) return;
+    
     const session = customAuth.getSession();
     if (!session?.user?.id) {
       toast.error('Please log in to copy templates');
       return;
     }
 
+    if (!copyTemplateName.trim()) {
+      toast.error('Please enter a template name');
+      return;
+    }
+
+    setIsCopying(true);
     try {
       const { data, error } = await supabase
         .from('workflow_templates')
         .insert({
           user_id: session.user.id,
-          template_name: `${template.template_name} (Copy)`,
-          module_code: template.module_code,
-          module_name: template.module_name,
-          product_code: template.product_code,
-          product_name: template.product_name,
-          event_code: template.event_code,
-          event_name: template.event_name,
-          trigger_types: template.trigger_types,
+          template_name: copyTemplateName.trim(),
+          module_code: templateToCopy.module_code,
+          module_name: templateToCopy.module_name,
+          product_code: templateToCopy.product_code,
+          product_name: templateToCopy.product_name,
+          event_code: templateToCopy.event_code,
+          event_name: templateToCopy.event_name,
+          trigger_types: templateToCopy.trigger_types,
           status: 'draft',
         })
         .select()
@@ -291,9 +312,14 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
 
       toast.success('Template copied successfully');
       setTemplates(prev => [data as WorkflowTemplate, ...prev]);
+      setCopyDialogOpen(false);
+      setTemplateToCopy(null);
+      setCopyTemplateName('');
     } catch (error) {
       console.error('Error copying template:', error);
       toast.error('Failed to copy template');
+    } finally {
+      setIsCopying(false);
     }
   };
 
@@ -589,7 +615,7 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
                             <Button
                               size="icon"
                               variant="ghost"
-                              onClick={() => handleCopyTemplate(template)}
+                              onClick={() => openCopyDialog(template)}
                             >
                               <Copy className="w-4 h-4" />
                             </Button>
@@ -624,6 +650,43 @@ export function WorkflowTemplatesTab({ onTemplateSelect }: WorkflowTemplatesTabP
           </div>
         )}
       </div>
+
+      {/* Copy Template Dialog */}
+      <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Copy className="w-5 h-5" />
+              Copy Template
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="copyTemplateName">Template Name *</Label>
+              <Input
+                id="copyTemplateName"
+                placeholder="Enter template name"
+                value={copyTemplateName}
+                onChange={(e) => setCopyTemplateName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {templateToCopy && (
+              <div className="text-sm text-muted-foreground">
+                Copying from: <span className="font-medium">{templateToCopy.template_name}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCopyTemplate} disabled={isCopying || !copyTemplateName.trim()}>
+              {isCopying ? 'Copying...' : 'Copy Template'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
