@@ -14,6 +14,9 @@ interface PartyDetailsGridProps {
 }
 
 const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdateParties, readOnly = false }) => {
+  // Guard against undefined/null parties
+  const safeParties = Array.isArray(parties) ? parties : [];
+
   const addParty = () => {
     if (readOnly) return;
     const newParty: PartyDetail = {
@@ -24,17 +27,17 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
       swiftCode: '',
       accountNumber: ''
     };
-    onUpdateParties([...parties, newParty]);
+    onUpdateParties([...safeParties, newParty]);
   };
 
   const removeParty = (id: string) => {
     if (readOnly) return;
-    onUpdateParties(parties.filter(party => party.id !== id));
+    onUpdateParties(safeParties.filter(party => party.id !== id));
   };
 
   const updateParty = (id: string, field: keyof PartyDetail, value: string) => {
     if (readOnly) return;
-    onUpdateParties(parties.map(party => 
+    onUpdateParties(safeParties.map(party => 
       party.id === id ? { ...party, [field]: value } : party
     ));
   };
@@ -59,13 +62,13 @@ const PartyDetailsGrid: React.FC<PartyDetailsGridProps> = ({ parties, onUpdatePa
         )}
       </div>
 
-      {parties.length === 0 ? (
-        <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-          <p className="text-gray-500 dark:text-gray-400">No parties added yet. Click "Add Party" to get started.</p>
+      {safeParties.length === 0 ? (
+        <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+          <p className="text-muted-foreground">No parties added yet. Click "Add Party" to get started.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {parties.map((party) => (
+          {safeParties.map((party) => (
             <div key={party.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
               <div className="flex justify-between items-start">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
