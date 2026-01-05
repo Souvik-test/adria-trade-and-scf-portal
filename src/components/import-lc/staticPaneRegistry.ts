@@ -198,6 +198,7 @@ export const staticPaneRegistry: Record<string, React.ComponentType<any>> = {
   'Parties': PartyDetailsPane,
   
   // Amount/Terms stages
+  'LC Amount & Terms': LCAmountTermsPane,
   'LC Amount Terms': LCAmountTermsPane,
   'Amount Terms': LCAmountTermsPane,
   'LC Amount': LCAmountTermsPane,
@@ -297,22 +298,35 @@ export const getSuggestedPanes = (stageName: string): string[] => {
  * Returns pane configs in the order specified.
  */
 export const getStaticPanesByNames = (paneNames: string[]): StaticPaneConfig[] => {
+  // Helper to normalize pane names for matching (handles & vs no &, extra spaces)
+  const normalizeName = (name: string) => 
+    name.toLowerCase().replace(/&/g, '').replace(/\s+/g, ' ').trim();
+
   return paneNames
     .map(name => {
-      // Check legacy registry first
+      // 1. Exact match first
       const component = staticPaneRegistry[name];
       if (component) {
         return { component, name };
       }
       
-      // Try case-insensitive match
-      const normalizedName = name.toLowerCase();
+      // 2. Case-insensitive exact match
+      const lowerName = name.toLowerCase();
       for (const [key, comp] of Object.entries(staticPaneRegistry)) {
-        if (key.toLowerCase() === normalizedName) {
+        if (key.toLowerCase() === lowerName) {
           return { component: comp, name };
         }
       }
       
+      // 3. Normalized match (handles & vs no &, extra spaces)
+      const normalizedInput = normalizeName(name);
+      for (const [key, comp] of Object.entries(staticPaneRegistry)) {
+        if (normalizeName(key) === normalizedInput) {
+          return { component: comp, name };
+        }
+      }
+      
+      console.warn(`Static pane "${name}" not found in registry`);
       return null;
     })
     .filter(Boolean) as StaticPaneConfig[];
