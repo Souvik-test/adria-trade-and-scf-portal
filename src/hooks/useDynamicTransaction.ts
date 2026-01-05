@@ -288,6 +288,7 @@ export const useDynamicTransaction = ({
                   allowedSections: [],
                   uiRenderMode: 'static',
                   configuredStaticPanes: configuredPanes.length > 0 ? configuredPanes : undefined,
+                  actorType: targetStage.actor_type || 'Maker',
                 }];
                 
                 setPanes([syntheticPane]);
@@ -364,6 +365,7 @@ export const useDynamicTransaction = ({
                 allowedSections: [],
                 uiRenderMode: 'static',
                 configuredStaticPanes: configuredPanes.length > 0 ? configuredPanes : undefined,
+                actorType: firstStage.actor_type || 'Maker',
               }];
               
               setPanes([syntheticPane]);

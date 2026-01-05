@@ -151,6 +151,7 @@ export interface StagePaneInfo {
   allowedSections: string[]; // Sections allowed for THIS specific stage-pane combination
   uiRenderMode: 'static' | 'dynamic'; // UI render mode for this stage
   configuredStaticPanes?: string[]; // Explicitly configured static panes from database
+  actorType: string; // Actor type: 'Maker', 'Checker', 'Authorizer', 'System'
 }
 
 /**
@@ -250,6 +251,7 @@ export const getStagePaneMapping = async (
         allowedSections,
         uiRenderMode: stage.ui_render_mode || 'static',
         configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
+        actorType: stage.actor_type || 'Maker',
       });
       paneIndex++;
     });
@@ -432,6 +434,7 @@ export const getStagePaneMappingByStageOrder = async (
     allowedSections: stageSectionMap.get(paneName) || [],
     uiRenderMode: targetStage.ui_render_mode || 'static',
     configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
+    actorType: targetStage.actor_type || 'Maker',
   }));
   
   return mapping;
