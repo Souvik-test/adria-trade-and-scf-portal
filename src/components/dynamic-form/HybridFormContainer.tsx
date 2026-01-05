@@ -113,7 +113,7 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
             stageConfig={stageConfig}
             formData={formData as any}
             updateField={(field, value) => onFieldChange(field as string, value)}
-            hideNavigationButtons={false}
+            hideNavigationButtons={hideStaticNavigationButtons}
             onActivePaneChange={onStaticPaneChange}
             externalActivePane={staticActivePaneIndex}
           />
@@ -126,13 +126,12 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
     
     if (stageConfig) {
       // Use StaticPaneRenderer for multi-pane or single-pane static stages
-      // Always show StaticPaneRenderer's built-in navigation for static stages
       return (
         <StaticPaneRenderer
           stageConfig={stageConfig}
           formData={formData as any}
           updateField={(field, value) => onFieldChange(field as string, value)}
-          hideNavigationButtons={false}
+          hideNavigationButtons={hideStaticNavigationButtons}
           onActivePaneChange={onStaticPaneChange}
           externalActivePane={staticActivePaneIndex}
         />

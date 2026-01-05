@@ -302,19 +302,52 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             isApprovalStage={isApprovalStage}
             onFieldChange={handleFieldChange}
             configuredStaticPanes={configuredStaticPanes}
-            hideStaticNavigationButtons={false}
+            hideStaticNavigationButtons={true}
             onStaticPaneChange={handleStaticPaneChange}
+            staticActivePaneIndex={staticPaneIndex}
           />
 
-          {/* Static Stage Action Bar - simple Discard/Save/Submit */}
+          {/* Static Stage Unified Action Bar - Navigation + Actions */}
           {isStaticStage && (
             <div className="pt-4 border-t border-border">
               <div className="flex items-center justify-between">
-                <Button variant="outline" onClick={handleDiscard}>
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Discard
-                </Button>
+                {/* Left side: Navigation (only if multiple panes) */}
                 <div className="flex items-center gap-2">
+                  {hasMultipleStaticPanes ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        disabled={staticPaneIndex === 0}
+                        onClick={() => handleStaticPaneNavigate('previous')}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground px-2">
+                        {staticPaneIndex + 1} of {staticPaneTotal}
+                      </span>
+                      <Button 
+                        variant="outline" 
+                        disabled={staticPaneIndex === staticPaneTotal - 1}
+                        onClick={() => handleStaticPaneNavigate('next')}
+                      >
+                        Next
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" onClick={handleDiscard}>
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Discard
+                    </Button>
+                  )}
+                </div>
+                {/* Right side: Actions */}
+                <div className="flex items-center gap-2">
+                  {hasMultipleStaticPanes && (
+                    <Button variant="outline" onClick={handleDiscard}>
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Discard
+                    </Button>
+                  )}
                   <Button variant="outline" onClick={() => handleSave('draft')}>
                     <Save className="w-4 h-4 mr-1" />
                     Save Draft
