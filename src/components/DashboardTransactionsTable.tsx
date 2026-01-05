@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExternalLink } from "lucide-react";
 import TransactionViewModal from "@/components/TransactionViewModal";
 import TransactionWorkflowModal from "@/components/TransactionWorkflowModal";
+import RejectionReasonModal from "@/components/RejectionReasonModal";
 import { useToast } from "@/hooks/use-toast";
 import {
   Pagination,
@@ -45,12 +46,14 @@ interface Props {
 
 const getStatusColor = (status: string) => {
   const normalizedStatus = status.toLowerCase();
-  if (normalizedStatus === "rejected") return "text-red-600";
+  // Handle "<Stage Name> Rejected" format
+  if (normalizedStatus.endsWith(' rejected')) return "text-destructive";
+  if (normalizedStatus === "rejected") return "text-destructive";
   if (normalizedStatus === "issued") return "text-green-600";
   if (normalizedStatus.endsWith(" completed")) return "text-blue-600";
   if (normalizedStatus === "sent to bank") return "text-purple-600";
   if (normalizedStatus === "pending") return "text-orange-600";
-  return "text-gray-600";
+  return "text-muted-foreground";
 };
 
 const formatAmount = (amount: number | null, currency: string) => {
@@ -101,6 +104,8 @@ const getCompletedStageName = (status: string): string | null => {
   if (normalizedStatus === 'sent to bank') return 'Authorization';
   if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
   if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
+  // Handle "<Stage Name> Rejected" format - not a completed stage
+  if (normalizedStatus.endsWith(' rejected')) return null;
   
   // NEW: Handle format "<Stage Name> Completed-<Channel>" (e.g., "Data Entry Completed-Portal")
   const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
@@ -192,6 +197,38 @@ const getNextStageForTransaction = async (transaction: Transaction): Promise<str
   if (normalizedStatus === 'rejected') return '-';
   if (normalizedStatus === 'draft') return 'Data Entry';
   
+  // Handle "<Stage Name> Rejected" format - return the reject target stage
+  const rejectedMatch = status.match(/^(.+) Rejected$/i);
+  if (rejectedMatch) {
+    const rejectedFromStageName = rejectedMatch[1];
+    const productCode = mapProductTypeToCode(transaction.product_type);
+    const eventCode = mapProcessTypeToEventCode(transaction.process_type);
+    const triggerType = getTriggerTypeFromTransactionStatus(status, transaction.initiating_channel);
+    
+    try {
+      const template = await findWorkflowTemplate(productCode, eventCode, triggerType);
+      if (!template) return 'Data Entry';
+      
+      const stages = await getTemplateStages(template.id);
+      
+      // Find the stage that was rejected
+      const rejectedStage = stages.find(s => 
+        s.stage_name.toLowerCase() === rejectedFromStageName.toLowerCase()
+      );
+      
+      if (rejectedStage?.reject_to_stage_id) {
+        // Find the target stage by ID
+        const targetStage = stages.find(s => s.id === rejectedStage.reject_to_stage_id);
+        return targetStage?.stage_name || 'Data Entry';
+      }
+      
+      return 'Data Entry'; // Default fallback
+    } catch (error) {
+      console.error('Error getting reject target stage:', error);
+      return 'Data Entry';
+    }
+  }
+  
   const productCode = mapProductTypeToCode(transaction.product_type);
   const eventCode = mapProcessTypeToEventCode(transaction.process_type);
   
@@ -248,6 +285,18 @@ const DashboardTransactionsTable: React.FC<Props> = ({
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // State for rejection reason modal
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [rejectionDetails, setRejectionDetails] = useState<{
+    transactionRef: string;
+    status: string;
+    rejectionReason?: string;
+    rejectedFromStage?: string;
+    rejectedAt?: string;
+    rejectedBy?: string;
+    targetStage?: string;
+  } | null>(null);
   const [nextStageCache, setNextStageCache] = useState<Record<string, string>>({});
 
   // Pagination
@@ -331,6 +380,30 @@ const DashboardTransactionsTable: React.FC<Props> = ({
     setCurrentPage(page);
   };
 
+  // Handler to open rejection reason modal
+  const handleStatusClick = (transaction: Transaction) => {
+    // Parse operations/form_data to get rejection details
+    let formData: any = {};
+    try {
+      if (transaction.operations) {
+        formData = JSON.parse(transaction.operations);
+      }
+    } catch (e) {
+      console.error('Error parsing form data:', e);
+    }
+    
+    setRejectionDetails({
+      transactionRef: transaction.transaction_ref,
+      status: transaction.status,
+      rejectionReason: formData.rejection_reason,
+      rejectedFromStage: formData.rejected_from_stage,
+      rejectedAt: formData.rejected_at,
+      rejectedBy: formData.rejected_by,
+      targetStage: nextStageCache[transaction.id],
+    });
+    setIsRejectionModalOpen(true);
+  };
+
   return (
     <>
       <Card className="cursor-move" draggable>
@@ -405,7 +478,22 @@ const DashboardTransactionsTable: React.FC<Props> = ({
                         <td className="py-2">{transaction.process_type || "-"}</td>
                         <td className="py-2">{transaction.customer_name || "-"}</td>
                         <td className="py-2">{formatAmount(transaction.amount, transaction.currency)}</td>
-                        <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</td>
+                        <td className={`py-2 font-medium ${getStatusColor(transaction.status)}`}>
+                          {transaction.status.toLowerCase().endsWith(' rejected') ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusClick(transaction);
+                              }}
+                              className="text-destructive hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                              {transaction.status}
+                              <ExternalLink className="w-3 h-3" />
+                            </button>
+                          ) : (
+                            transaction.status
+                          )}
+                        </td>
                         <td className="py-2 text-purple-600 font-medium">{nextStageCache[transaction.id] || 'Loading...'}</td>
                         <td className="py-2">{formatDate(transaction.created_date)}</td>
                         <td className="py-2">{getChannelLabel(transaction.initiating_channel, transaction.business_application)}</td>
@@ -479,6 +567,19 @@ const DashboardTransactionsTable: React.FC<Props> = ({
             transaction={selectedTransaction}
             onTransactionUpdated={handleTransactionUpdated}
           />
+          {rejectionDetails && (
+            <RejectionReasonModal
+              isOpen={isRejectionModalOpen}
+              onClose={() => setIsRejectionModalOpen(false)}
+              transactionRef={rejectionDetails.transactionRef}
+              status={rejectionDetails.status}
+              rejectionReason={rejectionDetails.rejectionReason}
+              rejectedFromStage={rejectionDetails.rejectedFromStage}
+              rejectedAt={rejectionDetails.rejectedAt}
+              rejectedBy={rejectionDetails.rejectedBy}
+              targetStage={rejectionDetails.targetStage}
+            />
+          )}
         </>
       )}
     </>

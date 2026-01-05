@@ -729,48 +729,59 @@ export const useDynamicTransaction = ({
     toast.info('Changes discarded');
   }, []);
 
-  // Handle rejection - update transaction status to Rejected and close
+  // Handle rejection - update transaction status to "<Stage Name> Rejected"
   const handleReject = useCallback(async (reason: string) => {
     try {
+      // Get current stage info for rejection status
+      const currentMapping = stagePaneMapping[currentPaneIndex];
+      const currentStageNameForReject = currentMapping?.stageName || getCurrentStageName();
+      const rejectToStageId = currentMapping?.rejectToStageId;
+
       // Generate transaction reference if not already created
       if (!transactionRefRef.current) {
         transactionRefRef.current = generateTransactionRef();
       }
 
-      // Merge form data with rejection reason
+      // Merge form data with rejection details
       const rejectionData = {
         ...initialFormData,
         ...formData,
         repeatableGroups,
         rejection_reason: reason,
         rejected_at: new Date().toISOString(),
+        rejected_from_stage: currentStageNameForReject,
+        reject_to_stage_id: rejectToStageId,
+        rejected_by: localStorage.getItem('userFullName') || 'Current User',
       };
 
-      // Create/update transaction with Rejected status
+      // Create/update transaction with "<Stage Name> Rejected" status
+      const rejectionStatus = `${currentStageNameForReject} Rejected`;
+
       await createTransactionRecord(
         productCode,
         rejectionData,
         transactionRefRef.current,
         eventCode === 'ISS' ? 'Issuance' : eventCode,
         businessApp,
-        'Rejected'
+        rejectionStatus
       );
 
-      // Update formData state with rejection_reason so completion screen shows correct message
+      // Update formData state with rejection details so completion screen shows correct message
       setFormData(prev => ({
         ...prev,
         rejection_reason: reason,
         rejected_at: new Date().toISOString(),
+        rejected_from_stage: currentStageNameForReject,
       }));
 
       toast.success(`Transaction ${transactionRefRef.current} has been rejected`);
-      setCompletedStageName('Approval');
+      setCompletedStageName(currentStageNameForReject);
       setIsTransactionComplete(true);
     } catch (err: any) {
       console.error('Error rejecting transaction:', err);
       toast.error('Failed to reject transaction', { description: err.message });
     }
-  }, [formData, repeatableGroups, initialFormData, productCode, eventCode, businessApp, generateTransactionRef]);
+  }, [formData, repeatableGroups, initialFormData, productCode, eventCode, businessApp, generateTransactionRef, stagePaneMapping, currentPaneIndex, getCurrentStageName]);
 
   const handleClose = useCallback(() => {
     onClose?.();

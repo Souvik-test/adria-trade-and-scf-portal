@@ -2,13 +2,15 @@ import React, { useState, useCallback } from 'react';
 import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
 import { DynamicFormState } from '@/types/dynamicForm';
 import DynamicProgressIndicator from './DynamicProgressIndicator';
 import DynamicButtonRenderer from './DynamicButtonRenderer';
 import HybridFormContainer from './HybridFormContainer';
 import DynamicMT700Sidebar from './DynamicMT700Sidebar';
-
 interface DynamicTransactionFormProps {
   productCode: string;
   eventCode: string;
@@ -43,6 +45,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // State for static pane navigation (managed externally for DynamicButtonRenderer coordination)
   const [staticPaneIndex, setStaticPaneIndex] = useState(0);
   const [staticPaneTotal, setStaticPaneTotal] = useState(1);
+  
+  // State for rejection dialog
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const {
     loading,
@@ -108,6 +115,24 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Get current stage name dynamically
   const currentStageName = getCurrentStageName();
+
+  // Handler for opening rejection dialog
+  const openRejectDialog = useCallback(() => {
+    setIsRejectDialogOpen(true);
+  }, []);
+
+  // Handler for confirming rejection
+  const handleRejectConfirm = useCallback(async () => {
+    if (!rejectReason.trim()) return;
+    setIsRejecting(true);
+    try {
+      await handleReject(rejectReason);
+      setIsRejectDialogOpen(false);
+      setRejectReason('');
+    } finally {
+      setIsRejecting(false);
+    }
+  }, [rejectReason, handleReject]);
 
   if (loading) {
     return (
@@ -375,7 +400,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                       <Button 
                         variant="outline" 
                         className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={() => handleReject('Rejected by reviewer')}
+                        onClick={openRejectDialog}
                       >
                         <XCircle className="w-4 h-4 mr-1" />
                         Reject
@@ -390,6 +415,47 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               </div>
             </div>
           )}
+
+          {/* Rejection Dialog for Static UI */}
+          <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Reject Transaction</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reject-reason">Rejection Reason</Label>
+                  <Textarea
+                    id="reject-reason"
+                    placeholder="Please provide a reason for rejection..."
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsRejectDialogOpen(false);
+                    setRejectReason('');
+                  }}
+                  disabled={isRejecting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleRejectConfirm}
+                  disabled={!rejectReason.trim() || isRejecting}
+                >
+                  {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Dynamic Buttons - only for dynamic stages */}
           {!isStaticStage && (
