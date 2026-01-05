@@ -312,19 +312,79 @@ export const useDynamicTransaction = ({
               });
             }
           } else {
-            // New transaction - filter stages based on user permissions (super users see all)
-            // accessibleStages contains actor_types like 'Maker', 'Checker' - not stage_names
-            filteredStages = isSuper || accessibleStages.length === 0
-              ? templateStages
-              : templateStages.filter(stage => 
-                  accessibleStages.includes(stage.actor_type) || accessibleStages.includes('__ALL__')
-                );
+            // New transaction - always start at Stage 1
+            const firstStage = templateStages.find(s => s.stage_order === 1) || templateStages[0];
             
-            // Use actor_type-based functions for new transactions
-            const actorTypeFilter = isSuper ? undefined : accessibleStages;
-            allowedPaneNames = await getTemplatePaneNames(foundTemplate.id, actorTypeFilter);
-            const mapping = await getStagePaneMapping(foundTemplate.id, actorTypeFilter);
+            if (!firstStage) {
+              setError('No stages configured for this workflow template');
+              setLoading(false);
+              return;
+            }
+            
+            // Check if user has access to first stage's actor_type
+            const hasAccess = isSuper || 
+              accessibleStages.length === 0 || 
+              accessibleStages.includes('__ALL__') ||
+              accessibleStages.includes(firstStage.actor_type);
+            
+            if (!hasAccess) {
+              setError(`You don't have permission to initiate transactions for this workflow`);
+              setLoading(false);
+              return;
+            }
+            
+            filteredStages = [firstStage];
+            
+            console.log(`New transaction: First stage "${firstStage.stage_name}" (order: ${firstStage.stage_order}), ui_render_mode: ${firstStage.ui_render_mode || 'static'}`);
+            console.log(`Static panes from DB:`, firstStage.static_panes);
+            
+            // Handle based on ui_render_mode
+            if (firstStage.ui_render_mode === 'static') {
+              // Static UI - create synthetic pane from static_panes configuration
+              const configuredPanes = Array.isArray(firstStage.static_panes) ? firstStage.static_panes : [];
+              
+              const syntheticPane: PaneConfig = {
+                id: `static-${firstStage.stage_name.replace(/\s+/g, '-').toLowerCase()}`,
+                name: firstStage.stage_name,
+                sequence: 1,
+                sections: [],
+                buttons: getDefaultButtons(true, true),
+                showSwiftPreview: false,
+              };
+              
+              const syntheticMapping: StagePaneInfo[] = [{
+                paneIndex: 0,
+                paneName: firstStage.stage_name,
+                stageId: firstStage.id,
+                stageName: firstStage.stage_name,
+                stageOrder: firstStage.stage_order,
+                isFirstPaneOfStage: true,
+                isLastPaneOfStage: true,
+                isFinalStage: firstStage.stage_order === templateStages.length,
+                allowedSections: [],
+                uiRenderMode: 'static',
+                configuredStaticPanes: configuredPanes.length > 0 ? configuredPanes : undefined,
+              }];
+              
+              setPanes([syntheticPane]);
+              setStagePaneMapping(syntheticMapping);
+              setStages([firstStage]);
+              setLoading(false);
+              return; // Skip dynamic pane fetching
+            }
+            
+            // Dynamic UI - use stage_order-based functions
+            allowedPaneNames = await getTemplatePaneNamesByStageOrder(foundTemplate.id, firstStage.stage_order);
+            const mapping = await getStagePaneMappingByStageOrder(foundTemplate.id, firstStage.stage_order);
             setStagePaneMapping(mapping);
+            
+            // Guard: If no panes found for dynamic stage, show error (don't fall back to all panes)
+            if (allowedPaneNames.length === 0) {
+              console.warn('No panes found in workflow_stage_fields for dynamic stage:', firstStage.stage_name);
+              setError(`No field mappings found for stage "${firstStage.stage_name}". Please configure Stage Fields.`);
+              setLoading(false);
+              return;
+            }
             
             // Build per-pane-index section mapping
             allowedSections = new Map<string, string[]>();
