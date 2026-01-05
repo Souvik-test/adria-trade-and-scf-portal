@@ -151,7 +151,8 @@ export interface StagePaneInfo {
   allowedSections: string[]; // Sections allowed for THIS specific stage-pane combination
   uiRenderMode: 'static' | 'dynamic'; // UI render mode for this stage
   configuredStaticPanes?: string[]; // Explicitly configured static panes from database
-  actorType: string; // Actor type: 'Maker', 'Checker', 'Authorizer', 'System'
+  actorType: string; // Actor type: 'Maker', 'Checker', 'Authorization', 'System'
+  rejectToStageId?: string; // Target stage ID when transaction is rejected
 }
 
 /**
@@ -252,6 +253,7 @@ export const getStagePaneMapping = async (
         uiRenderMode: stage.ui_render_mode || 'static',
         configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
         actorType: stage.actor_type || 'Maker',
+        rejectToStageId: stage.reject_to_stage_id || undefined,
       });
       paneIndex++;
     });
@@ -435,6 +437,7 @@ export const getStagePaneMappingByStageOrder = async (
     uiRenderMode: targetStage.ui_render_mode || 'static',
     configuredStaticPanes: staticPanes.length > 0 ? staticPanes : undefined,
     actorType: targetStage.actor_type || 'Maker',
+    rejectToStageId: targetStage.reject_to_stage_id || undefined,
   }));
   
   return mapping;

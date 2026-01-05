@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
@@ -229,7 +229,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Determine if current stage is Approval/Authorization based on actor_type
   const currentActorType = stagePaneMapping[currentPaneIndex]?.actorType || '';
-  const isApprovalStage = currentActorType === 'Checker' || currentActorType === 'Authorizer';
+  const isApprovalStage = currentActorType === 'Checker' || currentActorType === 'Authorization';
+  
+  // Check if this is the last static pane (for Maker Submit button visibility)
+  const isLastStaticPane = staticPaneIndex === staticPaneTotal - 1;
   
   // Get total static panes for current stage
   const configuredStaticPanes = stagePaneMapping[currentPaneIndex]?.configuredStaticPanes;
@@ -349,28 +352,40 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                       Discard
                     </Button>
                   )}
-                  {/* Only show Save Draft for non-approval stages */}
+                  
+                  {/* Maker stages: Save Draft (always) + Submit (only at last pane) */}
                   {!isApprovalStage && (
-                    <Button variant="outline" onClick={() => handleSave('draft')}>
-                      <Save className="w-4 h-4 mr-1" />
-                      Save Draft
-                    </Button>
+                    <>
+                      <Button variant="outline" onClick={() => handleSave('draft')}>
+                        <Save className="w-4 h-4 mr-1" />
+                        Save Draft
+                      </Button>
+                      {isLastStaticPane && (
+                        <Button onClick={handleStageSubmit}>
+                          <Send className="w-4 h-4 mr-1" />
+                          Submit
+                        </Button>
+                      )}
+                    </>
                   )}
-                  {/* Reject button - only for approval/authorization stages */}
+                  
+                  {/* Checker/Authorization stages: Reject + Approve (no Submit, no Save Draft) */}
                   {isApprovalStage && (
-                    <Button 
-                      variant="outline" 
-                      className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={() => handleReject('Rejected by reviewer')}
-                    >
-                      <XCircle className="w-4 h-4 mr-1" />
-                      Reject
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleReject('Rejected by reviewer')}
+                      >
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Reject
+                      </Button>
+                      <Button onClick={handleStageSubmit}>
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Approve
+                      </Button>
+                    </>
                   )}
-                  <Button onClick={handleStageSubmit}>
-                    <Send className="w-4 h-4 mr-1" />
-                    {isApprovalStage ? 'Approve' : 'Submit'}
-                  </Button>
                 </div>
               </div>
             </div>
