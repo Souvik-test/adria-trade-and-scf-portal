@@ -538,8 +538,11 @@ export const useDynamicTransaction = ({
       }
       
       const currentStageName = getCurrentStageName();
-      const isApprovalStage = currentStageName.toLowerCase().includes('approval');
+      // Include both "approval" and "authorization" as potential final stages
+      const normalizedStageName = currentStageName.toLowerCase();
+      const isApprovalStage = normalizedStageName.includes('approval') || normalizedStageName.includes('authorization');
       const isFinalApproval = isApprovalStage && isFinalStage() && isLastPaneOfCurrentStage();
+      const isFinalStageComplete = isFinalStage() && isLastPaneOfCurrentStage();
       const hasMorePanes = currentPaneIndex < panes.length - 1;
       
       // Determine channel name for status embedding
@@ -558,8 +561,8 @@ export const useDynamicTransaction = ({
         channelName = 'Portal';
       }
       
-      // Get appropriate status based on stage - now includes channel
-      const status = getStatusFromStage(currentStageName, isFinalApproval, channelName);
+      // Get appropriate status based on stage - now includes channel and isFinalStage flag
+      const status = getStatusFromStage(currentStageName, isFinalApproval, channelName, isFinalStageComplete);
       
       // Generate transaction reference if not already created
       if (!transactionRefRef.current) {
@@ -582,11 +585,11 @@ export const useDynamicTransaction = ({
         status
       );
       
-      if (isFinalApproval) {
-        // Final stage - mark transaction as complete
+      if (isFinalApproval || isFinalStageComplete) {
+        // Final stage - mark transaction as complete (issued)
         const allPaneIds = new Set(panes.map(p => p.id));
         setCompletedPanes(allPaneIds);
-        setCompletedStageName('Approval');
+        setCompletedStageName(currentStageName);
         setIsTransactionComplete(true);
         toast.success(`Transaction ${transactionRefRef.current} has been issued`);
       } else if (isLastPaneOfCurrentStage()) {

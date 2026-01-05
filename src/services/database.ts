@@ -74,15 +74,28 @@ const getAmount = (productType: string, formData: any) => {
 // Map stage name to transaction status
 // Returns dynamic "<Stage Name> Completed-<Channel>" format for accurate next-stage lookup
 // Channel is embedded in status to unambiguously identify which workflow the stage belongs to
-const getStatusFromStage = (stageName: string, isFinalApproval: boolean, channel: string): string => {
-  // Final approval always returns 'Issued'
-  if (isFinalApproval) return 'Issued';
+// isFinalStage: indicates if this is the last stage in the workflow (should return 'Issued')
+const getStatusFromStage = (
+  stageName: string, 
+  isFinalApproval: boolean, 
+  channel: string,
+  isFinalStage: boolean = false
+): string => {
+  // Final approval OR final stage completed always returns 'Issued'
+  if (isFinalApproval || isFinalStage) return 'Issued';
   
   const normalizedStage = stageName.toLowerCase().trim();
   
-  // Authorization stage (Portal workflow) -> Sent to Bank (enables cross-workflow handoff)
+  // Authorization stage - only return "Sent to Bank" for PORTAL workflows (cross-workflow handoff)
+  // Bank workflows (Product Processor) should NOT say "Sent to Bank" - it's already at the bank
   if (normalizedStage.includes('authorization') || normalizedStage === 'authorization') {
-    return 'Sent to Bank';
+    // Portal channel means cross-workflow handoff to bank
+    if (channel === 'Portal') {
+      return 'Sent to Bank';
+    }
+    // Bank channel (Product Processor) - this is within bank workflow, not a handoff
+    // Return completed status instead of "Sent to Bank"
+    return `${stageName} Completed-${channel}`;
   }
   
   // Dynamic status: "<Stage Name> Completed-<Channel>"

@@ -261,8 +261,8 @@ const getNextStageForTransaction = async (transaction: Transaction): Promise<str
       return stages[completedIndex + 1].stage_name;
     }
     
-    // If last stage completed, it's done
-    if (completedIndex === stages.length - 1) return 'Final Approval';
+    // If last stage completed, transaction is complete
+    if (completedIndex === stages.length - 1) return 'Completed';
     
     return stages[0]?.stage_name || 'Unknown';
   } catch (error) {
