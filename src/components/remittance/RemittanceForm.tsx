@@ -38,7 +38,7 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
     const newStatus = await completeCurrentStage();
     if (newStatus) {
       console.log('Stage completed, new status:', newStatus);
-      // In a real implementation, this would update the transaction status
+      onBack(); // Close the modal after successful submission
     }
   };
 
