@@ -69,6 +69,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     currentStageAllowedFields,
     stagePaneMapping,
     isStaticStage,
+    wasJustRejected,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
@@ -173,8 +174,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Transaction completed state - stage-specific messages
   if (isTransactionComplete) {
-    // Check if this was a rejection (check formData for rejection_reason)
-    const isRejection = formData.rejection_reason || formData['rejection_reason'];
+    // Check if this was a rejection using session-level flag (not formData)
+    // This prevents stale rejection_reason from previous rejections affecting display
+    const isRejection = wasJustRejected;
     
     // Determine title and message based on completed stage
     const getCompletionContent = () => {
@@ -199,10 +201,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         const isBankWorkflow = triggerType === 'Manual';
         
         if (isBankWorkflow) {
-          // Bank workflow - Authorization is the final stage, transaction is issued
+          // Bank workflow - Authorization is the final stage
           return {
-            title: 'Transaction Issued',
-            message: `Your ${productName} - ${eventName} has been successfully issued.`,
+            title: 'Transaction Authorized',
+            message: `Your ${productName} - ${eventName} has been successfully authorized.`,
             isError: false,
           };
         } else {
