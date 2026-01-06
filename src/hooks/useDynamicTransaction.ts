@@ -79,6 +79,9 @@ interface UseDynamicTransactionReturn {
   
   // Static stage flag - true when current stage uses static UI only
   isStaticStage: boolean;
+  
+  // Session-level rejection flag - true only when rejection happens in current session
+  wasJustRejected: boolean;
 
   // Actions
   navigateToPane: (direction: 'next' | 'previous' | 'pane', targetPaneId?: string) => void;
@@ -162,6 +165,9 @@ export const useDynamicTransaction = ({
   // Transaction completion state
   const [isTransactionComplete, setIsTransactionComplete] = useState(false);
   const [completedStageName, setCompletedStageName] = useState<string>('');
+  
+  // Session-level rejection tracking - true only when rejection happens in current session
+  const [wasJustRejected, setWasJustRejected] = useState(false);
 
   // Form state - initialize with mapped initialFormData if continuing an existing transaction
   // Extract repeatableGroups from initialFormData if present (stored alongside formData in database)
@@ -572,9 +578,25 @@ export const useDynamicTransaction = ({
       // Create/update transaction record with stage-appropriate status
       // Merge initialFormData with current formData to preserve all stage data
       // Include repeatableGroups in form_data for cross-stage persistence
-      const mergedFormData = initialFormData 
-        ? { ...initialFormData, ...formData, repeatableGroups }
-        : { ...formData, repeatableGroups };
+      // IMPORTANT: Clear old rejection fields when submitting/approving to prevent
+      // stale rejection data from affecting completion screen display
+      const cleanedFormData = { ...formData };
+      delete cleanedFormData.rejection_reason;
+      delete cleanedFormData.rejected_at;
+      delete cleanedFormData.rejected_from_stage;
+      delete cleanedFormData.reject_to_stage_id;
+      delete cleanedFormData.rejected_by;
+      
+      const mergedFormData: Record<string, any> = initialFormData 
+        ? { ...initialFormData, ...cleanedFormData, repeatableGroups }
+        : { ...cleanedFormData, repeatableGroups };
+      
+      // Also clear rejection fields from merged data (in case initialFormData had them)
+      delete mergedFormData.rejection_reason;
+      delete mergedFormData.rejected_at;
+      delete mergedFormData.rejected_from_stage;
+      delete mergedFormData.reject_to_stage_id;
+      delete mergedFormData.rejected_by;
       
       await createTransactionRecord(
         productCode,
@@ -777,6 +799,8 @@ export const useDynamicTransaction = ({
         rejected_from_stage: currentStageNameForReject,
       }));
 
+      // Mark that rejection just happened in this session
+      setWasJustRejected(true);
       toast.success(`Transaction ${transactionRefRef.current} has been rejected`);
       setCompletedStageName(currentStageNameForReject);
       setIsTransactionComplete(true);
@@ -855,6 +879,7 @@ export const useDynamicTransaction = ({
     currentStageAllowedFields,
     currentStageFieldEditability,
     isStaticStage,
+    wasJustRejected,
     navigateToPane,
     handleFieldChange,
     handleRepeatableFieldChange,
