@@ -19,15 +19,38 @@ const LimitDetailsPane: React.FC<LimitDetailsPaneProps> = ({ formData }) => {
   const [email, setEmail] = useState('');
   const [demoInsufficientLimit, setDemoInsufficientLimit] = useState(false);
 
+  // Support multiple field names for LC amount (from different UI configurations)
+  const getLCAmount = (): number => {
+    const possibleFields = ['lcAmount', 'LC Amount', 'LC  Amount', 'lc_amount', 
+                            'Transaction Amount', 'Transaction  Amount'];
+    for (const field of possibleFields) {
+      const value = (formData as any)[field];
+      if (value !== undefined && value !== null && value !== '') {
+        return typeof value === 'number' ? value : parseFloat(value) || 100000;
+      }
+    }
+    return 100000; // Default fallback
+  };
+
+  const getLCCurrency = (): string => {
+    const possibleFields = ['currency', 'LC Currency', 'LC  Currency', 'lc_currency',
+                            'Transaction Currency', 'Transaction  Currency'];
+    for (const field of possibleFields) {
+      const value = (formData as any)[field];
+      if (value) return value;
+    }
+    return 'USD'; // Default fallback
+  };
+
   // Mock limit data - in production, this would come from an external limit system
-  const lcValue = formData.lcAmount || 100000; // Default to 100k for demo purposes
+  const lcValue = getLCAmount();
   const baseLimitDetails = {
     limitType: 'LC Issuance Limit',
     totalLimit: 5000000,
     utilizedAmount: 1500000,
     availableLimit: 3500000,
     lcValue: lcValue,
-    currency: formData.currency || 'USD'
+    currency: getLCCurrency()
   };
 
   // For demo mode, simulate insufficient limit - set available limit to 50% of LC value
