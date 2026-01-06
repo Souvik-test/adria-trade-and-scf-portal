@@ -78,6 +78,9 @@ const getCompletedStageName = (status: string): string | null => {
   if (normalizedStatus === 'issued') return '__ALL_COMPLETE__';
   if (normalizedStatus === 'rejected' || normalizedStatus === 'draft') return null;
   
+  // Handle "<Stage Name> Rejected" format - not a completed stage
+  if (normalizedStatus.endsWith(' rejected')) return null;
+  
   const completedWithChannelMatch = status.match(/^(.+) Completed-(.+)$/i);
   if (completedWithChannelMatch) {
     return completedWithChannelMatch[1];
@@ -163,6 +166,33 @@ const getTargetStageFromWorkflow = async (
   if (normalizedStatus === 'rejected') {
     const result = findStageAndCheckAccess(name => name.includes('data entry'));
     console.log('Rejected status - data entry stage:', result.stage?.stage_name, 'hasAccess:', result.hasAccess);
+    return createResult(result.stage, result.hasAccess);
+  }
+  
+  // Handle "<Stage Name> Rejected" format - find the target stage from reject_to_stage_id
+  const rejectedMatch = status.match(/^(.+) Rejected$/i);
+  if (rejectedMatch) {
+    const rejectedFromStageName = rejectedMatch[1];
+    console.log(`Transaction rejected from stage: ${rejectedFromStageName}`);
+    
+    // Find the stage that was rejected from
+    const rejectedFromStage = stages.find(
+      s => s.stage_name.toLowerCase() === rejectedFromStageName.toLowerCase()
+    );
+    
+    if (rejectedFromStage?.reject_to_stage_id) {
+      // Find the configured target stage by ID
+      const targetStage = stages.find(s => s.id === rejectedFromStage.reject_to_stage_id);
+      if (targetStage) {
+        const hasAccess = hasAccessToStage(targetStage);
+        console.log(`Reject target stage: ${targetStage.stage_name}, hasAccess: ${hasAccess}`);
+        return createResult(targetStage, hasAccess);
+      }
+    }
+    
+    // Fallback to Data Entry if no reject target configured
+    const result = findStageAndCheckAccess(name => name.includes('data entry'));
+    console.log('Rejected - fallback to data entry stage:', result.stage?.stage_name);
     return createResult(result.stage, result.hasAccess);
   }
   
