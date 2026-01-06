@@ -25,6 +25,8 @@ import {
   RoutingSettlementPane,
   RegulatoryCompliancePane,
   RemittanceInfoPane,
+  RemittanceAccountingEntriesPane,
+  RemittanceReleaseDocumentsPane,
 } from './panes';
 import RemittanceProgressIndicator from './RemittanceProgressIndicator';
 import RemittanceFormActions from './RemittanceFormActions';
@@ -150,6 +152,10 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
         return !!regulatoryCompliance.purpCd && !!regulatoryCompliance.srcFunds && regulatoryCompliance.declFlg;
       case 'remittance-info':
         return true; // Optional
+      case 'accounting-entries':
+        return true; // Read-only display
+      case 'release-documents':
+        return true; // Final step
       default:
         return true;
     }
@@ -284,6 +290,10 @@ const OutwardRemittanceForm: React.FC<OutwardRemittanceFormProps> = ({
         return <RegulatoryCompliancePane data={formData.regulatoryCompliance} onChange={updateRegulatoryCompliance} readOnly={readOnly} />;
       case 'remittance-info':
         return <RemittanceInfoPane data={formData.remittanceInfo} onChange={updateRemittanceInfo} readOnly={readOnly} />;
+      case 'accounting-entries':
+        return <RemittanceAccountingEntriesPane formData={formData} readOnly={readOnly} />;
+      case 'release-documents':
+        return <RemittanceReleaseDocumentsPane formData={formData} showPacs009={formData.paymentHeader.sttlmMtd === 'COVE'} readOnly={readOnly} />;
       default:
         return null;
     }
