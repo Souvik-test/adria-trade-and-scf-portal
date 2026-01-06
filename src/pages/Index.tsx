@@ -110,7 +110,7 @@ const Index = () => {
     // Default to Trade Finance module
     switch (activeMenu) {
       case 'product-suite':
-        return <ProductSuite onBack={() => setActiveMenu('dashboard')} />;
+        return <ProductSuite onBack={() => setActiveMenu('dashboard')} onNavigateToDashboard={() => setActiveMenu('dashboard')} />;
       case 'product-event-mapping':
         return <ProductEventMapping onNavigateToManagePanes={() => setActiveMenu('manage-panes-sections')} />;
       case 'manage-panes-sections':
