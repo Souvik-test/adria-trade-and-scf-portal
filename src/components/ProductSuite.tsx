@@ -17,9 +17,10 @@ import { Loader2 } from 'lucide-react';
 
 interface ProductSuiteProps {
   onBack: () => void;
+  onNavigateToDashboard?: () => void; // Callback for navigating to dashboard after transaction
 }
 
-const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
+const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack, onNavigateToDashboard }) => {
   const [showBillsModal, setShowBillsModal] = useState(false);
   const [showLcModal, setShowLcModal] = useState(false);
   const [showGuaranteeModal, setShowGuaranteeModal] = useState(false);
@@ -362,6 +363,12 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({ onBack }) => {
         <RemittanceModal
           isOpen={showRemittanceModal}
           onClose={() => setShowRemittanceModal(false)}
+          onTransactionComplete={() => {
+            setShowRemittanceModal(false);
+            if (onNavigateToDashboard) {
+              onNavigateToDashboard();
+            }
+          }}
         />
       )}
     </div>
