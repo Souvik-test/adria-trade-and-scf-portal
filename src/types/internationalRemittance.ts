@@ -88,7 +88,9 @@ export type CustomerCreditTransferStep =
   | 'amount-charges' 
   | 'routing-settlement' 
   | 'regulatory-compliance' 
-  | 'remittance-info';
+  | 'remittance-info'
+  | 'accounting-entries'
+  | 'release-documents';
 
 export type FICreditTransferStep = 
   | 'settlement-header' 
@@ -106,6 +108,8 @@ export const CUSTOMER_CREDIT_TRANSFER_STEPS: CustomerCreditTransferStep[] = [
   'routing-settlement',
   'regulatory-compliance',
   'remittance-info',
+  'accounting-entries',
+  'release-documents',
 ];
 
 export const FI_CREDIT_TRANSFER_STEPS: FICreditTransferStep[] = [
@@ -125,6 +129,8 @@ export const CUSTOMER_CREDIT_TRANSFER_STEP_LABELS: Record<CustomerCreditTransfer
   'routing-settlement': 'Routing & Settlement',
   'regulatory-compliance': 'Regulatory & Compliance',
   'remittance-info': 'Remittance Information',
+  'accounting-entries': 'Accounting Entries',
+  'release-documents': 'Release Documents',
 };
 
 export const FI_CREDIT_TRANSFER_STEP_LABELS: Record<FICreditTransferStep, string> = {
