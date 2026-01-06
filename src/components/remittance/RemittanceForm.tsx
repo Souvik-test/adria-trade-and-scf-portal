@@ -6,12 +6,14 @@ import { useRemittanceWorkflow } from '@/hooks/useRemittanceWorkflow';
 
 interface RemittanceFormProps {
   onBack: () => void;
+  onTransactionComplete?: () => void; // Callback when maker stage is completed
   transactionRef?: string;
   transactionStatus?: string;
 }
 
 const RemittanceForm: React.FC<RemittanceFormProps> = ({ 
   onBack, 
+  onTransactionComplete,
   transactionRef,
   transactionStatus 
 }) => {
@@ -38,7 +40,13 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
     const newStatus = await completeCurrentStage();
     if (newStatus) {
       console.log('Stage completed, new status:', newStatus);
-      onBack(); // Close the modal after successful submission
+      
+      // Check if current stage is Maker actor type - redirect to dashboard
+      if (currentStage?.actor_type === 'Maker' && onTransactionComplete) {
+        onTransactionComplete();
+      } else {
+        onBack(); // Close the modal for non-Maker stages
+      }
     }
   };
 
