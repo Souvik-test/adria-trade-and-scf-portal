@@ -9,9 +9,10 @@ import RemittanceForm from './RemittanceForm';
 interface RemittanceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onTransactionComplete?: () => void; // Callback to navigate to dashboard
 }
 
-const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) => {
+const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose, onTransactionComplete }) => {
   const [selectedAction, setSelectedAction] = useState<RemittanceActionType>(null);
 
   const handleBack = () => {
@@ -25,6 +26,15 @@ const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) =>
   const handleClose = () => {
     setSelectedAction(null);
     onClose();
+  };
+
+  const handleTransactionComplete = () => {
+    setSelectedAction(null);
+    onClose();
+    // Trigger dashboard navigation callback
+    if (onTransactionComplete) {
+      onTransactionComplete();
+    }
   };
 
   const getTitle = () => {
@@ -52,7 +62,7 @@ const RemittanceModal: React.FC<RemittanceModalProps> = ({ isOpen, onClose }) =>
           {!selectedAction ? (
             <RemittanceActionSection onSelectAction={setSelectedAction} />
           ) : selectedAction === 'process' ? (
-            <RemittanceForm onBack={handleBack} />
+            <RemittanceForm onBack={handleBack} onTransactionComplete={handleTransactionComplete} />
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <RotateCcw className="h-12 w-12 mb-4" />

@@ -3312,6 +3312,69 @@ export type Database = {
         }
         Relationships: []
       }
+      static_ui_registry: {
+        Row: {
+          applicable_actor_types: string[] | null
+          applicable_stages: string[] | null
+          component_path: string
+          created_at: string | null
+          event_code: string | null
+          event_name: string | null
+          id: string
+          is_active: boolean | null
+          module_code: string
+          module_name: string
+          pane_code: string
+          pane_name: string
+          pane_order: number | null
+          product_code: string
+          product_name: string
+          read_only_for_stages: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applicable_actor_types?: string[] | null
+          applicable_stages?: string[] | null
+          component_path: string
+          created_at?: string | null
+          event_code?: string | null
+          event_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_code: string
+          module_name: string
+          pane_code: string
+          pane_name: string
+          pane_order?: number | null
+          product_code: string
+          product_name: string
+          read_only_for_stages?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applicable_actor_types?: string[] | null
+          applicable_stages?: string[] | null
+          component_path?: string
+          created_at?: string | null
+          event_code?: string | null
+          event_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_code?: string
+          module_name?: string
+          pane_code?: string
+          pane_name?: string
+          pane_order?: number | null
+          product_code?: string
+          product_name?: string
+          read_only_for_stages?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number | null

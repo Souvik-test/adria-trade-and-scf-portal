@@ -173,6 +173,18 @@ export function useRemittanceWorkflow(options: UseRemittanceWorkflowOptions = {}
     return approvalActors.includes(currentStage.actor_type);
   }, [currentStage]);
 
+  // Helper to determine channel from business application
+  const getChannelFromBusinessApp = (): string => {
+    const businessApp = localStorage.getItem('businessCentre') || 'Adria TSCF Client';
+    const normalizedApp = businessApp.toLowerCase().trim();
+    
+    if (normalizedApp.includes('orchestrator') || normalizedApp.includes('tscf bank')) {
+      return 'Bank';
+    }
+    
+    return 'Portal';
+  };
+
   // Stage progression methods
   const completeCurrentStage = async (): Promise<string | null> => {
     if (!currentStage || !template) return null;
@@ -181,8 +193,8 @@ export function useRemittanceWorkflow(options: UseRemittanceWorkflowOptions = {}
     const currentIndex = stages.findIndex(s => s.id === currentStage.id);
     const nextStage = stages[currentIndex + 1];
 
-    // Determine channel for status
-    const channel = triggerType === 'Manual' ? 'Product Processor' : 'Portal';
+    // Determine channel dynamically based on business application
+    const channel = getChannelFromBusinessApp();
 
     // Build new status
     const newStatus = nextStage 
