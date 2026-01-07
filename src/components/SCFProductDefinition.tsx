@@ -25,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { customAuth, CustomUser } from '@/services/customAuth';
 import {
   fetchProducts,
   createProduct,
@@ -44,6 +45,7 @@ type ProductDefinition = ProductFormData & { id: string };
 const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onNavigateToProgramConfig }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [customUser, setCustomUser] = useState<CustomUser | null>(null);
   const [products, setProducts] = useState<ProductDefinition[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,6 +71,21 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   const borrowerRoles = ['Seller/Supplier', 'Buyer', 'Manufacturer', 'Distributor', 'Both'];
   const underlyingInstruments = ['Invoice', 'Purchase Order', 'Bill of Lading', 'Warehouse Receipt'];
 
+  // Get effective user ID from either auth system
+  const getEffectiveUserId = (): string | null => {
+    if (customUser?.id) return customUser.id;
+    if (user?.id) return user.id;
+    return null;
+  };
+
+  // Load custom auth session on mount
+  useEffect(() => {
+    const session = customAuth.getSession();
+    if (session?.user) {
+      setCustomUser(session.user);
+    }
+  }, []);
+
   // Auto-populate Product Centric based on Anchor Role
   useEffect(() => {
     if (formData.anchorRole) {
@@ -84,11 +101,12 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   // Fetch products on mount
   useEffect(() => {
     const loadProducts = async () => {
-      if (!user?.id) return;
+      const userId = customUser?.id || user?.id;
+      if (!userId) return;
       
       try {
         setLoading(true);
-        const data = await fetchProducts(user.id);
+        const data = await fetchProducts(userId);
         setProducts(data);
       } catch (error) {
         toast({
@@ -102,7 +120,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     };
 
     loadProducts();
-  }, [user?.id, toast]);
+  }, [user?.id, customUser?.id, toast]);
 
   const handleAdd = async () => {
     if (!formData.productCode || !formData.productName || !formData.anchorRole || !formData.counterPartyRole || !formData.underlyingInstrument || !formData.effectiveDate) {
@@ -114,7 +132,8 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       return;
     }
 
-    if (!user?.id) {
+    const userId = getEffectiveUserId();
+    if (!userId) {
       toast({
         title: 'Authentication Error',
         description: 'You must be logged in to create products',
@@ -124,7 +143,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
     }
 
     try {
-      const newProduct = await createProduct(formData, user.id);
+      const newProduct = await createProduct(formData, userId);
       setProducts([newProduct, ...products]);
       setFormData({
         productCode: '',
@@ -183,10 +202,11 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
       return;
     }
 
-    if (!user?.id || !editingId) return;
+    const userId = getEffectiveUserId();
+    if (!userId || !editingId) return;
 
     try {
-      const updatedProduct = await updateProduct(editingId, formData, user.id);
+      const updatedProduct = await updateProduct(editingId, formData, userId);
       setProducts(products.map(p => p.id === editingId ? updatedProduct : p));
       
       setEditingId(null);
@@ -219,10 +239,11 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   };
 
   const handleDelete = async (id: string) => {
-    if (!user?.id) return;
+    const userId = getEffectiveUserId();
+    if (!userId) return;
 
     try {
-      await deleteProduct(id, user.id);
+      await deleteProduct(id, userId);
       setProducts(products.filter(p => p.id !== id));
       toast({
         title: 'Product Deleted',
@@ -257,13 +278,14 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   };
 
   const handleToggleActive = async (id: string) => {
-    if (!user?.id) return;
+    const userId = getEffectiveUserId();
+    if (!userId) return;
 
     const product = products.find(p => p.id === id);
     if (!product) return;
 
     try {
-      const updatedProduct = await toggleProductActive(id, product.isActive, user.id);
+      const updatedProduct = await toggleProductActive(id, product.isActive, userId);
       setProducts(products.map(p => p.id === id ? updatedProduct : p));
       
       toast({
