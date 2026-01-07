@@ -68,10 +68,10 @@ const toUiFormat = (dbProduct: any): ProductFormData & { id: string } => ({
 });
 
 export const fetchProducts = async (userId: string) => {
+  // Fetch all active products (not filtered by user_id to show all configured products)
   const { data, error } = await supabase
     .from('scf_product_definitions')
     .select('*')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
