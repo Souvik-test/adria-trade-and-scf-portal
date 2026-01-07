@@ -1140,6 +1140,7 @@ export type Database = {
           addtl_info: string | null
           approved_at: string | null
           approved_by: string | null
+          business_application: string | null
           ccy: string | null
           corporate_id: string | null
           cre_dt: string | null
@@ -1149,6 +1150,7 @@ export type Database = {
           direction: string
           form_data: Json | null
           id: string
+          initiating_channel: string | null
           instd_agt_addr1: string | null
           instd_agt_addr2: string | null
           instd_agt_bic: string | null
@@ -1187,6 +1189,7 @@ export type Database = {
           addtl_info?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          business_application?: string | null
           ccy?: string | null
           corporate_id?: string | null
           cre_dt?: string | null
@@ -1196,6 +1199,7 @@ export type Database = {
           direction?: string
           form_data?: Json | null
           id?: string
+          initiating_channel?: string | null
           instd_agt_addr1?: string | null
           instd_agt_addr2?: string | null
           instd_agt_bic?: string | null
@@ -1234,6 +1238,7 @@ export type Database = {
           addtl_info?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          business_application?: string | null
           ccy?: string | null
           corporate_id?: string | null
           cre_dt?: string | null
@@ -1243,6 +1248,7 @@ export type Database = {
           direction?: string
           form_data?: Json | null
           id?: string
+          initiating_channel?: string | null
           instd_agt_addr1?: string | null
           instd_agt_addr2?: string | null
           instd_agt_bic?: string | null
@@ -2606,6 +2612,7 @@ export type Database = {
           ben_post_code: string | null
           ben_state: string | null
           biz_svc: string | null
+          business_application: string | null
           ccy: string | null
           chg_br: string | null
           corporate_id: string | null
@@ -2617,6 +2624,7 @@ export type Database = {
           direction: string
           form_data: Json | null
           id: string
+          initiating_channel: string | null
           inst_amt: number | null
           instd_agt_bic: string | null
           instg_agt_bic: string | null
@@ -2663,6 +2671,7 @@ export type Database = {
           ben_post_code?: string | null
           ben_state?: string | null
           biz_svc?: string | null
+          business_application?: string | null
           ccy?: string | null
           chg_br?: string | null
           corporate_id?: string | null
@@ -2674,6 +2683,7 @@ export type Database = {
           direction?: string
           form_data?: Json | null
           id?: string
+          initiating_channel?: string | null
           inst_amt?: number | null
           instd_agt_bic?: string | null
           instg_agt_bic?: string | null
@@ -2720,6 +2730,7 @@ export type Database = {
           ben_post_code?: string | null
           ben_state?: string | null
           biz_svc?: string | null
+          business_application?: string | null
           ccy?: string | null
           chg_br?: string | null
           corporate_id?: string | null
@@ -2731,6 +2742,7 @@ export type Database = {
           direction?: string
           form_data?: Json | null
           id?: string
+          initiating_channel?: string | null
           inst_amt?: number | null
           instd_agt_bic?: string | null
           instg_agt_bic?: string | null
