@@ -87,9 +87,9 @@ The SCF Product Definition module enables financial institutions to define and m
 | Product Code | Input (Text) | string | Yes | 50 | Alphanumeric, unique | Empty |
 | Product Name | Input (Text) | string | Yes | 255 | Non-empty | Empty |
 | Product Description | Textarea | string | No | 1000 | - | Empty |
-| Anchor Role | Select Dropdown | string | Yes | - | Must select from list | Empty |
+| Anchor Role | Select Dropdown | string | Yes | - | Must select from list,Anchor and Counter Party Role cannot be same| Empty |
 | Product Centric | Input (Readonly) | string | No | - | Auto-populated based on Anchor Role | Empty |
-| Counter-Party Role | Select Dropdown | string | Yes | - | Must select from list | Empty |
+| Counter-Party Role | Select Dropdown | string | Yes | - | Must select from list,Anchor and Counter Party Role cannot be same| Empty |
 | Borrower Role | Select Dropdown | string | No | - | Optional selection | Empty |
 | Underlying Instrument | Select Dropdown | string | Yes | - | Must select from list | Empty |
 | Effective Date | Date Picker | date | Yes | - | Cannot be in past (for new records) | Current Date |
