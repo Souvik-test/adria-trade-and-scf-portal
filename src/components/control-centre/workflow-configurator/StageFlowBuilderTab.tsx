@@ -7,13 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Search, GripVertical, Settings, FileText, Trash2, Save, GitBranch, ArrowDown, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Search, GripVertical, Settings, FileText, Trash2, Save, GitBranch, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { WorkflowTemplate, WorkflowStage } from '../NextGenWorkflowConfigurator';
 import { StageConditionModal } from './StageConditionModal';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { AVAILABLE_STATIC_PANES, getSuggestedPanes } from '@/components/import-lc/staticPaneRegistry';
+import { useStaticUIPanes, PaneOption } from '@/hooks/useStaticUIPanes';
 import {
   DndContext,
   closestCenter,
@@ -67,6 +67,7 @@ interface SortableStageCardProps {
   stage: WorkflowStage;
   index: number;
   stages: WorkflowStage[];
+  availablePanes: PaneOption[];
   onUpdateStage: (stageId: string, updates: Partial<WorkflowStage>) => void;
   onDeleteStage: (stageId: string) => void;
   onOpenConditionModal: (stage: WorkflowStage) => void;
@@ -78,6 +79,7 @@ function SortableStageCard({
   stage,
   index,
   stages,
+  availablePanes,
   onUpdateStage,
   onDeleteStage,
   onOpenConditionModal,
@@ -244,35 +246,22 @@ function SortableStageCard({
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">Static Panes</Label>
-                  {!viewOnly && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 text-xs gap-1"
-                      onClick={() => {
-                        const suggested = getSuggestedPanes(stage.stage_name);
-                        if (suggested.length > 0) {
-                          onUpdateStage(stage.id, { static_panes: suggested });
-                        } else {
-                          toast.info('No suggestions available for this stage name');
-                        }
-                      }}
-                    >
-                      <Sparkles className="h-3 w-3" />
-                      Auto-Suggest
-                    </Button>
-                  )}
                 </div>
                 <MultiSelect
-                  options={AVAILABLE_STATIC_PANES}
+                  options={availablePanes}
                   selected={stage.static_panes || []}
                   onChange={(panes) => onUpdateStage(stage.id, { static_panes: panes })}
                   placeholder="Select panes to display..."
                   disabled={viewOnly}
                 />
-                {(stage.static_panes?.length || 0) === 0 && (
+                {availablePanes.length === 0 && (
                   <p className="text-xs text-muted-foreground">
-                    No panes selected. System will use default panes based on stage name.
+                    No panes configured for this product. Add panes in the Static UI Registry.
+                  </p>
+                )}
+                {(stage.static_panes?.length || 0) === 0 && availablePanes.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No panes selected. Select panes to display for this stage.
                   </p>
                 )}
               </div>
@@ -291,6 +280,12 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect, viewOnly 
   const [conditionModalOpen, setConditionModalOpen] = useState(false);
   const [selectedStageForCondition, setSelectedStageForCondition] = useState<WorkflowStage | null>(null);
   const [flowchartModalOpen, setFlowchartModalOpen] = useState(false);
+
+  // Fetch product-specific panes from database
+  const { panes: availablePanes, loading: panesLoading } = useStaticUIPanes(
+    template?.product_code || '',
+    template?.event_code
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -542,6 +537,7 @@ export function StageFlowBuilderTab({ template, onBack, onStageSelect, viewOnly 
                         stage={stage}
                         index={index}
                         stages={stages}
+                        availablePanes={availablePanes}
                         onUpdateStage={handleUpdateStage}
                         onDeleteStage={handleDeleteStage}
                         onOpenConditionModal={handleOpenConditionModal}
