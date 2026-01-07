@@ -75,7 +75,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { session, action, formData, existingId, parentPacs008Id, transactionId, reason } = await req.json();
+    const { session, action, formData, existingId, parentPacs008Id, transactionId, reason, businessApplication, initiatingChannel } = await req.json();
     debugLogs.action = action;
 
     // If no Supabase auth, try custom token verification
@@ -137,6 +137,8 @@ serve(async (req) => {
           direction: "outward",
           status,
           current_stage: currentStage,
+          business_application: businessApplication || "Adria TSCF Client",
+          initiating_channel: initiatingChannel || "Portal",
           msg_ref: paymentHeader?.msgRef || null,
           uetr: paymentHeader?.uetr || null,
           cre_dt: paymentHeader?.creDt || null,
@@ -229,6 +231,8 @@ serve(async (req) => {
             status: "Pending Approval",
             current_stage: "Approval",
             parent_pacs008_id: pacs008.id,
+            business_application: businessApplication || "Adria TSCF Client",
+            initiating_channel: initiatingChannel || "Portal",
             uetr: paymentHeader?.uetr || null,
             cre_dt: paymentHeader?.creDt || null,
             sttlm_mtd: paymentHeader?.sttlmMtd || null,
@@ -307,6 +311,8 @@ serve(async (req) => {
           status,
           current_stage: currentStage,
           parent_pacs008_id: parentPacs008Id || null,
+          business_application: businessApplication || "Adria TSCF Client",
+          initiating_channel: initiatingChannel || "Portal",
           uetr: settlementHeader?.uetr || null,
           cre_dt: settlementHeader?.creDt || null,
           sttlm_mtd: settlementHeader?.sttlmMtd || null,

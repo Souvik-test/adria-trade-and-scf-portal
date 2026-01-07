@@ -41,6 +41,7 @@ const getProductCode = (productType: string): string => {
     'Bank Guarantee': 'IBG',
     'Documentary Collection': 'ODC',
     'BG': 'OBG',
+    'Remittance': 'REM',
   };
   return mapping[productType] || productType;
 };
@@ -54,6 +55,9 @@ const getEventCode = (processType: string | undefined): string => {
     'Cancellation': 'CAN',
     'LC Transfer': 'TRF',
     'Assignment Request': 'ASG',
+    'Customer Credit Transfer (pacs.008)': 'PIO',
+    'FI Credit Transfer (pacs.009)': 'PIO',
+    'Financial Institution Transfer (pacs.009)': 'PIO',
   };
   return mapping[processType || 'Issuance'] || 'ISS';
 };
