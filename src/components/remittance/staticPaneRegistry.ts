@@ -201,6 +201,41 @@ export const getRemittanceStaticPanesByCode = (paneCodes: string[]): RemittanceS
 };
 
 /**
+ * Get panes by their names (for workflow configuration which stores names)
+ */
+export const getRemittanceStaticPanesByName = (paneNames: string[]): RemittanceStaticPaneConfig[] => {
+  const allPanes = [...pacs008DataEntryPanes, ...pacs009DataEntryPanes];
+  
+  const normalizeName = (name: string) => 
+    name.toLowerCase().replace(/&/g, '').replace(/\s+/g, ' ').trim();
+  
+  return paneNames
+    .map(name => {
+      // Exact match by name
+      const exactMatch = allPanes.find(p => p.name === name);
+      if (exactMatch) return exactMatch;
+      
+      // Case-insensitive match
+      const lowerName = name.toLowerCase();
+      const caseInsensitive = allPanes.find(p => p.name.toLowerCase() === lowerName);
+      if (caseInsensitive) return caseInsensitive;
+      
+      // Normalized match (handles & vs no &, extra spaces)
+      const normalizedInput = normalizeName(name);
+      const normalizedMatch = allPanes.find(p => normalizeName(p.name) === normalizedInput);
+      if (normalizedMatch) return normalizedMatch;
+      
+      // Also try matching by paneCode for backward compatibility
+      const codeMatch = allPanes.find(p => p.paneCode === name);
+      if (codeMatch) return codeMatch;
+      
+      console.warn(`Remittance pane "${name}" not found`);
+      return undefined;
+    })
+    .filter((p): p is RemittanceStaticPaneConfig => p !== undefined);
+};
+
+/**
  * Get suggested panes based on stage name keywords
  */
 export const getSuggestedRemittancePanes = (stageName: string, transferType: 'customer' | 'fi' = 'customer'): string[] => {
