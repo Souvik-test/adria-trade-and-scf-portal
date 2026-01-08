@@ -12,6 +12,7 @@ import {
   getRemittanceStaticStageConfig,
   getRemittanceStaticPaneComponent,
   getRemittanceStaticPanesByCode,
+  getRemittanceStaticPanesByName,
   RemittanceStaticStageConfig,
 } from '@/components/remittance/staticPaneRegistry';
 import StaticPaneRenderer from '@/components/import-lc/StaticPaneRenderer';
@@ -111,7 +112,12 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
     if (configuredStaticPanes && configuredStaticPanes.length > 0) {
       // For Remittance products, use remittance-specific pane loader
       if (isRemittanceProduct) {
-        const remittancePaneConfigs = getRemittanceStaticPanesByCode(configuredStaticPanes);
+        // Try by name first (workflow stores pane names), then fall back to code lookup
+        let remittancePaneConfigs = getRemittanceStaticPanesByName(configuredStaticPanes);
+        if (remittancePaneConfigs.length === 0) {
+          remittancePaneConfigs = getRemittanceStaticPanesByCode(configuredStaticPanes);
+        }
+        
         if (remittancePaneConfigs.length > 0) {
           const remittanceStageConfig: RemittanceStaticStageConfig = {
             panes: remittancePaneConfigs,

@@ -127,7 +127,7 @@ serve(async (req) => {
       case "saveDraftPacs008":
       case "submitPacs008": {
         // Derive channel for workflow status format
-        const channel = (initiatingChannel || "Portal") === "Bank" ? "Bank" : "Portal";
+    const channel = initiatingChannel === "Bank" ? "Bank" : "Portal";
         const workflowStatus = action === "saveDraftPacs008" ? "draft" : `Data Entry Completed-${channel}`;
         const currentStage = action === "saveDraftPacs008" ? "Data Entry" : "Approval";
         
