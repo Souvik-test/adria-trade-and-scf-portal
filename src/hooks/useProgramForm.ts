@@ -424,12 +424,16 @@ export const useProgramForm = (
     
     try {
       console.log('✓ Validation passed, authenticating user...');
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        console.error('❌ Authentication failed: No user');
-        throw new Error("User not authenticated");
+      if (!session?.user) {
+        console.error('❌ Authentication failed: No session or user');
+        if (onValidationError) {
+          onValidationError(["Your session has expired. Please refresh the page and log in again to save the program."]);
+        }
+        return;
       }
+      const user = session.user;
       console.log('✓ User authenticated:', user.id);
 
       // Transform form data to match database schema

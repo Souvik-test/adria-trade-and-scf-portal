@@ -2987,6 +2987,7 @@ export type Database = {
           expiry_date: string | null
           id: string
           is_active: boolean | null
+          is_conventional: boolean | null
           product_centric: string | null
           product_code: string
           product_description: string | null
@@ -3005,6 +3006,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           is_active?: boolean | null
+          is_conventional?: boolean | null
           product_centric?: string | null
           product_code: string
           product_description?: string | null
@@ -3023,6 +3025,7 @@ export type Database = {
           expiry_date?: string | null
           id?: string
           is_active?: boolean | null
+          is_conventional?: boolean | null
           product_centric?: string | null
           product_code?: string
           product_description?: string | null

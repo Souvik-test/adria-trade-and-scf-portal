@@ -40,7 +40,7 @@ interface SCFProductDefinitionProps {
   onNavigateToProgramConfig: (productCode?: string) => void;
 }
 
-type ProductDefinition = ProductFormData & { id: string };
+type ProductDefinition = ProductFormData & { id: string; isConventional?: boolean };
 
 const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onNavigateToProgramConfig }) => {
   const { toast } = useToast();
@@ -584,12 +584,17 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                           {product.productCode}
                         </TableCell>
                         <TableCell className="font-semibold text-foreground">
-                          <div>
-                            {product.productName}
-                            {product.productDescription && (
-                              <p className="text-xs text-muted-foreground mt-1">{product.productDescription}</p>
+                          <div className="flex items-center gap-2">
+                            <span>{product.productName}</span>
+                            {product.isConventional && (
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                Standard
+                              </Badge>
                             )}
                           </div>
+                          {product.productDescription && (
+                            <p className="text-xs text-muted-foreground mt-1">{product.productDescription}</p>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-primary/10">
@@ -661,8 +666,9 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                               size="icon"
                               variant="ghost"
                               onClick={() => handleEdit(product)}
-                              disabled={isAdding || editingId !== null}
+                              disabled={isAdding || editingId !== null || product.isConventional}
                               className="hover:bg-primary/10"
+                              title={product.isConventional ? "Conventional products cannot be edited" : "Edit"}
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -670,8 +676,9 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                               size="icon"
                               variant="ghost"
                               onClick={() => handleDelete(product.id)}
-                              disabled={isAdding || editingId !== null}
+                              disabled={isAdding || editingId !== null || product.isConventional}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title={product.isConventional ? "Conventional products cannot be deleted" : "Delete"}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
