@@ -8,6 +8,12 @@ import {
   getStaticPanesByNames,
   StaticStageConfig 
 } from '@/components/import-lc/staticPaneRegistry';
+import {
+  getRemittanceStaticStageConfig,
+  getRemittanceStaticPaneComponent,
+  getRemittanceStaticPanesByCode,
+  RemittanceStaticStageConfig,
+} from '@/components/remittance/staticPaneRegistry';
 import StaticPaneRenderer from '@/components/import-lc/StaticPaneRenderer';
 import DynamicFormContainer from './DynamicFormContainer';
 
@@ -98,8 +104,43 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
 
   // Check if this stage should use static UI
   if (uiRenderMode === 'static') {
+    // Determine if this is a Remittance product
+    const isRemittanceProduct = productCode === 'REM' || productCode === 'REMITTANCE';
+    
     // Priority 1: Check for explicitly configured static_panes from database
     if (configuredStaticPanes && configuredStaticPanes.length > 0) {
+      // For Remittance products, use remittance-specific pane loader
+      if (isRemittanceProduct) {
+        const remittancePaneConfigs = getRemittanceStaticPanesByCode(configuredStaticPanes);
+        if (remittancePaneConfigs.length > 0) {
+          const remittanceStageConfig: RemittanceStaticStageConfig = {
+            panes: remittancePaneConfigs,
+            readOnly: isApprovalStage,
+          };
+          
+          // Convert to StaticStageConfig format for StaticPaneRenderer
+          const stageConfig: StaticStageConfig = {
+            panes: remittanceStageConfig.panes.map(p => ({
+              component: p.component,
+              name: p.name,
+            })),
+            readOnly: remittanceStageConfig.readOnly,
+          };
+          
+          return (
+            <StaticPaneRenderer
+              stageConfig={stageConfig}
+              formData={formData as any}
+              updateField={(field, value) => onFieldChange(field as string, value)}
+              hideNavigationButtons={hideStaticNavigationButtons}
+              onActivePaneChange={onStaticPaneChange}
+              externalActivePane={staticActivePaneIndex}
+            />
+          );
+        }
+      }
+      
+      // For other products, use Import LC pane registry
       const paneConfigs = getStaticPanesByNames(configuredStaticPanes);
       
       if (paneConfigs.length > 0) {
@@ -122,6 +163,47 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
     }
     
     // Priority 2: Try to get multi-pane stage configuration by stage name
+    // For Remittance products, use remittance-specific registry first
+    if (isRemittanceProduct) {
+      const remittanceStageConfig = getRemittanceStaticStageConfig(stageName);
+      if (remittanceStageConfig) {
+        // Convert to StaticStageConfig format for StaticPaneRenderer
+        const stageConfig: StaticStageConfig = {
+          panes: remittanceStageConfig.panes.map(p => ({
+            component: p.component,
+            name: p.name,
+          })),
+          readOnly: remittanceStageConfig.readOnly,
+        };
+        
+        return (
+          <StaticPaneRenderer
+            stageConfig={stageConfig}
+            formData={formData as any}
+            updateField={(field, value) => onFieldChange(field as string, value)}
+            hideNavigationButtons={hideStaticNavigationButtons}
+            onActivePaneChange={onStaticPaneChange}
+            externalActivePane={staticActivePaneIndex}
+          />
+        );
+      }
+      
+      // Try legacy single component lookup for Remittance
+      const RemittanceStaticComponent = getRemittanceStaticPaneComponent(stageName);
+      if (RemittanceStaticComponent) {
+        return (
+          <RemittanceStaticComponent 
+            formData={formData}
+            updateField={(section: string, field: string, value: any) => {
+              onFieldChange(field, value);
+            }}
+            readOnly={isApprovalStage}
+          />
+        );
+      }
+    }
+    
+    // For Import LC and other products
     const stageConfig = getStaticStageConfig(stageName);
     
     if (stageConfig) {

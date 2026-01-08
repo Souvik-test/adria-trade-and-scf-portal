@@ -126,7 +126,9 @@ serve(async (req) => {
     switch (action) {
       case "saveDraftPacs008":
       case "submitPacs008": {
-        const status = action === "saveDraftPacs008" ? "draft" : "Pending Approval";
+        // Derive channel for workflow status format
+        const channel = (initiatingChannel || "Portal") === "Bank" ? "Bank" : "Portal";
+        const workflowStatus = action === "saveDraftPacs008" ? "draft" : `Data Entry Completed-${channel}`;
         const currentStage = action === "saveDraftPacs008" ? "Data Entry" : "Approval";
         
         const { paymentHeader, orderingCustomer, beneficiaryCustomer, amountCharges, routingSettlement, regulatoryCompliance, remittanceInfo } = formData;
@@ -135,7 +137,7 @@ serve(async (req) => {
           user_id: dbUserId,
           transfer_type: "customer",
           direction: "outward",
-          status,
+          status: workflowStatus,
           current_stage: currentStage,
           business_application: businessApplication || "Adria TSCF Client",
           initiating_channel: initiatingChannel || "Portal",
@@ -174,7 +176,7 @@ serve(async (req) => {
           inv_ref: remittanceInfo?.invRef || null,
           form_data: formData,
           created_by: userFullName,
-          ...(status === "Pending Approval" ? { submitted_at: new Date().toISOString() } : {}),
+          ...(action === "submitPacs008" ? { submitted_at: new Date().toISOString() } : {}),
         };
 
         let result;
@@ -224,11 +226,12 @@ serve(async (req) => {
 
         // Auto-create PACS.009 for COVE settlement on submit
         if (action === "submitPacs008" && paymentHeader?.sttlmMtd === "COVE") {
+          const pacs009Channel = (initiatingChannel || "Portal") === "Bank" ? "Bank" : "Portal";
           const pacs009Record = {
             user_id: dbUserId,
             transfer_type: "fi",
             direction: "outward",
-            status: "Pending Approval",
+            status: `Data Entry Completed-${pacs009Channel}`,
             current_stage: "Approval",
             parent_pacs008_id: pacs008.id,
             business_application: businessApplication || "Adria TSCF Client",
@@ -299,7 +302,9 @@ serve(async (req) => {
 
       case "saveDraftPacs009":
       case "submitPacs009": {
-        const status = action === "saveDraftPacs009" ? "draft" : "Pending Approval";
+        // Derive channel for workflow status format
+        const channel = (initiatingChannel || "Portal") === "Bank" ? "Bank" : "Portal";
+        const workflowStatus = action === "saveDraftPacs009" ? "draft" : `Data Entry Completed-${channel}`;
         const currentStage = action === "saveDraftPacs009" ? "Data Entry" : "Approval";
         
         const { settlementHeader, instructingAgent, instructedAgent, settlementAmount, coverLinkage, settlementInstructions } = formData;
@@ -308,7 +313,7 @@ serve(async (req) => {
           user_id: dbUserId,
           transfer_type: "fi",
           direction: "outward",
-          status,
+          status: workflowStatus,
           current_stage: currentStage,
           parent_pacs008_id: parentPacs008Id || null,
           business_application: businessApplication || "Adria TSCF Client",
@@ -329,7 +334,7 @@ serve(async (req) => {
           addtl_info: settlementInstructions?.addtlInfo || null,
           form_data: formData,
           created_by: userFullName,
-          ...(status === "Pending Approval" ? { submitted_at: new Date().toISOString() } : {}),
+          ...(action === "submitPacs009" ? { submitted_at: new Date().toISOString() } : {}),
         };
 
         let result;
@@ -385,6 +390,19 @@ serve(async (req) => {
       }
 
       case "approve": {
+        // Fetch the transaction to get the channel for workflow status
+        const fetchResp = await fetch(
+          `${supabaseUrl}/rest/v1/remittance_transactions?id=eq.${encodeURIComponent(transactionId)}&select=initiating_channel`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+        const txnData = await fetchResp.json();
+        const txnChannel = txnData?.[0]?.initiating_channel === "Bank" ? "Bank" : "Portal";
+        
         const resp = await fetch(
           `${supabaseUrl}/rest/v1/remittance_transactions?id=eq.${encodeURIComponent(transactionId)}`,
           {
@@ -396,7 +414,7 @@ serve(async (req) => {
               Prefer: "return=representation",
             },
             body: JSON.stringify({
-              status: "Approved",
+              status: `Approval Completed-${txnChannel}`,
               current_stage: "Completed",
               approved_at: new Date().toISOString(),
               approved_by: dbUserId,
