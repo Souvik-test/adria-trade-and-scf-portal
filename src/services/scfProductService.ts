@@ -31,6 +31,7 @@ export interface ProductFormData {
   expiryDate?: string;
   isActive: boolean;
   authorizationRequired: boolean;
+  isConventional?: boolean;
 }
 
 // Map camelCase to snake_case for database
@@ -65,13 +66,15 @@ const toUiFormat = (dbProduct: any): ProductFormData & { id: string } => ({
   expiryDate: dbProduct.expiry_date,
   isActive: dbProduct.is_active,
   authorizationRequired: dbProduct.authorization_required,
+  isConventional: dbProduct.is_conventional ?? false,
 });
 
 export const fetchProducts = async (userId: string) => {
-  // Fetch all active products (not filtered by user_id to show all configured products)
+  // Fetch all products (conventional + user's custom products)
   const { data, error } = await supabase
     .from('scf_product_definitions')
     .select('*')
+    .order('is_conventional', { ascending: false }) // Conventional products first
     .order('created_at', { ascending: false });
 
   if (error) {
