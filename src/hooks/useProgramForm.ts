@@ -4,6 +4,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { customAuth } from "@/services/customAuth";
 
 // Product code to name mapping
 const PRODUCT_CODE_MAPPING: Record<string, string> = {
@@ -424,17 +425,21 @@ export const useProgramForm = (
     
     try {
       console.log('✓ Validation passed, authenticating user...');
-      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session?.user) {
+      // Check for Supabase session first, then fall back to custom auth
+      const { data: { session } } = await supabase.auth.getSession();
+      const customSession = customAuth.getSession();
+      
+      const userId = session?.user?.id || customSession?.user?.id;
+      
+      if (!userId) {
         console.error('❌ Authentication failed: No session or user');
         if (onValidationError) {
           onValidationError(["Your session has expired. Please refresh the page and log in again to save the program."]);
         }
         return;
       }
-      const user = session.user;
-      console.log('✓ User authenticated:', user.id);
+      console.log('✓ User authenticated:', userId);
 
       // Transform form data to match database schema
       console.log('Transforming form data to database schema...');
@@ -445,7 +450,7 @@ export const useProgramForm = (
         console.log('Mode: ADD - Inserting new program...');
         const insertData = {
           ...transformedData,
-          user_id: user.id,
+          user_id: userId,
         };
         console.log('Insert payload:', insertData);
         

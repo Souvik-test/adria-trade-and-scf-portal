@@ -48,6 +48,7 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
   const [customUser, setCustomUser] = useState<CustomUser | null>(null);
   const [products, setProducts] = useState<ProductDefinition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productFilter, setProductFilter] = useState<'all' | 'standard' | 'custom'>('all');
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -536,10 +537,24 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
         {/* Products Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Defined Products</CardTitle>
-            <CardDescription>
-              Manage your SCF product definitions. Once complete, proceed to Program Configuration to link products with programs.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Defined Products</CardTitle>
+                <CardDescription>
+                  Manage your SCF product definitions. Once complete, proceed to Program Configuration to link products with programs.
+                </CardDescription>
+              </div>
+              <Select value={productFilter} onValueChange={(value: 'all' | 'standard' | 'custom') => setProductFilter(value)}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Filter products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Products</SelectItem>
+                  <SelectItem value="standard">Standard Only</SelectItem>
+                  <SelectItem value="custom">Custom Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -578,20 +593,20 @@ const SCFProductDefinition: React.FC<SCFProductDefinitionProps> = ({ onBack, onN
                       </TableCell>
                     </TableRow>
                   ) : (
-                    products.map((product) => (
+                    products
+                      .filter((product) => {
+                        if (productFilter === 'all') return true;
+                        if (productFilter === 'standard') return product.isConventional;
+                        if (productFilter === 'custom') return !product.isConventional;
+                        return true;
+                      })
+                      .map((product) => (
                       <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
                         <TableCell className="font-mono text-sm font-bold text-primary">
                           {product.productCode}
                         </TableCell>
                         <TableCell className="font-semibold text-foreground">
-                          <div className="flex items-center gap-2">
-                            <span>{product.productName}</span>
-                            {product.isConventional && (
-                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                                Standard
-                              </Badge>
-                            )}
-                          </div>
+                          <span>{product.productName}</span>
                           {product.productDescription && (
                             <p className="text-xs text-muted-foreground mt-1">{product.productDescription}</p>
                           )}
