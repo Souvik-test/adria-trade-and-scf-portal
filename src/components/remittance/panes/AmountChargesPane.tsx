@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AmountCharges, CURRENCY_OPTIONS, CHARGE_BEARER_OPTIONS } from '@/types/internationalRemittance';
+import { AmountCharges, CURRENCY_OPTIONS, CHARGE_BEARER_OPTIONS, initialAmountCharges } from '@/types/internationalRemittance';
 
 interface AmountChargesPaneProps {
-  data: AmountCharges;
-  onChange: (field: keyof AmountCharges, value: string | number) => void;
+  data?: AmountCharges;
+  onChange?: (field: keyof AmountCharges, value: string | number) => void;
   readOnly?: boolean;
 }
 
@@ -16,17 +16,25 @@ const AmountChargesPane: React.FC<AmountChargesPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialAmountCharges, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   const readOnlyClassName = 'bg-muted cursor-not-allowed';
+
+  const handleChange = (field: keyof AmountCharges, value: string | number) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === '') {
-      onChange('instAmt', '');
+      handleChange('instAmt', '');
     } else {
       const numValue = parseFloat(value);
       if (!isNaN(numValue) && numValue >= 0) {
-        onChange('instAmt', numValue);
+        handleChange('instAmt', numValue);
       }
     }
   };
@@ -46,7 +54,7 @@ const AmountChargesPane: React.FC<AmountChargesPaneProps> = ({
             <Input
               id="instAmt"
               type="number"
-              value={data.instAmt}
+              value={safeData.instAmt ?? ''}
               onChange={handleAmountChange}
               placeholder="Enter amount"
               min={0}
@@ -63,8 +71,8 @@ const AmountChargesPane: React.FC<AmountChargesPaneProps> = ({
               Currency <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.ccy}
-              onValueChange={(value) => onChange('ccy', value)}
+              value={safeData.ccy || ''}
+              onValueChange={(value) => handleChange('ccy', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -86,8 +94,8 @@ const AmountChargesPane: React.FC<AmountChargesPaneProps> = ({
               Charge Bearer <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.chgBr}
-              onValueChange={(value) => onChange('chgBr', value)}
+              value={safeData.chgBr || ''}
+              onValueChange={(value) => handleChange('chgBr', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -111,7 +119,7 @@ const AmountChargesPane: React.FC<AmountChargesPaneProps> = ({
             <Input
               id="fxRate"
               type="text"
-              value={data.fxRate !== '' ? data.fxRate : '—'}
+              value={safeData.fxRate !== '' && safeData.fxRate !== undefined ? safeData.fxRate : '—'}
               readOnly
               disabled
               className={readOnlyClassName}

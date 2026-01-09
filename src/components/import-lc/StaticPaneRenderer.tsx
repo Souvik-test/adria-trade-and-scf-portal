@@ -3,16 +3,38 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { StaticStageConfig, StaticPaneProps } from './staticPaneRegistry';
 import { ImportLCFormData } from '@/types/importLC';
+import RemittancePaneAdapter, { getSectionKeyForPane, extractSectionData, getSectionDefaults } from '@/components/remittance/RemittancePaneAdapter';
 
 interface StaticPaneRendererProps {
   stageConfig: StaticStageConfig;
-  formData: ImportLCFormData;
-  updateField: (field: keyof ImportLCFormData, value: any) => void;
+  formData: ImportLCFormData | Record<string, any>;
+  updateField: (field: keyof ImportLCFormData | string, value: any) => void;
   // New props for external button control
   hideNavigationButtons?: boolean;
   onActivePaneChange?: (activeIndex: number, totalPanes: number) => void;
   externalActivePane?: number; // Allow parent to control active pane
+  // New prop to indicate if this is a remittance product
+  isRemittanceProduct?: boolean;
 }
+
+// List of Remittance pane names for detection
+const REMITTANCE_PANE_NAMES = [
+  'Payment Header', 'Ordering Customer', 'Beneficiary Customer', 
+  'Amount & Charges', 'Amount Charges', 'Routing & Settlement', 'Routing Settlement',
+  'Regulatory & Compliance', 'Regulatory Compliance', 'Remittance Information', 'Remittance Info',
+  'Accounting Entries', 'Release Documents',
+  'Settlement Header', 'Instructing Agent', 'Instructed Agent',
+  'Settlement Amount', 'Cover Linkage', 'Settlement Instructions',
+];
+
+/**
+ * Check if a pane name belongs to Remittance product
+ */
+const isRemittancePane = (paneName: string): boolean => {
+  return REMITTANCE_PANE_NAMES.some(
+    name => name.toLowerCase() === paneName.toLowerCase()
+  );
+};
 
 /**
  * StaticPaneRenderer renders one or more static panes for a stage.
@@ -26,6 +48,7 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
   hideNavigationButtons = false,
   onActivePaneChange,
   externalActivePane,
+  isRemittanceProduct: isRemittanceProp,
 }) => {
   const [internalActivePane, setInternalActivePane] = useState(0);
   
@@ -35,6 +58,10 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
   // Safety check: ensure stageConfig and panes exist
   const panes = stageConfig?.panes;
   const readOnly = stageConfig?.readOnly;
+
+  // Detect if any pane is a Remittance pane
+  const isRemittance = isRemittanceProp || 
+    (panes && panes.some(p => isRemittancePane(p.name)));
 
   // Notify parent of pane changes
   useEffect(() => {
@@ -53,10 +80,56 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
   }
 
   // Handle field updates - block if readOnly
-  const handleUpdateField = (field: keyof ImportLCFormData, value: any) => {
-    if (!readOnly) {
+  // For remittance, handle nested path updates (e.g., "paymentHeader.sttlmMtd")
+  const handleUpdateField = (field: keyof ImportLCFormData | string, value: any) => {
+    if (readOnly) return;
+    
+    if (isRemittance && typeof field === 'string' && field.includes('.')) {
+      // Handle nested path for remittance (e.g., "paymentHeader.sttlmMtd")
+      const [sectionKey, fieldKey] = field.split('.');
+      const currentSection = (formData as Record<string, any>)[sectionKey] || {};
+      const defaults = getSectionDefaults(sectionKey);
+      const updatedSection = { ...defaults, ...currentSection, [fieldKey]: value };
+      updateField(sectionKey as any, updatedSection);
+    } else {
       updateField(field, value);
     }
+  };
+
+  // Render a single pane (handles both Remittance and Import LC)
+  const renderPane = (paneConfig: { component: React.ComponentType<any>; name: string }) => {
+    const PaneComponent = paneConfig.component;
+    const paneName = paneConfig.name;
+    
+    // Check if this is a Remittance pane that needs data adaptation
+    if (isRemittance && isRemittancePane(paneName)) {
+      const sectionData = extractSectionData(formData as Record<string, any>, paneName);
+      const sectionKey = getSectionKeyForPane(paneName);
+      
+      // Create onChange handler that updates the nested structure
+      const handlePaneChange = (field: string, value: any) => {
+        if (sectionKey) {
+          handleUpdateField(`${sectionKey}.${field}`, value);
+        }
+      };
+      
+      return (
+        <PaneComponent
+          data={sectionData}
+          onChange={handlePaneChange}
+          readOnly={readOnly}
+        />
+      );
+    }
+    
+    // Standard Import LC pane rendering
+    return (
+      <PaneComponent
+        formData={formData}
+        updateField={handleUpdateField}
+        readOnly={readOnly}
+      />
+    );
   };
 
   // Ensure activePane is within bounds
@@ -64,7 +137,6 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
 
   // Single pane - render directly without navigation
   if (panes.length === 1) {
-    const PaneComponent = panes[0].component;
     return (
       <div className={cn(readOnly && "pointer-events-none opacity-90")}>
         {readOnly && (
@@ -72,19 +144,15 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
             This stage is read-only. Fields cannot be edited.
           </div>
         )}
-        <PaneComponent
-          formData={formData}
-          updateField={handleUpdateField}
-          readOnly={readOnly}
-        />
+        {renderPane(panes[0])}
       </div>
     );
   }
 
   // Multiple panes - render with tab navigation
-  const ActivePaneComponent = panes[safeActivePane]?.component;
+  const activeConfig = panes[safeActivePane];
 
-  if (!ActivePaneComponent) {
+  if (!activeConfig?.component) {
     return (
       <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
         <p className="text-muted-foreground">Invalid pane component at index {safeActivePane}.</p>
@@ -127,11 +195,7 @@ const StaticPaneRenderer: React.FC<StaticPaneRendererProps> = ({
 
       {/* Active pane content */}
       <div className={cn(readOnly && "pointer-events-none opacity-90")}>
-        <ActivePaneComponent
-          formData={formData}
-          updateField={handleUpdateField}
-          readOnly={readOnly}
-        />
+        {renderPane(activeConfig)}
       </div>
 
       {/* Navigation buttons - only shown if not hidden */}

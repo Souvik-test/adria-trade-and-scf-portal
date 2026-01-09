@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { RoutingSettlement, validateBIC } from '@/types/internationalRemittance';
+import { RoutingSettlement, validateBIC, initialRoutingSettlement } from '@/types/internationalRemittance';
 
 interface RoutingSettlementPaneProps {
-  data: RoutingSettlement;
-  onChange: (field: keyof RoutingSettlement, value: string) => void;
+  data?: RoutingSettlement;
+  onChange?: (field: keyof RoutingSettlement, value: string) => void;
   readOnly?: boolean;
 }
 
@@ -15,11 +15,19 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialRoutingSettlement, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
   
-  const isInstgBicValid = data.instgAgtBic.length === 0 || validateBIC(data.instgAgtBic);
-  const isInstdBicValid = data.instdAgtBic.length === 0 || validateBIC(data.instdAgtBic);
-  const isIntrmyBicValid = data.intrmyBic.length === 0 || validateBIC(data.intrmyBic);
+  const isInstgBicValid = (safeData.instgAgtBic || '').length === 0 || validateBIC(safeData.instgAgtBic || '');
+  const isInstdBicValid = (safeData.instdAgtBic || '').length === 0 || validateBIC(safeData.instdAgtBic || '');
+  const isIntrmyBicValid = (safeData.intrmyBic || '').length === 0 || validateBIC(safeData.intrmyBic || '');
+
+  const handleChange = (field: keyof RoutingSettlement, value: string) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -35,8 +43,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             </Label>
             <Input
               id="instgAgtBic"
-              value={data.instgAgtBic}
-              onChange={(e) => onChange('instgAgtBic', e.target.value.toUpperCase().slice(0, 11))}
+              value={safeData.instgAgtBic || ''}
+              onChange={(e) => handleChange('instgAgtBic', e.target.value.toUpperCase().slice(0, 11))}
               placeholder="e.g., HSBCGB2LXXX"
               maxLength={11}
               disabled={readOnly}
@@ -54,8 +62,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             </Label>
             <Input
               id="instdAgtBic"
-              value={data.instdAgtBic}
-              onChange={(e) => onChange('instdAgtBic', e.target.value.toUpperCase().slice(0, 11))}
+              value={safeData.instdAgtBic || ''}
+              onChange={(e) => handleChange('instdAgtBic', e.target.value.toUpperCase().slice(0, 11))}
               placeholder="e.g., CITIUS33XXX"
               maxLength={11}
               disabled={readOnly}
@@ -80,8 +88,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             </Label>
             <Input
               id="intrmyBic"
-              value={data.intrmyBic}
-              onChange={(e) => onChange('intrmyBic', e.target.value.toUpperCase().slice(0, 11))}
+              value={safeData.intrmyBic || ''}
+              onChange={(e) => handleChange('intrmyBic', e.target.value.toUpperCase().slice(0, 11))}
               placeholder="e.g., CHASUS33XXX"
               maxLength={11}
               disabled={readOnly}
@@ -99,8 +107,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             </Label>
             <Input
               id="intrmyName"
-              value={data.intrmyName}
-              onChange={(e) => onChange('intrmyName', e.target.value.slice(0, 140))}
+              value={safeData.intrmyName || ''}
+              onChange={(e) => handleChange('intrmyName', e.target.value.slice(0, 140))}
               placeholder="Enter intermediary bank name"
               maxLength={140}
               disabled={readOnly}
@@ -115,8 +123,8 @@ const RoutingSettlementPane: React.FC<RoutingSettlementPaneProps> = ({
             </Label>
             <Input
               id="intrmyAcct"
-              value={data.intrmyAcct}
-              onChange={(e) => onChange('intrmyAcct', e.target.value.toUpperCase().slice(0, 34))}
+              value={safeData.intrmyAcct || ''}
+              onChange={(e) => handleChange('intrmyAcct', e.target.value.toUpperCase().slice(0, 34))}
               placeholder="Enter account number"
               maxLength={34}
               disabled={readOnly}

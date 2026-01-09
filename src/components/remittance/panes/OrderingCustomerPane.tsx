@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { OrderingCustomer, COUNTRY_OPTIONS } from '@/types/internationalRemittance';
+import { OrderingCustomer, COUNTRY_OPTIONS, initialOrderingCustomer } from '@/types/internationalRemittance';
 
 interface OrderingCustomerPaneProps {
-  data: OrderingCustomer;
-  onChange: (field: keyof OrderingCustomer, value: string) => void;
+  data?: OrderingCustomer;
+  onChange?: (field: keyof OrderingCustomer, value: string) => void;
   readOnly?: boolean;
 }
 
@@ -16,7 +16,15 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialOrderingCustomer, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
+
+  const handleChange = (field: keyof OrderingCustomer, value: string) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -32,14 +40,14 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordName"
-              value={data.ordName}
-              onChange={(e) => onChange('ordName', e.target.value.slice(0, 140))}
+              value={safeData.ordName || ''}
+              onChange={(e) => handleChange('ordName', e.target.value.slice(0, 140))}
               placeholder="Enter ordering customer name"
               maxLength={140}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.ordName.length}/140</span>
+            <span className="text-xs text-muted-foreground">{(safeData.ordName || '').length}/140</span>
           </div>
 
           {/* Ordering Account/IBAN */}
@@ -49,14 +57,14 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordAcct"
-              value={data.ordAcct}
-              onChange={(e) => onChange('ordAcct', e.target.value.toUpperCase().slice(0, 34))}
+              value={safeData.ordAcct || ''}
+              onChange={(e) => handleChange('ordAcct', e.target.value.toUpperCase().slice(0, 34))}
               placeholder="Enter IBAN or account number"
               maxLength={34}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.ordAcct.length}/34</span>
+            <span className="text-xs text-muted-foreground">{(safeData.ordAcct || '').length}/34</span>
           </div>
         </div>
 
@@ -68,8 +76,8 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
               Country <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.ordCountry}
-              onValueChange={(value) => onChange('ordCountry', value)}
+              value={safeData.ordCountry || ''}
+              onValueChange={(value) => handleChange('ordCountry', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -92,8 +100,8 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordState"
-              value={data.ordState}
-              onChange={(e) => onChange('ordState', e.target.value.slice(0, 35))}
+              value={safeData.ordState || ''}
+              onChange={(e) => handleChange('ordState', e.target.value.slice(0, 35))}
               placeholder="Enter state or region"
               maxLength={35}
               disabled={readOnly}
@@ -108,8 +116,8 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordCity"
-              value={data.ordCity}
-              onChange={(e) => onChange('ordCity', e.target.value.slice(0, 35))}
+              value={safeData.ordCity || ''}
+              onChange={(e) => handleChange('ordCity', e.target.value.slice(0, 35))}
               placeholder="Enter city or town"
               maxLength={35}
               disabled={readOnly}
@@ -127,14 +135,14 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordAddr1"
-              value={data.ordAddr1}
-              onChange={(e) => onChange('ordAddr1', e.target.value.slice(0, 70))}
+              value={safeData.ordAddr1 || ''}
+              onChange={(e) => handleChange('ordAddr1', e.target.value.slice(0, 70))}
               placeholder="Enter address line 1"
               maxLength={70}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.ordAddr1.length}/70</span>
+            <span className="text-xs text-muted-foreground">{(safeData.ordAddr1 || '').length}/70</span>
           </div>
 
           {/* Address Line 2 */}
@@ -144,14 +152,14 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordAddr2"
-              value={data.ordAddr2}
-              onChange={(e) => onChange('ordAddr2', e.target.value.slice(0, 70))}
+              value={safeData.ordAddr2 || ''}
+              onChange={(e) => handleChange('ordAddr2', e.target.value.slice(0, 70))}
               placeholder="Enter address line 2"
               maxLength={70}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.ordAddr2.length}/70</span>
+            <span className="text-xs text-muted-foreground">{(safeData.ordAddr2 || '').length}/70</span>
           </div>
 
           {/* PIN/Post Code */}
@@ -161,8 +169,8 @@ const OrderingCustomerPane: React.FC<OrderingCustomerPaneProps> = ({
             </Label>
             <Input
               id="ordPostCode"
-              value={data.ordPostCode}
-              onChange={(e) => onChange('ordPostCode', e.target.value.slice(0, 16))}
+              value={safeData.ordPostCode || ''}
+              onChange={(e) => handleChange('ordPostCode', e.target.value.slice(0, 16))}
               placeholder="Enter PIN or post code"
               maxLength={16}
               disabled={readOnly}

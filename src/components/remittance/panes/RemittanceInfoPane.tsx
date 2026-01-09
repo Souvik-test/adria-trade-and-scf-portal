@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RemittanceInfo } from '@/types/internationalRemittance';
+import { RemittanceInfo, initialRemittanceInfo } from '@/types/internationalRemittance';
 
 interface RemittanceInfoPaneProps {
-  data: RemittanceInfo;
-  onChange: (field: keyof RemittanceInfo, value: string) => void;
+  data?: RemittanceInfo;
+  onChange?: (field: keyof RemittanceInfo, value: string) => void;
   readOnly?: boolean;
 }
 
@@ -16,7 +16,15 @@ const RemittanceInfoPane: React.FC<RemittanceInfoPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialRemittanceInfo, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
+
+  const handleChange = (field: keyof RemittanceInfo, value: string) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -32,14 +40,14 @@ const RemittanceInfoPane: React.FC<RemittanceInfoPaneProps> = ({
             </Label>
             <Input
               id="invRef"
-              value={data.invRef}
-              onChange={(e) => onChange('invRef', e.target.value.slice(0, 35))}
+              value={safeData.invRef || ''}
+              onChange={(e) => handleChange('invRef', e.target.value.slice(0, 35))}
               placeholder="Enter invoice or reference number"
               maxLength={35}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.invRef.length}/35</span>
+            <span className="text-xs text-muted-foreground">{(safeData.invRef || '').length}/35</span>
           </div>
         </div>
 
@@ -50,15 +58,15 @@ const RemittanceInfoPane: React.FC<RemittanceInfoPaneProps> = ({
           </Label>
           <Textarea
             id="rmtInfo"
-            value={data.rmtInfo}
-            onChange={(e) => onChange('rmtInfo', e.target.value.slice(0, 140))}
+            value={safeData.rmtInfo || ''}
+            onChange={(e) => handleChange('rmtInfo', e.target.value.slice(0, 140))}
             placeholder="Enter additional payment information or instructions for the beneficiary"
             maxLength={140}
             disabled={readOnly}
             className={`min-h-[80px] resize-none ${inputClassName}`}
             rows={3}
           />
-          <span className="text-xs text-muted-foreground">{data.rmtInfo.length}/140</span>
+          <span className="text-xs text-muted-foreground">{(safeData.rmtInfo || '').length}/140</span>
         </div>
       </CardContent>
     </Card>
