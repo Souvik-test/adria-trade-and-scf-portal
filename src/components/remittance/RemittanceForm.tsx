@@ -20,6 +20,7 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
   // Integrate with workflow template
   const {
     hasWorkflowTemplate,
+    template,
     currentStage,
     allStages,
     isEditable,
@@ -108,6 +109,14 @@ const RemittanceForm: React.FC<RemittanceFormProps> = ({
               {isApprovalStage ? 'Review (Read-only)' : 'Data Entry'}
             </Badge>
           </div>
+          {template && (
+            <>
+              <div className="h-4 border-l border-border" />
+              <span className="text-xs text-muted-foreground">
+                Template: <span className="font-medium">{template.template_name}</span>
+              </span>
+            </>
+          )}
           {allStages.length > 1 && (
             <>
               <div className="h-4 border-l border-border" />
