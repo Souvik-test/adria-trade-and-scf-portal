@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RegulatoryCompliance, PURPOSE_CODE_OPTIONS, SOURCE_OF_FUNDS_OPTIONS } from '@/types/internationalRemittance';
+import { RegulatoryCompliance, PURPOSE_CODE_OPTIONS, SOURCE_OF_FUNDS_OPTIONS, initialRegulatoryCompliance } from '@/types/internationalRemittance';
 
 interface RegulatoryCompliancePaneProps {
-  data: RegulatoryCompliance;
-  onChange: (field: keyof RegulatoryCompliance, value: string | boolean) => void;
+  data?: RegulatoryCompliance;
+  onChange?: (field: keyof RegulatoryCompliance, value: string | boolean) => void;
   readOnly?: boolean;
 }
 
@@ -16,7 +16,15 @@ const RegulatoryCompliancePane: React.FC<RegulatoryCompliancePaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialRegulatoryCompliance, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
+
+  const handleChange = (field: keyof RegulatoryCompliance, value: string | boolean) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -31,8 +39,8 @@ const RegulatoryCompliancePane: React.FC<RegulatoryCompliancePaneProps> = ({
               Purpose Code <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.purpCd}
-              onValueChange={(value) => onChange('purpCd', value)}
+              value={safeData.purpCd || ''}
+              onValueChange={(value) => handleChange('purpCd', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -54,8 +62,8 @@ const RegulatoryCompliancePane: React.FC<RegulatoryCompliancePaneProps> = ({
               Source of Funds <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.srcFunds}
-              onValueChange={(value) => onChange('srcFunds', value)}
+              value={safeData.srcFunds || ''}
+              onValueChange={(value) => handleChange('srcFunds', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -76,8 +84,8 @@ const RegulatoryCompliancePane: React.FC<RegulatoryCompliancePaneProps> = ({
         <div className="flex items-start space-x-3 pt-4 p-4 border rounded-lg bg-muted/30">
           <Checkbox
             id="declFlg"
-            checked={data.declFlg}
-            onCheckedChange={(checked) => onChange('declFlg', checked === true)}
+            checked={safeData.declFlg ?? false}
+            onCheckedChange={(checked) => handleChange('declFlg', checked === true)}
             disabled={readOnly}
             className="mt-1"
           />

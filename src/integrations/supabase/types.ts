@@ -3985,33 +3985,27 @@ export type Database = {
       get_all_transactions: {
         Args: never
         Returns: {
-          amount: number | null
-          bank_ref: string | null
-          business_application: string | null
+          amount: number
+          bank_ref: string
+          business_application: string
           created_at: string
           created_by: string
           created_date: string
-          currency: string | null
-          customer_name: string | null
-          customer_ref: string | null
-          form_data: Json | null
+          currency: string
+          customer_name: string
+          customer_ref: string
+          form_data: Json
           id: string
-          initiating_channel: string | null
-          operations: string | null
-          party_form: string | null
-          process_type: string | null
+          initiating_channel: string
+          operations: string
+          party_form: string
+          process_type: string
           product_type: string
           status: string
           transaction_ref: string
           updated_at: string
           user_id: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "transactions"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_all_user_permissions: { Args: { p_user_id: string }; Returns: Json }
       get_custom_user_profile: {

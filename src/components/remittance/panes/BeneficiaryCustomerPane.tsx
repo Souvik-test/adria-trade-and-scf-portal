@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BeneficiaryCustomer, COUNTRY_OPTIONS, validateBIC } from '@/types/internationalRemittance';
+import { BeneficiaryCustomer, COUNTRY_OPTIONS, validateBIC, initialBeneficiaryCustomer } from '@/types/internationalRemittance';
 
 interface BeneficiaryCustomerPaneProps {
-  data: BeneficiaryCustomer;
-  onChange: (field: keyof BeneficiaryCustomer, value: string) => void;
+  data?: BeneficiaryCustomer;
+  onChange?: (field: keyof BeneficiaryCustomer, value: string) => void;
   readOnly?: boolean;
 }
 
@@ -16,8 +16,16 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialBeneficiaryCustomer, ...data };
   const inputClassName = readOnly ? 'bg-muted cursor-not-allowed' : '';
-  const isBicValid = data.benBic.length === 0 || validateBIC(data.benBic);
+  const isBicValid = (safeData.benBic || '').length === 0 || validateBIC(safeData.benBic || '');
+
+  const handleChange = (field: keyof BeneficiaryCustomer, value: string) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -33,14 +41,14 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benName"
-              value={data.benName}
-              onChange={(e) => onChange('benName', e.target.value.slice(0, 140))}
+              value={safeData.benName || ''}
+              onChange={(e) => handleChange('benName', e.target.value.slice(0, 140))}
               placeholder="Enter beneficiary name"
               maxLength={140}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.benName.length}/140</span>
+            <span className="text-xs text-muted-foreground">{(safeData.benName || '').length}/140</span>
           </div>
 
           {/* Beneficiary Account/IBAN */}
@@ -50,14 +58,14 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benAcct"
-              value={data.benAcct}
-              onChange={(e) => onChange('benAcct', e.target.value.toUpperCase().slice(0, 34))}
+              value={safeData.benAcct || ''}
+              onChange={(e) => handleChange('benAcct', e.target.value.toUpperCase().slice(0, 34))}
               placeholder="Enter IBAN or account number"
               maxLength={34}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.benAcct.length}/34</span>
+            <span className="text-xs text-muted-foreground">{(safeData.benAcct || '').length}/34</span>
           </div>
         </div>
 
@@ -69,8 +77,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benBic"
-              value={data.benBic}
-              onChange={(e) => onChange('benBic', e.target.value.toUpperCase().slice(0, 11))}
+              value={safeData.benBic || ''}
+              onChange={(e) => handleChange('benBic', e.target.value.toUpperCase().slice(0, 11))}
               placeholder="e.g., HSBCGB2LXXX"
               maxLength={11}
               disabled={readOnly}
@@ -80,7 +88,7 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
               <span className="text-xs text-destructive">Invalid BIC format (8 or 11 characters)</span>
             )}
             {isBicValid && (
-              <span className="text-xs text-muted-foreground">{data.benBic.length}/11</span>
+              <span className="text-xs text-muted-foreground">{(safeData.benBic || '').length}/11</span>
             )}
           </div>
         </div>
@@ -93,8 +101,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
               Country <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.benCountry}
-              onValueChange={(value) => onChange('benCountry', value)}
+              value={safeData.benCountry || ''}
+              onValueChange={(value) => handleChange('benCountry', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={inputClassName}>
@@ -117,8 +125,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benState"
-              value={data.benState}
-              onChange={(e) => onChange('benState', e.target.value.slice(0, 35))}
+              value={safeData.benState || ''}
+              onChange={(e) => handleChange('benState', e.target.value.slice(0, 35))}
               placeholder="Enter state or region"
               maxLength={35}
               disabled={readOnly}
@@ -133,8 +141,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benCity"
-              value={data.benCity}
-              onChange={(e) => onChange('benCity', e.target.value.slice(0, 35))}
+              value={safeData.benCity || ''}
+              onChange={(e) => handleChange('benCity', e.target.value.slice(0, 35))}
               placeholder="Enter city or town"
               maxLength={35}
               disabled={readOnly}
@@ -152,14 +160,14 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benAddr1"
-              value={data.benAddr1}
-              onChange={(e) => onChange('benAddr1', e.target.value.slice(0, 70))}
+              value={safeData.benAddr1 || ''}
+              onChange={(e) => handleChange('benAddr1', e.target.value.slice(0, 70))}
               placeholder="Enter address line 1"
               maxLength={70}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.benAddr1.length}/70</span>
+            <span className="text-xs text-muted-foreground">{(safeData.benAddr1 || '').length}/70</span>
           </div>
 
           {/* Address Line 2 */}
@@ -169,14 +177,14 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benAddr2"
-              value={data.benAddr2}
-              onChange={(e) => onChange('benAddr2', e.target.value.slice(0, 70))}
+              value={safeData.benAddr2 || ''}
+              onChange={(e) => handleChange('benAddr2', e.target.value.slice(0, 70))}
               placeholder="Enter address line 2"
               maxLength={70}
               disabled={readOnly}
               className={inputClassName}
             />
-            <span className="text-xs text-muted-foreground">{data.benAddr2.length}/70</span>
+            <span className="text-xs text-muted-foreground">{(safeData.benAddr2 || '').length}/70</span>
           </div>
 
           {/* PIN/Post Code */}
@@ -186,8 +194,8 @@ const BeneficiaryCustomerPane: React.FC<BeneficiaryCustomerPaneProps> = ({
             </Label>
             <Input
               id="benPostCode"
-              value={data.benPostCode}
-              onChange={(e) => onChange('benPostCode', e.target.value.slice(0, 16))}
+              value={safeData.benPostCode || ''}
+              onChange={(e) => handleChange('benPostCode', e.target.value.slice(0, 16))}
               placeholder="Enter PIN or post code"
               maxLength={16}
               disabled={readOnly}

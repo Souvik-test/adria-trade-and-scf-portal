@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PaymentHeader, SETTLEMENT_METHOD_OPTIONS } from '@/types/internationalRemittance';
+import { PaymentHeader, SETTLEMENT_METHOD_OPTIONS, initialPaymentHeader } from '@/types/internationalRemittance';
 
 interface PaymentHeaderPaneProps {
-  data: PaymentHeader;
-  onChange: (field: keyof PaymentHeader, value: string) => void;
+  data?: PaymentHeader;
+  onChange?: (field: keyof PaymentHeader, value: string) => void;
   readOnly?: boolean;
 }
 
@@ -16,7 +16,15 @@ const PaymentHeaderPane: React.FC<PaymentHeaderPaneProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  // Merge with defaults to ensure all fields exist
+  const safeData = { ...initialPaymentHeader, ...data };
   const inputClassName = 'bg-muted cursor-not-allowed';
+  
+  const handleChange = (field: keyof PaymentHeader, value: string) => {
+    if (onChange) {
+      onChange(field, value);
+    }
+  };
 
   return (
     <Card>
@@ -32,7 +40,7 @@ const PaymentHeaderPane: React.FC<PaymentHeaderPaneProps> = ({
             </Label>
             <Input
               id="msgRef"
-              value={data.msgRef}
+              value={safeData.msgRef || ''}
               readOnly
               disabled
               className={inputClassName}
@@ -48,7 +56,7 @@ const PaymentHeaderPane: React.FC<PaymentHeaderPaneProps> = ({
             </Label>
             <Input
               id="uetr"
-              value={data.uetr}
+              value={safeData.uetr || ''}
               readOnly
               disabled
               className={inputClassName}
@@ -64,7 +72,7 @@ const PaymentHeaderPane: React.FC<PaymentHeaderPaneProps> = ({
             </Label>
             <Input
               id="creDt"
-              value={data.creDt}
+              value={safeData.creDt || ''}
               readOnly
               disabled
               className={inputClassName}
@@ -79,8 +87,8 @@ const PaymentHeaderPane: React.FC<PaymentHeaderPaneProps> = ({
               Settlement Method <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={data.sttlmMtd}
-              onValueChange={(value) => onChange('sttlmMtd', value)}
+              value={safeData.sttlmMtd || ''}
+              onValueChange={(value) => handleChange('sttlmMtd', value)}
               disabled={readOnly}
             >
               <SelectTrigger className={readOnly ? inputClassName : ''}>
