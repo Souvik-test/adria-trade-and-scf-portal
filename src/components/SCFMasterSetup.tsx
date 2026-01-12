@@ -69,7 +69,7 @@ const SCFMasterSetup: React.FC<SCFMasterSetupProps> = ({ onBack }) => {
     },
     {
       id: 'counter-party-onboarding',
-      title: 'Counter-Party Onboarding',
+      title: 'Party Onboarding',
       icon: UserPlus,
       description: 'Manage supplier and buyer onboarding',
       hasFlip: true,

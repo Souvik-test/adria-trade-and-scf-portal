@@ -173,7 +173,7 @@ export function AppSidebar({
     tooltip: 'Define eligibility, discount rates, and limits for financing programs'
   }, {
     id: 'counter-party-onboarding',
-    title: 'Counter-Party Onboarding',
+    title: 'Party Onboarding',
     icon: UserPlus,
     tooltip: 'Manage supplier and buyer onboarding processes'
   }, {
