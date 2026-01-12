@@ -166,6 +166,45 @@ const ManagePanesAndSections = () => {
   // Get unique customer segments - all available options
   const allCustomerSegments = ['Corporate', 'Bank', 'Agent'];
 
+  // Compute available customer segments based on selected business applications
+  // Mapping:
+  // 1. Adria TSCF Client → Corporate only
+  // 2. Adria Process Orchestrator OR Adria TSCF Bank → Bank and Agent
+  // 3. All three → Corporate, Bank, and Agent
+  const getAvailableCustomerSegments = (): string[] => {
+    if (selectedBusinessApps.length === 0) return [];
+    
+    const hasClient = selectedBusinessApps.includes('Adria TSCF Client');
+    const hasOrchestrator = selectedBusinessApps.includes('Adria Process Orchestrator');
+    const hasBank = selectedBusinessApps.includes('Adria TSCF Bank');
+    
+    const segments: string[] = [];
+    
+    // If Adria TSCF Client is selected, Corporate is available
+    if (hasClient) {
+      segments.push('Corporate');
+    }
+    
+    // If Adria Process Orchestrator or Adria TSCF Bank is selected, Bank and Agent are available
+    if (hasOrchestrator || hasBank) {
+      segments.push('Bank', 'Agent');
+    }
+    
+    return segments;
+  };
+
+  const availableCustomerSegments = getAvailableCustomerSegments();
+
+  // Auto-deselect customer segments that are no longer available when business apps change
+  React.useEffect(() => {
+    if (selectedBusinessApps.length > 0) {
+      const stillValid = selectedCustomerSegments.filter(seg => availableCustomerSegments.includes(seg));
+      if (stillValid.length !== selectedCustomerSegments.length) {
+        setSelectedCustomerSegments(stillValid);
+      }
+    }
+  }, [selectedBusinessApps]);
+
   // For filtering products and events, we use the first selected values
   const primaryBusinessApp = selectedBusinessApps[0] || '';
   const primaryCustomerSegment = selectedCustomerSegments[0] || '';
@@ -1030,24 +1069,35 @@ const ManagePanesAndSections = () => {
                 <div className="space-y-2">
                   <Label>Customer Segment (Multi-select)</Label>
                   <div className="border rounded-md p-3 space-y-2">
-                    {allCustomerSegments.map(segment => (
-                      <div key={segment} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`cs-${segment}`}
-                          checked={selectedCustomerSegments.includes(segment)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCustomerSegments([...selectedCustomerSegments, segment]);
-                            } else {
-                              setSelectedCustomerSegments(selectedCustomerSegments.filter(s => s !== segment));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`cs-${segment}`} className="text-sm font-normal cursor-pointer">
-                          {segment}
-                        </Label>
-                      </div>
-                    ))}
+                    {allCustomerSegments.map(segment => {
+                      const isAvailable = availableCustomerSegments.includes(segment);
+                      return (
+                        <div key={segment} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`cs-${segment}`}
+                            checked={selectedCustomerSegments.includes(segment)}
+                            disabled={!isAvailable}
+                            onCheckedChange={(checked) => {
+                              if (!isAvailable) return;
+                              if (checked) {
+                                setSelectedCustomerSegments([...selectedCustomerSegments, segment]);
+                              } else {
+                                setSelectedCustomerSegments(selectedCustomerSegments.filter(s => s !== segment));
+                              }
+                            }}
+                          />
+                          <Label 
+                            htmlFor={`cs-${segment}`} 
+                            className={`text-sm font-normal ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed text-muted-foreground'}`}
+                          >
+                            {segment}
+                            {!isAvailable && selectedBusinessApps.length > 0 && (
+                              <span className="ml-1 text-xs text-muted-foreground">(not available)</span>
+                            )}
+                          </Label>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
