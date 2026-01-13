@@ -3614,6 +3614,148 @@ export type Database = {
           },
         ]
       }
+      validation_condition: {
+        Row: {
+          compare_source: string
+          compare_value: string | null
+          condition_id: string
+          created_at: string
+          field_code: string
+          id: string
+          join_type: string | null
+          operator: string
+          rule_id: string
+          sequence: number
+        }
+        Insert: {
+          compare_source?: string
+          compare_value?: string | null
+          condition_id: string
+          created_at?: string
+          field_code: string
+          id?: string
+          join_type?: string | null
+          operator: string
+          rule_id: string
+          sequence?: number
+        }
+        Update: {
+          compare_source?: string
+          compare_value?: string | null
+          condition_id?: string
+          created_at?: string
+          field_code?: string
+          id?: string
+          join_type?: string | null
+          operator?: string
+          rule_id?: string
+          sequence?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validation_condition_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "validation_rule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      validation_execution_log: {
+        Row: {
+          created_at: string
+          id: string
+          log_id: string
+          message: string
+          overridden_at: string | null
+          overridden_by: string | null
+          overridden_flag: boolean
+          rule_id: string
+          txn_id: string
+          validation_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_id: string
+          message: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          overridden_flag?: boolean
+          rule_id: string
+          txn_id: string
+          validation_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_id?: string
+          message?: string
+          overridden_at?: string | null
+          overridden_by?: string | null
+          overridden_flag?: boolean
+          rule_id?: string
+          txn_id?: string
+          validation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validation_execution_log_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "validation_rule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      validation_rule: {
+        Row: {
+          active_flag: boolean
+          created_at: string
+          created_by: string | null
+          event_code: string
+          id: string
+          message: string
+          priority: number
+          product_code: string
+          rule_id: string
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string
+          validation_type: string
+        }
+        Insert: {
+          active_flag?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_code: string
+          id?: string
+          message: string
+          priority?: number
+          product_code: string
+          rule_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id: string
+          validation_type: string
+        }
+        Update: {
+          active_flag?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_code?: string
+          id?: string
+          message?: string
+          priority?: number
+          product_code?: string
+          rule_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string
+          validation_type?: string
+        }
+        Relationships: []
+      }
       workflow_conditions: {
         Row: {
           compare_field: string | null
@@ -3934,6 +4076,10 @@ export type Database = {
       delete_user_permissions: {
         Args: { p_permission_ids: string[]; p_requesting_user_id: string }
         Returns: number
+      }
+      delete_validation_rule: {
+        Args: { p_id: string; p_user_id: string }
+        Returns: boolean
       }
       generate_assignment_ref: { Args: never; Returns: string }
       generate_documentary_collection_bill_ref: { Args: never; Returns: string }
@@ -4391,6 +4537,24 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_validation_rules_with_conditions: {
+        Args: { p_user_id: string }
+        Returns: {
+          active_flag: boolean
+          conditions: Json
+          created_at: string
+          created_by: string
+          event_code: string
+          id: string
+          message: string
+          priority: number
+          product_code: string
+          rule_id: string
+          updated_at: string
+          updated_by: string
+          validation_type: string
+        }[]
+      }
       hard_delete_pane_section_mapping: {
         Args: { p_config_id: string; p_requester_id: string }
         Returns: boolean
@@ -4522,6 +4686,20 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      insert_validation_rule_with_conditions: {
+        Args: {
+          p_active_flag: boolean
+          p_conditions: Json
+          p_event_code: string
+          p_message: string
+          p_priority: number
+          p_product_code: string
+          p_rule_id: string
+          p_user_id: string
+          p_validation_type: string
+        }
+        Returns: string
+      }
       notify_scf_users_by_role: {
         Args: {
           p_exclude_user_id?: string
@@ -4538,6 +4716,10 @@ export type Database = {
       }
       toggle_pane_section_active: {
         Args: { p_config_id: string; p_is_active: boolean }
+        Returns: boolean
+      }
+      toggle_validation_rule_active: {
+        Args: { p_active: boolean; p_id: string; p_user_id: string }
         Returns: boolean
       }
       update_custom_user:
@@ -4594,6 +4776,20 @@ export type Database = {
       }
       update_user_password: {
         Args: { new_password: string; old_password: string }
+        Returns: boolean
+      }
+      update_validation_rule_with_conditions: {
+        Args: {
+          p_active_flag: boolean
+          p_conditions: Json
+          p_event_code: string
+          p_id: string
+          p_message: string
+          p_priority: number
+          p_product_code: string
+          p_user_id: string
+          p_validation_type: string
+        }
         Returns: boolean
       }
       upsert_pane_section_mapping: {

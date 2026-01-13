@@ -19,6 +19,7 @@ import FieldDefinition from '@/components/control-centre/FieldDefinition';
 import CountryMaster from '@/components/foundational-data/CountryMaster';
 import { NextGenWorkflowConfigurator } from '@/components/control-centre/NextGenWorkflowConfigurator';
 import UserAccessManagement from '@/components/control-centre/UserAccessManagement';
+import { BusinessValidationEngine } from '@/components/control-centre/BusinessValidationEngine';
 
 
 const Index = () => {
@@ -123,6 +124,8 @@ const Index = () => {
         return <NextGenWorkflowConfigurator />;
       case 'user-access-management':
         return <UserAccessManagement />;
+      case 'business-validation-engine':
+        return <BusinessValidationEngine />;
       case 'document-inquiry':
         return <DocumentInquiry />;
       case 'inquiry':
