@@ -128,13 +128,13 @@ const VALIDATION_TYPES = [
 ];
 
 export function BusinessValidationEngine() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   // State
   const [rules, setRules] = useState<ValidationRule[]>([]);
   const [productEvents, setProductEvents] = useState<ProductEventOption[]>([]);
   const [fields, setFields] = useState<FieldOption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<ValidationRule | null>(null);
@@ -188,31 +188,45 @@ export function BusinessValidationEngine() {
     });
   }, [rules, filterProduct, filterEvent, filterType, filterStatus]);
 
-  // Refs to prevent refresh loops
+  // Refs to prevent refresh loops / setState on unmounted
   const isMountedRef = useRef(true);
-  const isFetchingRef = useRef(false);
+  const isFetchingRulesRef = useRef(false);
+  const isFetchingProductsRef = useRef(false);
 
-  // Fetch data
   useEffect(() => {
     isMountedRef.current = true;
-    
-    const loadData = async () => {
-      if (!user?.id || isFetchingRef.current) return;
-      
-      isFetchingRef.current = true;
-      try {
-        await Promise.all([fetchRules(), fetchProductEvents()]);
-      } finally {
-        isFetchingRef.current = false;
-      }
-    };
-    
-    loadData();
-    
     return () => {
       isMountedRef.current = false;
     };
-  }, [user?.id]);
+  }, []);
+
+  // Fetch product + event definitions (does not depend on user)
+  useEffect(() => {
+    if (authLoading || isFetchingProductsRef.current) return;
+
+    isFetchingProductsRef.current = true;
+    fetchProductEvents().finally(() => {
+      isFetchingProductsRef.current = false;
+    });
+  }, [authLoading]);
+
+  // Fetch rules once auth is resolved
+  useEffect(() => {
+    if (authLoading) return;
+
+    // If not signed in, don't keep the table in a perpetual spinner state
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (isFetchingRulesRef.current) return;
+
+    isFetchingRulesRef.current = true;
+    fetchRules().finally(() => {
+      isFetchingRulesRef.current = false;
+    });
+  }, [authLoading, user?.id]);
 
   // Fetch fields when product changes in form
   useEffect(() => {
