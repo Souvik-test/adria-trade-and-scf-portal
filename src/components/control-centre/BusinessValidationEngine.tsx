@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -188,12 +188,30 @@ export function BusinessValidationEngine() {
     });
   }, [rules, filterProduct, filterEvent, filterType, filterStatus]);
 
+  // Refs to prevent refresh loops
+  const isMountedRef = useRef(true);
+  const isFetchingRef = useRef(false);
+
   // Fetch data
   useEffect(() => {
-    if (user?.id) {
-      fetchRules();
-      fetchProductEvents();
-    }
+    isMountedRef.current = true;
+    
+    const loadData = async () => {
+      if (!user?.id || isFetchingRef.current) return;
+      
+      isFetchingRef.current = true;
+      try {
+        await Promise.all([fetchRules(), fetchProductEvents()]);
+      } finally {
+        isFetchingRef.current = false;
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [user?.id]);
 
   // Fetch fields when product changes in form
@@ -213,31 +231,43 @@ export function BusinessValidationEngine() {
       });
       
       if (error) throw error;
-      setRules((data || []) as unknown as ValidationRule[]);
+      if (isMountedRef.current) {
+        setRules((data || []) as unknown as ValidationRule[]);
+      }
     } catch (error: any) {
       console.error('Error fetching rules:', error);
       toast.error('Failed to fetch validation rules');
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
   const fetchProductEvents = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_product_event_mappings');
+      const { data, error } = await supabase
+        .from('product_event_definitions')
+        .select('product_code, product_name, event_code, event_name, module_code')
+        .order('module_code')
+        .order('product_code')
+        .order('event_code');
       
       if (error) throw error;
       
-      const mapped: ProductEventOption[] = (data || []).map((item: any) => ({
-        product_code: item.product_code,
-        product_name: item.product_name || item.product_code,
-        event_code: item.event_code,
-        event_name: item.event_name || item.event_code,
-      }));
-      
-      setProductEvents(mapped);
+      if (isMountedRef.current) {
+        const mapped: ProductEventOption[] = (data || []).map((item: any) => ({
+          product_code: item.product_code,
+          product_name: item.product_name || item.product_code,
+          event_code: item.event_code,
+          event_name: item.event_name || item.event_code,
+        }));
+        
+        setProductEvents(mapped);
+      }
     } catch (error: any) {
       console.error('Error fetching product events:', error);
+      toast.error('Failed to fetch products');
     }
   };
 
