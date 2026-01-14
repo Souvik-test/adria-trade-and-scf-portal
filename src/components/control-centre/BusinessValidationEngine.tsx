@@ -48,7 +48,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Separator } from '@/components/ui/separator';
 import {
   Plus,
@@ -103,7 +103,7 @@ interface ProductEventOption {
 interface FieldOption {
   field_code: string;
   field_label_key: string;
-  data_type: string;
+  data_type?: string;
 }
 
 const OPERATORS = [
@@ -289,16 +289,23 @@ export function BusinessValidationEngine() {
 
   const fetchFields = async (productCode: string, eventCode: string) => {
     try {
-      const { data, error } = await supabase
-        .from('field_repository')
-        .select('field_code, field_label_key, data_type')
-        .eq('product_code', productCode)
-        .eq('event_type', eventCode)
-        .eq('is_active_flag', true)
-        .order('field_label_key');
-      
+      const { data, error } = await supabase.rpc('get_all_fields_for_mapping', {
+        p_product_code: productCode,
+        p_event_type: eventCode,
+      });
+
       if (error) throw error;
-      setFields((data || []) as FieldOption[]);
+
+      const mapped: FieldOption[] = (data || []).map((item: any) => ({
+        field_code: item.field_code,
+        field_label_key: item.field_label_key || item.field_code,
+        data_type: item.data_type,
+      }));
+
+      // Sort defensively for stable UX
+      mapped.sort((a, b) => (a.field_label_key || '').localeCompare(b.field_label_key || ''));
+
+      setFields(mapped);
     } catch (error: any) {
       console.error('Error fetching fields:', error);
       setFields([]);
@@ -688,7 +695,7 @@ export function BusinessValidationEngine() {
                         {productEvents.find(p => p.product_code === rule.product_code)?.product_name || rule.product_code}
                       </TableCell>
                       <TableCell>
-                        {productEvents.find(p => p.event_code === rule.event_code)?.event_name || rule.event_code}
+                        {productEvents.find(p => p.product_code === rule.product_code && p.event_code === rule.event_code)?.event_name || rule.event_code}
                       </TableCell>
                       <TableCell>
                         <Badge className={`${getTypeBadgeClass(rule.validation_type)} flex items-center gap-1 w-fit`}>
@@ -764,7 +771,7 @@ export function BusinessValidationEngine() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {selectedRule ? 'Edit Validation Rule' : 'Create Validation Rule'}
@@ -774,7 +781,7 @@ export function BusinessValidationEngine() {
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 min-h-0 pr-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+          <div className="flex-1 min-h-0 overflow-y-auto pr-4">
             <div className="space-y-6 py-4">
               {/* Rule Header Section */}
               <div className="space-y-4">
@@ -1059,9 +1066,9 @@ export function BusinessValidationEngine() {
                 </>
               )}
             </div>
-          </ScrollArea>
+          </div>
           
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 flex-shrink-0">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
