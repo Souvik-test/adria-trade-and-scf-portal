@@ -228,12 +228,14 @@ export function BusinessValidationEngine() {
     });
   }, [authLoading, user?.id]);
 
-  // Fetch fields when product changes in form
+  // Fetch fields when product or event changes in form
   useEffect(() => {
-    if (formData.product_code) {
-      fetchFields(formData.product_code);
+    if (formData.product_code && formData.event_code) {
+      fetchFields(formData.product_code, formData.event_code);
+    } else {
+      setFields([]);
     }
-  }, [formData.product_code]);
+  }, [formData.product_code, formData.event_code]);
 
   const fetchRules = async () => {
     if (!user?.id) return;
@@ -285,18 +287,21 @@ export function BusinessValidationEngine() {
     }
   };
 
-  const fetchFields = async (productCode: string) => {
+  const fetchFields = async (productCode: string, eventCode: string) => {
     try {
       const { data, error } = await supabase
         .from('field_repository')
         .select('field_code, field_label_key, data_type')
         .eq('product_code', productCode)
-        .eq('is_active_flag', true);
+        .eq('event_type', eventCode)
+        .eq('is_active_flag', true)
+        .order('field_label_key');
       
       if (error) throw error;
       setFields((data || []) as FieldOption[]);
     } catch (error: any) {
       console.error('Error fetching fields:', error);
+      setFields([]);
     }
   };
 
@@ -759,8 +764,8 @@ export function BusinessValidationEngine() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {selectedRule ? 'Edit Validation Rule' : 'Create Validation Rule'}
             </DialogTitle>
@@ -769,7 +774,7 @@ export function BusinessValidationEngine() {
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 pr-4">
+          <ScrollArea className="flex-1 min-h-0 pr-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
             <div className="space-y-6 py-4">
               {/* Rule Header Section */}
               <div className="space-y-4">
@@ -785,10 +790,10 @@ export function BusinessValidationEngine() {
                       value={formData.product_code}
                       onValueChange={(v) => setFormData({ ...formData, product_code: v, event_code: '' })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select product" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[200] bg-popover" position="popper" sideOffset={4}>
                         {uniqueProducts.map(p => (
                           <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
                         ))}
@@ -803,10 +808,10 @@ export function BusinessValidationEngine() {
                       onValueChange={(v) => setFormData({ ...formData, event_code: v })}
                       disabled={!formData.product_code}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select event" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[200] bg-popover" position="popper" sideOffset={4}>
                         {formFilteredEvents.map(e => (
                           <SelectItem key={e.event_code} value={e.event_code}>{e.event_name}</SelectItem>
                         ))}
@@ -822,10 +827,10 @@ export function BusinessValidationEngine() {
                       value={formData.validation_type}
                       onValueChange={(v) => setFormData({ ...formData, validation_type: v as any })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[200] bg-popover" position="popper" sideOffset={4}>
                         {VALIDATION_TYPES.map(t => (
                           <SelectItem key={t.value} value={t.value}>
                             <div className="flex items-center gap-2">
@@ -911,7 +916,7 @@ export function BusinessValidationEngine() {
                         </div>
                         
                         {/* Join Type */}
-                        <div className="w-20">
+                        <div className="w-20 flex-shrink-0">
                           {index > 0 ? (
                             <Select
                               value={cond.join_type || 'AND'}
@@ -920,7 +925,7 @@ export function BusinessValidationEngine() {
                               <SelectTrigger className="h-9">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="z-[200] bg-popover" position="popper" sideOffset={4}>
                                 <SelectItem value="AND">AND</SelectItem>
                                 <SelectItem value="OR">OR</SelectItem>
                               </SelectContent>
@@ -933,7 +938,7 @@ export function BusinessValidationEngine() {
                         </div>
                         
                         {/* Field */}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-[150px]">
                           <Select
                             value={cond.field_code}
                             onValueChange={(v) => updateCondition(index, { field_code: v })}
@@ -941,18 +946,24 @@ export function BusinessValidationEngine() {
                             <SelectTrigger className="h-9">
                               <SelectValue placeholder="Select field" />
                             </SelectTrigger>
-                            <SelectContent>
-                              {fields.map(f => (
-                                <SelectItem key={f.field_code} value={f.field_code}>
-                                  {f.field_label_key || f.field_code}
-                                </SelectItem>
-                              ))}
+                            <SelectContent className="z-[200] bg-popover max-h-[200px]" position="popper" sideOffset={4}>
+                              {fields.length === 0 ? (
+                                <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                                  {formData.event_code ? 'No fields available' : 'Select product & event first'}
+                                </div>
+                              ) : (
+                                fields.map(f => (
+                                  <SelectItem key={f.field_code} value={f.field_code}>
+                                    {f.field_label_key || f.field_code}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
                         
                         {/* Operator */}
-                        <div className="w-44">
+                        <div className="w-44 flex-shrink-0">
                           <Select
                             value={cond.operator}
                             onValueChange={(v) => updateCondition(index, { operator: v })}
@@ -960,7 +971,7 @@ export function BusinessValidationEngine() {
                             <SelectTrigger className="h-9">
                               <SelectValue placeholder="Operator" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="z-[200] bg-popover max-h-[200px]" position="popper" sideOffset={4}>
                               {OPERATORS.map(o => (
                                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                               ))}
@@ -971,7 +982,7 @@ export function BusinessValidationEngine() {
                         {/* Value Type & Value */}
                         {!['IS NULL', 'IS NOT NULL'].includes(cond.operator) && (
                           <>
-                            <div className="w-28">
+                            <div className="w-28 flex-shrink-0">
                               <Select
                                 value={cond.compare_source}
                                 onValueChange={(v) => updateCondition(index, { compare_source: v as any, compare_value: '' })}
@@ -979,14 +990,14 @@ export function BusinessValidationEngine() {
                                 <SelectTrigger className="h-9">
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[200] bg-popover" position="popper" sideOffset={4}>
                                   <SelectItem value="CONSTANT">Value</SelectItem>
                                   <SelectItem value="FIELD">Field</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-[120px]">
                               {cond.compare_source === 'FIELD' ? (
                                 <Select
                                   value={cond.compare_value}
@@ -995,7 +1006,7 @@ export function BusinessValidationEngine() {
                                   <SelectTrigger className="h-9">
                                     <SelectValue placeholder="Select field" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="z-[200] bg-popover max-h-[200px]" position="popper" sideOffset={4}>
                                     {fields.filter(f => f.field_code !== cond.field_code).map(f => (
                                       <SelectItem key={f.field_code} value={f.field_code}>
                                         {f.field_label_key || f.field_code}
