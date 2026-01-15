@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { customAuth, CustomUser } from '@/services/customAuth';
 import { toast } from 'sonner';
 import {
   Card,
@@ -129,6 +130,22 @@ const VALIDATION_TYPES = [
 
 export function BusinessValidationEngine() {
   const { user, loading: authLoading } = useAuth();
+  const [customUser, setCustomUser] = useState<CustomUser | null>(null);
+  
+  // Get effective user ID from either auth system
+  const getEffectiveUserId = (): string | null => {
+    if (customUser?.id) return customUser.id;
+    if (user?.id) return user.id;
+    return null;
+  };
+  
+  // Load custom user session on mount
+  useEffect(() => {
+    const session = customAuth.getSession();
+    if (session?.user) {
+      setCustomUser(session.user);
+    }
+  }, []);
   
   // State
   const [rules, setRules] = useState<ValidationRule[]>([]);
@@ -214,8 +231,9 @@ export function BusinessValidationEngine() {
   useEffect(() => {
     if (authLoading) return;
 
+    const userId = getEffectiveUserId();
     // If not signed in, don't keep the table in a perpetual spinner state
-    if (!user?.id) {
+    if (!userId) {
       setIsLoading(false);
       return;
     }
@@ -226,7 +244,7 @@ export function BusinessValidationEngine() {
     fetchRules().finally(() => {
       isFetchingRulesRef.current = false;
     });
-  }, [authLoading, user?.id]);
+  }, [authLoading, user?.id, customUser?.id]);
 
   // Fetch fields when product or event changes in form
   useEffect(() => {
@@ -238,12 +256,13 @@ export function BusinessValidationEngine() {
   }, [formData.product_code, formData.event_code]);
 
   const fetchRules = async () => {
-    if (!user?.id) return;
+    const userId = getEffectiveUserId();
+    if (!userId) return;
     
     setIsLoading(true);
     try {
       const { data, error } = await supabase.rpc('get_validation_rules_with_conditions', {
-        p_user_id: user.id,
+        p_user_id: userId,
       });
       
       if (error) throw error;
@@ -349,11 +368,12 @@ export function BusinessValidationEngine() {
   };
 
   const confirmDelete = async () => {
-    if (!user?.id || !selectedRule) return;
+    const userId = getEffectiveUserId();
+    if (!userId || !selectedRule) return;
     
     try {
       const { error } = await supabase.rpc('delete_validation_rule', {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_id: selectedRule.id,
       });
       
@@ -371,11 +391,12 @@ export function BusinessValidationEngine() {
   };
 
   const handleToggleActive = async (rule: ValidationRule) => {
-    if (!user?.id) return;
+    const userId = getEffectiveUserId();
+    if (!userId) return;
     
     try {
       const { error } = await supabase.rpc('toggle_validation_rule_active', {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_id: rule.id,
         p_active: !rule.active_flag,
       });
@@ -391,7 +412,11 @@ export function BusinessValidationEngine() {
   };
 
   const handleSaveRule = async () => {
-    if (!user?.id) return;
+    const userId = getEffectiveUserId();
+    if (!userId) {
+      toast.error('You must be logged in to create a rule');
+      return;
+    }
     
     // Validation
     if (!formData.product_code || !formData.event_code || !formData.message.trim()) {
@@ -430,7 +455,7 @@ export function BusinessValidationEngine() {
       if (selectedRule) {
         // Update existing rule
         const { error } = await supabase.rpc('update_validation_rule_with_conditions', {
-          p_user_id: user.id,
+          p_user_id: userId,
           p_id: selectedRule.id,
           p_product_code: formData.product_code,
           p_event_code: formData.event_code,
@@ -447,7 +472,7 @@ export function BusinessValidationEngine() {
         // Create new rule
         const ruleId = `VR_${Date.now()}`;
         const { error } = await supabase.rpc('insert_validation_rule_with_conditions', {
-          p_user_id: user.id,
+          p_user_id: userId,
           p_rule_id: ruleId,
           p_product_code: formData.product_code,
           p_event_code: formData.event_code,
