@@ -424,12 +424,7 @@ export function BusinessValidationEngine() {
       return;
     }
     
-    if (conditions.length === 0) {
-      toast.error('Please add at least one condition');
-      return;
-    }
-    
-    // Validate conditions
+    // Validate conditions (only if any conditions exist)
     for (const cond of conditions) {
       if (!cond.field_code || !cond.operator) {
         toast.error('Please complete all condition fields');
