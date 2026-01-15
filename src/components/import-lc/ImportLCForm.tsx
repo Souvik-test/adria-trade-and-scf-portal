@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useImportLCForm from '@/hooks/useImportLCForm';
+import useBusinessValidation from '@/hooks/useBusinessValidation';
 import ImportLCProgressIndicator from './ImportLCProgressIndicator';
 import ImportLCPaneRenderer from './ImportLCPaneRenderer';
 import ImportLCFormActions from './ImportLCFormActions';
 import MT700SidebarPreview from './MT700SidebarPreview';
 import SaveTemplateDialog from './SaveTemplateDialog';
+import ValidationResultsDialog from './ValidationResultsDialog';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +24,10 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const [paneConfig, setPaneConfig] = useState<PaneConfig[]>([]);
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<'next' | 'submit' | null>(null);
+  
+  const { validationResult, isValidating, runValidation, clearValidation } = useBusinessValidation();
   
   // Determine context based on businessCentre
   const businessCentre = localStorage.getItem('businessCentre') || '';
@@ -70,7 +76,37 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
   const currentPaneConfig = paneConfig[currentStep];
   const showSwiftPreview = currentPaneConfig?.showSwiftPreview !== false;
 
-  const handleSubmit = async () => {
+  // Run business validation before navigation
+  const handleNextWithValidation = useCallback(async () => {
+    // Run business validation
+    const result = await runValidation('ILC', 'ISS', formData);
+    
+    // If there are any validation messages, show the dialog
+    if (result.hasErrors || result.hasWarnings || result.information.length > 0) {
+      setPendingNavigation('next');
+      setValidationDialogOpen(true);
+    } else {
+      // No validation issues, proceed directly
+      nextStep();
+    }
+  }, [formData, runValidation, nextStep]);
+
+  // Handle submit with validation
+  const handleSubmitWithValidation = useCallback(async () => {
+    // Run business validation
+    const result = await runValidation('ILC', 'ISS', formData);
+    
+    // If there are any validation messages, show the dialog
+    if (result.hasErrors || result.hasWarnings || result.information.length > 0) {
+      setPendingNavigation('submit');
+      setValidationDialogOpen(true);
+    } else {
+      // No validation issues, proceed directly
+      await performSubmit();
+    }
+  }, [formData, runValidation]);
+
+  const performSubmit = async () => {
     try {
       console.log('Starting form submission...');
       await submitForm();
@@ -88,6 +124,26 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
       });
     }
   };
+
+  // Handle proceeding after validation dialog
+  const handleValidationProceed = useCallback(() => {
+    setValidationDialogOpen(false);
+    clearValidation();
+    
+    if (pendingNavigation === 'next') {
+      nextStep();
+    } else if (pendingNavigation === 'submit') {
+      performSubmit();
+    }
+    setPendingNavigation(null);
+  }, [pendingNavigation, nextStep, clearValidation]);
+
+  // Handle canceling after validation dialog
+  const handleValidationCancel = useCallback(() => {
+    setValidationDialogOpen(false);
+    clearValidation();
+    setPendingNavigation(null);
+  }, [clearValidation]);
 
   const handleSaveDraft = async () => {
     try {
@@ -156,12 +212,12 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
         <div className="flex-shrink-0 px-6 pb-6">
           <ImportLCFormActions
             currentStep={currentStep}
-            isValid={isCurrentStepValid()}
+            isValid={isCurrentStepValid() && !isValidating}
             onPrevious={previousStep}
-            onNext={nextStep}
+            onNext={handleNextWithValidation}
             onSaveDraft={handleSaveDraft}
             onSaveTemplate={() => setSaveTemplateOpen(true)}
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmitWithValidation}
             onDiscard={handleDiscard}
             onClose={onClose}
             onBack={onBack}
@@ -179,6 +235,15 @@ const ImportLCForm: React.FC<ImportLCFormProps> = ({ onBack, onClose }) => {
         onOpenChange={setSaveTemplateOpen}
         formData={formData}
         userId={userId}
+      />
+
+      {/* Validation Results Dialog */}
+      <ValidationResultsDialog
+        open={validationDialogOpen}
+        onOpenChange={setValidationDialogOpen}
+        validationResult={validationResult}
+        onProceed={handleValidationProceed}
+        onCancel={handleValidationCancel}
       />
     </div>
   );

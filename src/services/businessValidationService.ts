@@ -118,12 +118,16 @@ function evaluateCondition(
 
 /**
  * Evaluates all conditions for a rule using AND/OR logic
+ * Rules without conditions always trigger (unconditional rules)
  */
 function evaluateRule(
   rule: ValidationRule,
   transactionData: Record<string, any>
 ): boolean {
-  if (rule.conditions.length === 0) return false;
+  // Rules without conditions always trigger (unconditional messages)
+  if (!rule.conditions || rule.conditions.length === 0) {
+    return true;
+  }
   
   // Sort conditions by sequence
   const sortedConditions = [...rule.conditions].sort((a, b) => a.sequence - b.sequence);
@@ -187,7 +191,8 @@ export async function validateTransaction(
       const triggered = evaluateRule(rule, payload.transactionData);
       
       if (triggered) {
-        const fieldCodes = rule.conditions.map((c: ValidationCondition) => c.field_code);
+        // Handle rules with no conditions (unconditional rules)
+        const fieldCodes = (rule.conditions || []).map((c: ValidationCondition) => c.field_code).filter(Boolean);
         const resultItem: ValidationResultItem = {
           rule_id: rule.rule_id,
           message: rule.message,
