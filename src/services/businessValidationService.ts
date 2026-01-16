@@ -41,17 +41,47 @@ interface ValidationRule {
 }
 
 /**
+ * Normalizes a field code for consistent matching
+ * Handles variations like "LC  Number" vs "LC Number"
+ */
+export function normalizeFieldCode(code: string): string {
+  return (code || '')
+    .trim()
+    .replace(/\s+/g, ' '); // Collapse multiple spaces to single space
+}
+
+/**
+ * Gets a value from transactionData, trying both exact match and normalized match
+ */
+function getFieldValue(fieldCode: string, transactionData: Record<string, any>): any {
+  // Try exact match first
+  if (fieldCode in transactionData) {
+    return transactionData[fieldCode];
+  }
+  
+  // Try normalized match
+  const normalizedTarget = normalizeFieldCode(fieldCode).toLowerCase();
+  for (const key of Object.keys(transactionData)) {
+    if (normalizeFieldCode(key).toLowerCase() === normalizedTarget) {
+      return transactionData[key];
+    }
+  }
+  
+  return undefined;
+}
+
+/**
  * Evaluates a single condition against transaction data
  */
 function evaluateCondition(
   condition: ValidationCondition,
   transactionData: Record<string, any>
 ): boolean {
-  const fieldValue = transactionData[condition.field_code];
+  const fieldValue = getFieldValue(condition.field_code, transactionData);
   
   let compareValue: any;
   if (condition.compare_source === 'FIELD') {
-    compareValue = transactionData[condition.compare_value];
+    compareValue = getFieldValue(condition.compare_value, transactionData);
   } else {
     compareValue = condition.compare_value;
   }

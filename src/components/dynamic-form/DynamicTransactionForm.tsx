@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,10 @@ import DynamicProgressIndicator from './DynamicProgressIndicator';
 import DynamicButtonRenderer from './DynamicButtonRenderer';
 import HybridFormContainer from './HybridFormContainer';
 import DynamicMT700Sidebar from './DynamicMT700Sidebar';
+import { useBusinessValidation } from '@/hooks/useBusinessValidation';
+import ValidationResultsDialog from '@/components/import-lc/ValidationResultsDialog';
+import { normalizeFieldCode, ValidationResult, ValidationResultItem } from '@/services/businessValidationService';
+import { supabase } from '@/integrations/supabase/client';
 interface DynamicTransactionFormProps {
   productCode: string;
   eventCode: string;
@@ -50,6 +54,19 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
+
+  // Business validation state
+  const { validationResult, isValidating, runValidation, clearValidation } = useBusinessValidation();
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'dynamicNext' | 'staticNext' | 'stageSubmit' | 'finalSubmit';
+  } | null>(null);
+  const [acknowledgedRuleIds, setAcknowledgedRuleIds] = useState<Set<string>>(new Set());
+  const [filteredValidationResult, setFilteredValidationResult] = useState<ValidationResult | null>(null);
+  
+  // Field to pane mapping for pane-aware validation
+  const [fieldToPaneMap, setFieldToPaneMap] = useState<Map<string, string>>(new Map());
+  const [paneOrderMap, setPaneOrderMap] = useState<Map<string, number>>(new Map());
 
   const {
     loading,
@@ -134,6 +151,210 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       setIsRejecting(false);
     }
   }, [rejectReason, handleReject]);
+
+  // Fetch field-to-pane mapping for pane-aware validation
+  useEffect(() => {
+    const fetchFieldPaneMapping = async () => {
+      if (!productCode || !eventCode) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('get_dynamic_form_fields', {
+          p_product_code: productCode,
+          p_event_type: eventCode,
+        });
+        
+        if (!error && data) {
+          const fieldMap = new Map<string, string>();
+          (data as any[]).forEach((field: any) => {
+            if (field.field_code && field.pane_code) {
+              fieldMap.set(normalizeFieldCode(field.field_code), field.pane_code);
+            }
+          });
+          setFieldToPaneMap(fieldMap);
+        }
+      } catch (err) {
+        console.error('Error fetching field-pane mapping:', err);
+      }
+    };
+    
+    fetchFieldPaneMapping();
+  }, [productCode, eventCode]);
+  
+  // Build pane order map when panes change
+  useEffect(() => {
+    const orderMap = new Map<string, number>();
+    panes.forEach((pane, index) => {
+      orderMap.set(pane.name, index);
+    });
+    setPaneOrderMap(orderMap);
+  }, [panes]);
+
+  // Filter validation results for current pane
+  const filterValidationForCurrentPane = useCallback(
+    (result: ValidationResult, currentPaneName: string): ValidationResult => {
+      const filterItems = (items: ValidationResultItem[]): ValidationResultItem[] => {
+        return items.filter((item) => {
+          // Skip already acknowledged rules
+          if (acknowledgedRuleIds.has(item.rule_id)) {
+            return false;
+          }
+          
+          // Unconditional rules (no field_codes): show on any pane
+          if (!item.field_codes || item.field_codes.length === 0) {
+            return true;
+          }
+          
+          // Find the max pane index among the rule's field_codes
+          let maxPaneIndex = -1;
+          for (const fieldCode of item.field_codes) {
+            const normalizedCode = normalizeFieldCode(fieldCode);
+            const paneCode = fieldToPaneMap.get(normalizedCode);
+            if (paneCode) {
+              const paneIndex = paneOrderMap.get(paneCode) ?? -1;
+              if (paneIndex > maxPaneIndex) {
+                maxPaneIndex = paneIndex;
+              }
+            }
+          }
+          
+          // If we couldn't find any pane for the fields, show on current pane (safe default)
+          if (maxPaneIndex === -1) {
+            return true;
+          }
+          
+          // Get current pane index
+          const currentPaneIdx = paneOrderMap.get(currentPaneName) ?? currentPaneIndex;
+          
+          // Show the rule only on the pane where its fields exist
+          return maxPaneIndex === currentPaneIdx;
+        });
+      };
+
+      return {
+        errors: filterItems(result.errors),
+        warnings: filterItems(result.warnings),
+        information: filterItems(result.information),
+        hasErrors: filterItems(result.errors).length > 0,
+        hasWarnings: filterItems(result.warnings).length > 0,
+        canProceed: filterItems(result.errors).length === 0,
+      };
+    },
+    [acknowledgedRuleIds, fieldToPaneMap, paneOrderMap, currentPaneIndex]
+  );
+
+  // Run validation and show dialog if needed
+  const executeValidation = useCallback(
+    async (actionType: 'dynamicNext' | 'staticNext' | 'stageSubmit' | 'finalSubmit') => {
+      const result = await runValidation(productCode, eventCode, formData);
+      
+      // Get current pane name for filtering
+      const currentPane = getCurrentPane();
+      const currentPaneName = currentPane?.name || '';
+      
+      // Filter results for current pane
+      const filtered = filterValidationForCurrentPane(result, currentPaneName);
+      
+      // Check if there are any messages to show
+      const hasMessages =
+        filtered.errors.length > 0 ||
+        filtered.warnings.length > 0 ||
+        filtered.information.length > 0;
+      
+      if (hasMessages) {
+        setFilteredValidationResult(filtered);
+        setPendingAction({ type: actionType });
+        setValidationDialogOpen(true);
+        return false; // Action blocked
+      }
+      
+      return true; // Action can proceed
+    },
+    [runValidation, productCode, eventCode, formData, getCurrentPane, filterValidationForCurrentPane]
+  );
+
+  // Validation-aware next for dynamic stages
+  const handleDynamicNextWithValidation = useCallback(async () => {
+    const canProceed = await executeValidation('dynamicNext');
+    if (canProceed) {
+      navigateToPane('next');
+    }
+  }, [executeValidation, navigateToPane]);
+
+  // Validation-aware next for static stages
+  const handleStaticNextWithValidation = useCallback(async () => {
+    const canProceed = await executeValidation('staticNext');
+    if (canProceed) {
+      handleStaticPaneNavigate('next');
+    }
+  }, [executeValidation, handleStaticPaneNavigate]);
+
+  // Validation-aware stage submit
+  const handleStageSubmitWithValidation = useCallback(async () => {
+    const canProceed = await executeValidation('stageSubmit');
+    if (canProceed) {
+      handleStageSubmit();
+    }
+  }, [executeValidation, handleStageSubmit]);
+
+  // Validation-aware final submit
+  const handleFinalSubmitWithValidation = useCallback(async () => {
+    const canProceed = await executeValidation('finalSubmit');
+    if (canProceed) {
+      handleSubmit();
+    }
+  }, [executeValidation, handleSubmit]);
+
+  // Handle validation dialog proceed
+  const handleValidationProceed = useCallback(() => {
+    // Add warning/info rule IDs to acknowledged set
+    if (filteredValidationResult) {
+      const newAcknowledged = new Set(acknowledgedRuleIds);
+      [...filteredValidationResult.warnings, ...filteredValidationResult.information].forEach(
+        (item) => newAcknowledged.add(item.rule_id)
+      );
+      setAcknowledgedRuleIds(newAcknowledged);
+    }
+    
+    // Execute pending action
+    if (pendingAction) {
+      switch (pendingAction.type) {
+        case 'dynamicNext':
+          navigateToPane('next');
+          break;
+        case 'staticNext':
+          handleStaticPaneNavigate('next');
+          break;
+        case 'stageSubmit':
+          handleStageSubmit();
+          break;
+        case 'finalSubmit':
+          handleSubmit();
+          break;
+      }
+    }
+    
+    setValidationDialogOpen(false);
+    setPendingAction(null);
+    setFilteredValidationResult(null);
+    clearValidation();
+  }, [
+    filteredValidationResult,
+    acknowledgedRuleIds,
+    pendingAction,
+    navigateToPane,
+    handleStaticPaneNavigate,
+    handleStageSubmit,
+    handleSubmit,
+    clearValidation,
+  ]);
+
+  // Handle validation dialog cancel
+  const handleValidationCancel = useCallback(() => {
+    setValidationDialogOpen(false);
+    setPendingAction(null);
+    setFilteredValidationResult(null);
+    clearValidation();
+  }, [clearValidation]);
 
   if (loading) {
     return (
@@ -372,10 +593,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                       </span>
                       <Button 
                         variant="outline" 
-                        disabled={staticPaneIndex === staticPaneTotal - 1}
-                        onClick={() => handleStaticPaneNavigate('next')}
+                        disabled={staticPaneIndex === staticPaneTotal - 1 || isValidating}
+                        onClick={handleStaticNextWithValidation}
                       >
-                        Next
+                        {isValidating ? 'Validating...' : 'Next'}
                       </Button>
                     </>
                   ) : (
@@ -402,9 +623,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                         Save Draft
                       </Button>
                       {isLastStaticPane && (
-                        <Button onClick={handleStageSubmit}>
+                        <Button onClick={handleStageSubmitWithValidation} disabled={isValidating}>
                           <Send className="w-4 h-4 mr-1" />
-                          Submit
+                          {isValidating ? 'Validating...' : 'Submit'}
                         </Button>
                       )}
                     </>
@@ -421,9 +642,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                         <XCircle className="w-4 h-4 mr-1" />
                         Reject
                       </Button>
-                      <Button onClick={handleStageSubmit}>
+                      <Button onClick={handleStageSubmitWithValidation} disabled={isValidating}>
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        Approve
+                        {isValidating ? 'Validating...' : 'Approve'}
                       </Button>
                     </>
                   )}
@@ -484,16 +705,32 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
                 isFinalStage={isFinal}
                 stageName={currentStageName}
                 isStaticStage={false}
-                onNavigate={navigateToPane}
+                onNavigate={(direction) => {
+                  if (direction === 'next') {
+                    handleDynamicNextWithValidation();
+                  } else {
+                    navigateToPane(direction);
+                  }
+                }}
                 onSave={handleSave}
-                onStageSubmit={handleStageSubmit}
-                onSubmit={handleSubmit}
+                onStageSubmit={handleStageSubmitWithValidation}
+                onSubmit={handleFinalSubmitWithValidation}
                 onReject={handleReject}
                 onDiscard={handleDiscard}
                 onClose={handleClose}
+                isLoading={isValidating}
               />
             </div>
           )}
+
+          {/* Validation Results Dialog */}
+          <ValidationResultsDialog
+            open={validationDialogOpen}
+            onOpenChange={setValidationDialogOpen}
+            validationResult={filteredValidationResult}
+            onProceed={handleValidationProceed}
+            onCancel={handleValidationCancel}
+          />
         </>
       )}
 
