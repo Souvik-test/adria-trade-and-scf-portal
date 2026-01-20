@@ -252,11 +252,15 @@ const DynamicFieldRenderer: React.FC<DynamicFieldRendererProps> = ({
 
   // Don't render label for checkbox (it's inline)
   if (field.ui_display_type === 'CHECKBOX') {
-    return <div className="w-full">{renderField()}</div>;
+    return (
+      <div className="w-full" data-field-id={field.field_code}>
+        {renderField()}
+      </div>
+    );
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-field-id={field.field_code}>
       {renderLabel()}
       {renderField()}
     </div>
