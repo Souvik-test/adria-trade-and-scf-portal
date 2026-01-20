@@ -193,6 +193,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   }, [panes]);
 
   // Filter validation results for current pane
+  // Rules trigger based on the pane_codes stored in each condition
   const filterValidationForCurrentPane = useCallback(
     (result: ValidationResult, currentPaneName: string): ValidationResult => {
       const filterItems = (items: ValidationResultItem[]): ValidationResultItem[] => {
@@ -202,34 +203,35 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             return false;
           }
           
-          // Unconditional rules (no field_codes): show on any pane
-          if (!item.field_codes || item.field_codes.length === 0) {
+          // Unconditional rules (no pane_codes): show on any pane (but only once)
+          if (!item.pane_codes || item.pane_codes.length === 0) {
             return true;
           }
           
-          // Find the max pane index among the rule's field_codes
+          // Get all unique panes from the rule conditions
+          const rulePanes = item.pane_codes;
+          
+          // Get current pane index
+          const currentPaneIndex = paneOrderMap.get(currentPaneName) ?? -1;
+          
+          // Single pane rule: show on "Next" of that specific pane
+          if (rulePanes.length === 1) {
+            const rulePaneIndex = paneOrderMap.get(rulePanes[0]) ?? -1;
+            return rulePaneIndex === currentPaneIndex;
+          }
+          
+          // Multi-pane rule: show on the last pane among the rule's panes
+          // Find the max pane index among the rule's pane_codes
           let maxPaneIndex = -1;
-          for (const fieldCode of item.field_codes) {
-            const normalizedCode = normalizeFieldCode(fieldCode);
-            const paneCode = fieldToPaneMap.get(normalizedCode);
-            if (paneCode) {
-              const paneIndex = paneOrderMap.get(paneCode) ?? -1;
-              if (paneIndex > maxPaneIndex) {
-                maxPaneIndex = paneIndex;
-              }
+          for (const paneCode of rulePanes) {
+            const paneIndex = paneOrderMap.get(paneCode) ?? -1;
+            if (paneIndex > maxPaneIndex) {
+              maxPaneIndex = paneIndex;
             }
           }
           
-          // If we couldn't find any pane for the fields, show on current pane (safe default)
-          if (maxPaneIndex === -1) {
-            return true;
-          }
-          
-          // Get current pane index
-          const currentPaneIdx = paneOrderMap.get(currentPaneName) ?? currentPaneIndex;
-          
-          // Show the rule only on the pane where its fields exist
-          return maxPaneIndex === currentPaneIdx;
+          // Show the rule only on the last pane where it has conditions
+          return maxPaneIndex === currentPaneIndex;
         });
       };
 
@@ -242,7 +244,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         canProceed: filterItems(result.errors).length === 0,
       };
     },
-    [acknowledgedRuleIds, fieldToPaneMap, paneOrderMap, currentPaneIndex]
+    [acknowledgedRuleIds, paneOrderMap]
   );
 
   // Navigate to a field by scrolling and focusing
