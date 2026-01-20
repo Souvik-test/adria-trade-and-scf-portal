@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Loader2, CheckCircle2, XCircle, Trash2, Save, Send, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import DynamicButtonRenderer from './DynamicButtonRenderer';
 import HybridFormContainer from './HybridFormContainer';
 import DynamicMT700Sidebar from './DynamicMT700Sidebar';
 import { useBusinessValidation } from '@/hooks/useBusinessValidation';
-import ValidationResultsDialog from '@/components/import-lc/ValidationResultsDialog';
+import InlineValidationMessages from './InlineValidationMessages';
 import { normalizeFieldCode, ValidationResult, ValidationResultItem } from '@/services/businessValidationService';
 import { supabase } from '@/integrations/supabase/client';
 interface DynamicTransactionFormProps {
@@ -57,7 +57,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
 
   // Business validation state
   const { validationResult, isValidating, runValidation, clearValidation } = useBusinessValidation();
-  const [validationDialogOpen, setValidationDialogOpen] = useState(false);
+  const [showValidationMessages, setShowValidationMessages] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     type: 'dynamicNext' | 'staticNext' | 'stageSubmit' | 'finalSubmit';
   } | null>(null);
@@ -67,6 +67,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Field to pane mapping for pane-aware validation
   const [fieldToPaneMap, setFieldToPaneMap] = useState<Map<string, string>>(new Map());
   const [paneOrderMap, setPaneOrderMap] = useState<Map<string, number>>(new Map());
+  
+  // Ref for form container to scroll to fields
+  const formContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     loading,
@@ -242,7 +245,43 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     [acknowledgedRuleIds, fieldToPaneMap, paneOrderMap, currentPaneIndex]
   );
 
-  // Run validation and show dialog if needed
+  // Navigate to a field by scrolling and focusing
+  const navigateToField = useCallback((fieldCode: string) => {
+    const normalizedCode = normalizeFieldCode(fieldCode);
+    
+    // Try to find the field element by data-field-id attribute
+    const formContainer = formContainerRef.current;
+    if (!formContainer) return;
+    
+    // Try multiple field code variations
+    const fieldVariations = [fieldCode, normalizedCode, fieldCode.replace(/\s+/g, '  ')];
+    
+    for (const code of fieldVariations) {
+      const fieldElement = formContainer.querySelector(`[data-field-id="${code}"]`);
+      if (fieldElement) {
+        // Scroll to the field
+        fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Focus on the input inside the field
+        const input = fieldElement.querySelector('input, textarea, select, button');
+        if (input) {
+          setTimeout(() => (input as HTMLElement).focus(), 300);
+        }
+        
+        // Add a brief highlight effect
+        fieldElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+        setTimeout(() => {
+          fieldElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+        }, 2000);
+        
+        return;
+      }
+    }
+    
+    console.warn(`Field not found: ${fieldCode}`);
+  }, []);
+
+  // Run validation and show inline messages if needed
   const executeValidation = useCallback(
     async (actionType: 'dynamicNext' | 'staticNext' | 'stageSubmit' | 'finalSubmit') => {
       const result = await runValidation(productCode, eventCode, formData);
@@ -263,7 +302,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       if (hasMessages) {
         setFilteredValidationResult(filtered);
         setPendingAction({ type: actionType });
-        setValidationDialogOpen(true);
+        setShowValidationMessages(true);
         return false; // Action blocked
       }
       
@@ -304,7 +343,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     }
   }, [executeValidation, handleSubmit]);
 
-  // Handle validation dialog proceed
+  // Handle validation proceed (for warnings/info)
   const handleValidationProceed = useCallback(() => {
     // Add warning/info rule IDs to acknowledged set
     if (filteredValidationResult) {
@@ -333,7 +372,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       }
     }
     
-    setValidationDialogOpen(false);
+    setShowValidationMessages(false);
     setPendingAction(null);
     setFilteredValidationResult(null);
     clearValidation();
@@ -348,9 +387,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     clearValidation,
   ]);
 
-  // Handle validation dialog cancel
-  const handleValidationCancel = useCallback(() => {
-    setValidationDialogOpen(false);
+  // Handle validation dismiss (go back)
+  const handleValidationDismiss = useCallback(() => {
+    setShowValidationMessages(false);
     setPendingAction(null);
     setFilteredValidationResult(null);
     clearValidation();
@@ -541,6 +580,17 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         </p>
       </div>
 
+      {/* Inline Validation Messages - shown at top */}
+      {showValidationMessages && filteredValidationResult && (
+        <InlineValidationMessages
+          validationResult={filteredValidationResult}
+          position="top"
+          onDismiss={handleValidationDismiss}
+          onProceed={filteredValidationResult.hasErrors ? undefined : handleValidationProceed}
+          onFieldClick={navigateToField}
+        />
+      )}
+
       {/* Progress Indicator - hidden for static stages */}
       {!isStaticStage && panes.length > 1 && (
         <DynamicProgressIndicator
@@ -555,23 +605,25 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       {/* Current Pane Content - uses HybridFormContainer for static/dynamic switching */}
       {currentPane && (
         <>
-          <HybridFormContainer
-            productCode={productCode}
-            eventCode={eventCode}
-            currentPane={currentPane}
-            currentPaneIndex={currentPaneIndex}
-            stagePaneMapping={stagePaneMapping}
-            formData={formData}
-            repeatableGroups={repeatableGroups}
-            currentStageAllowedFields={currentStageAllowedFields}
-            currentStageFieldEditability={currentStageFieldEditability}
-            isApprovalStage={isApprovalStage}
-            onFieldChange={handleFieldChange}
-            configuredStaticPanes={configuredStaticPanes}
-            hideStaticNavigationButtons={true}
-            onStaticPaneChange={handleStaticPaneChange}
-            staticActivePaneIndex={staticPaneIndex}
-          />
+          <div ref={formContainerRef}>
+            <HybridFormContainer
+              productCode={productCode}
+              eventCode={eventCode}
+              currentPane={currentPane}
+              currentPaneIndex={currentPaneIndex}
+              stagePaneMapping={stagePaneMapping}
+              formData={formData}
+              repeatableGroups={repeatableGroups}
+              currentStageAllowedFields={currentStageAllowedFields}
+              currentStageFieldEditability={currentStageFieldEditability}
+              isApprovalStage={isApprovalStage}
+              onFieldChange={handleFieldChange}
+              configuredStaticPanes={configuredStaticPanes}
+              hideStaticNavigationButtons={true}
+              onStaticPaneChange={handleStaticPaneChange}
+              staticActivePaneIndex={staticPaneIndex}
+            />
+          </div>
 
           {/* Static Stage Unified Action Bar - Navigation + Actions */}
           {isStaticStage && (
@@ -723,14 +775,6 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             </div>
           )}
 
-          {/* Validation Results Dialog */}
-          <ValidationResultsDialog
-            open={validationDialogOpen}
-            onOpenChange={setValidationDialogOpen}
-            validationResult={filteredValidationResult}
-            onProceed={handleValidationProceed}
-            onCancel={handleValidationCancel}
-          />
         </>
       )}
 
