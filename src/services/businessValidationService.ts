@@ -10,6 +10,7 @@ export interface ValidationResultItem {
   rule_id: string;
   message: string;
   field_codes: string[];
+  pane_codes: string[];
   priority: number;
 }
 
@@ -23,6 +24,7 @@ export interface ValidationResult {
 }
 
 interface ValidationCondition {
+  pane_code?: string;
   field_code: string;
   operator: string;
   compare_value: string;
@@ -221,12 +223,15 @@ export async function validateTransaction(
       const triggered = evaluateRule(rule, payload.transactionData);
       
       if (triggered) {
-        // Handle rules with no conditions (unconditional rules)
+        // Extract field codes and pane codes from conditions
         const fieldCodes = (rule.conditions || []).map((c: ValidationCondition) => c.field_code).filter(Boolean);
+        const paneCodes = [...new Set((rule.conditions || []).map((c: ValidationCondition) => c.pane_code).filter(Boolean))];
+        
         const resultItem: ValidationResultItem = {
           rule_id: rule.rule_id,
           message: rule.message,
           field_codes: fieldCodes,
+          pane_codes: paneCodes as string[],
           priority: rule.priority,
         };
         

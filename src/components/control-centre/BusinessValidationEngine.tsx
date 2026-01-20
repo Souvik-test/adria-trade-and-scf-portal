@@ -70,6 +70,7 @@ import {
 interface ValidationCondition {
   id?: string;
   condition_id: string;
+  pane_code: string;
   field_code: string;
   operator: string;
   compare_value: string;
@@ -104,7 +105,13 @@ interface ProductEventOption {
 interface FieldOption {
   field_code: string;
   field_label_key: string;
+  pane_code?: string;
   data_type?: string;
+}
+
+interface PaneOption {
+  pane_code: string;
+  pane_name: string;
 }
 
 const OPERATORS = [
@@ -151,6 +158,7 @@ export function BusinessValidationEngine() {
   const [rules, setRules] = useState<ValidationRule[]>([]);
   const [productEvents, setProductEvents] = useState<ProductEventOption[]>([]);
   const [fields, setFields] = useState<FieldOption[]>([]);
+  const [panes, setPanes] = useState<PaneOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -318,6 +326,7 @@ export function BusinessValidationEngine() {
       const mapped: FieldOption[] = (data || []).map((item: any) => ({
         field_code: item.field_code,
         field_label_key: item.field_label_key || item.field_code,
+        pane_code: item.pane_code,
         data_type: item.data_type,
       }));
 
@@ -325,9 +334,23 @@ export function BusinessValidationEngine() {
       mapped.sort((a, b) => (a.field_label_key || '').localeCompare(b.field_label_key || ''));
 
       setFields(mapped);
+      
+      // Extract unique panes from fields
+      const paneMap = new Map<string, string>();
+      mapped.forEach(f => {
+        if (f.pane_code && !paneMap.has(f.pane_code)) {
+          paneMap.set(f.pane_code, f.pane_code);
+        }
+      });
+      const uniquePanes: PaneOption[] = Array.from(paneMap.keys()).map(code => ({
+        pane_code: code,
+        pane_name: code.replace(/_/g, ' '),
+      }));
+      setPanes(uniquePanes);
     } catch (error: any) {
       console.error('Error fetching fields:', error);
       setFields([]);
+      setPanes([]);
     }
   };
 
@@ -439,6 +462,7 @@ export function BusinessValidationEngine() {
     try {
       const conditionsJson = conditions.map((c, i) => ({
         condition_id: c.condition_id || `COND_${Date.now()}_${i}`,
+        pane_code: c.pane_code,
         field_code: c.field_code,
         operator: c.operator,
         compare_value: c.compare_value,
@@ -493,6 +517,7 @@ export function BusinessValidationEngine() {
   const addCondition = () => {
     const newCondition: ValidationCondition = {
       condition_id: `COND_${Date.now()}_${conditions.length}`,
+      pane_code: '',
       field_code: '',
       operator: '=',
       compare_value: '',
@@ -501,6 +526,12 @@ export function BusinessValidationEngine() {
       sequence: conditions.length + 1,
     };
     setConditions([...conditions, newCondition]);
+  };
+
+  // Get fields filtered by selected pane
+  const getFieldsForPane = (paneCode: string): FieldOption[] => {
+    if (!paneCode) return [];
+    return fields.filter(f => f.pane_code === paneCode);
   };
 
   const updateCondition = (index: number, updates: Partial<ValidationCondition>) => {
@@ -936,7 +967,7 @@ export function BusinessValidationEngine() {
                     {conditions.map((cond, index) => (
                       <div
                         key={cond.condition_id}
-                        className="flex items-start gap-2 p-3 border rounded-lg bg-muted/30"
+                        className="flex flex-wrap items-start gap-2 p-3 border rounded-lg bg-muted/30"
                       >
                         <div className="flex items-center pt-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -964,22 +995,48 @@ export function BusinessValidationEngine() {
                           )}
                         </div>
                         
-                        {/* Field */}
+                        {/* Pane */}
+                        <div className="w-40 flex-shrink-0">
+                          <Select
+                            value={cond.pane_code}
+                            onValueChange={(v) => updateCondition(index, { pane_code: v, field_code: '' })}
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Select pane" />
+                            </SelectTrigger>
+                            <SelectContent className="z-[200] bg-popover max-h-[200px]" position="popper" sideOffset={4}>
+                              {panes.length === 0 ? (
+                                <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                                  {formData.event_code ? 'No panes available' : 'Select product & event first'}
+                                </div>
+                              ) : (
+                                panes.map(p => (
+                                  <SelectItem key={p.pane_code} value={p.pane_code}>
+                                    {p.pane_name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {/* Field (filtered by pane) */}
                         <div className="flex-1 min-w-[150px]">
                           <Select
                             value={cond.field_code}
                             onValueChange={(v) => updateCondition(index, { field_code: v })}
+                            disabled={!cond.pane_code}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue placeholder="Select field" />
+                              <SelectValue placeholder={cond.pane_code ? "Select field" : "Select pane first"} />
                             </SelectTrigger>
                             <SelectContent className="z-[200] bg-popover max-h-[200px]" position="popper" sideOffset={4}>
-                              {fields.length === 0 ? (
+                              {getFieldsForPane(cond.pane_code).length === 0 ? (
                                 <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                  {formData.event_code ? 'No fields available' : 'Select product & event first'}
+                                  {cond.pane_code ? 'No fields in this pane' : 'Select a pane first'}
                                 </div>
                               ) : (
-                                fields.map(f => (
+                                getFieldsForPane(cond.pane_code).map(f => (
                                   <SelectItem key={f.field_code} value={f.field_code}>
                                     {f.field_label_key || f.field_code}
                                   </SelectItem>
