@@ -462,12 +462,12 @@ export function BusinessValidationEngine() {
     try {
       const conditionsJson = conditions.map((c, i) => ({
         condition_id: c.condition_id || `COND_${Date.now()}_${i}`,
-        pane_code: c.pane_code,
+        pane_code: c.pane_code || null,
         field_code: c.field_code,
         operator: c.operator,
         compare_value: c.compare_value,
-        compare_source: c.compare_source,
-        join_type: i === 0 ? null : c.join_type,
+        compare_source: c.compare_source || 'CONSTANT',
+        join_type: i === 0 ? null : (c.join_type || 'AND'),
         sequence: i + 1,
       }));
       
@@ -482,7 +482,7 @@ export function BusinessValidationEngine() {
           p_message: formData.message,
           p_priority: formData.priority,
           p_active_flag: formData.active_flag,
-          p_conditions: conditionsJson,
+          p_conditions: JSON.stringify(conditionsJson),
         });
         
         if (error) throw error;
@@ -499,7 +499,7 @@ export function BusinessValidationEngine() {
           p_message: formData.message,
           p_priority: formData.priority,
           p_active_flag: formData.active_flag,
-          p_conditions: conditionsJson,
+          p_conditions: JSON.stringify(conditionsJson),
         });
         
         if (error) throw error;
@@ -510,7 +510,7 @@ export function BusinessValidationEngine() {
       fetchRules();
     } catch (error: any) {
       console.error('Error saving rule:', error);
-      toast.error('Failed to save validation rule');
+      toast.error(`Failed to save validation rule: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -554,10 +554,14 @@ export function BusinessValidationEngine() {
     
     const parts: string[] = [];
     conditions.forEach((cond, i) => {
+      const paneLabel = panes.find(p => p.pane_code === cond.pane_code)?.pane_name || cond.pane_code;
       const fieldLabel = fields.find(f => f.field_code === cond.field_code)?.field_label_key || cond.field_code;
       const operatorLabel = OPERATORS.find(o => o.value === cond.operator)?.label || cond.operator;
       
-      let condText = `${fieldLabel} ${operatorLabel}`;
+      // Include pane name in the condition text
+      let condText = cond.pane_code 
+        ? `[${paneLabel}] ${fieldLabel} ${operatorLabel}`
+        : `${fieldLabel} ${operatorLabel}`;
       
       if (!['IS NULL', 'IS NOT NULL'].includes(cond.operator)) {
         if (cond.compare_source === 'FIELD') {
@@ -789,24 +793,32 @@ export function BusinessValidationEngine() {
                           <div className="space-y-2">
                             <h4 className="font-medium text-sm">Conditions:</h4>
                             <div className="space-y-1 text-sm">
-                              {rule.conditions.map((cond, i) => (
-                                <div key={cond.id || i} className="flex items-center gap-2">
-                                  {i > 0 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {cond.join_type}
-                                    </Badge>
-                                  )}
-                                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                                    {cond.field_code} {cond.operator} {
-                                      ['IS NULL', 'IS NOT NULL'].includes(cond.operator) 
-                                        ? '' 
-                                        : cond.compare_source === 'FIELD' 
-                                          ? `[${cond.compare_value}]` 
-                                          : `"${cond.compare_value}"`
-                                    }
-                                  </span>
-                                </div>
-                              ))}
+                              {rule.conditions.map((cond, i) => {
+                                const paneLabel = cond.pane_code ? cond.pane_code.replace(/_/g, ' ') : '';
+                                return (
+                                  <div key={cond.id || i} className="flex items-center gap-2 flex-wrap">
+                                    {i > 0 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {cond.join_type}
+                                      </Badge>
+                                    )}
+                                    {paneLabel && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {paneLabel}
+                                      </Badge>
+                                    )}
+                                    <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                      {cond.field_code} {cond.operator} {
+                                        ['IS NULL', 'IS NOT NULL'].includes(cond.operator) 
+                                          ? '' 
+                                          : cond.compare_source === 'FIELD' 
+                                            ? `[${cond.compare_value}]` 
+                                            : `"${cond.compare_value}"`
+                                      }
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </TableCell>
