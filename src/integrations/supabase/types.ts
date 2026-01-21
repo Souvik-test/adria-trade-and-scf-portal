@@ -4693,7 +4693,7 @@ export type Database = {
         | {
             Args: {
               p_active_flag: boolean
-              p_conditions: Json
+              p_conditions: string
               p_event_code: string
               p_message: string
               p_priority: number
@@ -4800,7 +4800,7 @@ export type Database = {
         | {
             Args: {
               p_active_flag: boolean
-              p_conditions: Json
+              p_conditions: string
               p_event_code: string
               p_id: string
               p_message: string
