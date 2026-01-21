@@ -4675,35 +4675,20 @@ export type Database = {
               isSetofReturn: false
             }
           }
-      insert_validation_rule_with_conditions:
-        | {
-            Args: {
-              p_active_flag: boolean
-              p_conditions: Json
-              p_event_code: string
-              p_message: string
-              p_priority: number
-              p_product_code: string
-              p_rule_id: string
-              p_user_id: string
-              p_validation_type: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_active_flag: boolean
-              p_conditions: string
-              p_event_code: string
-              p_message: string
-              p_priority: number
-              p_product_code: string
-              p_rule_id: string
-              p_user_id: string
-              p_validation_type: string
-            }
-            Returns: string
-          }
+      insert_validation_rule_with_conditions: {
+        Args: {
+          p_active_flag: boolean
+          p_conditions: Json
+          p_event_code: string
+          p_message: string
+          p_priority: number
+          p_product_code: string
+          p_rule_id: string
+          p_user_id: string
+          p_validation_type: string
+        }
+        Returns: string
+      }
       notify_scf_users_by_role: {
         Args: {
           p_exclude_user_id?: string
@@ -4782,35 +4767,20 @@ export type Database = {
         Args: { new_password: string; old_password: string }
         Returns: boolean
       }
-      update_validation_rule_with_conditions:
-        | {
-            Args: {
-              p_active_flag: boolean
-              p_conditions: Json
-              p_event_code: string
-              p_id: string
-              p_message: string
-              p_priority: number
-              p_product_code: string
-              p_user_id: string
-              p_validation_type: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_active_flag: boolean
-              p_conditions: string
-              p_event_code: string
-              p_id: string
-              p_message: string
-              p_priority: number
-              p_product_code: string
-              p_user_id: string
-              p_validation_type: string
-            }
-            Returns: boolean
-          }
+      update_validation_rule_with_conditions: {
+        Args: {
+          p_active_flag: boolean
+          p_conditions: Json
+          p_event_code: string
+          p_id: string
+          p_message: string
+          p_priority: number
+          p_product_code: string
+          p_user_id: string
+          p_validation_type: string
+        }
+        Returns: boolean
+      }
       upsert_pane_section_mapping: {
         Args: {
           p_business_application: string[]

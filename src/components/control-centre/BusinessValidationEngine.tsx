@@ -482,7 +482,7 @@ export function BusinessValidationEngine() {
           p_message: formData.message,
           p_priority: formData.priority,
           p_active_flag: formData.active_flag,
-          p_conditions: JSON.stringify(conditionsJson),
+          p_conditions: conditionsJson,
         });
         
         if (error) throw error;
@@ -499,7 +499,7 @@ export function BusinessValidationEngine() {
           p_message: formData.message,
           p_priority: formData.priority,
           p_active_flag: formData.active_flag,
-          p_conditions: JSON.stringify(conditionsJson),
+          p_conditions: conditionsJson,
         });
         
         if (error) throw error;
@@ -708,6 +708,7 @@ export function BusinessValidationEngine() {
                 <TableHead className="w-8"></TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Event</TableHead>
+                <TableHead>Pane(s)</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="max-w-[300px]">Message</TableHead>
                 <TableHead className="text-center">Priority</TableHead>
@@ -718,13 +719,13 @@ export function BusinessValidationEngine() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <RefreshCw className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : filteredRules.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No validation rules found
                   </TableCell>
                 </TableRow>
@@ -751,6 +752,20 @@ export function BusinessValidationEngine() {
                       </TableCell>
                       <TableCell>
                         {productEvents.find(p => p.product_code === rule.product_code && p.event_code === rule.event_code)?.event_name || rule.event_code}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(
+                            new Set((rule.conditions || []).map(c => c.pane_code).filter(Boolean))
+                          ).map((pane) => (
+                            <Badge key={pane} variant="secondary" className="text-xs">
+                              {String(pane).replace(/_/g, ' ')}
+                            </Badge>
+                          ))}
+                          {(!rule.conditions || rule.conditions.length === 0) && (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge className={`${getTypeBadgeClass(rule.validation_type)} flex items-center gap-1 w-fit`}>
@@ -789,7 +804,7 @@ export function BusinessValidationEngine() {
                     </TableRow>
                     {expandedRuleId === rule.id && (
                       <TableRow className="bg-muted/30">
-                        <TableCell colSpan={8} className="p-4">
+                        <TableCell colSpan={9} className="p-4">
                           <div className="space-y-2">
                             <h4 className="font-medium text-sm">Conditions:</h4>
                             <div className="space-y-1 text-sm">
