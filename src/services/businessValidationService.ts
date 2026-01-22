@@ -83,64 +83,74 @@ function evaluateCondition(
   
   let compareValue: any;
   if (condition.compare_source === 'FIELD') {
+    // Get value from another field for comparison
     compareValue = getFieldValue(condition.compare_value, transactionData);
   } else {
     compareValue = condition.compare_value;
   }
   
-  // Type coercion for comparison
-  const numFieldValue = parseFloat(fieldValue);
-  const numCompareValue = parseFloat(compareValue);
-  const useNumericComparison = !isNaN(numFieldValue) && !isNaN(numCompareValue);
+  // Convert to strings for comparison, handle null/undefined
+  const strFieldValue = String(fieldValue ?? '').trim();
+  const strCompareValue = String(compareValue ?? '').trim();
+  
+  // Type coercion for numeric comparison
+  const numFieldValue = parseFloat(strFieldValue);
+  const numCompareValue = parseFloat(strCompareValue);
+  const useNumericComparison = !isNaN(numFieldValue) && !isNaN(numCompareValue) && 
+                                strFieldValue !== '' && strCompareValue !== '';
+  
+  console.log(`[Validation] Field: ${condition.field_code} = "${strFieldValue}", Operator: ${condition.operator}, Compare: "${strCompareValue}" (source: ${condition.compare_source})`);
   
   switch (condition.operator) {
     case '=':
       return useNumericComparison 
         ? numFieldValue === numCompareValue 
-        : String(fieldValue) === String(compareValue);
+        : strFieldValue.toLowerCase() === strCompareValue.toLowerCase();
     
     case '<>':
       return useNumericComparison 
         ? numFieldValue !== numCompareValue 
-        : String(fieldValue) !== String(compareValue);
+        : strFieldValue.toLowerCase() !== strCompareValue.toLowerCase();
     
     case '<':
       if (useNumericComparison) return numFieldValue < numCompareValue;
-      return String(fieldValue) < String(compareValue);
+      return strFieldValue.toLowerCase() < strCompareValue.toLowerCase();
     
     case '>':
       if (useNumericComparison) return numFieldValue > numCompareValue;
-      return String(fieldValue) > String(compareValue);
+      return strFieldValue.toLowerCase() > strCompareValue.toLowerCase();
     
     case '<=':
       if (useNumericComparison) return numFieldValue <= numCompareValue;
-      return String(fieldValue) <= String(compareValue);
+      return strFieldValue.toLowerCase() <= strCompareValue.toLowerCase();
     
     case '>=':
       if (useNumericComparison) return numFieldValue >= numCompareValue;
-      return String(fieldValue) >= String(compareValue);
+      return strFieldValue.toLowerCase() >= strCompareValue.toLowerCase();
     
     case 'IN': {
-      const values = String(compareValue).split(',').map(v => v.trim());
-      return values.includes(String(fieldValue));
+      const values = strCompareValue.split(',').map(v => v.trim().toLowerCase());
+      return values.includes(strFieldValue.toLowerCase());
     }
     
     case 'NOT IN': {
-      const values = String(compareValue).split(',').map(v => v.trim());
-      return !values.includes(String(fieldValue));
+      const values = strCompareValue.split(',').map(v => v.trim().toLowerCase());
+      return !values.includes(strFieldValue.toLowerCase());
     }
     
     case 'CONTAINS':
-      return String(fieldValue || '').toLowerCase().includes(String(compareValue || '').toLowerCase());
+      // Check if field value contains the compare value (case-insensitive)
+      return strFieldValue.toLowerCase().includes(strCompareValue.toLowerCase());
     
     case 'NOT CONTAINS':
-      return !String(fieldValue || '').toLowerCase().includes(String(compareValue || '').toLowerCase());
+      // Check if field value does NOT contain the compare value (case-insensitive)
+      return !strFieldValue.toLowerCase().includes(strCompareValue.toLowerCase());
     
     case 'IS NULL':
-      return fieldValue === null || fieldValue === undefined || fieldValue === '';
+      return fieldValue === null || fieldValue === undefined || strFieldValue === '';
     
     case 'IS NOT NULL':
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== '';
+      return fieldValue !== null && fieldValue !== undefined && strFieldValue !== '';
     
     default:
       console.warn(`Unknown operator: ${condition.operator}`);
