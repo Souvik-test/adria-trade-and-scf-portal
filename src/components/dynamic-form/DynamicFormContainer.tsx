@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDynamicFormFields } from '@/hooks/useDynamicFormFields';
 import useFieldActions from '@/hooks/useFieldActions';
@@ -32,10 +32,16 @@ interface DynamicFormContainerProps {
   disabled?: boolean;
 }
 
+// Expose these methods to parent via ref
+export interface DynamicFormContainerRef {
+  getFormData: () => DynamicFormData;
+  getRepeatableGroups: () => { [groupId: string]: RepeatableGroupInstance[] };
+}
+
 // Generate unique instance ID
 const generateInstanceId = () => `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
+const DynamicFormContainer = forwardRef<DynamicFormContainerRef, DynamicFormContainerProps>(({
   productCode,
   eventType,
   currentPaneCode,
@@ -46,7 +52,7 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   initialData,
   onFormChange,
   disabled = false,
-}) => {
+}, ref) => {
   const { panes, loading, error } = useDynamicFormFields({
     productCode,
     eventType,
@@ -59,6 +65,12 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
   const [repeatableGroups, setRepeatableGroups] = useState<{ [groupId: string]: RepeatableGroupInstance[] }>(
     initialData?.repeatableGroups || {}
   );
+
+  // Expose methods to parent via ref for on-demand data capture
+  useImperativeHandle(ref, () => ({
+    getFormData: () => formData,
+    getRepeatableGroups: () => repeatableGroups,
+  }), [formData, repeatableGroups]);
 
   // Collect ALL fields across ALL panes for computed field evaluation
   const allFieldsFlat = useMemo<DynamicFieldDefinition[]>(() => {
@@ -525,6 +537,8 @@ const DynamicFormContainer: React.FC<DynamicFormContainerProps> = ({
       })}
     </div>
   );
-};
+});
+
+DynamicFormContainer.displayName = 'DynamicFormContainer';
 
 export default DynamicFormContainer;
