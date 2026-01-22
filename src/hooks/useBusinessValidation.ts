@@ -61,6 +61,7 @@ export function useBusinessValidation(): UseBusinessValidationReturn {
 
     try {
       const userId = await getEffectiveUserId();
+      console.log('[Validation] Effective user ID for validation:', userId);
       if (!userId) {
         console.warn('No user ID available for validation');
         setValidationResult(emptyResult);

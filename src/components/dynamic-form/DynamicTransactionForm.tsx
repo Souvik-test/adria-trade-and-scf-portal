@@ -184,10 +184,17 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   }, [productCode, eventCode]);
   
   // Build pane order map when panes change
+  // Uses normalized keys for robust matching
   useEffect(() => {
     const orderMap = new Map<string, number>();
     panes.forEach((pane, index) => {
+      // Store both exact name and normalized name for robust matching
       orderMap.set(pane.name, index);
+      // Also store normalized version (collapsed spaces, trimmed)
+      const normalized = pane.name.trim().replace(/\s+/g, ' ');
+      if (normalized !== pane.name) {
+        orderMap.set(normalized, index);
+      }
     });
     setPaneOrderMap(orderMap);
   }, [panes]);
@@ -196,15 +203,23 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Rules trigger based on the pane_codes stored in each condition
   const filterValidationForCurrentPane = useCallback(
     (result: ValidationResult, currentPaneName: string): ValidationResult => {
-      const filterItems = (items: ValidationResultItem[]): ValidationResultItem[] => {
+      console.log(`[Pane Filter] Current pane name: "${currentPaneName}"`);
+      console.log(`[Pane Filter] Pane order map:`, Array.from(paneOrderMap.entries()));
+      console.log(`[Pane Filter] Input result:`, { errors: result.errors.length, warnings: result.warnings.length, info: result.information.length });
+      
+      const filterItems = (items: ValidationResultItem[], type: string): ValidationResultItem[] => {
         return items.filter((item) => {
+          console.log(`[Pane Filter] Processing ${type}: ${item.rule_id}, pane_codes:`, item.pane_codes);
+          
           // Skip already acknowledged rules
           if (acknowledgedRuleIds.has(item.rule_id)) {
+            console.log(`[Pane Filter] Skipped - already acknowledged`);
             return false;
           }
           
           // Unconditional rules (no pane_codes): show on any pane (but only once)
           if (!item.pane_codes || item.pane_codes.length === 0) {
+            console.log(`[Pane Filter] Allowed - unconditional rule`);
             return true;
           }
           
@@ -213,10 +228,12 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
           
           // Get current pane index
           const currentPaneIndex = paneOrderMap.get(currentPaneName) ?? -1;
+          console.log(`[Pane Filter] Current pane index: ${currentPaneIndex}`);
           
           // Single pane rule: show on "Next" of that specific pane
           if (rulePanes.length === 1) {
             const rulePaneIndex = paneOrderMap.get(rulePanes[0]) ?? -1;
+            console.log(`[Pane Filter] Single pane rule. Rule pane: "${rulePanes[0]}" (index ${rulePaneIndex}), matches: ${rulePaneIndex === currentPaneIndex}`);
             return rulePaneIndex === currentPaneIndex;
           }
           
@@ -230,18 +247,25 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
             }
           }
           
+          console.log(`[Pane Filter] Multi-pane rule. Max pane index: ${maxPaneIndex}, matches current: ${maxPaneIndex === currentPaneIndex}`);
           // Show the rule only on the last pane where it has conditions
           return maxPaneIndex === currentPaneIndex;
         });
       };
 
+      const filteredErrors = filterItems(result.errors, 'error');
+      const filteredWarnings = filterItems(result.warnings, 'warning');
+      const filteredInfo = filterItems(result.information, 'info');
+      
+      console.log(`[Pane Filter] Filtered result:`, { errors: filteredErrors.length, warnings: filteredWarnings.length, info: filteredInfo.length });
+
       return {
-        errors: filterItems(result.errors),
-        warnings: filterItems(result.warnings),
-        information: filterItems(result.information),
-        hasErrors: filterItems(result.errors).length > 0,
-        hasWarnings: filterItems(result.warnings).length > 0,
-        canProceed: filterItems(result.errors).length === 0,
+        errors: filteredErrors,
+        warnings: filteredWarnings,
+        information: filteredInfo,
+        hasErrors: filteredErrors.length > 0,
+        hasWarnings: filteredWarnings.length > 0,
+        canProceed: filteredErrors.length === 0,
       };
     },
     [acknowledgedRuleIds, paneOrderMap]
