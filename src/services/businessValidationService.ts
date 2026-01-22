@@ -114,8 +114,11 @@ function evaluateCondition(
   }
   
   // Convert to strings for comparison, handle null/undefined
-  const strFieldValue = String(fieldValue ?? '').trim();
-  const strCompareValue = String(compareValue ?? '').trim();
+  // Normalize multiple spaces to single space for consistent matching
+  const rawFieldValue = String(fieldValue ?? '').trim();
+  const rawCompareValue = String(compareValue ?? '').trim();
+  const strFieldValue = rawFieldValue.replace(/\s+/g, ' ');
+  const strCompareValue = rawCompareValue.replace(/\s+/g, ' ');
   
   // Type coercion for numeric comparison
   const numFieldValue = parseFloat(strFieldValue);
@@ -123,7 +126,7 @@ function evaluateCondition(
   const useNumericComparison = !isNaN(numFieldValue) && !isNaN(numCompareValue) && 
                                 strFieldValue !== '' && strCompareValue !== '';
   
-  console.log(`[Validation] Field: ${condition.field_code} = "${strFieldValue}", Operator: ${condition.operator}, Compare: "${strCompareValue}" (source: ${condition.compare_source})`);
+  console.log(`[Validation] Field: ${condition.field_code} = "${rawFieldValue}" -> normalized: "${strFieldValue}", Operator: ${condition.operator}, Compare: "${rawCompareValue}" -> normalized: "${strCompareValue}" (source: ${condition.compare_source})`);
   
   switch (condition.operator) {
     case '=':
