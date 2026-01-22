@@ -9,7 +9,7 @@ import { useDynamicTransaction } from '@/hooks/useDynamicTransaction';
 import { DynamicFormState } from '@/types/dynamicForm';
 import DynamicProgressIndicator from './DynamicProgressIndicator';
 import DynamicButtonRenderer from './DynamicButtonRenderer';
-import HybridFormContainer from './HybridFormContainer';
+import HybridFormContainer, { HybridFormContainerRef } from './HybridFormContainer';
 import DynamicMT700Sidebar from './DynamicMT700Sidebar';
 import { useBusinessValidation } from '@/hooks/useBusinessValidation';
 import InlineValidationMessages from './InlineValidationMessages';
@@ -71,7 +71,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Ref for form container to scroll to fields
   const formContainerRef = useRef<HTMLDivElement>(null);
   
-  // Ref to track the latest formData for validation (captures child component state immediately)
+  // Ref to HybridFormContainer for on-demand data capture (captures child state on "Next" click)
+  const hybridFormRef = useRef<HybridFormContainerRef>(null);
+  
+  // Ref to track the latest formData for validation (fallback/sync mechanism)
   const latestFormDataRef = useRef<Record<string, any>>({});
 
   const {
@@ -329,9 +332,17 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       setShowValidationMessages(false);
       setFilteredValidationResult(null);
       
-      // Use latestFormDataRef which captures child component state immediately
-      // This avoids issues with React state batching where formData might be stale
-      const validationFormData = { ...formData, ...latestFormDataRef.current };
+      // CAPTURE form data on-demand from child component via ref
+      // This ensures we get the latest values at the exact moment of clicking "Next"
+      const capturedData = hybridFormRef.current?.getFormData() || {};
+      
+      // Merge: hook formData (may be stale) + latestFormDataRef (synced) + capturedData (freshest)
+      const validationFormData = { ...formData, ...latestFormDataRef.current, ...capturedData };
+      
+      // Debug logging for key fields
+      console.log('[Validation] Captured data keys:', Object.keys(validationFormData).length);
+      console.log('[Validation] LC  Type:', validationFormData['LC  Type']);
+      console.log('[Validation] Availability  Method:', validationFormData['Availability  Method']);
       
       const result = await runValidation(productCode, eventCode, validationFormData);
       
@@ -656,6 +667,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
         <>
           <div ref={formContainerRef}>
             <HybridFormContainer
+              ref={hybridFormRef}
               productCode={productCode}
               eventCode={eventCode}
               currentPane={currentPane}

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DynamicFormState, RepeatableGroupInstance } from '@/types/dynamicForm';
+import { DynamicFormState, DynamicFormData, RepeatableGroupInstance } from '@/types/dynamicForm';
 import { StagePaneInfo } from '@/services/workflowTemplateService';
 import { 
   getStaticStageConfig, 
@@ -16,7 +16,7 @@ import {
   RemittanceStaticStageConfig,
 } from '@/components/remittance/staticPaneRegistry';
 import StaticPaneRenderer from '@/components/import-lc/StaticPaneRenderer';
-import DynamicFormContainer from './DynamicFormContainer';
+import DynamicFormContainer, { DynamicFormContainerRef } from './DynamicFormContainer';
 
 interface SectionConfig {
   name: string;
@@ -60,6 +60,11 @@ interface HybridFormContainerProps {
   staticActivePaneIndex?: number;
 }
 
+// Expose these methods to parent via ref for on-demand data capture
+export interface HybridFormContainerRef {
+  getFormData: () => DynamicFormData;
+}
+
 /**
  * HybridFormContainer renders either static pane components or the dynamic form
  * based on the current stage's ui_render_mode setting.
@@ -72,7 +77,7 @@ interface HybridFormContainerProps {
  * When ui_render_mode is 'dynamic':
  * - Renders the DynamicFormContainer with field_repository fields.
  */
-const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
+const HybridFormContainer = forwardRef<HybridFormContainerRef, HybridFormContainerProps>(({
   productCode,
   eventCode,
   currentPane,
@@ -89,7 +94,22 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
   hideStaticNavigationButtons,
   onStaticPaneChange,
   staticActivePaneIndex,
-}) => {
+}, ref) => {
+  // Ref to the DynamicFormContainer for on-demand data capture
+  const dynamicFormRef = useRef<DynamicFormContainerRef>(null);
+  
+  // Expose getFormData to parent - captures latest data from dynamic form on demand
+  useImperativeHandle(ref, () => ({
+    getFormData: () => {
+      // For dynamic forms, get data directly from DynamicFormContainer
+      if (dynamicFormRef.current) {
+        return dynamicFormRef.current.getFormData();
+      }
+      // For static forms, return the formData prop (already synced via onFieldChange)
+      return formData as DynamicFormData;
+    },
+  }), [formData]);
+
   if (!currentPane) {
     return (
       <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
@@ -256,6 +276,7 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <DynamicFormContainer
+          ref={dynamicFormRef}
           productCode={productCode}
           eventType={eventCode}
           currentPaneCode={currentPane.name}
@@ -288,6 +309,8 @@ const HybridFormContainer: React.FC<HybridFormContainerProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+HybridFormContainer.displayName = 'HybridFormContainer';
 
 export default HybridFormContainer;
