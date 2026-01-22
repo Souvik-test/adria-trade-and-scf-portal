@@ -286,6 +286,10 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   // Run validation and show inline messages if needed
   const executeValidation = useCallback(
     async (actionType: 'dynamicNext' | 'staticNext' | 'stageSubmit' | 'finalSubmit') => {
+      // Clear previous validation state first
+      setShowValidationMessages(false);
+      setFilteredValidationResult(null);
+      
       const result = await runValidation(productCode, eventCode, formData);
       
       // Get current pane name for filtering
