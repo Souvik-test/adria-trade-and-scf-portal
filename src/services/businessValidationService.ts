@@ -53,22 +53,46 @@ export function normalizeFieldCode(code: string): string {
 }
 
 /**
- * Gets a value from transactionData, trying both exact match and normalized match
+ * Gets a value from transactionData, trying exact match, normalized match, and various key formats
  */
 function getFieldValue(fieldCode: string, transactionData: Record<string, any>): any {
   // Try exact match first
   if (fieldCode in transactionData) {
+    console.log(`[Validation] Found exact match for "${fieldCode}":`, transactionData[fieldCode]);
     return transactionData[fieldCode];
   }
   
-  // Try normalized match
+  // Try normalized match (collapse multiple spaces)
   const normalizedTarget = normalizeFieldCode(fieldCode).toLowerCase();
   for (const key of Object.keys(transactionData)) {
     if (normalizeFieldCode(key).toLowerCase() === normalizedTarget) {
+      console.log(`[Validation] Found normalized match for "${fieldCode}" -> "${key}":`, transactionData[key]);
       return transactionData[key];
     }
   }
   
+  // Try with underscores instead of spaces (e.g., "LC Type" -> "LC_Type" or "lc_type")
+  const underscoreVariant = fieldCode.replace(/\s+/g, '_');
+  const lowerUnderscoreVariant = underscoreVariant.toLowerCase();
+  for (const key of Object.keys(transactionData)) {
+    const keyLower = key.toLowerCase();
+    const keyUnderscore = key.replace(/\s+/g, '_').toLowerCase();
+    if (keyLower === lowerUnderscoreVariant || keyUnderscore === lowerUnderscoreVariant) {
+      console.log(`[Validation] Found underscore variant for "${fieldCode}" -> "${key}":`, transactionData[key]);
+      return transactionData[key];
+    }
+  }
+  
+  // Try without spaces entirely (e.g., "LC Type" -> "LCType" or "lctype")
+  const noSpaceVariant = fieldCode.replace(/\s+/g, '').toLowerCase();
+  for (const key of Object.keys(transactionData)) {
+    if (key.replace(/\s+/g, '').toLowerCase() === noSpaceVariant) {
+      console.log(`[Validation] Found no-space variant for "${fieldCode}" -> "${key}":`, transactionData[key]);
+      return transactionData[key];
+    }
+  }
+  
+  console.log(`[Validation] No match found for "${fieldCode}". Available keys:`, Object.keys(transactionData).slice(0, 20));
   return undefined;
 }
 
@@ -166,27 +190,37 @@ function evaluateRule(
   rule: ValidationRule,
   transactionData: Record<string, any>
 ): boolean {
+  console.log(`[Validation] Evaluating rule: ${rule.rule_id} (${rule.validation_type}): "${rule.message}"`);
+  console.log(`[Validation] Transaction data keys:`, Object.keys(transactionData));
+  
   // Rules without conditions always trigger (unconditional messages)
   if (!rule.conditions || rule.conditions.length === 0) {
+    console.log(`[Validation] Rule has no conditions - always triggers`);
     return true;
   }
   
   // Sort conditions by sequence
   const sortedConditions = [...rule.conditions].sort((a, b) => a.sequence - b.sequence);
   
+  console.log(`[Validation] Evaluating ${sortedConditions.length} conditions...`);
+  
   let result = evaluateCondition(sortedConditions[0], transactionData);
+  console.log(`[Validation] Condition 1 result: ${result}`);
   
   for (let i = 1; i < sortedConditions.length; i++) {
     const condition = sortedConditions[i];
     const conditionResult = evaluateCondition(condition, transactionData);
+    console.log(`[Validation] Condition ${i + 1} (${condition.join_type}): ${conditionResult}`);
     
     if (condition.join_type === 'AND') {
       result = result && conditionResult;
     } else if (condition.join_type === 'OR') {
       result = result || conditionResult;
     }
+    console.log(`[Validation] Running result after condition ${i + 1}: ${result}`);
   }
   
+  console.log(`[Validation] Final rule result: ${result}`);
   return result;
 }
 
@@ -197,6 +231,9 @@ export async function validateTransaction(
   userId: string,
   payload: ValidationPayload
 ): Promise<ValidationResult> {
+  console.log(`[Validation] Starting validation for product: ${payload.product_code}, event: ${payload.event_code}`);
+  console.log(`[Validation] User ID: ${userId}`);
+  
   const result: ValidationResult = {
     errors: [],
     warnings: [],
@@ -217,6 +254,8 @@ export async function validateTransaction(
       return result;
     }
     
+    console.log(`[Validation] Fetched ${Array.isArray(rulesData) ? rulesData.length : 0} total rules`);
+    
     // Filter rules for this product/event and active ones
     const applicableRules = ((rulesData || []) as unknown as ValidationRule[]).filter(
       (rule: any) =>
@@ -225,14 +264,18 @@ export async function validateTransaction(
         rule.active_flag === true
     );
     
+    console.log(`[Validation] ${applicableRules.length} applicable rules after filtering`);
+    
     // Sort by priority
     applicableRules.sort((a: any, b: any) => a.priority - b.priority);
     
     // Evaluate each rule
     for (const rule of applicableRules) {
+      console.log(`[Validation] -------------------------------------------`);
       const triggered = evaluateRule(rule, payload.transactionData);
       
       if (triggered) {
+        console.log(`[Validation] Rule TRIGGERED: ${rule.rule_id}`);
         // Extract field codes and pane codes from conditions
         const fieldCodes = (rule.conditions || []).map((c: ValidationCondition) => c.field_code).filter(Boolean);
         const paneCodes = [...new Set((rule.conditions || []).map((c: ValidationCondition) => c.pane_code).filter(Boolean))];
@@ -259,8 +302,12 @@ export async function validateTransaction(
             result.information.push(resultItem);
             break;
         }
+      } else {
+        console.log(`[Validation] Rule NOT triggered: ${rule.rule_id}`);
       }
     }
+    
+    console.log(`[Validation] Final result:`, { errors: result.errors.length, warnings: result.warnings.length, info: result.information.length });
   } catch (err) {
     console.error('Error during validation:', err);
   }
