@@ -70,6 +70,9 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
   
   // Ref for form container to scroll to fields
   const formContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Ref to track the latest formData for validation (captures child component state immediately)
+  const latestFormDataRef = useRef<Record<string, any>>({});
 
   const {
     loading,
@@ -118,6 +121,18 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
     initialFormData,
     initialStage,
   });
+
+  // Keep latestFormDataRef in sync with formData from hook
+  useEffect(() => {
+    latestFormDataRef.current = { ...latestFormDataRef.current, ...formData };
+  }, [formData]);
+
+  // Handler for child form state changes (from DynamicFormContainer via HybridFormContainer)
+  // This captures the latest form data immediately for validation
+  const handleFormStateChange = useCallback((state: DynamicFormState) => {
+    // Update the ref with the latest data from child component
+    latestFormDataRef.current = { ...latestFormDataRef.current, ...state.formData };
+  }, []);
 
   // Handler for static pane changes from StaticPaneRenderer
   const handleStaticPaneChange = useCallback((activeIndex: number, totalPanes: number) => {
@@ -314,7 +329,11 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
       setShowValidationMessages(false);
       setFilteredValidationResult(null);
       
-      const result = await runValidation(productCode, eventCode, formData);
+      // Use latestFormDataRef which captures child component state immediately
+      // This avoids issues with React state batching where formData might be stale
+      const validationFormData = { ...formData, ...latestFormDataRef.current };
+      
+      const result = await runValidation(productCode, eventCode, validationFormData);
       
       // Get current pane name for filtering
       const currentPane = getCurrentPane();
@@ -648,6 +667,7 @@ const DynamicTransactionForm: React.FC<DynamicTransactionFormProps> = ({
               currentStageFieldEditability={currentStageFieldEditability}
               isApprovalStage={isApprovalStage}
               onFieldChange={handleFieldChange}
+              onFormChange={handleFormStateChange}
               configuredStaticPanes={configuredStaticPanes}
               hideStaticNavigationButtons={true}
               onStaticPaneChange={handleStaticPaneChange}
