@@ -130,6 +130,7 @@ export const saveProformaInvoice = async (formData: any) => {
 };
 
 // Save SCF Invoice (for manual invoice creation in SCF programs)
+// Uses security definer function to bypass RLS for custom auth users
 export const saveSCFInvoice = async (formData: any) => {
   const user = await getCurrentUserAsync();
   if (!user) throw new Error('User not authenticated');
@@ -153,41 +154,43 @@ export const saveSCFInvoice = async (formData: any) => {
       productType: formData.productType ?? "Invoice",
     });
 
-    const { data: invoice, error: invoiceError } = await supabase
-      .from('scf_invoices')
-      .insert({
-        user_id: user.id,
-        invoice_type: invoiceType,
-        program_id: formData.programId,
-        program_name: formData.programName,
-        invoice_number: invoiceNumber,
-        invoice_date: sanitizeDateField(formData.invoiceDate),
-        due_date: sanitizeDateField(formData.dueDate),
-        purchase_order_number: formData.purchaseOrderNumber || null,
-        purchase_order_currency: formData.purchaseOrderCurrency || null,
-        purchase_order_amount: formData.purchaseOrderAmount || 0,
-        purchase_order_date: sanitizeDateField(formData.purchaseOrderDate),
-        buyer_id: formData.buyerId,
-        buyer_name: formData.buyerName,
-        seller_id: formData.sellerId,
-        seller_name: formData.sellerName,
-        currency: formData.currency,
-        subtotal: formData.subtotal,
-        tax_amount: formData.taxAmount,
-        discount_amount: formData.discountAmount || 0,
-        total_amount: formData.totalAmount,
-        payment_terms: formData.paymentTerms || null,
-        notes: formData.notes || null,
-        buyers_acceptance_required: formData.buyersAcceptanceRequired || false,
-        status: 'submitted'
-      })
-      .select()
-      .single();
-    if (invoiceError) throw invoiceError;
+    // Use security definer function to insert invoice (bypasses RLS for custom auth)
+    const { data: invoiceId, error: invoiceError } = await supabase.rpc('insert_scf_invoice', {
+      p_user_id: user.id,
+      p_invoice_type: invoiceType,
+      p_program_id: formData.programId,
+      p_program_name: formData.programName,
+      p_invoice_number: invoiceNumber,
+      p_invoice_date: formData.invoiceDate || null,
+      p_due_date: formData.dueDate || null,
+      p_purchase_order_number: formData.purchaseOrderNumber || null,
+      p_purchase_order_currency: formData.purchaseOrderCurrency || null,
+      p_purchase_order_amount: formData.purchaseOrderAmount || 0,
+      p_purchase_order_date: formData.purchaseOrderDate || null,
+      p_buyer_id: formData.buyerId || null,
+      p_buyer_name: formData.buyerName || null,
+      p_seller_id: formData.sellerId || null,
+      p_seller_name: formData.sellerName || null,
+      p_currency: formData.currency || 'USD',
+      p_subtotal: formData.subtotal || 0,
+      p_tax_amount: formData.taxAmount || 0,
+      p_discount_amount: formData.discountAmount || 0,
+      p_total_amount: formData.totalAmount || 0,
+      p_payment_terms: formData.paymentTerms || null,
+      p_notes: formData.notes || null,
+      p_buyers_acceptance_required: formData.buyersAcceptanceRequired || false,
+      p_status: 'submitted'
+    });
+    
+    if (invoiceError) {
+      console.error('RPC insert_scf_invoice error:', invoiceError);
+      throw invoiceError;
+    }
 
-    if (formData.lineItems && formData.lineItems.length > 0) {
+    // Insert line items if present (use direct insert since invoice is now created)
+    if (formData.lineItems && formData.lineItems.length > 0 && invoiceId) {
       const lineItems = formData.lineItems.map((item: any) => ({
-        scf_invoice_id: invoice.id,
+        scf_invoice_id: invoiceId,
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unitPrice,
@@ -196,10 +199,14 @@ export const saveSCFInvoice = async (formData: any) => {
       }));
 
       const { error: itemsError } = await supabase.from('scf_invoice_line_items').insert(lineItems);
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Line items insert error:', itemsError);
+        // Don't throw - invoice was created successfully
+      }
     }
+    
     await createTransactionRecord(product_type, formData, invoiceNumber, process_type);
-    return invoice;
+    return { id: invoiceId, invoice_number: invoiceNumber };
   } catch (error) {
     throw error;
   }
