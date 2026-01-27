@@ -81,6 +81,45 @@ const programSchema = z.object({
   factoring_disclosure: z.string().nullish(),
   factoring_delivery_model: z.string().nullish(),
   factoring_risk_bearer: z.string().nullish(),
+}).superRefine((data, ctx) => {
+  // Only validate factoring fields when factoring is enabled
+  if (data.factoring_enabled) {
+    if (!data.factoring_geography) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Geography is required when Factoring is enabled",
+        path: ["factoring_geography"],
+      });
+    }
+    if (!data.factoring_recourse_type) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Recourse Type is required when Factoring is enabled",
+        path: ["factoring_recourse_type"],
+      });
+    }
+    if (!data.factoring_disclosure) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Disclosure is required when Factoring is enabled",
+        path: ["factoring_disclosure"],
+      });
+    }
+    if (!data.factoring_delivery_model) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Delivery Model is required when Factoring is enabled",
+        path: ["factoring_delivery_model"],
+      });
+    }
+    if (!data.factoring_risk_bearer) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Risk Bearer is required when Factoring is enabled",
+        path: ["factoring_risk_bearer"],
+      });
+    }
+  }
 });
 
 type ProgramFormValues = z.infer<typeof programSchema>;
@@ -395,33 +434,7 @@ export const useProgramForm = (
       return;
     }
     
-    // Validate factoring fields if factoring is enabled
-    if (data.factoring_enabled) {
-      const factoringErrors: string[] = [];
-      
-      if (!data.factoring_geography) {
-        factoringErrors.push("Geography is required when Factoring is enabled");
-      }
-      if (!data.factoring_recourse_type) {
-        factoringErrors.push("Recourse Type is required when Factoring is enabled");
-      }
-      if (!data.factoring_disclosure) {
-        factoringErrors.push("Disclosure is required when Factoring is enabled");
-      }
-      
-      if (factoringErrors.length > 0) {
-        if (onValidationError) {
-          onValidationError(factoringErrors);
-        } else {
-          toast({
-            title: "Factoring Validation Failed",
-            description: factoringErrors.join("; "),
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-    }
+    // Factoring validation is now handled by the Zod schema superRefine
     
     try {
       console.log('✓ Validation passed, authenticating user...');
