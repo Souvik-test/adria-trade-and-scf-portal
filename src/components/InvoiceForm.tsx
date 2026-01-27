@@ -20,6 +20,7 @@ import InvoiceFormActions from './invoice-form/InvoiceFormActions';
 import { saveSCFInvoice, saveInvoice, searchPurchaseOrder } from '@/services/transactionService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { customAuth } from '@/services/customAuth';
 import { 
   validateInvoiceManual, 
   fetchProgramConfiguration,
@@ -54,11 +55,19 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, onBack, module = 'SC
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status
+  // Check authentication status - support both Supabase auth and custom auth
   useEffect(() => {
     const checkAuth = async () => {
+      // Check Supabase auth first
       const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session?.user);
+      if (data.session?.user) {
+        setIsAuthenticated(true);
+        return;
+      }
+      
+      // Check custom auth session
+      const customSession = customAuth.getSession();
+      setIsAuthenticated(!!customSession?.user);
     };
     checkAuth();
   }, []);
