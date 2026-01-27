@@ -51,6 +51,20 @@ export const ProgramFormDialog = ({
     handleValidationError
   );
 
+  // Handle react-hook-form validation errors (when form.handleSubmit blocks submission)
+  const onFormError = (errors: any) => {
+    console.log('Form validation errors:', errors);
+    const errorMessages = Object.keys(errors).map(key => {
+      const error = errors[key];
+      const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+      return `${fieldName}: ${error?.message || 'Invalid value'}`;
+    });
+    
+    if (errorMessages.length > 0) {
+      handleValidationError(errorMessages);
+    }
+  };
+
   const isReadOnly = mode === "view" || mode === "delete";
 
   const handleNext = () => {
@@ -114,7 +128,7 @@ export const ProgramFormDialog = ({
           </div>
 
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="general">General & Party Details</TabsTrigger>
