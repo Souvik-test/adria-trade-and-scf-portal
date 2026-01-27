@@ -76,11 +76,11 @@ const programSchema = z.object({
   default_discount_percentage: z.number().min(0).max(100).optional(),
   dynamic_discounting_enabled: z.boolean().default(false),
   factoring_enabled: z.boolean().default(false),
-  factoring_geography: z.string().optional(),
-  factoring_recourse_type: z.string().optional(),
-  factoring_disclosure: z.string().optional(),
-  factoring_delivery_model: z.string().optional(),
-  factoring_risk_bearer: z.string().optional(),
+  factoring_geography: z.string().nullish(),
+  factoring_recourse_type: z.string().nullish(),
+  factoring_disclosure: z.string().nullish(),
+  factoring_delivery_model: z.string().nullish(),
+  factoring_risk_bearer: z.string().nullish(),
 });
 
 type ProgramFormValues = z.infer<typeof programSchema>;
