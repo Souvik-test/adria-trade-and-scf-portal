@@ -4589,6 +4589,35 @@ export type Database = {
         }
         Returns: string
       }
+      insert_scf_invoice: {
+        Args: {
+          p_buyer_id?: string
+          p_buyer_name?: string
+          p_buyers_acceptance_required?: boolean
+          p_currency?: string
+          p_discount_amount?: number
+          p_due_date: string
+          p_invoice_date: string
+          p_invoice_number: string
+          p_invoice_type: string
+          p_notes?: string
+          p_payment_terms?: string
+          p_program_id: string
+          p_program_name: string
+          p_purchase_order_amount?: number
+          p_purchase_order_currency?: string
+          p_purchase_order_date?: string
+          p_purchase_order_number?: string
+          p_seller_id?: string
+          p_seller_name?: string
+          p_status?: string
+          p_subtotal?: number
+          p_tax_amount?: number
+          p_total_amount?: number
+          p_user_id: string
+        }
+        Returns: string
+      }
       insert_transaction:
         | {
             Args: {
