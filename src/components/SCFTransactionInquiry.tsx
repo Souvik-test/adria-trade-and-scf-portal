@@ -53,6 +53,11 @@ export default function SCFTransactionInquiry() {
     financeEligible: undefined,
   });
 
+  // Auto-load transactions on mount
+  useEffect(() => {
+    handleSearch();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFilterChange = (field: keyof TransactionFilters, value: string | number | undefined) => {
     setFilters(prev => ({ ...prev, [field]: value }));
   };
