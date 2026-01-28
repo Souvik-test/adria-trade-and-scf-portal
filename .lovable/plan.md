@@ -1,198 +1,254 @@
 
-# Fix: Program & Product Code Auto-Population in Finance Disbursement
+# Enhanced Interest Treatment for Interest in Advance
 
-## Problem Summary
-
-When initiating "Request Finance" from Transaction Inquiry (either via row action menu or bulk selection), the Program & Product Selection pane shows:
-- **Program dropdown**: Empty (despite having `programId` passed in)
-- **Program Name**: Correctly shows "Savy Test"  
-- **Product Code**: Empty (shows placeholder "Pre-filled from product selection")
-- **Product Name**: Empty (shows placeholder "Pre-filled from product selection")
-- **Note**: Shows "Program auto-populated from 1 selected invoice(s)" incorrectly
-
-The root cause is a timing/dependency issue in the auto-population logic.
+## Overview
+This plan extends the existing "Interest Treatment" feature to provide granular control over how interest is deducted when "Interest in Advance" is selected. It includes options for deduction source (from proceeds vs. from client's account), proper calculation adjustments for repayment amounts, and enhanced accounting entries.
 
 ---
 
-## Root Cause Analysis
+## Business Logic Summary
 
-### Issue 1: Program ID Format Mismatch
-The `programId` passed from Transaction Inquiry (`getSelectedInvoices()[0]?.programId`) may not match what the Select component expects as its `value`. The Select component uses `program.program_id` from the fetched programs list.
+### When Interest in Advance is Selected:
 
-### Issue 2: Programs Query Not Ready When Effect Runs
-The `useEffect` in `ProgramProductSelectionPane.tsx` (lines 59-89) that auto-populates program data depends on:
-- `formData.programId` - set immediately when modal opens
-- `programs` - loaded asynchronously via `useQuery`
-- `formData.programDataLoaded` - guard flag
+| Deduction Method | Net Proceeds | Interest Handling | Total Repayment |
+|------------------|--------------|-------------------|-----------------|
+| **From Proceeds** | Finance Amount - Interest | Deducted upfront | Finance Amount only |
+| **From Client's Account** | Finance Amount (full) | Separate debit entry | Finance Amount only |
 
-The effect runs before programs are fetched, finds no matching program (`programs.find()` returns undefined), and does nothing.
-
-### Issue 3: Select Value Binding
-The Select component (line 132) uses `value={formData.programId}`, but if the programs haven't loaded yet or the ID doesn't match any program's `program_id`, the Select shows empty.
+### When Interest in Arrears is Selected:
+- Net Proceeds = Finance Amount (no deduction)
+- Total Repayment = Finance Amount + Interest Amount
 
 ---
 
-## Solution Design
+## Database Schema Changes
 
-### Fix 1: Wait for Programs to Load Before Auto-Populating
-Modify the dependency array and condition in the auto-population `useEffect` to ensure programs are fully loaded before attempting to find and apply program configuration.
-
-### Fix 2: Add Proper Loading State Handling
-Ensure the Select component reflects the pre-selected program ID correctly even during the loading state.
-
-### Fix 3: Verify Program ID Matching
-Add defensive checks and logging to ensure the `programId` from Transaction Inquiry exactly matches a `program_id` in the fetched programs list.
-
----
-
-## Technical Implementation
-
-### File: `src/components/finance-disbursement/panes/ProgramProductSelectionPane.tsx`
-
-#### Change 1: Fix the auto-population useEffect condition
-
-**Current Code (lines 59-89):**
-```typescript
-useEffect(() => {
-  if (formData.programId && programs && programs.length > 0 && !formData.programDataLoaded) {
-    const program = programs.find((p: any) => p.program_id === formData.programId);
-    if (program) {
-      // Auto-apply program configuration...
-    }
-  }
-}, [formData.programId, programs, formData.programDataLoaded, formData.totalInvoiceAmount]);
+### Table: `scf_program_configurations`
+Add new column for interest deduction method at program level:
+```sql
+ALTER TABLE scf_program_configurations 
+ADD COLUMN interest_deduction_method text DEFAULT 'proceeds' 
+CHECK (interest_deduction_method IN ('proceeds', 'client_account'));
 ```
 
-**Problem:** The condition `programs && programs.length > 0` doesn't guarantee `isLoading` is false - the query might still be in initial/loading state.
+### Table: `finance_disbursements`
+Add new columns for transaction-level tracking:
+```sql
+ALTER TABLE finance_disbursements 
+ADD COLUMN interest_deduction_method text DEFAULT 'proceeds' 
+CHECK (interest_deduction_method IN ('proceeds', 'client_account'));
 
-**Solution:** Add `!isLoading` to the condition and use a proper check for query completion.
-
-#### Change 2: Log for debugging and ensure match
-
-Add console logging to trace the matching process:
-```typescript
-useEffect(() => {
-  // Only attempt auto-population when query has completed and we have a programId
-  if (formData.programId && !isLoading && programs && !formData.programDataLoaded) {
-    const program = programs.find((p: any) => p.program_id === formData.programId);
-    
-    if (program) {
-      // Apply all program configuration fields
-      onFieldChange('productCode', program.product_code || '');
-      onFieldChange('productName', program.product_name || '');
-      // ... rest of fields
-      onFieldChange('programDataLoaded', true);
-    } else {
-      // Program ID exists but not found in filtered list - could be anchor type mismatch
-      console.warn('Program not found in list:', formData.programId);
-    }
-  }
-}, [formData.programId, isLoading, programs, formData.programDataLoaded, formData.totalInvoiceAmount]);
-```
-
-#### Change 3: Handle anchor type filtering issue
-
-The programs query filters by anchor type (seller/buyer), but the invoice might belong to a program with a different anchor role. Need to either:
-- Option A: Remove anchor type filter when programId is pre-selected (preferred)
-- Option B: Pass correct anchor type from invoice data
-
-**Implementation (Option A):**
-```typescript
-const { data: programs, isLoading } = useQuery({
-  queryKey: ['finance-programs', anchorType, formData.programId],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('scf_program_configurations')
-      .select('*')
-      .eq('status', 'active');
-    
-    // If we have a pre-selected programId, include that program regardless of anchor type
-    const hasPreSelectedProgram = !!formData.programId;
-    
-    return (data || []).filter((p: any) => {
-      // Always include the pre-selected program
-      if (hasPreSelectedProgram && p.program_id === formData.programId) {
-        return true;
-      }
-      // Otherwise filter by anchor type
-      const anchorRole = p.anchor_party?.toUpperCase().replace(/\s+/g, '').replace(/\//g, '') || '';
-      if (anchorType === 'seller') {
-        return anchorRole.includes('SELLER') || anchorRole.includes('SUPPLIER');
-      } else {
-        return anchorRole.includes('BUYER');
-      }
-    });
-  }
-});
+ALTER TABLE finance_disbursements 
+ADD COLUMN interest_debit_account text;
 ```
 
 ---
 
-### File: `src/components/finance-disbursement/FinanceDisbursementModal.tsx`
+## UI Changes
 
-#### Change 4: Pass anchor type from invoice data
+### 1. Program Configuration (GeneralPartyPane.tsx)
 
-The Transaction Inquiry already has program data including `anchor_party`. Pass this to the modal so it can determine the correct anchor type.
+**Location:** Finance Parameters section, after "Interest Treatment" field
 
-**Current props passed (lines 468-470):**
-```typescript
-preSelectedInvoices={getSelectedInvoices()}
-preSelectedProgramId={getSelectedInvoices()[0]?.programId}
-preSelectedProgramName={getSelectedInvoices()[0]?.programName}
+Add conditional field when Interest Treatment = "advance":
+- **Field Name:** "Interest Deduction Method"
+- **Type:** Dropdown
+- **Options:**
+  - "From Proceeds" (default)
+  - "From Client's Account"
+- **Visibility:** Only shown when `interest_treatment === 'advance'`
+
+```text
+Finance Parameters
+├── Interest Treatment: [Interest in Advance ▼]
+│   └── Interest Deduction Method: [From Proceeds ▼]  ← NEW (conditional)
+└── ...
 ```
 
-**Add anchor type from rawData:**
-```typescript
-preSelectedInvoices={getSelectedInvoices()}
-preSelectedProgramId={getSelectedInvoices()[0]?.programId}
-preSelectedProgramName={getSelectedInvoices()[0]?.programName}
-anchorType={getSelectedInvoices()[0]?.rawData?.anchor_party?.includes('SELLER') ? 'seller' : 'buyer'}
+### 2. Finance Disbursement - Finance Details Pane
+
+**Location:** Interest Calculation section
+
+Update layout to show:
+1. Interest Treatment dropdown (existing)
+2. Interest Deduction Method dropdown (NEW - conditional when advance selected)
+3. Updated calculation display based on selection
+
+**Summary Display Logic:**
+
+**Scenario A: Interest in Advance + From Proceeds**
+```
+Interest Amount:                              52.94 GBP
+Net Proceeds (after interest deduction):  13,274.26 GBP  ← Highlighted
+─────────────────────────────────────────────────────────
+Total Repayment Amount:                   13,327.20 GBP  ← Finance Amount only
+```
+
+**Scenario B: Interest in Advance + From Client's Account**
+```
+Interest Amount:                              52.94 GBP
+Net Proceeds:                             13,327.20 GBP  ← Full finance amount
+Interest Debit (from client account):        -52.94 GBP  ← NEW line
+─────────────────────────────────────────────────────────
+Total Repayment Amount:                   13,327.20 GBP  ← Finance Amount only
+```
+
+**Scenario C: Interest in Arrears**
+```
+Interest Amount:                              52.94 GBP
+Net Proceeds:                             13,327.20 GBP
+─────────────────────────────────────────────────────────
+Total Repayment Amount:                   13,380.14 GBP  ← Finance + Interest
+```
+
+### 3. Repayment Details Pane
+
+Update the Repayment Summary section to reflect correct amounts:
+
+**For Interest in Advance (both methods):**
+```
+Total Finance Amount:        13,327.20 GBP
+Interest Amount:                 52.94 GBP (Collected in Advance)
+Finance Tenor:                   29 days
+─────────────────────────────────────────────
+Total Repayment Amount:      13,327.20 GBP  ← Only principal
+```
+
+**For Interest in Arrears:**
+```
+Total Finance Amount:        13,327.20 GBP
+Interest Amount:                 52.94 GBP
+Finance Tenor:                   29 days
+─────────────────────────────────────────────
+Total Repayment Amount:      13,380.14 GBP  ← Principal + Interest
+```
+
+### 4. Accounting Entries Pane
+
+**Base Entries (always shown):**
+| Type | Account | GL Code | Amount |
+|------|---------|---------|--------|
+| Dr | Loan Account | 1200-001 | 13,327.20 |
+| Cr | Suspense Account | 2100-001 | 13,327.20 |
+
+**Additional Entries for Interest in Advance + From Client's Account:**
+| Type | Account | GL Code | Amount |
+|------|---------|---------|--------|
+| Dr | Client Interest Account | 1300-001 | 52.94 |
+| Cr | Interest Income Account | 4100-001 | 52.94 |
+
+**Logic:** These additional entries are added dynamically when:
+- `interestTreatment === 'advance'` AND
+- `interestDeductionMethod === 'client_account'`
+
+---
+
+## File Modifications
+
+### 1. Database Migration
+**File:** `supabase/migrations/YYYYMMDD_interest_deduction_method.sql`
+
+```sql
+-- Add interest deduction method to program configuration
+ALTER TABLE scf_program_configurations 
+ADD COLUMN IF NOT EXISTS interest_deduction_method text DEFAULT 'proceeds' 
+CHECK (interest_deduction_method IN ('proceeds', 'client_account'));
+
+-- Add interest deduction method to finance disbursements
+ALTER TABLE finance_disbursements 
+ADD COLUMN IF NOT EXISTS interest_deduction_method text DEFAULT 'proceeds' 
+CHECK (interest_deduction_method IN ('proceeds', 'client_account'));
+
+-- Add interest debit account field
+ALTER TABLE finance_disbursements 
+ADD COLUMN IF NOT EXISTS interest_debit_account text;
+```
+
+### 2. Program Configuration UI
+**File:** `src/components/scf-program/panes/GeneralPartyPane.tsx`
+
+**Changes:**
+- Add `interest_deduction_method` FormField after `interest_treatment`
+- Show conditionally when `interest_treatment === 'advance'`
+- Options: "From Proceeds", "From Client's Account"
+
+### 3. Finance Details Pane
+**File:** `src/components/finance-disbursement/panes/FinanceDetailsPane.tsx`
+
+**Changes:**
+- Add `interestDeductionMethod` dropdown (conditional on advance)
+- Update calculation logic:
+  - If advance + proceeds: `proceedsAmount = financeAmount - interestAmount`
+  - If advance + client_account: `proceedsAmount = financeAmount`
+- Update `totalRepaymentAmount` calculation:
+  - If advance: `totalRepaymentAmount = financeAmount` (interest already collected)
+  - If arrears: `totalRepaymentAmount = financeAmount + interestAmount`
+- Add display for "Interest Debit" line when using client account method
+
+### 4. Program Selection Pane
+**File:** `src/components/finance-disbursement/panes/ProgramProductSelectionPane.tsx`
+
+**Changes:**
+- Auto-populate `interestDeductionMethod` from selected program
+
+### 5. Repayment Details Pane
+**File:** `src/components/finance-disbursement/panes/RepaymentDetailsPane.tsx`
+
+**Changes:**
+- Update summary to show "(Collected in Advance)" label when applicable
+- Adjust Total Repayment Amount display based on interest treatment
+
+### 6. Accounting Entries Pane
+**File:** `src/components/finance-disbursement/panes/AccountingEntriesPane.tsx`
+
+**Changes:**
+- Modify `useEffect` to generate conditional entries
+- Add two additional rows when interest is collected from client account
+- Ensure balance check still works correctly
+
+### 7. Service Layer
+**File:** `src/services/financeDisbursementService.ts`
+
+**Changes:**
+- Add `interestDeductionMethod` to data interface
+- Include new field in database insert
+- Add `interestDebitAccount` field
+
+### 8. Modal State
+**File:** `src/components/finance-disbursement/FinanceDisbursementModal.tsx`
+
+**Changes:**
+- Add `interestDeductionMethod: 'proceeds'` to initial form state
+- Add `interestDebitAccount: ''` to form state
+
+---
+
+## Calculation Summary
+
+### Total Repayment Amount Formula
+
+```javascript
+const totalRepaymentAmount = 
+  formData.interestTreatment === 'advance'
+    ? formData.financeAmount  // Interest already collected
+    : formData.financeAmount + formData.interestAmount;  // Interest in arrears
+```
+
+### Proceeds Amount Formula
+
+```javascript
+const proceedsAmount = 
+  formData.interestTreatment === 'advance' && formData.interestDeductionMethod === 'proceeds'
+    ? formData.financeAmount - formData.interestAmount  // Deducted from proceeds
+    : formData.financeAmount;  // Full amount (arrears OR advance from client account)
 ```
 
 ---
 
-## Validation Flow After Fix
+## Test Scenarios
 
-1. User selects invoice `TESTINV27` in Transaction Inquiry
-2. User clicks "Request Finance" from row action or bulk action
-3. `FinanceDisbursementModal` opens with:
-   - `preSelectedProgramId` = "TESTPROG1" 
-   - `preSelectedProgramName` = "Savy Test" (or actual program name)
-4. `ProgramProductSelectionPane` renders:
-   - Programs query starts loading
-   - Select shows loading or programId value
-5. Programs query completes:
-   - Effect runs because `!isLoading && programs exists && programId exists`
-   - `programs.find()` locates the matching program
-   - All fields auto-populate:
-     - Program dropdown shows selected program
-     - Program Name: "Savy Test"
-     - Product Code: "RCVFN001" (from program)
-     - Product Name: "Receivable Finance" (from program)
-6. User proceeds with correctly populated form
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/components/finance-disbursement/panes/ProgramProductSelectionPane.tsx` | Fix useEffect condition, add isLoading check, fix anchor type filter for pre-selected programs |
-| `src/components/SCFTransactionInquiryTable.tsx` | Pass anchor type to modal based on invoice/program data |
-
----
-
-## Additional Considerations
-
-### Finance Amount Calculation
-The fix will also resolve the related issue where `maxFinanceAmount` shows 0.00 because:
-- Without program data, `financePercentage` defaults to 100% but `totalInvoiceAmount` is 0
-- The auto-population effect sets `totalInvoiceAmount` correctly when program loads
-- This triggers recalculation of `maxFinanceAmount = totalInvoiceAmount * (financePercentage / 100)`
-
-### Invoice Selection Pre-Population
-The Invoice Selection pane will also work correctly because:
-- `preSelectedInvoicesData` is already being passed from the modal
-- The `mergedInvoices` logic correctly includes pre-selected invoices
-- The auto-select effect triggers when `mergedInvoices.length > 0`
-
+| Scenario | Finance Amount | Interest | Proceeds | Repayment | Extra Entries |
+|----------|----------------|----------|----------|-----------|---------------|
+| Arrears | 13,327.20 | 52.94 | 13,327.20 | 13,380.14 | No |
+| Advance + Proceeds | 13,327.20 | 52.94 | 13,274.26 | 13,327.20 | No |
+| Advance + Client Account | 13,327.20 | 52.94 | 13,327.20 | 13,327.20 | Yes (2 rows) |
