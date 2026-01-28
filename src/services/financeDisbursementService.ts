@@ -43,6 +43,8 @@ export interface FinanceDisbursementData {
   referenceRateMargin?: number;
   interestAmount: number;
   totalRepaymentAmount: number;
+  interestTreatment: 'arrears' | 'advance';
+  proceedsAmount?: number;
   autoRepaymentEnabled: boolean;
   repaymentMode: 'auto' | 'manual';
   repaymentParty: string;
@@ -277,6 +279,10 @@ export const createFinanceDisbursement = async (
         reference_rate_margin: data.referenceRateMargin,
         interest_amount: data.interestAmount,
         total_repayment_amount: data.totalRepaymentAmount,
+        interest_treatment: data.interestTreatment || 'arrears',
+        proceeds_amount: data.interestTreatment === 'advance' 
+          ? data.financeAmount - data.interestAmount 
+          : data.financeAmount,
         auto_repayment_enabled: data.autoRepaymentEnabled,
         repayment_mode: data.repaymentMode,
         repayment_party: data.repaymentParty,

@@ -839,7 +839,9 @@ export type Database = {
           interest_amount: number
           interest_rate: number
           interest_rate_type: string
+          interest_treatment: string | null
           invoice_currency: string
+          proceeds_amount: number | null
           product_code: string
           product_name: string
           program_id: string
@@ -872,7 +874,9 @@ export type Database = {
           interest_amount: number
           interest_rate: number
           interest_rate_type?: string
+          interest_treatment?: string | null
           invoice_currency?: string
+          proceeds_amount?: number | null
           product_code: string
           product_name: string
           program_id: string
@@ -905,7 +909,9 @@ export type Database = {
           interest_amount?: number
           interest_rate?: number
           interest_rate_type?: string
+          interest_treatment?: string | null
           invoice_currency?: string
+          proceeds_amount?: number | null
           product_code?: string
           product_name?: string
           program_id?: string
@@ -3082,6 +3088,7 @@ export type Database = {
           id: string
           insurance_policies: Json | null
           insurance_required: boolean | null
+          interest_treatment: string | null
           margin_percentage: number | null
           max_disbursements_allowed: number | null
           max_tenor: number | null
@@ -3165,6 +3172,7 @@ export type Database = {
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
+          interest_treatment?: string | null
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null
           max_tenor?: number | null
@@ -3248,6 +3256,7 @@ export type Database = {
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
+          interest_treatment?: string | null
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null
           max_tenor?: number | null

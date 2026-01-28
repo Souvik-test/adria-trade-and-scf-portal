@@ -86,7 +86,7 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
     }
   }, [formData.selectedInvoices, formData.exchangeRate, formData.financePercentage, showExchangeRate]);
 
-  // Auto-calculate interest
+  // Auto-calculate interest and proceeds amount based on interest treatment
   useEffect(() => {
     if (formData.financeAmount && formData.interestRate && formData.financeTenorDays) {
       const interest = calculateInterest(
@@ -96,8 +96,14 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
       );
       onFieldChange('interestAmount', interest);
       onFieldChange('totalRepaymentAmount', formData.financeAmount + interest);
+      
+      // Calculate proceeds based on interest treatment
+      const proceedsAmount = formData.interestTreatment === 'advance' 
+        ? formData.financeAmount - interest 
+        : formData.financeAmount;
+      onFieldChange('proceedsAmount', proceedsAmount);
     }
-  }, [formData.financeAmount, formData.interestRate, formData.financeTenorDays]);
+  }, [formData.financeAmount, formData.interestRate, formData.financeTenorDays, formData.interestTreatment]);
 
   return (
     <Card>
@@ -205,17 +211,40 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
         <div className="border-t pt-4 space-y-4">
           <h4 className="font-semibold">Interest Calculation</h4>
           
-          <div className="space-y-2">
-            <Label>Interest Rate Type</Label>
-            <Select value={formData.interestRateType} onValueChange={(value) => onFieldChange('interestRateType', value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual">Manual Input</SelectItem>
-                <SelectItem value="reference_rate">Reference Rate</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Interest Rate Type</Label>
+              <Select value={formData.interestRateType} onValueChange={(value) => onFieldChange('interestRateType', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual Input</SelectItem>
+                  <SelectItem value="reference_rate">Reference Rate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Interest Treatment</Label>
+              <Select 
+                value={formData.interestTreatment || 'arrears'} 
+                onValueChange={(value) => onFieldChange('interestTreatment', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="arrears">Interest in Arrears</SelectItem>
+                  <SelectItem value="advance">Interest in Advance</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {formData.interestTreatment === 'advance' 
+                  ? 'Interest will be deducted from proceeds' 
+                  : 'Interest will not be deducted from finance amount'}
+              </p>
+            </div>
           </div>
 
           {formData.interestRateType === 'manual' ? (
@@ -261,6 +290,14 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               <span className="text-sm text-muted-foreground">Interest Amount:</span>
               <span className="font-medium">{formData.interestAmount.toFixed(2)} {formData.financeCurrency}</span>
             </div>
+            {formData.interestTreatment === 'advance' && (
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Net Proceeds (after interest deduction):</span>
+                <span className="font-medium text-primary">
+                  {(formData.financeAmount - formData.interestAmount).toFixed(2)} {formData.financeCurrency}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-sm font-semibold">Total Repayment Amount:</span>
               <span className="font-semibold text-lg">{formData.totalRepaymentAmount.toFixed(2)} {formData.financeCurrency}</span>
