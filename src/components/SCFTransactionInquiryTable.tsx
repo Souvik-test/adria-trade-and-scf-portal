@@ -468,6 +468,12 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
         preSelectedInvoices={getSelectedInvoices()}
         preSelectedProgramId={getSelectedInvoices()[0]?.programId}
         preSelectedProgramName={getSelectedInvoices()[0]?.programName}
+        anchorType={
+          getSelectedInvoices()[0]?.rawData?.anchor_party?.toUpperCase()?.includes('SELLER') ||
+          getSelectedInvoices()[0]?.rawData?.anchor_party?.toUpperCase()?.includes('SUPPLIER')
+            ? 'seller'
+            : 'buyer'
+        }
       />
 
       <RequestPaymentModal

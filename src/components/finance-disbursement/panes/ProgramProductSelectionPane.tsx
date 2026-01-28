@@ -36,16 +36,24 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
     fetchUserId();
   }, []);
 
+  // Store pre-selected programId to include it regardless of anchor type filter
+  const preSelectedProgramId = formData.programId;
+
   const { data: programs, isLoading } = useQuery({
-    queryKey: ['finance-programs', anchorType],
+    queryKey: ['finance-programs', anchorType, preSelectedProgramId],
     queryFn: async () => {
       const { data } = await supabase
         .from('scf_program_configurations')
         .select('*')
         .eq('status', 'active');
       
-      // Filter by anchor type
+      // Filter by anchor type, but always include pre-selected program
       return (data || []).filter((p: any) => {
+        // Always include the pre-selected program regardless of anchor type
+        if (preSelectedProgramId && p.program_id === preSelectedProgramId) {
+          return true;
+        }
+        
         const anchorRole = p.anchor_party?.toUpperCase().replace(/\s+/g, '').replace(/\//g, '') || '';
         if (anchorType === 'seller') {
           return anchorRole.includes('SELLER') || anchorRole.includes('SUPPLIER');
@@ -58,12 +66,14 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
 
   // Auto-populate program data when preSelectedInvoices are present and programs are loaded
   useEffect(() => {
-    if (formData.programId && programs && programs.length > 0 && !formData.programDataLoaded) {
+    // Only attempt auto-population when query has completed (not loading) and we have a programId
+    if (formData.programId && !isLoading && programs && programs.length > 0 && !formData.programDataLoaded) {
       const program = programs.find((p: any) => p.program_id === formData.programId);
+      
       if (program) {
         // Auto-apply program configuration
-        onFieldChange('productCode', program.product_code || formData.productCode || '');
-        onFieldChange('productName', program.product_name || formData.productName || '');
+        onFieldChange('productCode', program.product_code || '');
+        onFieldChange('productName', program.product_name || '');
         onFieldChange('financeCurrency', program.program_currency || formData.invoiceCurrency || 'USD');
         onFieldChange('autoRepaymentEnabled', program.auto_repayment || false);
         onFieldChange('repaymentMode', program.repayment_mode || 'auto');
@@ -84,9 +94,21 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
         
         // Mark that program data has been loaded
         onFieldChange('programDataLoaded', true);
+        
+        console.log('Program auto-populated:', {
+          programId: program.program_id,
+          productCode: program.product_code,
+          productName: program.product_name,
+          financePercentage,
+          totalInvoiceAmount,
+          maxFinanceAmount
+        });
+      } else {
+        // Program ID exists but not found in the list - log for debugging
+        console.warn('Program not found in list:', formData.programId, 'Available programs:', programs.map((p: any) => p.program_id));
       }
     }
-  }, [formData.programId, programs, formData.programDataLoaded, formData.totalInvoiceAmount]);
+  }, [formData.programId, isLoading, programs, formData.programDataLoaded, formData.totalInvoiceAmount]);
 
   const handleProgramSelect = (programId: string) => {
     const program = programs?.find((p: any) => p.program_id === programId);
