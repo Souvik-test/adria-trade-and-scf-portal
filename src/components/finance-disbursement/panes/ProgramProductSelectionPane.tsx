@@ -36,7 +36,7 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
     fetchUserId();
   }, []);
 
-  const { data: programs } = useQuery({
+  const { data: programs, isLoading } = useQuery({
     queryKey: ['finance-programs', anchorType],
     queryFn: async () => {
       const { data } = await supabase
@@ -55,6 +55,38 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
       });
     }
   });
+
+  // Auto-populate program data when preSelectedInvoices are present and programs are loaded
+  useEffect(() => {
+    if (formData.programId && programs && programs.length > 0 && !formData.programDataLoaded) {
+      const program = programs.find((p: any) => p.program_id === formData.programId);
+      if (program) {
+        // Auto-apply program configuration
+        onFieldChange('productCode', program.product_code || formData.productCode || '');
+        onFieldChange('productName', program.product_name || formData.productName || '');
+        onFieldChange('financeCurrency', program.program_currency || formData.invoiceCurrency || 'USD');
+        onFieldChange('autoRepaymentEnabled', program.auto_repayment || false);
+        onFieldChange('repaymentMode', program.repayment_mode || 'auto');
+        onFieldChange('repaymentParty', program.repayment_by || '');
+        onFieldChange('financePercentage', program.finance_percentage || 100);
+        onFieldChange('graceDays', program.grace_days || 0);
+        onFieldChange('holidayTreatment', program.holiday_treatment || 'No Change');
+        onFieldChange('repaymentBy', program.repayment_by || '');
+        onFieldChange('multipleDisbursement', program.multiple_disbursement || false);
+        onFieldChange('maxDisbursementsAllowed', program.max_disbursements_allowed || 1);
+        
+        // Recalculate max finance amount with program's finance percentage
+        const financePercentage = program.finance_percentage || 100;
+        const totalInvoiceAmount = formData.totalInvoiceAmount || 0;
+        const maxFinanceAmount = totalInvoiceAmount * (financePercentage / 100);
+        onFieldChange('maxFinanceAmount', maxFinanceAmount);
+        onFieldChange('financeAmount', maxFinanceAmount);
+        
+        // Mark that program data has been loaded
+        onFieldChange('programDataLoaded', true);
+      }
+    }
+  }, [formData.programId, programs, formData.programDataLoaded, formData.totalInvoiceAmount]);
 
   const handleProgramSelect = (programId: string) => {
     const program = programs?.find((p: any) => p.program_id === programId);
@@ -75,6 +107,14 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
       onFieldChange('repaymentBy', program.repayment_by || '');
       onFieldChange('multipleDisbursement', program.multiple_disbursement || false);
       onFieldChange('maxDisbursementsAllowed', program.max_disbursements_allowed || 1);
+      onFieldChange('programDataLoaded', true);
+      
+      // Recalculate max finance amount
+      const financePercentage = program.finance_percentage || 100;
+      const totalInvoiceAmount = formData.totalInvoiceAmount || 0;
+      const maxFinanceAmount = totalInvoiceAmount * (financePercentage / 100);
+      onFieldChange('maxFinanceAmount', maxFinanceAmount);
+      onFieldChange('financeAmount', maxFinanceAmount);
     }
   };
 
