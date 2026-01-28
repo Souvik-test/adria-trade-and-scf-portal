@@ -4384,6 +4384,60 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      get_scf_invoices: {
+        Args: {
+          p_buyer_id?: string
+          p_buyer_name?: string
+          p_currency?: string
+          p_from_date?: string
+          p_invoice_number?: string
+          p_invoice_type?: string
+          p_max_amount?: number
+          p_min_amount?: number
+          p_program_id?: string
+          p_program_name?: string
+          p_seller_id?: string
+          p_seller_name?: string
+          p_status?: string
+          p_to_date?: string
+          p_wildcard_search?: string
+        }
+        Returns: {
+          buyer_id: string
+          buyer_name: string
+          buyers_acceptance_required: boolean | null
+          created_at: string
+          currency: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string
+          invoice_type: string
+          notes: string | null
+          payment_terms: string | null
+          program_id: string
+          program_name: string
+          purchase_order_amount: number | null
+          purchase_order_currency: string | null
+          purchase_order_date: string | null
+          purchase_order_number: string | null
+          seller_id: string
+          seller_name: string
+          status: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "scf_invoices"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_fields: {
         Args: { p_user_id: string }
         Returns: {
