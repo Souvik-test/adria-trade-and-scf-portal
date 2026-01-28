@@ -139,7 +139,16 @@ const SCFTransactionInquiryTable: React.FC<SCFTransactionInquiryTableProps> = ({
         return <TableCell key={columnId} className="font-medium">{transaction.productType}</TableCell>;
       
       case 'transactionReference':
-        return <TableCell key={columnId}>{transaction.transactionReference}</TableCell>;
+        return (
+          <TableCell key={columnId}>
+            <span
+              className="text-primary hover:underline cursor-pointer font-medium"
+              onClick={() => handleReferenceClick(transaction.transactionReference)}
+            >
+              {transaction.transactionReference}
+            </span>
+          </TableCell>
+        );
       
       case 'programId':
         return <TableCell key={columnId}>{transaction.programId}</TableCell>;
