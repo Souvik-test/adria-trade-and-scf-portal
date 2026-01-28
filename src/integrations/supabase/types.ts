@@ -4350,7 +4350,6 @@ export type Database = {
           due_date: string
           id: string
           invoice_date: string
-          invoice_description: string
           invoice_number: string
           invoice_type: string
           program_id: string
