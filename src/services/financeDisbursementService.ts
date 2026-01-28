@@ -44,7 +44,9 @@ export interface FinanceDisbursementData {
   interestAmount: number;
   totalRepaymentAmount: number;
   interestTreatment: 'arrears' | 'advance';
+  interestDeductionMethod?: 'proceeds' | 'client_account';
   proceedsAmount?: number;
+  interestDebitAccount?: string;
   autoRepaymentEnabled: boolean;
   repaymentMode: 'auto' | 'manual';
   repaymentParty: string;
@@ -280,9 +282,13 @@ export const createFinanceDisbursement = async (
         interest_amount: data.interestAmount,
         total_repayment_amount: data.totalRepaymentAmount,
         interest_treatment: data.interestTreatment || 'arrears',
+        interest_deduction_method: data.interestDeductionMethod || 'proceeds',
         proceeds_amount: data.interestTreatment === 'advance' 
-          ? data.financeAmount - data.interestAmount 
+          ? (data.interestDeductionMethod === 'client_account' 
+              ? data.financeAmount  // Full amount if from client account
+              : data.financeAmount - data.interestAmount)  // Deducted if from proceeds
           : data.financeAmount,
+        interest_debit_account: data.interestDebitAccount,
         auto_repayment_enabled: data.autoRepaymentEnabled,
         repayment_mode: data.repaymentMode,
         repayment_party: data.repaymentParty,

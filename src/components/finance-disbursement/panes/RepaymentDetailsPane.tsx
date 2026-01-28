@@ -14,6 +14,8 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
   formData,
   onFieldChange
 }) => {
+  const isAdvance = formData.interestTreatment === 'advance';
+
   return (
     <Card>
       <CardHeader>
@@ -98,16 +100,34 @@ const RepaymentDetailsPane: React.FC<RepaymentDetailsPaneProps> = ({
               <span className="font-medium">{formData.financeAmount.toFixed(2)} {formData.financeCurrency}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Interest Amount:</span>
+              <span className="text-muted-foreground">
+                Interest Amount:
+                {isAdvance && <span className="text-primary ml-1">(Collected in Advance)</span>}
+              </span>
               <span className="font-medium">{formData.interestAmount.toFixed(2)} {formData.financeCurrency}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Finance Tenor:</span>
               <span className="font-medium">{formData.financeTenorDays} days</span>
             </div>
+            {isAdvance && (
+              <div className="flex justify-between text-primary">
+                <span className="text-muted-foreground">Interest Treatment:</span>
+                <span className="font-medium">
+                  {formData.interestDeductionMethod === 'client_account' 
+                    ? 'From Client\'s Account' 
+                    : 'From Proceeds'}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between pt-2 border-t">
               <span className="font-semibold">Total Repayment Amount:</span>
-              <span className="font-semibold text-lg">{formData.totalRepaymentAmount.toFixed(2)} {formData.financeCurrency}</span>
+              <div className="text-right">
+                <span className="font-semibold text-lg">{formData.totalRepaymentAmount.toFixed(2)} {formData.financeCurrency}</span>
+                {isAdvance && (
+                  <p className="text-xs text-muted-foreground">Principal only - interest already collected</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

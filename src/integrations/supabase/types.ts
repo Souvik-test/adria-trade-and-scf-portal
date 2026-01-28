@@ -837,6 +837,8 @@ export type Database = {
           finance_tenor_days: number
           id: string
           interest_amount: number
+          interest_debit_account: string | null
+          interest_deduction_method: string | null
           interest_rate: number
           interest_rate_type: string
           interest_treatment: string | null
@@ -872,6 +874,8 @@ export type Database = {
           finance_tenor_days: number
           id?: string
           interest_amount: number
+          interest_debit_account?: string | null
+          interest_deduction_method?: string | null
           interest_rate: number
           interest_rate_type?: string
           interest_treatment?: string | null
@@ -907,6 +911,8 @@ export type Database = {
           finance_tenor_days?: number
           id?: string
           interest_amount?: number
+          interest_debit_account?: string | null
+          interest_deduction_method?: string | null
           interest_rate?: number
           interest_rate_type?: string
           interest_treatment?: string | null
@@ -3088,6 +3094,7 @@ export type Database = {
           id: string
           insurance_policies: Json | null
           insurance_required: boolean | null
+          interest_deduction_method: string | null
           interest_treatment: string | null
           margin_percentage: number | null
           max_disbursements_allowed: number | null
@@ -3172,6 +3179,7 @@ export type Database = {
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
+          interest_deduction_method?: string | null
           interest_treatment?: string | null
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null
@@ -3256,6 +3264,7 @@ export type Database = {
           id?: string
           insurance_policies?: Json | null
           insurance_required?: boolean | null
+          interest_deduction_method?: string | null
           interest_treatment?: string | null
           margin_percentage?: number | null
           max_disbursements_allowed?: number | null

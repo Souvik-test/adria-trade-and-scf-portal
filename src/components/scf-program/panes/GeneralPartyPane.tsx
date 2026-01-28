@@ -985,7 +985,13 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
                 <FormControl>
                   <Select
                     disabled={isReadOnly}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Reset deduction method when switching away from advance
+                      if (value !== 'advance') {
+                        form.setValue('interest_deduction_method', 'proceeds');
+                      }
+                    }}
                     value={field.value || 'arrears'}
                   >
                     <SelectTrigger>
@@ -1001,6 +1007,39 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
               </FormItem>
             )}
           />
+
+          {form.watch("interest_treatment") === "advance" && (
+            <FormField
+              control={form.control}
+              name="interest_deduction_method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Interest Deduction Method</FormLabel>
+                  <FormControl>
+                    <Select
+                      disabled={isReadOnly}
+                      onValueChange={field.onChange}
+                      value={field.value || 'proceeds'}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select deduction method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="proceeds">From Proceeds</SelectItem>
+                        <SelectItem value="client_account">From Client's Account</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {field.value === 'client_account' 
+                      ? 'Interest will be debited from client\'s account separately' 
+                      : 'Interest will be deducted from the disbursement proceeds'}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

@@ -18,6 +18,8 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
   onFieldChange
 }) => {
   const showExchangeRate = formData.invoiceCurrency !== formData.financeCurrency;
+  const isAdvance = formData.interestTreatment === 'advance';
+  const isFromClientAccount = formData.interestDeductionMethod === 'client_account';
 
   // Auto-calculate finance tenor and due date WITH GRACE PERIOD
   useEffect(() => {
@@ -86,7 +88,7 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
     }
   }, [formData.selectedInvoices, formData.exchangeRate, formData.financePercentage, showExchangeRate]);
 
-  // Auto-calculate interest and proceeds amount based on interest treatment
+  // Auto-calculate interest, proceeds, and total repayment based on interest treatment
   useEffect(() => {
     if (formData.financeAmount && formData.interestRate && formData.financeTenorDays) {
       const interest = calculateInterest(
@@ -95,15 +97,25 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
         formData.financeTenorDays
       );
       onFieldChange('interestAmount', interest);
-      onFieldChange('totalRepaymentAmount', formData.financeAmount + interest);
       
-      // Calculate proceeds based on interest treatment
-      const proceedsAmount = formData.interestTreatment === 'advance' 
-        ? formData.financeAmount - interest 
-        : formData.financeAmount;
+      // Calculate total repayment amount
+      // If Interest in Advance: repayment = finance amount only (interest already collected)
+      // If Interest in Arrears: repayment = finance amount + interest
+      const totalRepaymentAmount = isAdvance
+        ? formData.financeAmount  // Interest already collected upfront
+        : formData.financeAmount + interest;  // Interest collected at maturity
+      onFieldChange('totalRepaymentAmount', totalRepaymentAmount);
+      
+      // Calculate proceeds amount
+      // If Advance + From Proceeds: proceeds = finance amount - interest
+      // If Advance + From Client Account: proceeds = finance amount (interest collected separately)
+      // If Arrears: proceeds = finance amount (no deduction)
+      const proceedsAmount = (isAdvance && !isFromClientAccount)
+        ? formData.financeAmount - interest  // Deducted from proceeds
+        : formData.financeAmount;  // Full amount (arrears OR advance from client account)
       onFieldChange('proceedsAmount', proceedsAmount);
     }
-  }, [formData.financeAmount, formData.interestRate, formData.financeTenorDays, formData.interestTreatment]);
+  }, [formData.financeAmount, formData.interestRate, formData.financeTenorDays, formData.interestTreatment, formData.interestDeductionMethod]);
 
   return (
     <Card>
@@ -229,7 +241,13 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               <Label>Interest Treatment</Label>
               <Select 
                 value={formData.interestTreatment || 'arrears'} 
-                onValueChange={(value) => onFieldChange('interestTreatment', value)}
+                onValueChange={(value) => {
+                  onFieldChange('interestTreatment', value);
+                  // Reset deduction method when switching away from advance
+                  if (value !== 'advance') {
+                    onFieldChange('interestDeductionMethod', 'proceeds');
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -239,13 +257,32 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
                   <SelectItem value="advance">Interest in Advance</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                {formData.interestTreatment === 'advance' 
-                  ? 'Interest will be deducted from proceeds' 
-                  : 'Interest will not be deducted from finance amount'}
-              </p>
             </div>
           </div>
+
+          {/* Conditional Interest Deduction Method for Advance */}
+          {isAdvance && (
+            <div className="space-y-2">
+              <Label>Interest Deduction Method</Label>
+              <Select 
+                value={formData.interestDeductionMethod || 'proceeds'} 
+                onValueChange={(value) => onFieldChange('interestDeductionMethod', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="proceeds">From Proceeds</SelectItem>
+                  <SelectItem value="client_account">From Client's Account</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {isFromClientAccount 
+                  ? 'Interest will be debited from client\'s account separately' 
+                  : 'Interest will be deducted from the disbursement proceeds'}
+              </p>
+            </div>
+          )}
 
           {formData.interestRateType === 'manual' ? (
             <div className="space-y-2">
@@ -290,17 +327,35 @@ const FinanceDetailsPane: React.FC<FinanceDetailsPaneProps> = ({
               <span className="text-sm text-muted-foreground">Interest Amount:</span>
               <span className="font-medium">{formData.interestAmount.toFixed(2)} {formData.financeCurrency}</span>
             </div>
-            {formData.interestTreatment === 'advance' && (
+            
+            {isAdvance && !isFromClientAccount && (
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Net Proceeds (after interest deduction):</span>
                 <span className="font-medium text-primary">
-                  {(formData.financeAmount - formData.interestAmount).toFixed(2)} {formData.financeCurrency}
+                  {(formData.proceedsAmount || (formData.financeAmount - formData.interestAmount)).toFixed(2)} {formData.financeCurrency}
                 </span>
               </div>
             )}
-            <div className="flex justify-between">
+            
+            {isAdvance && isFromClientAccount && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Net Proceeds:</span>
+                  <span className="font-medium">{formData.financeAmount.toFixed(2)} {formData.financeCurrency}</span>
+                </div>
+                <div className="flex justify-between text-destructive">
+                  <span className="text-sm">Interest Debit (from client account):</span>
+                  <span className="font-medium">-{formData.interestAmount.toFixed(2)} {formData.financeCurrency}</span>
+                </div>
+              </>
+            )}
+            
+            <div className="flex justify-between pt-2 border-t">
               <span className="text-sm font-semibold">Total Repayment Amount:</span>
-              <span className="font-semibold text-lg">{formData.totalRepaymentAmount.toFixed(2)} {formData.financeCurrency}</span>
+              <span className="font-semibold text-lg">
+                {formData.totalRepaymentAmount.toFixed(2)} {formData.financeCurrency}
+                {isAdvance && <span className="text-xs text-muted-foreground ml-1">(Principal only)</span>}
+              </span>
             </div>
           </div>
         </div>

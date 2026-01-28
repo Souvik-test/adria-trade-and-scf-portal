@@ -62,7 +62,9 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     interestAmount: 0,
     totalRepaymentAmount: 0,
     interestTreatment: 'arrears',
+    interestDeductionMethod: 'proceeds',
     proceedsAmount: 0,
+    interestDebitAccount: '',
     
     // Program Parameters
     financePercentage: 100,
@@ -144,7 +146,9 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
       interestAmount: 0,
       totalRepaymentAmount: 0,
       interestTreatment: 'arrears',
+      interestDeductionMethod: 'proceeds',
       proceedsAmount: 0,
+      interestDebitAccount: '',
       financePercentage: 100,
       graceDays: 0,
       holidayTreatment: 'No Change',
