@@ -35,51 +35,18 @@ export const fetchSCFTransactions = async (
     // Collect invoice IDs for fetching related disbursements/repayments
     const invoiceIds = (invoices || []).map(inv => inv.id);
 
-    // Fetch ALL disbursements related to the found invoices (ignore date filters for related records)
-    let disbursementQuery = supabase
-      .from('invoice_disbursements')
-      .select('*, scf_invoices!inner(*)');
-
-    // If we have invoices, fetch their disbursements OR fetch by explicit filters
-    if (invoiceIds.length > 0) {
-      disbursementQuery = disbursementQuery.or(
-        `scf_invoice_id.in.(${invoiceIds.join(',')}),and(disbursed_at.gte.${fromDate},disbursed_at.lte.${toDate})`
-      );
-    } else {
-      disbursementQuery = disbursementQuery
-        .gte('disbursed_at', fromDate)
-        .lte('disbursed_at', toDate);
-    }
-
-    if (filters.programId) disbursementQuery = disbursementQuery.eq('program_id', filters.programId);
-    if (filters.transactionReference) {
-      disbursementQuery = disbursementQuery.ilike('loan_reference', `%${filters.transactionReference}%`);
-    }
-
-    const { data: disbursements, error: disbursementError } = await disbursementQuery;
+    // Fetch ALL disbursements using security definer function (bypasses RLS for custom auth)
+    const { data: disbursements, error: disbursementError } = await supabase.rpc(
+      'get_invoice_disbursements',
+      { p_invoice_ids: invoiceIds.length > 0 ? invoiceIds : null }
+    );
     if (disbursementError) throw disbursementError;
 
-    // Fetch ALL repayments related to the found invoices (ignore date filters for related records)
-    let repaymentQuery = supabase
-      .from('invoice_repayments')
-      .select('*, scf_invoices!inner(*)');
-
-    if (invoiceIds.length > 0) {
-      repaymentQuery = repaymentQuery.or(
-        `scf_invoice_id.in.(${invoiceIds.join(',')}),and(repayment_date.gte.${fromDate},repayment_date.lte.${toDate})`
-      );
-    } else {
-      repaymentQuery = repaymentQuery
-        .gte('repayment_date', fromDate)
-        .lte('repayment_date', toDate);
-    }
-
-    if (filters.programId) repaymentQuery = repaymentQuery.eq('program_id', filters.programId);
-    if (filters.transactionReference) {
-      repaymentQuery = repaymentQuery.ilike('repayment_reference', `%${filters.transactionReference}%`);
-    }
-
-    const { data: repayments, error: repaymentError } = await repaymentQuery;
+    // Fetch ALL repayments using security definer function (bypasses RLS for custom auth)
+    const { data: repayments, error: repaymentError } = await supabase.rpc(
+      'get_invoice_repayments',
+      { p_invoice_ids: invoiceIds.length > 0 ? invoiceIds : null }
+    );
     if (repaymentError) throw repaymentError;
 
     // Fetch all unique program IDs
@@ -154,7 +121,6 @@ export const fetchSCFTransactions = async (
     // Transform disbursements to transaction rows
     if (disbursements) {
       for (const disbursement of disbursements) {
-        const invoice = disbursement.scf_invoices;
         const program = programMap.get(disbursement.program_id);
 
         let counterPartyId = '';
@@ -166,8 +132,8 @@ export const fetchSCFTransactions = async (
           counterPartyName = counterParty.counter_party_name || '';
         }
 
-        // Calculate due date (disbursed_at + tenor)
-        const dueDate = invoice?.due_date || null;
+        // Use flattened data from RPC function
+        const dueDate = disbursement.invoice_due_date || null;
 
         transactions.push({
           id: disbursement.id,
@@ -181,10 +147,10 @@ export const fetchSCFTransactions = async (
           counterPartyName,
           transactionDate: disbursement.disbursed_at ? format(new Date(disbursement.disbursed_at), 'yyyy-MM-dd') : '',
           dueDate,
-          currency: invoice?.currency || 'USD',
+          currency: disbursement.invoice_currency || 'USD',
           amount: Number(disbursement.disbursed_amount) || 0,
           financeEligible: false,
-          relatedTransactionRefs: [invoice?.invoice_number || ''],
+          relatedTransactionRefs: [disbursement.invoice_number || ''],
           status: disbursement.disbursement_status || 'pending',
           rawData: disbursement,
         });
@@ -194,7 +160,6 @@ export const fetchSCFTransactions = async (
     // Transform repayments to transaction rows
     if (repayments) {
       for (const repayment of repayments) {
-        const invoice = repayment.scf_invoices;
         const program = programMap.get(repayment.program_id);
 
         let counterPartyId = '';
@@ -221,7 +186,7 @@ export const fetchSCFTransactions = async (
           currency: repayment.currency || 'USD',
           amount: Number(repayment.repayment_amount) || 0,
           financeEligible: false,
-          relatedTransactionRefs: [repayment.loan_reference, invoice?.invoice_number || ''],
+          relatedTransactionRefs: [repayment.loan_reference, repayment.invoice_number || ''],
           status: repayment.repayment_status || 'completed',
           rawData: repayment,
         });
