@@ -4316,6 +4316,49 @@ export type Database = {
           ui_display_type: string
         }[]
       }
+      get_invoice_disbursements: {
+        Args: { p_invoice_ids?: string[] }
+        Returns: {
+          accounting_entry_ref: string
+          created_at: string
+          disbursed_amount: number
+          disbursed_at: string
+          disbursement_status: string
+          finance_percentage: number
+          id: string
+          invoice_currency: string
+          invoice_due_date: string
+          invoice_number: string
+          invoice_status: string
+          loan_reference: string
+          program_id: string
+          rejection_reason: string
+          scf_invoice_id: string
+        }[]
+      }
+      get_invoice_repayments: {
+        Args: { p_invoice_ids?: string[] }
+        Returns: {
+          created_at: string
+          currency: string
+          id: string
+          interest_amount: number
+          invoice_number: string
+          loan_reference: string
+          penalty_amount: number
+          principal_amount: number
+          program_id: string
+          remarks: string
+          repayment_amount: number
+          repayment_date: string
+          repayment_mode: string
+          repayment_reference: string
+          repayment_status: string
+          scf_invoice_id: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_pane_section_mappings: {
         Args: { p_user_id: string }
         Returns: {
