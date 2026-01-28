@@ -12,40 +12,24 @@ export const fetchSCFTransactions = async (
     const fromDate = filters.fromDate || format(subMonths(new Date(), 6), 'yyyy-MM-dd');
     const toDate = filters.toDate || format(new Date(), 'yyyy-MM-dd');
 
-    // Fetch invoices (Invoice, Credit Note, Debit Note)
-    let invoiceQuery = supabase
-      .from('scf_invoices')
-      .select('*')
-      .gte('invoice_date', fromDate)
-      .lte('invoice_date', toDate);
-
-    // Wildcard search across multiple columns
-    if (filters.wildcardSearch && filters.wildcardSearch.trim() !== '') {
-      const searchTerm = `%${filters.wildcardSearch}%`;
-      invoiceQuery = invoiceQuery.or(`invoice_number.ilike.${searchTerm},program_id.ilike.${searchTerm},program_name.ilike.${searchTerm},buyer_name.ilike.${searchTerm},seller_name.ilike.${searchTerm},status.ilike.${searchTerm}`);
-    } else {
-      // Apply individual filters only if wildcardSearch is empty
-      if (filters.programId) invoiceQuery = invoiceQuery.eq('program_id', filters.programId);
-      if (filters.programName) invoiceQuery = invoiceQuery.ilike('program_name', `%${filters.programName}%`);
-      if (filters.transactionReference) {
-        invoiceQuery = invoiceQuery.ilike('invoice_number', `%${filters.transactionReference}%`);
-      }
-      if (filters.productType) {
-        invoiceQuery = invoiceQuery.eq('invoice_type', filters.productType);
-      }
-      if (filters.status) {
-        invoiceQuery = invoiceQuery.eq('status', filters.status);
-      }
-      if (filters.anchorId) invoiceQuery = invoiceQuery.eq('buyer_id', filters.anchorId);
-      if (filters.anchorName) invoiceQuery = invoiceQuery.ilike('buyer_name', `%${filters.anchorName}%`);
-      if (filters.counterPartyId) invoiceQuery = invoiceQuery.eq('seller_id', filters.counterPartyId);
-      if (filters.counterPartyName) invoiceQuery = invoiceQuery.ilike('seller_name', `%${filters.counterPartyName}%`);
-      if (filters.currency) invoiceQuery = invoiceQuery.eq('currency', filters.currency);
-      if (filters.minAmount) invoiceQuery = invoiceQuery.gte('total_amount', filters.minAmount);
-      if (filters.maxAmount) invoiceQuery = invoiceQuery.lte('total_amount', filters.maxAmount);
-    }
-
-    const { data: invoices, error: invoiceError } = await invoiceQuery;
+    // Fetch invoices using security definer function (bypasses RLS for custom auth users)
+    const { data: invoices, error: invoiceError } = await supabase.rpc('get_scf_invoices', {
+      p_from_date: fromDate,
+      p_to_date: toDate,
+      p_invoice_number: filters.transactionReference || null,
+      p_program_id: filters.programId || null,
+      p_program_name: filters.programName || null,
+      p_invoice_type: filters.productType || null,
+      p_status: filters.status || null,
+      p_buyer_id: filters.anchorId || null,
+      p_buyer_name: filters.anchorName || null,
+      p_seller_id: filters.counterPartyId || null,
+      p_seller_name: filters.counterPartyName || null,
+      p_currency: filters.currency || null,
+      p_min_amount: filters.minAmount || null,
+      p_max_amount: filters.maxAmount || null,
+      p_wildcard_search: filters.wildcardSearch?.trim() || null,
+    });
     if (invoiceError) throw invoiceError;
 
     // Collect invoice IDs for fetching related disbursements/repayments
