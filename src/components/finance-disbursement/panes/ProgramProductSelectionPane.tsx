@@ -84,6 +84,7 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
         onFieldChange('repaymentBy', program.repayment_by || '');
         onFieldChange('multipleDisbursement', program.multiple_disbursement || false);
         onFieldChange('maxDisbursementsAllowed', program.max_disbursements_allowed || 1);
+        onFieldChange('interestTreatment', program.interest_treatment || 'arrears');
         
         // Recalculate max finance amount with program's finance percentage
         const financePercentage = program.finance_percentage || 100;
@@ -129,6 +130,7 @@ const ProgramProductSelectionPane: React.FC<ProgramProductSelectionPaneProps> = 
       onFieldChange('repaymentBy', program.repayment_by || '');
       onFieldChange('multipleDisbursement', program.multiple_disbursement || false);
       onFieldChange('maxDisbursementsAllowed', program.max_disbursements_allowed || 1);
+      onFieldChange('interestTreatment', program.interest_treatment || 'arrears');
       onFieldChange('programDataLoaded', true);
       
       // Recalculate max finance amount

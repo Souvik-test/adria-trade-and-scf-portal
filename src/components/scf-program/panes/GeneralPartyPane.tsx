@@ -978,6 +978,32 @@ export const GeneralPartyPane = ({ isReadOnly, onNext }: GeneralPartyPaneProps) 
 
           <FormField
             control={form.control}
+            name="interest_treatment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Interest Treatment</FormLabel>
+                <FormControl>
+                  <Select
+                    disabled={isReadOnly}
+                    onValueChange={field.onChange}
+                    value={field.value || 'arrears'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select interest treatment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="arrears">Interest in Arrears</SelectItem>
+                      <SelectItem value="advance">Interest in Advance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="stale_period"
             render={({ field }) => (
               <FormItem>
