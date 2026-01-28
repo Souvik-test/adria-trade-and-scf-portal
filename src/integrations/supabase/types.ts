@@ -4171,6 +4171,30 @@ export type Database = {
           user_login_id: string
         }[]
       }
+      get_disbursement_by_loan_ref: {
+        Args: { p_loan_reference: string }
+        Returns: {
+          accounting_entry_ref: string
+          created_at: string
+          disbursed_amount: number
+          disbursed_at: string
+          disbursement_status: string
+          finance_percentage: number
+          id: string
+          invoice_buyer_id: string
+          invoice_buyer_name: string
+          invoice_currency: string
+          invoice_due_date: string
+          invoice_number: string
+          invoice_seller_id: string
+          invoice_seller_name: string
+          invoice_total_amount: number
+          loan_reference: string
+          program_id: string
+          program_name: string
+          scf_invoice_id: string
+        }[]
+      }
       get_dynamic_form_fields: {
         Args: { p_event_type: string; p_product_code: string }
         Returns: {
@@ -4316,6 +4340,28 @@ export type Database = {
           ui_display_type: string
         }[]
       }
+      get_invoice_by_number: {
+        Args: { p_invoice_number: string }
+        Returns: {
+          buyer_id: string
+          buyer_name: string
+          created_at: string
+          currency: string
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_description: string
+          invoice_number: string
+          invoice_type: string
+          program_id: string
+          program_name: string
+          seller_id: string
+          seller_name: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }[]
+      }
       get_invoice_disbursements: {
         Args: { p_invoice_ids?: string[] }
         Returns: {
@@ -4427,6 +4473,31 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      get_repayment_by_ref: {
+        Args: { p_repayment_reference: string }
+        Returns: {
+          accounting_entry_ref: string
+          created_at: string
+          currency: string
+          id: string
+          interest_amount: number
+          invoice_due_date: string
+          invoice_number: string
+          invoice_total_amount: number
+          loan_reference: string
+          penalty_amount: number
+          principal_amount: number
+          program_id: string
+          program_name: string
+          remarks: string
+          repayment_amount: number
+          repayment_date: string
+          repayment_mode: string
+          repayment_reference: string
+          repayment_status: string
+          scf_invoice_id: string
+        }[]
+      }
       get_scf_invoices: {
         Args: {
           p_buyer_id?: string
