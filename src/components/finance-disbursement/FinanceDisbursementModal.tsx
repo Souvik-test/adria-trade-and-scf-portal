@@ -162,6 +162,18 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
     if (preSelectedInvoices && preSelectedInvoices.length > 0 && isOpen) {
       const firstInvoice = preSelectedInvoices[0];
       
+      // Build the selectedInvoices array from pre-selected invoices for Finance Details calculations
+      const mappedInvoices = preSelectedInvoices.map(inv => ({
+        invoice_id: inv.id,
+        invoice_number: inv.transactionReference || inv.rawData?.invoice_number || '',
+        amount: inv.amount || 0,
+        currency: inv.currency || 'USD',
+        due_date: inv.dueDate || inv.rawData?.due_date || new Date().toISOString()
+      }));
+
+      const totalAmount = preSelectedInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+      const currency = firstInvoice.currency || 'USD';
+      
       setFormData(prev => ({
         ...prev,
         programId: preSelectedProgramId || firstInvoice.programId || '',
@@ -169,12 +181,18 @@ const FinanceDisbursementModal: React.FC<FinanceDisbursementModalProps> = ({
         productCode: firstInvoice.rawData?.product_code || productCode || '',
         productName: firstInvoice.rawData?.product_name || productName || '',
         preSelectedInvoiceIds: preSelectedInvoices.map(inv => inv.id),
-        totalInvoiceAmount: preSelectedInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0),
-        invoiceCurrency: firstInvoice.currency || 'USD'
+        preSelectedInvoicesData: preSelectedInvoices, // Store full pre-selected invoice data
+        selectedInvoices: mappedInvoices, // Set selectedInvoices for Finance Details pane
+        totalInvoiceAmount: totalAmount,
+        invoiceCurrency: currency,
+        financeCurrency: currency,
+        financeAmount: totalAmount, // Pre-set finance amount 
+        maxFinanceAmount: totalAmount, // Will be recalculated with financePercentage
+        financePercentage: 100 // Default, will be updated when program loads
       }));
       
-      // Skip to Invoice Selection pane
-      setCurrentPane(1);
+      // Stay on first pane to show program selection, but fields should be auto-populated
+      setCurrentPane(0);
     }
   }, [preSelectedInvoices, isOpen, preSelectedProgramId, preSelectedProgramName, productCode, productName]);
 
